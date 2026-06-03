@@ -1,0 +1,24 @@
+---
+description: When to use separate Cursor chats vs one long thread — reduces drift and wrong skill loading
+alwaysApply: true
+---
+
+# Chat profiles (separate conversations)
+
+Long threads cause orchestrator drift. Use **new chats** for distinct job types instead of one mega-thread.
+
+| Chat profile | Open when | Skills / rules | Stop when |
+|--------------|-----------|----------------|-----------|
+| **BA initiative** | Discovery, debrief, `/status`, `/next`, slicing, retro | ba-assistant (lazy), meeting-debrief | Task done — new chat for next task |
+| **Confluence / Jira publish** | Publish status, create tickets | publish-docs-to-confluence, fcm-jira-templates | Page/ticket live |
+| **Quick ask** | One factual question, no initiative state | Skip BA orchestrator | Answered |
+
+## Resume discipline
+
+- **Same initiative, new task** → new chat + first message: `BA resume — [task]` (triggers Step 2.75)
+- **Mid-thread drift** → `/reanchor` or new chat (prefer new chat if >30 turns)
+- **Never** rely on conversation summary alone — sessionStart hook injects SESSION-CONTEXT tail; agent must still Read full file on BA-resume
+
+## Workspace note
+
+Multi-root workspaces are supported. Classify the user's intent, not which folder is open.

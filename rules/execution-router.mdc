@@ -1,0 +1,49 @@
+---
+description: Classify each turn and route to the minimum correct skills — execute when decided
+alwaysApply: true
+---
+
+# Execution router
+
+Runs with session-start-protocol. This rule decides **what to load and whether to act** — it does not replace AskQuestion (still end every reply with AskQuestion per agent-behavior).
+
+## 1. Classify the turn (first action, silent)
+
+| Class | Signals | Required reads (use Read tool) | Then |
+|-------|---------|-------------------------------|------|
+| **BA-resume** | continue, resume, #2, initiative name, `/next` `/status` | `SESSION-CONTEXT.md`, `initiative-tracker.md`, `Project-hub.md` | Run BA Assistant Step 2.75 resume — **act on recommended next**, do not status-dump only |
+| **BA-new** | new initiative, Phase 0, intake | `instructions.md` only | BA welcome panel + intake |
+| **Non-BA** | debug code, syntax, generic explain | Project README/AGENTS only | Skip BA orchestrator |
+
+## 2. Skill loading — lazy, not bulk
+
+**On bootstrap read only:**
+- `ba-assistant/instructions.md`
+- `ba-assistant/hook-contracts.md`
+
+**Load sub-skills on demand** when the task requires them (debrief → `ba-meeting-debrief`, retro → `ba-retrospective-and-learning`, etc.).
+
+**Never** read all 27 BA sub-skills before the first user-visible reply. **Never** skip Step 2.75 file reads on a resume thread.
+
+## 3. AskQuestion + prior decisions (strict mode compatible)
+
+- AskQuestion is **still mandatory every reply** (agent-behavior).
+- If the user **already answered** the same decision in this thread or the conversation summary, **do not re-ask that decision** — use AskQuestion for **next-step options only**.
+- If AskQuestion **times out or fails**, proceed from the transcript and state what you are doing; end the turn with a fresh AskQuestion for next steps.
+- If user said **"sync now"** or chose sync in a prior answer, execute sync — do not ask again.
+
+## 4. Report (one line)
+
+> **Session context:** [class] | Skills: [loaded] | BA: [active/skipped]
+
+Then proceed.
+
+## 5. Required visible outputs (BA-resume reply)
+
+Every BA-resume first reply MUST contain all 5 items. Missing any = non-compliant.
+
+1. **Session context line** — `Session context: BA-resume | Skills: [list] | BA: active`
+2. **State file reads** — Use the Read tool on `SESSION-CONTEXT.md` and `initiative-tracker.md` BEFORE producing any reply text. If reads fail, say so.
+3. **One-line context** — Where we are (day, phase, last action) in one sentence.
+4. **Concrete next action** — What to do now. Not a summary of everything.
+5. **AskQuestion** — Structured clickable options for next steps. Not prose. Not optional.

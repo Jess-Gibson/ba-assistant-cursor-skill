@@ -1,0 +1,13 @@
+---
+description: Load project agent instructions from the open workspace when present
+alwaysApply: true
+---
+
+# Project context at conversation start
+
+**At the start of a new conversation**, if the **currently opened workspace** has any of these at its root, read them and use as primary context:
+
+1. **`!CLAUDE.md`** or **`AGENTS.md`** — how to work with the user, folder layout, commands, links.
+2. **`README.md`** — if there is no agent file, use the repo README for stack and conventions.
+
+If none of these exist or they are not readable, follow **agent-behavior.mdc** and **workspace-operations.mdc** only. Do not assume a specific product or ADR; infer from the open project.

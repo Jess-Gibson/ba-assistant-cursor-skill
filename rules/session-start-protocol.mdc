@@ -1,0 +1,35 @@
+---
+description: Mandatory pre-flight at conversation start — defer to execution-router for turn classification and required reads
+alwaysApply: true
+---
+
+# Session start protocol (mandatory)
+
+**This runs BEFORE responding to the first user message in any conversation, including resumes.**
+
+Do not skip this. Do not jump to task execution.
+
+## Pre-flight
+
+Follow `execution-router.mdc` — it owns turn classification, required file reads, and the mandatory output checklist. This rule adds two things on top:
+
+### 1. Project context (first chat in a workspace)
+
+- Read `AGENTS.md` or `!CLAUDE.md` at the workspace root (per `read-claude-first.mdc`)
+- Read `README.md` if no agent file exists
+
+### 2. Skill routing
+
+Scan the user's first message against `skills-routing.mdc`. Load **all matching skills** — not just the first match. Common multi-match patterns:
+
+- Workshop prep → `ba-workshop-design` + `miro-board-analysis` + `ba-assistant`
+- Requirements → `ba-requirements-interrogator` + `requirement-gatherer`
+- Canvas → always read SDK types before writing `.canvas.tsx`
+
+## Ongoing skill reporting (throughout the conversation)
+
+**Every time a skill is loaded or invoked**, report it with a short inline header:
+
+> **Skill loaded:** [skill name] — [one-line reason]
+
+This includes skills loaded at conversation start, mid-conversation when a new intent is detected, and BA sub-skills invoked during orchestration. Do not report internal tool calls (Read, Write, Shell) — only skill-level loads.

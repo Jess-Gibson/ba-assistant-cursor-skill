@@ -1,0 +1,46 @@
+---
+description: Route common intents to canonical Cursor skills so the user does not need to name them every time
+alwaysApply: true
+---
+
+# Skills routing
+
+## Proactive scanning (mandatory at conversation start)
+
+**At the start of every conversation (including resumes)**, scan the user's first message against **every intent row** in the table below. Load **all matching skills** before responding — not just the first match. This is enforced by `session-start-protocol.mdc`.
+
+- If the work is BA-heavy (analysis, facilitation, workshop, scoping, requirements, initiative lifecycle), the BA assistant row matches — load it.
+- If two skills match (e.g. Miro + BA workshop design), load both.
+- If three match, load all three.
+- The "more specific row wins" rule applies to **conflicts**, not to **complementary skills**. Workshop design and Miro board analysis are complementary; load both.
+- After loading, briefly report what was loaded (per session-start-protocol).
+
+## Routing table
+
+When a task matches an intent below, **open and follow** the corresponding skill under `.cursor/skills/<skill-folder>/SKILL.md`. Users should not have to type the skill name if the intent is clear.
+
+| Intent | Canonical skill folder | Notes |
+|--------|-------------------------|--------|
+| Diagrams, flows, architecture, journeys, "draw this" | `pm-diagram-generator` | Default Mermaid; Confluence publish to `publish-docs-to-confluence` |
+| Draft email, Slack, Teams, Confluence copy in the BA's voice | `[your-voice-and-style rule]` (create your own per CUSTOMIZATION.md) | Load your voice rule when drafting comms or stakeholder-facing prose |
+| Confluence publish/update/wiki/docs | `publish-docs-to-confluence` | Read `mcps/` schemas first |
+| Batch sync Confluence from repo Markdown (`confluence-pages.json`, dry-run / `--only`) | `confluence-registry-publish` | CLI in your workspace `tools/` directory; prefer `publish-docs-to-confluence` for one-off MCP pages |
+| Data analysis, metrics, queries, synthesis of findings | `pm-data-analyst` | Warehouse/log detail to `references/warehouse-and-sql.md`; narratives to `references/narrative-synthesis.md` |
+| Jira [YOUR-PROJECT] on [your-instance]: Bug / Story / Spike create or format | `fcm-jira-templates` | Read example issues PROJ-001, PROJ-002 (configure your canonical examples) via MCP first |
+| Jira production analytics (root-cause charts, problem-card deep-dive) | `jira-linked-production-analysis` | Pick mode A or B in skill |
+| Sumo logs, troubleshoot production, post-release regression watch | `sumo-troubleshooting-workflow` | Env + `sumo-knowledge.md` |
+| Multi-step implementation plan before coding | `writing-plans` | Often pairs with `subagent-driven-development` |
+| Discovery: requirements, AC, stakeholder questions | `requirement-gatherer` | Confluence/Jira when publishing |
+| Full PRD (All-in-One format) | `prd-all-in-one` | Distinct from a short synthesis |
+| Creative feature work before implementation | `brainstorming` | Run before building or specifying scope |
+| **BA Assistant**, `/ba-assistant`, initiative lifecycle (intake → playback), `/next` `/status` `/report` `/publish-status` | `ba-assistant` | Orchestrator for BA workspaces. Reads specialist `ba-*` skills by path. **Every turn:** end with **AskQuestion** for choices or next decision; Confluence **read-only** unless user asks to publish |
+| BA intake / PM all-in-one review only | `ba-assistant/sub-skills/ba-intake-reviewer` | Narrow scope; still prefer orchestrator for full flow |
+| BA discovery & requirements depth | `ba-assistant/sub-skills/ba-discovery-and-requirements` | |
+| BA feature slicing & sequencing | `ba-assistant/sub-skills/ba-feature-slicing-and-sequencing` | |
+| BA solution options & ADRs | `ba-assistant/sub-skills/ba-solution-shaping` | |
+| BA epics/stories/DoR | `ba-assistant/sub-skills/ba-delivery-definition` | Pairs with `ba-assistant/sub-skills/ba-definition-of-ready` |
+| BA RAID / living tracker | `ba-assistant/sub-skills/ba-risk-and-tracker` | |
+| BA requirements interrogation — "we need X", "the requirement is Y", "can we add Z", requirement change mid-flight, in-flight impact assessment | `ba-assistant/sub-skills/ba-requirements-interrogator` | Runs before requirement-gatherer writes anything; also invoke when a requirement changes after design/code exists |
+| BA project canvas, `/canvas`, "project dashboard", "visual status", "generate canvas" | `ba-assistant/sub-skills/ba-project-canvas` | Interactive tabbed canvas; also triggered by `/status` within BA Assistant sessions |
+
+If two skills seem relevant, prefer the **more specific** row (e.g. project Jira templates before generic Jira). When unsure, ask one clarifying question rather than loading every skill.

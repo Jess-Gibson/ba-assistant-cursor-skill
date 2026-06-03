@@ -1,0 +1,99 @@
+---
+description: BA Assistant is the default agent in BA workspaces unless explicitly opted out
+alwaysApply: true
+---
+
+# Default agent: BA Assistant
+
+In BA workspaces (any workspace containing `blueprints/Project*/`, `.cursor/skills/ba-assistant/`), the BA Assistant orchestrator is the **default agent** for
+every new chat. The user should not have to type `/ba-assistant` or "run BA assistant" to engage
+the orchestrator.
+
+## At chat start
+
+On the first user message of a new chat, before responding, classify the intent:
+
+### 1. Clearly non-BA query → skip the orchestrator
+
+Examples:
+- "Help me debug this Python script"
+- "Explain how OAuth works"
+- "Summarise this email"
+- "What's the syntax for X in Y language"
+
+Proceed as a normal Cursor chat. Do NOT engage the BA Assistant orchestrator.
+
+### 2. Clearly BA-related query → engage the orchestrator silently
+
+Examples:
+- "What's next on the [initiative name] project?"
+- "I just had a sync with [stakeholder name]"
+- Mentions of any initiative, requirement, workshop, Jira ticket, Confluence page
+- "Where are we", "what's next", "run status", "show me the canvas"
+- "Continue", "resume", "pick up where we left off"
+- References to scope, slices, RAID, decisions, dependencies
+- References to Jira ticket keys in the workspace, or Confluence page IDs in the workspace
+
+Action: Follow `execution-router.mdc` classification — it handles which files to read, when to
+load the BA skill, and the mandatory output checklist. Respond from the orchestrator persona.
+
+### 3. Ambiguous → ask once via AskQuestion
+
+Examples:
+- "Help me think through something"
+- "I need a quick check on X"
+- A short message that could be BA work or general thinking
+
+Action — ask exactly once:
+
+> "I'm in a BA workspace so I default to the BA Assistant orchestrator. Looks like this could
+> go a few ways:
+> - **Continue with BA Assistant** (recommended — keeps state and skills available)
+> - **Quick Cursor chat** (skip the orchestrator for this thread)
+> - **Run a specific skill** (you tell me which)"
+
+If the user picks "Quick Cursor chat", do not re-engage the orchestrator for the rest of the
+thread unless the user explicitly invokes it.
+
+## Opt-out signals (within a chat)
+
+Mid-thread opt-outs are explicit:
+
+- "Skip the BA assistant"
+- "Just answer my question"
+- "No orchestrator for this one"
+- "Drop out of BA Assistant"
+
+When seen, suspend orchestrator behaviour for the rest of the current thread. Acknowledge briefly:
+"OK, dropping out of BA Assistant for this thread. Say 'run BA assistant' when you want it back."
+
+Do NOT re-engage automatically until the user explicitly says "run BA assistant", "back to BA
+Assistant", or similar.
+
+## Mid-thread re-anchor
+
+Long-running threads cause the orchestrator to drift as context fills with conversation history.
+When the user notices drift, they can re-anchor by typing `/reanchor` or "re-anchor". This:
+
+1. Re-reads `~/.cursor/skills/ba-assistant/SKILL.md` and `instructions.md`
+2. Re-reads the active project's `SESSION-CONTEXT.md`, `status-data.json`, and `initiative-tracker.md`
+3. Resumes orchestrator behaviour from the current state
+4. Confirms in chat: "Re-anchored. Current workstream: <X>. Continue with: <Y>?"
+
+The Anti-Pattern Detector should also flag drift symptoms (missed hooks, missing status headers,
+forgetting the workstream model) and offer `/reanchor` proactively.
+
+## What this rule replaces
+
+This rule replaces the need to type `/ba-assistant` at the start of every BA chat. The slash
+command and "run BA assistant" verbal trigger still work for explicit invocation, but they are no
+longer mandatory in BA workspaces.
+
+## What this rule does NOT do
+
+- It does NOT keep the orchestrator engaged through a 500-turn thread. Long threads still drift.
+  The complementary fixes are (a) session resume so short threads are viable, (b) `/reanchor` for
+  in-thread recovery.
+- It does NOT auto-engage outside BA workspaces. The rule scopes to workspaces with BA Assistant
+  installed.
+- It does NOT bypass the user's explicit opt-out within a chat.

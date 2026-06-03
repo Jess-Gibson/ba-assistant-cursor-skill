@@ -1,0 +1,55 @@
+---
+description: Workspace file locations and available tools
+alwaysApply: true
+---
+
+# Workspace Operations
+
+## Input File Locations
+
+| Input Type | Where to Put It | Notes |
+|------------|-----------------|-------|
+| **Meeting transcripts (.docx)** | The user's downloads folder (configure via `BA_DOWNLOADS_PATH` environment variable) | **Auto-check on every resume/new task.** See §Downloads Check below. |
+| Meeting audio (.m4a, .mp3) | `tools/whisper/data/input/` | Output in `data/output/` |
+| Handwritten notes (photos) | `tools/notebook-ocr/inbox/` | Auto-processed if watcher running |
+| PowerPoint (.pptx) | Anywhere, reference directly | Auto-converted to `.cursor/converted/` |
+| Data for analysis | `context/data/` | Temporary staging |
+| Screenshots | Attach directly in chat | Or put in project folder |
+
+## Downloads Check (mandatory)
+
+**On every session start, resume, or return from a meeting:**
+
+1. **Immediately** list `.docx` files in the user's downloads folder (configure via `BA_DOWNLOADS_PATH` environment variable) sorted by `LastWriteTime` descending (top 5).
+2. If any `.docx` files are **newer than the last known session timestamp** (check SESSION-CONTEXT session log), treat them as unprocessed meeting transcripts.
+3. Extract text using `py -c "from docx import Document; ..."` and process as a debrief.
+4. **Do not assume there are no new files.** Always check. The user may download meeting transcripts to their Downloads folder. Check for new .docx files and process them as debriefs.
+
+This check should happen **before** asking the user what they need.
+
+## Agent temporary / scratch files
+
+**Do not** write throwaway or intermediate files (MCP JSON payloads, one-line exports, scratch scripts, debug dumps, merge artifacts) under **OneDrive-backed workspace trees** — sync and long paths make that slow and noisy.
+
+**Prefer** the machine local temp area instead, for example:
+
+- **PowerShell:** `$env:LOCALAPPDATA\Temp\cursor-agent-scratch\` (create the folder if missing), or `$env:TEMP\` with a clear filename prefix like `cursor-`.
+- **Stable path (this profile):** `$LOCALAPPDATA/Temp/cursor-agent-scratch/` (Windows) or `/tmp/cursor-agent-scratch/` (macOS/Linux)
+
+Use the repo `tools/` folder only for **intentional** project artifacts the team keeps; not for ephemeral agent output.
+
+## MCP Tools Available
+
+| Tool | Purpose |
+|------|---------|
+| **Jira MCP** | Create, read, update Jira cards |
+| **Confluence MCP** | Search, read, create Confluence pages |
+
+## Claude Code (optional)
+
+To use **Claude Code** inside Cursor (Anthropic's coding assistant with inline diffs, @-mentions, plan review):
+
+1. **Install the extension** — In Cursor: **Cmd+Shift+X** → search **"Claude Code"** (publisher: Anthropic) → **Install**. Or open: `cursor:extension/anthropic.claude-code` in a browser/link handler that Cursor supports.
+2. **Open Claude Code** — Click **✱ Claude Code** in the status bar (bottom-right) or the **spark icon** in the editor toolbar (top-right when a file is open). Or **Cmd+Shift+P** → "Claude Code: Open in New Tab".
+3. **Sign in** — On first open, sign in with your Claude Pro/Max or Anthropic Console account.
+4. **CLI in terminal** — To use the CLI in Cursor's terminal: ensure `~/.local/bin` is in PATH (see `~/.zshrc`), then run `claude`. Use `/ide` if you started `claude` in an external terminal and want to connect to Cursor.

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<!-- Visual produced against visual-output-format.md v1.0 / 2026-05-30 -->
+<!-- Template: flowchart -->
+<!-- Replace HEADER, STATS, NODE SVG, EDGES, and nodes JS object with actual content. -->
+<!-- Keep the design system, interaction pattern, and detail panel structure as-is. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>[REPLACE: Process Name] — Process Flow</title>
+<style>
+  :root {
+    --bg: #faf9f6;
+    --panel: #ffffff;
+    --ink: #1c1c1c;
+    --ink-soft: #4a4a4a;
+    --ink-faint: #8a8a8a;
+    --rule: #e5e3dd;
+    --deterministic: #2563eb;
+    --ai: #0891b2;
+    --human: #059669;
+    --decision: #d97706;
+    --output: #7c3aed;
+    --deterministic-bg: #dbeafe;
+    --ai-bg: #cffafe;
+    --human-bg: #d1fae5;
+    --decision-bg: #fed7aa;
+    --output-bg: #ede9fe;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+  .container { max-width: 1280px; margin: 0 auto; padding: 32px 40px 64px; }
+
+  header { border-bottom: 1px solid var(--rule); padding-bottom: 20px; margin-bottom: 24px; }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 8px;
+  }
+  h1 {
+    font-family: 'Source Serif Pro', Georgia, serif;
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+  }
+  .subtitle { color: var(--ink-soft); font-size: 15px; max-width: 720px; }
+  .meta { display: flex; gap: 24px; margin-top: 16px; font-size: 12px; color: var(--ink-faint); }
+  .meta span strong { color: var(--ink); font-weight: 500; }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .stat { background: var(--panel); padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+  .stat-num { font-family: 'Source Serif Pro', Georgia, serif; font-size: 24px; font-weight: 600; line-height: 1; }
+  .stat-label { font-size: 11px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.06em; }
+  .stat.det .stat-num { color: var(--deterministic); }
+  .stat.ai .stat-num { color: var(--ai); }
+  .stat.human .stat-num { color: var(--human); }
+  .stat.decision .stat-num { color: var(--decision); }
+  .stat.output .stat-num { color: var(--output); }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    padding: 12px 16px;
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    margin-bottom: 24px;
+    font-size: 12px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .legend-swatch { width: 12px; height: 12px; border-radius: 3px; }
+
+  .flow {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 32px 24px;
+    overflow-x: auto;
+    margin-bottom: 24px;
+  }
+  svg { display: block; margin: 0 auto; max-width: 100%; }
+
+  .node { cursor: pointer; transition: transform 0.15s ease, filter 0.15s ease; }
+  .node:hover { filter: brightness(0.95); transform: translateY(-1px); }
+  .node rect { stroke-width: 1.5; }
+  .node.deterministic rect { fill: var(--deterministic-bg); stroke: var(--deterministic); }
+  .node.ai rect { fill: var(--ai-bg); stroke: var(--ai); }
+  .node.human rect { fill: var(--human-bg); stroke: var(--human); }
+  .node.decision polygon { fill: var(--decision-bg); stroke: var(--decision); stroke-width: 1.5; }
+  .node.output rect { fill: var(--output-bg); stroke: var(--output); stroke-width: 2; }
+  .node text {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    fill: var(--ink);
+    text-anchor: middle;
+    dominant-baseline: middle;
+    pointer-events: none;
+  }
+  .node text.sub { font-size: 10px; font-weight: 400; fill: var(--ink-soft); }
+  .node.active rect, .node.active polygon { stroke-width: 3; }
+
+  .edge { stroke: var(--ink-faint); stroke-width: 1.5; fill: none; }
+  .edge-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    fill: var(--ink-soft);
+    text-anchor: middle;
+  }
+
+  .detail {
+    position: fixed;
+    top: 0;
+    right: -480px;
+    width: 460px;
+    height: 100vh;
+    background: var(--panel);
+    border-left: 1px solid var(--rule);
+    padding: 32px 28px;
+    overflow-y: auto;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: -20px 0 40px -20px rgba(0,0,0,0.1);
+    z-index: 10;
+  }
+  .detail.open { right: 0; }
+  .detail-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--ink-faint);
+    width: 32px;
+    height: 32px;
+    line-height: 1;
+  }
+  .detail-close:hover { color: var(--ink); }
+  .detail-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+    padding: 4px 10px;
+    display: inline-block;
+    border-radius: 4px;
+  }
+  .detail-eyebrow.deterministic { color: var(--deterministic); background: var(--deterministic-bg); }
+  .detail-eyebrow.ai { color: var(--ai); background: var(--ai-bg); }
+  .detail-eyebrow.human { color: var(--human); background: var(--human-bg); }
+  .detail-eyebrow.decision { color: var(--decision); background: var(--decision-bg); }
+  .detail-eyebrow.output { color: var(--output); background: var(--output-bg); }
+  .detail h2 {
+    font-family: 'Source Serif Pro', Georgia, serif;
+    font-size: 22px;
+    font-weight: 600;
+    margin: 8px 0 20px;
+    line-height: 1.25;
+  }
+  .detail-section { margin-bottom: 20px; }
+  .detail-section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    margin-bottom: 6px;
+  }
+  .detail-section-value { font-size: 14px; color: var(--ink); }
+  .detail-section-value.body { color: var(--ink-soft); line-height: 1.55; }
+  .detail-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .detail-tag {
+    font-size: 11px;
+    padding: 3px 8px;
+    background: #f4f3ee;
+    border-radius: 4px;
+    color: var(--ink-soft);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .empty-hint { text-align: center; padding: 24px; color: var(--ink-faint); font-size: 13px; font-style: italic; }
+
+  footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+    font-size: 11px;
+    color: var(--ink-faint);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+Pro:wght@600&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+
+<header>
+  <div class="eyebrow">[REPLACE: Section / Domain] · Process Flow</div>
+  <h1>[REPLACE: Process Name]</h1>
+  <p class="subtitle">[REPLACE: 1-2 sentence description. End with: "Click any node to see its detail."]</p>
+  <div class="meta">
+    <span><strong>Owner:</strong> [REPLACE: team]</span>
+    <span><strong>Last reviewed:</strong> [REPLACE: date]</span>
+    <span><strong>Process ID:</strong> [REPLACE: ID]</span>
+  </div>
+</header>
+
+<!-- STATS: update counts per node type -->
+<div class="stats">
+  <div class="stat"><div class="stat-num">[N]</div><div class="stat-label">Total steps</div></div>
+  <div class="stat det"><div class="stat-num">[N]</div><div class="stat-label">Deterministic</div></div>
+  <div class="stat ai"><div class="stat-num">[N]</div><div class="stat-label">AI / probabilistic</div></div>
+  <div class="stat human"><div class="stat-num">[N]</div><div class="stat-label">Human-in-loop</div></div>
+  <div class="stat decision"><div class="stat-num">[N]</div><div class="stat-label">Decision gates</div></div>
+  <div class="stat output"><div class="stat-num">[N]</div><div class="stat-label">Outputs</div></div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="legend-swatch" style="background: var(--deterministic-bg); border: 1.5px solid var(--deterministic);"></span> Deterministic / automated</div>
+  <div class="legend-item"><span class="legend-swatch" style="background: var(--ai-bg); border: 1.5px solid var(--ai);"></span> AI / probabilistic</div>
+  <div class="legend-item"><span class="legend-swatch" style="background: var(--human-bg); border: 1.5px solid var(--human);"></span> Human-in-the-loop</div>
+  <div class="legend-item"><span class="legend-swatch" style="background: var(--decision-bg); border: 1.5px solid var(--decision); transform: rotate(45deg);"></span> Decision gate</div>
+  <div class="legend-item"><span class="legend-swatch" style="background: var(--output-bg); border: 2px solid var(--output);"></span> Output</div>
+</div>
+
+<div class="flow">
+<!-- SVG: replace viewBox dimensions and node/edge layout for your process -->
+<svg viewBox="0 0 1200 640" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8a8a8a"/>
+    </marker>
+  </defs>
+
+  <!-- EDGES: <path class="edge" d="M x1 y1 L x2 y2" marker-end="url(#arrow)"/> -->
+  <!-- Decision-gate edges may have <text class="edge-label" x="X" y="Y">Label</text> -->
+
+  <!-- NODES: one <g class="node TYPE" data-id="nN">...</g> per step -->
+  <!-- Rectangle node template: -->
+  <!--
+  <g class="node deterministic" data-id="n1">
+    <rect x="80" y="40" width="200" height="50" rx="6"/>
+    <text x="180" y="58">Node title</text>
+    <text x="180" y="76" class="sub">Optional subtitle</text>
+  </g>
+  -->
+  <!-- Diamond decision node template: -->
+  <!--
+  <g class="node decision" data-id="n5">
+    <polygon points="180,480 250,510 180,540 110,510"/>
+    <text x="180" y="513">Decision label</text>
+  </g>
+  -->
+</svg>
+</div>
+
+<div class="empty-hint" id="empty-hint">↑ Click any node to open its detail</div>
+
+</div>
+
+<aside class="detail" id="detail">
+  <button class="detail-close" id="close-btn">&times;</button>
+  <span class="detail-eyebrow" id="detail-type"></span>
+  <h2 id="detail-title"></h2>
+  <div class="detail-section">
+    <div class="detail-section-label">Actor</div>
+    <div class="detail-section-value" id="detail-actor"></div>
+  </div>
+  <div class="detail-section">
+    <div class="detail-section-label">Typical duration</div>
+    <div class="detail-section-value" id="detail-duration"></div>
+  </div>
+  <div class="detail-section">
+    <div class="detail-section-label">What happens</div>
+    <div class="detail-section-value body" id="detail-desc"></div>
+  </div>
+  <div class="detail-section">
+    <div class="detail-section-label">Failure modes</div>
+    <div class="detail-section-value body" id="detail-failures"></div>
+  </div>
+  <div class="detail-section">
+    <div class="detail-section-label">Connected requirements / RAID</div>
+    <div class="detail-tags" id="detail-tags"></div>
+  </div>
+</aside>
+
+<footer>
+  <div class="container">Generated [DATE] · Interactive process flow · Click nodes for detail · Print to PDF for static share</div>
+</footer>
+
+<script>
+// NODES: one entry per node id used in the SVG above.
+// Every node MUST have: type, title, actor, duration, desc, failures, tags.
+const nodes = {
+  // n1: { type: 'deterministic', title: '...', actor: '...', duration: '...', desc: '...', failures: '...', tags: ['BR-001'] },
+  // n2: { type: 'ai', ... },
+  // n3: { type: 'human', ... },
+  // n4: { type: 'decision', ... },
+  // n5: { type: 'output', ... }
+};
+
+// The interaction code below does not need to be modified.
+const detail = document.getElementById('detail');
+const hint = document.getElementById('empty-hint');
+
+document.querySelectorAll('.node').forEach(node => {
+  node.addEventListener('click', () => {
+    const id = node.dataset.id;
+    const data = nodes[id];
+    if (!data) return;
+    document.querySelectorAll('.node.active').forEach(n => n.classList.remove('active'));
+    node.classList.add('active');
+    const typeEl = document.getElementById('detail-type');
+    typeEl.textContent = data.type.replace(/^./, c => c.toUpperCase());
+    typeEl.className = 'detail-eyebrow ' + data.type;
+    document.getElementById('detail-title').textContent = data.title;
+    document.getElementById('detail-actor').textContent = data.actor;
+    document.getElementById('detail-duration').textContent = data.duration;
+    document.getElementById('detail-desc').textContent = data.desc;
+    document.getElementById('detail-failures').textContent = data.failures;
+    const tagsEl = document.getElementById('detail-tags');
+    tagsEl.innerHTML = '';
+    data.tags.forEach(t => {
+      const span = document.createElement('span');
+      span.className = 'detail-tag';
+      span.textContent = t;
+      tagsEl.appendChild(span);
+    });
+    detail.classList.add('open');
+    hint.style.display = 'none';
+  });
+});
+
+document.getElementById('close-btn').addEventListener('click', () => {
+  detail.classList.remove('open');
+  document.querySelectorAll('.node.active').forEach(n => n.classList.remove('active'));
+  hint.style.display = '';
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    detail.classList.remove('open');
+    document.querySelectorAll('.node.active').forEach(n => n.classList.remove('active'));
+    hint.style.display = '';
+  }
+});
+</script>
+</body>
+</html>

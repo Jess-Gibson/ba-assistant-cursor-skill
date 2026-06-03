@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/session-init.ps1",
+        "timeout": 10
+      },
+      {
+        "type": "prompt",
+        "prompt": "SESSION START: Classify per execution-router.mdc. BA-resume requires: (1) Read SESSION-CONTEXT.md + initiative-tracker.md, (2) one-line Session context header, (3) one concrete next action, (4) AskQuestion with clickable options. Missing any = non-compliant. Input: $ARGUMENTS",
+        "timeout": 12
+      }
+    ],
+    "preCompact": [
+      {
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/snapshot-before-compact.ps1",
+        "timeout": 8
+      }
+    ]
+  }
+}

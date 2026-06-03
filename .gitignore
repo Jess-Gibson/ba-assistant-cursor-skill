@@ -1,0 +1,22 @@
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+
+# Per-initiative state files (created at runtime, not part of the package)
+SESSION-CONTEXT.md
+initiative-tracker.md
+Project-hub.md
+status-data.json
+confluence-pages.json
+superseded-pages.json
+metrics-cache.json
+status-snapshot.html
+*.canvas.tsx
+
+# Temp/scratch
+cursor-agent-scratch/

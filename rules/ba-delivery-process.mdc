@@ -1,0 +1,65 @@
+---
+description: BA end-to-end process and runbook for AI-enhanced delivery (discovery through retrospective); map to this workspace's skills and MCPs
+alwaysApply: true
+---
+
+# Business analysis (BA) — process and runbook
+
+**Authoritative source copies** (read for full detail):
+
+- [`docs/ba/ba_end_to_end_process.md`](../docs/ba/ba_end_to_end_process.md) — end-to-end BA process, principles, phases, integration guidelines, agent/skill best practices.  
+- [`docs/ba/ba_runbook.md`](../docs/ba/ba_runbook.md) — setup, operational playbook (steps 0–7), guardrails, stage gates.
+
+> **Note:** These docs may live in your workspace under `docs/ba/` or at a custom path. Update the paths to match your workspace.
+
+When a task is **BA-heavy** (discovery, requirements, Confluence/Jira, analysis, BRD/PRD, root-cause, diagrams, data narrative), follow those documents and this rule. **Do not** replace [agent-behavior.mdc](agent-behavior.mdc) (AskQuestion, safety); this rule **adds** process expectations.
+
+## Guiding principles (from E2E process)
+
+1. **Context first** — Prefer project `AGENTS.md` / `!CLAUDE.md` and linked knowledge; keep them updated when decisions land.  
+2. **Declarative work** — State goals, inputs, and outputs; avoid prescribing implementation before requirements are clear.  
+3. **Stop for human approval** — After discovery summaries, problem definitions, **implementation plans**, prototype reviews, and before destructive or high-risk actions: pause for explicit confirmation (aligns with existing guardrails).  
+4. **Plan then execute** — For multi-step or structural work, produce and get agreement on a plan before large edits (see [writing-plans](.cursor/skills/writing-plans/SKILL.md) as needed).  
+5. **Iterative prototypes** — For exploratory build work, use [prototype-builder](.cursor/skills/prototype-builder/SKILL.md); small cycles, verify assumptions.  
+6. **Second-order thinking** — Ask what system caused an issue, what dependencies exist, and whether assumptions are explicit (as documented in ba-profile.mdc).  
+7. **Citations** — When using external research, cite sources.  
+8. **Least privilege** — Subagents/tools only as needed; research vs write separation where possible.
+
+## Phased flow (summary)
+
+| Phase | Intent |
+| --- | --- |
+| 1 Discovery & scoping | Brief, research, stakeholders, elicitation, prioritised requirements **→ user review before deep analysis** |
+| 2 Problem analysis | Root cause, dependencies, data validation, risks **→ user approval** |
+| 3 Solution design | Decomposition, **approved plan** before code, prototype loop, Jira/Confluence, early QA on design |
+| 4 Quality & delivery | Gates, human sign-off, documentation updates, deploy/monitor with regression awareness |
+| 5 Retrospective | Lessons learned, propose skill/agent updates, update context files |
+
+## Runbook guardrails (non-negotiables)
+
+- **Plan then execute** before writing code or large structural changes.  
+- **Human approval** at critical handoffs (summaries, plans, audits, retros as applicable).  
+- **Definition of done** per stage; do not skip without calling it out.  
+- **Separate branches** for prototypes/Features; no direct-to-main without review.  
+- **Context resets** on long or task switches; summarise state; use subagents to reduce bleed.  
+- **Security/privacy** — no plain-text secrets; anonymise where appropriate for analysis.
+
+## Workspace skill mapping (use when names differ from runbook)
+
+The runbook names `.claude` agents and generic skills. In **this** workspace, route using [.cursor/rules/skills-routing.mdc](skills-routing.mdc) and `.cursor/skills/`, for example:
+
+- Requirement / AC / discovery → `requirement-gatherer`  
+- Diagrams / flows → `pm-diagram-generator`  
+- Confluence → `publish-docs-to-confluence` (read MCP schemas first)  
+- Jira (FCM patterns) → `fcm-jira-templates` or Atlassian MCP as appropriate  
+- Data / metrics / narrative → `pm-data-analyst`  
+- Prototyping → `prototype-builder`  
+- Quality review of requirements or design → `qa-checker`  
+- PRD structure → `prd-all-in-one`  
+- Multi-step delivery plans → `writing-plans` / `subagent-driven-development`  
+
+If an external **ba-orchestrator** or **dependency-mapper** is not present, the **default agent** should still follow the same **phases, gates, and DoD** from the two docs.
+
+## MCP
+
+Use configured MCPs (Jira, Confluence, Sumo, Snowflake, etc.) per [workspace-operations.mdc](workspace-operations.mdc) and the user's environment; verify access when the runbook calls for a "blocking check".

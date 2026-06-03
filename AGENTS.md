@@ -24,11 +24,19 @@ If the user has just cloned this repo or opened it for the first time:
 When guiding a new user through setup:
 
 ### Step 1: Skill installation
-The user needs to copy or symlink the `skills/ba-assistant/` folder to `~/.cursor/skills/ba-assistant/`. On Windows this is `%USERPROFILE%\.cursor\skills\ba-assistant\`.
+The user needs to copy or symlink the `skills/ba-assistant/` folder from THIS repo to `~/.cursor/skills/ba-assistant/`. On Windows this is `%USERPROFILE%\.cursor\skills\ba-assistant\`.
 
-Check if it exists:
+First, check if an existing installation exists:
 - Windows: `Test-Path "$env:USERPROFILE\.cursor\skills\ba-assistant\SKILL.md"`
 - macOS/Linux: `test -f ~/.cursor/skills/ba-assistant/SKILL.md`
+
+**If an existing installation is found:**
+- List the files to show the user what's there
+- Check if the existing SKILL.md contains the credit line "Originally designed and built by Jess Gibson" — if yes, it's likely the generic package already installed
+- If it does NOT contain the credit line, or contains files like `demo-cheat-sheet.md` or `audit-2026-05-20.md`, warn the user: "You have an existing BA Assistant installation that appears to be a personal/customized version, not the shareable package. Would you like to: (a) back up the existing version and replace it, (b) skip this step — I'm already using my own version, (c) compare the two versions."
+- **Never overwrite without confirmation.**
+
+**If no installation exists:** Proceed with copying the files from this repo.
 
 ### Step 2: Rules installation
 Copy all `.mdc` files from `rules/` to `~/.cursor/rules/`. Warn the user if they already have files with the same names — merge rather than overwrite.

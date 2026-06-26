@@ -1,4 +1,4 @@
-# RAID Format Standard
+﻿# RAID Format Standard
 
 **Location:** `~/.cursor/skills/ba-assistant/references/raid-format.md`
 **Owner:** ba-risk-and-tracker (workflow), this standard (format)
@@ -17,7 +17,7 @@ Two locations, distinct ownership:
 | Location | What lives there | Canonical for |
 |---|---|---|
 | `initiative-tracker.md` | Narrative entries with reasoning, evidence, history | Source of truth for RAID content |
-| `status-data.json → raid` | Structured derived view | Source of truth for IDs, dates, owners, statuses |
+| `status-data.json â†’ raid` | Structured derived view | Source of truth for IDs, dates, owners, statuses |
 
 When a narrative entry in the tracker is updated, the structured view in `status-data.json` re-derives on next Project Canvas regeneration. The tracker is the human-edited source; the JSON is the machine view.
 
@@ -30,7 +30,7 @@ Risks are things that *might* happen and *would matter*.
 ### In `initiative-tracker.md`
 
 ```markdown
-### R-12 · Vendor ID verification capacity may be insufficient at launch
+### R-12 Â· Vendor ID verification capacity may be insufficient at launch
 **Likelihood:** Medium
 **Impact:** High
 **Owner:** [Tech Lead name]
@@ -89,19 +89,19 @@ If vendor responds with "no uplift available" or load test shows degradation at 
 ### Risk status transitions
 
 ```
-open → mitigated (mitigation is in place; risk is reduced but not eliminated)
-open → realised (the risk has happened; convert to issue or incident)
-open → closed (the conditions for the risk no longer apply)
-mitigated → realised (mitigation insufficient)
-mitigated → closed
+open â†’ mitigated (mitigation is in place; risk is reduced but not eliminated)
+open â†’ realised (the risk has happened; convert to issue or incident)
+open â†’ closed (the conditions for the risk no longer apply)
+mitigated â†’ realised (mitigation insufficient)
+mitigated â†’ closed
 ```
 
 ### Anti-patterns
 
 - Risk with no `owner` or `owner: "TBD"`
 - Risk with `status: open` and no mitigation
-- Risk where likelihood × impact would suggest "high" but `status` has been "open" >30 days with no progress
-- Risk that's actually an issue (it has already happened) — should be in the Issues section
+- Risk where likelihood Ã— impact would suggest "high" but `status` has been "open" >30 days with no progress
+- Risk that's actually an issue (it has already happened) â€” should be in the Issues section
 
 ---
 
@@ -112,7 +112,7 @@ Assumptions are things we're *taking as true* without explicit verification.
 ### In `initiative-tracker.md`
 
 ```markdown
-### A-04 · Vendor X's response times will hold at projected launch volume
+### A-04 Â· Vendor X's response times will hold at projected launch volume
 **Confidence:** Medium
 **Owner:** [Tech Lead]
 **Status:** Untested
@@ -154,7 +154,7 @@ Assumptions with `status: untested` and `createdAt` older than 30 days surface a
 Issues are things that *are happening now* and matter.
 
 ```markdown
-### I-03 · Manual review queue is at 3-day age, breaching 24-hour SLA
+### I-03 Â· Manual review queue is at 3-day age, breaching 24-hour SLA
 **Severity:** High
 **Owner:** [Compliance Ops Lead]
 **Status:** Active
@@ -191,7 +191,7 @@ Two reviewers temporarily reassigned from BAU; root cause analysis underway to d
 Dependencies are things outside your direct control that you need.
 
 ```markdown
-### DEP-05 · Legal sign-off on customer-facing decline messaging
+### DEP-05 Â· Legal sign-off on customer-facing decline messaging
 **Type:** Internal
 **Owner (us):** [BA Name]
 **Owner (them):** [Legal lead]
@@ -202,7 +202,7 @@ Dependencies are things outside your direct control that you need.
 **Description:**
 Customer-facing decline messages need legal review for fraud-coaching risk and clarity. Three message variants need approval before merchant-facing implementation can ship.
 
-**Critical path?** Yes — blocks Phase 5 delivery for Cohort A.
+**Critical path?** Yes â€” blocks Phase 5 delivery for Cohort A.
 
 **Escalation path:**
 If not received by 3 June, escalate via PM to legal team lead.
@@ -238,7 +238,7 @@ Dependencies with `status: pending` and `lastContact` >7 working days trigger an
 Decisions are *made*, not pending. Decisions have rationale and alternatives. Decisions can be reversed but the original is preserved with a `supersededBy` link.
 
 ```markdown
-### D-04 · Use vendor X for ID verification
+### D-04 Â· Use vendor X for ID verification
 **Date decided:** 12 May 2026
 **Owner:** [Tech Lead] with [PM] and [BA] input
 **Status:** Confirmed
@@ -252,8 +252,8 @@ Vendor X selected over Vendor Y based on:
 - Regulatory coverage matches our jurisdictions
 
 **Alternatives considered:**
-1. Vendor Y — higher cost, marginally better accuracy on edge cases
-2. Build in-house — rejected due to 6-month timeline vs 6-week vendor integration
+1. Vendor Y â€” higher cost, marginally better accuracy on edge cases
+2. Build in-house â€” rejected due to 6-month timeline vs 6-week vendor integration
 
 **Trade-offs accepted:**
 - Vendor X has 1.5 percentage points lower published accuracy on identity documents from emerging markets
@@ -280,10 +280,10 @@ If vendor X consistently misses SLA in pre-prod load testing, decision reopens f
 
 ### Decision anti-patterns
 
-- Decision with no rationale → reject
-- Decision with no alternatives considered → flag for review
+- Decision with no rationale â†’ reject
+- Decision with no alternatives considered â†’ flag for review
 - Decision marked `confirmed` that's actually tentative (no sponsor or PM acknowledgement)
-- Decisions accumulating in tracker but missing from `status-data.json → decisions` → Project Canvas regeneration not running
+- Decisions accumulating in tracker but missing from `status-data.json â†’ decisions` â†’ Project Canvas regeneration not running
 
 ---
 
@@ -292,7 +292,7 @@ If vendor X consistently misses SLA in pre-prod load testing, decision reopens f
 Open questions are *known unknowns* that need answers.
 
 ```markdown
-### OQ-08 · Should rejected applications retain a record we'd re-show on re-application?
+### OQ-08 Â· Should rejected applications retain a record we'd re-show on re-application?
 **Owner to answer:** [PM]
 **Asked by:** [BA Name]
 **Date raised:** 18 May 2026
@@ -336,15 +336,15 @@ Open questions in `status: open` for >14 days without movement (no `lastContact`
 **ID uniqueness:** R, A, I, DEP, D, OQ are independent number-spaces. R-12 and A-12 can coexist. Within a type, numbers don't reuse.
 
 **Conversion paths:**
-- Risk that realises → becomes an Issue (note "Converted from R-XX" in the new Issue)
-- Open question that's answered → becomes a Decision (link with "Resolved OQ-XX")
-- Assumption that's invalidated → consider whether it converts to a Risk
+- Risk that realises â†’ becomes an Issue (note "Converted from R-XX" in the new Issue)
+- Open question that's answered â†’ becomes a Decision (link with "Resolved OQ-XX")
+- Assumption that's invalidated â†’ consider whether it converts to a Risk
 
 **Sign-off interaction:**
-Decisions that require formal approval link to a `SO-XX` entry in `status-data.json → signOffs`. Decision status stays `tentative` until the sign-off is `approved`.
+Decisions that require formal approval link to a `SO-XX` entry in `status-data.json â†’ signOffs`. Decision status stays `tentative` until the sign-off is `approved`.
 
 **State Validator interaction:**
-Drift between RAID in `initiative-tracker.md` and `status-data.json → raid` is caught by the State Validator. The tracker wins on conflict (per Wave 5 ownership rules).
+Drift between RAID in `initiative-tracker.md` and `status-data.json â†’ raid` is caught by the State Validator. The tracker wins on conflict (per Wave 5 ownership rules).
 
 ---
 
@@ -367,3 +367,4 @@ Drift between RAID in `initiative-tracker.md` and `status-data.json → raid` is
 ## 10. Versioning
 
 v1.0 (2026-05-30). Changes to required fields, new RAID type, or new status enum values require version bump.
+

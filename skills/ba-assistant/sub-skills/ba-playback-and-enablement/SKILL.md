@@ -1,4 +1,4 @@
----
+﻿---
 name: ba-playback-and-enablement
 description: Playback materials, sign-offs, enablement. Use for playback phase in BA Assistant.
 ---
@@ -385,7 +385,7 @@ For multi-stakeholder communications (same news, different audiences), produce t
 | `ba-solution-evaluation` | Post-launch results readout |
 | `ba-sponsor-engagement` | Sponsor briefing notes, escalations |
 | `ba-change-strategy` | Change kickoff comms, stakeholder change notices |
-| `ba-delivery-definition` (DoR MoSCoW gate) | MoSCoW gap messages to PM |
+| `ba-story-writing` (DoR MoSCoW gate) | MoSCoW gap messages to PM |
 
 ### Failure modes (restored from pre-Wave 1)
 
@@ -401,3 +401,5 @@ For multi-stakeholder communications (same news, different audiences), produce t
 ### Migration note (Wave 3)
 
 This content was previously the `ba-communication-drafter` skill. The standalone skill is now a SUPERSEDED marker; comms drafting runs as a utility section within Playback and Enablement but is invokable by any other skill via the `Communication_Drafter` hook name.
+
+

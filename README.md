@@ -2,7 +2,7 @@
 
 A comprehensive Business Analysis assistant built as a Cursor skill. Designed to support BAs through the full initiative lifecycle — from intake and discovery through delivery, playback, and retrospective.
 
-> Originally designed and built by **Jess Gibson**, Senior BA at MYOB (2025–2026).
+> Originally designed and built by Jess Gibson, Senior BA (2025–2026).
 > Built iteratively across real BA initiatives using agent-assisted development.
 
 ---
@@ -21,16 +21,16 @@ The BA Assistant is an AI-powered BA thinking partner that runs inside [Cursor](
 - **Retrospectives** — structured learning capture that feeds back into future initiatives
 - **Confluence/Jira integration** — status page publishing, ticket creation, and live sync via MCP
 
-### 21 active sub-skills
+### 23 active sub-skills
 
 | Phase | Skills |
 |-------|--------|
-| Intake | Intake Reviewer |
+| Intake | Intake Reviewer, Setup (first-run wizard) |
 | Kickoff | Workshop Design |
 | Discovery | Current State Assessment, Discovery & Requirements, Requirements Interrogator |
 | Slicing | Feature Slicing & Sequencing |
 | Solution | Solution Shaping |
-| Delivery | Delivery Definition, Jira Sync |
+| Delivery | Story Writing, Jira Sync |
 | Playback | Playback & Enablement |
 | Evaluation | Solution Evaluation, Retrospective & Learning |
 | Change | Change Strategy |
@@ -44,6 +44,10 @@ The BA Assistant is an AI-powered BA thinking partner that runs inside [Cursor](
 | `/status` | Full current state with canvas and HTML snapshot |
 | `/canvas` | Generate/refresh the interactive project dashboard |
 | `/report` | Full structured deep-dive report |
+| `/validate-state` | Mid-session drift check (read-only) |
+| `/wrap` | End-of-session closeout — promotes items, refreshes workboard |
+| `/fast-track` | Enable condensed BA flow for time-critical initiatives |
+| `/metrics` | Show BA quality metrics for the initiative |
 | `/retro` | Trigger a retrospective |
 | `/reanchor` | Re-read state files when the assistant drifts |
 
@@ -52,9 +56,17 @@ The BA Assistant is an AI-powered BA thinking partner that runs inside [Cursor](
 ## Quick start
 
 ```bash
-# Clone into your Cursor skills directory
-cd ~/.cursor/skills
-git clone https://github.com/Jess-Gibson/ba-assistant-cursor-skill.git ba-assistant
+# Clone the repo, then copy the skill into your Cursor skills directory
+
+# macOS / Linux
+git clone https://github.com/Jess-Gibson/ba-assistant-cursor-skill.git /tmp/ba-cursor-skill
+cp -r /tmp/ba-cursor-skill/skills/ba-assistant ~/.cursor/skills/ba-assistant
+cp /tmp/ba-cursor-skill/rules/*.mdc ~/.cursor/rules/
+
+# Windows (PowerShell)
+git clone https://github.com/Jess-Gibson/ba-assistant-cursor-skill.git "$env:TEMP\ba-cursor-skill"
+Copy-Item "$env:TEMP\ba-cursor-skill\skills\ba-assistant" "$env:USERPROFILE\.cursor\skills\ba-assistant" -Recurse
+Copy-Item "$env:TEMP\ba-cursor-skill\rules\*.mdc" "$env:USERPROFILE\.cursor\rules\"
 ```
 
 Then follow the full setup guide in [SETUP.md](SETUP.md).
@@ -80,7 +92,7 @@ skills/ba-assistant/
   hook-contracts.md           # Inter-skill API registry
   learnings.md                # Cross-initiative patterns (grows over time)
   references/                 # 7 artefact format standards
-  sub-skills/                 # 21 active skills + 7 redirect stubs
+  sub-skills/                 # 23 active skills
 rules/                        # 10 Cursor rules for routing, behaviour, and session management
 hooks/                        # Cross-platform session hooks (PowerShell + Bash)
 blueprints/                   # Starter project folder convention

@@ -8,7 +8,7 @@
       },
       {
         "type": "prompt",
-        "prompt": "SESSION START: Classify per execution-router.mdc. BA-resume requires: (1) Read SESSION-CONTEXT.md + initiative-tracker.md, (2) one-line Session context header, (3) one concrete next action, (4) AskQuestion with clickable options. Missing any = non-compliant. Input: $ARGUMENTS",
+        "prompt": "SESSION START: Classify per execution-router.mdc. BA-resume requires: (1) Read SESSION-CONTEXT.md + initiative-tracker.md, (2) present the Re-entry Card (initiative | phase | day | where we are | next action | Jira delta | sync status), (3) AskQuestion with clickable options including recommended next action. Missing any = non-compliant. Input: $ARGUMENTS",
         "timeout": 12
       }
     ],

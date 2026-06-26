@@ -2,6 +2,8 @@
 
 This document explains what to personalize after installing the BA Assistant package. The package ships with generic defaults — customize these to match your role, org, and tooling.
 
+> **New users:** The BA Assistant includes a first-run setup wizard that handles most of this automatically. On first launch, if `ba-profile.mdc` still contains `[Your Name]` placeholders, the wizard will guide you through configuration interactively. You only need this guide if you want to go deeper than what the wizard covers, or to customize manually.
+
 ---
 
 ## 1. BA Profile Rule (`rules/ba-profile.mdc`)
@@ -57,7 +59,7 @@ Replace the placeholder Jira project references with your actual project keys:
 | Jira: Bug / Story / Spike create or format | your-jira-templates | Read example issues via MCP first |
 ```
 
-If you use a specific Jira project skill (like FCM templates), add it to the routing table and install it separately.
+If you use a specific Jira project skill for your team's ticket format (customized for your workflow), add it to the routing table and install it separately. See `references/jira-ticket-format.md` for the generic ticket structure the BA Assistant uses by default.
 
 ### Removing unused rows
 
@@ -175,6 +177,6 @@ These files contain generic BA methodology and should generally be kept as-is:
 - `references/requirement-format.md` — requirements register format
 - `references/visual-output-format.md` — diagram output conventions
 - `references/templates/flowchart.html` — HTML template
-- Sub-skills marked as GENERIC in the audit (context-capture, current-state-assessment, solution-shaping, stakeholder-strategy, visual-storytelling, requirements-interrogator)
+- Sub-skills marked as GENERIC in the audit (context-capture, current-state-assessment, solution-shaping, stakeholder-strategy, visual-storytelling, requirements-interrogator, ba-story-writing)
 
 Modifying these may break inter-skill contracts. If you need different formats, consider creating org-specific overrides rather than editing the base files.

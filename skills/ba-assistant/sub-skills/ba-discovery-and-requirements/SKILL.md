@@ -1,4 +1,4 @@
-# Skill: Discovery and Requirements
+﻿# Skill: Discovery and Requirements
 
 ## Standards used
 
@@ -149,7 +149,7 @@ re-interrogated and a confirmed statement is produced.
 
     | Requirement | Initiative | Feature A | Feature B | Cohort 1 (under B) | Cohort 2 (under B) | Slice X |
     |---|---|---|---|---|---|---|
-    | REQ-001 (Identity check) | Must | — | Must | Must | Should | — |
+    | REQ-001 (KYB check) | Must | — | Must | Must | Should | — |
     | REQ-002 (Audit log) | Must | Must | Must | Must | Must | Must |
     | REQ-003 (Pre-fill data) | Could | — | Should | Must | — | Could |
 
@@ -169,7 +169,7 @@ re-interrogated and a confirmed statement is produced.
     - Stories with `Could` rating that are blocking critical-path delivery for a `Must` requirement flag as anti-pattern ("low-priority work blocking high-priority").
 
     **Why this matters:**
-    - The same requirement can be Must for one cohort but Could for another (e.g. for [Example Project], "Audit log" is Must for Cohort A but Could for Cohort B).
+    - The same requirement can be Must for one cohort but Could for another (e.g. for KYC/KYB Project 002, "Audit log" is Must for the Existing OIP cohort but Could for the New OP cohort).
     - Forces the PM to commit to scoping decisions explicitly rather than rolling forward with ambiguity.
     - Gives the BA defensible evidence in playback about why specific scope was/wasn't delivered.
     - Surfaces MoSCoW gaps automatically rather than discovering them at delivery review.
@@ -186,7 +186,7 @@ re-interrogated and a confirmed statement is produced.
   - *Operations*: How is the process executed today?  Where do things break?  What tools and workarounds are used?  What would make it easier?
   - *Design/Service*: What user journeys are affected?  Do we need new UI or content?  What is the desired user experience?
 - **Requirement capture:**  What must the system do to solve the problem?  Are there constraints on performance, latency, availability, scalability?  Are there security or privacy requirements?  Are there data reporting requirements?  Are there operational support requirements?  Are there design content requirements?  What are the acceptance criteria?
-- **Missing inputs:**  What have we not asked?  Who else should we talk to?  What data might confirm or disprove our assumptions?  Are there unspoken requirements we're assuming?
+- **Missing inputs:**  What have we not asked?  Who else should we talk to?  What data might confirm or disprove our assumptions?  Are there unspoken requirements we’re assuming?
 
 ## Output format
 Requirements, MoSCoW matrices, and JTBD entries conform to `references/requirement-format.md`. Read that file before writing any requirement entry. The format is the authoritative source.
@@ -196,7 +196,7 @@ Requirements, MoSCoW matrices, and JTBD entries conform to `references/requireme
 The Discovery and Requirements skill should produce:
 
 - **Current state map definitions** – For each process/system/data flow, describe the current state in bullet form and provide diagram definitions in Mermaid or PlantUML.  Include pain points and failure modes.
-- **Stakeholder interview summaries** – A table or bullet list capturing each stakeholder's key points, open questions, and any requirements they specified.
+- **Stakeholder interview summaries** – A table or bullet list capturing each stakeholder’s key points, open questions, and any requirements they specified.
 - **Requirements lists** – Two lists:
   - *High‑level requirements*: broad statements of intent that align with the problem and solution scope.
   - *Lower‑level requirements*: detailed behaviour, including functional requirements (features/capabilities), non‑functional requirements (performance, security, availability), compliance/legal requirements, data/reporting requirements, design/content requirements, operational/process requirements, and acceptance considerations.
@@ -209,7 +209,7 @@ The Discovery and Requirements skill should produce:
 The Discovery and Requirements skill must ensure completeness without drowning in detail:
 
 - If transcripts or documentation are absent, note that limitation and suggest stakeholder interviews or data analysis to fill gaps.
-- If requirements are stated vaguely, prompt for measurable criteria or specific conditions ("What volume should the system handle?").  If the user cannot answer, record it as a missing requirement.
+- If requirements are stated vaguely, prompt for measurable criteria or specific conditions (“What volume should the system handle?”).  If the user cannot answer, record it as a missing requirement.
 - Distinguish between what is stated and what is assumed; challenge assumptions and encourage validation.
 - Encourage data‑driven thinking: ask if there is data to support pain points or success metrics.  Suggest simple analysis tasks.
 - Do not commit to solution directions; remain focused on understanding the problem and what is needed.

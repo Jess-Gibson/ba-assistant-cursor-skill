@@ -1,10 +1,10 @@
----
+﻿---
 name: ba-requirements-interrogator
 description: >
   Challenges and interrogates requirements through conversation before they become
-  design decisions, stories, or code — and reassesses them when they change mid-flight.
+  design decisions, stories, or code â€” and reassesses them when they change mid-flight.
   Invoke whenever someone states a requirement, user story, feature request, or need
-  — regardless of how it is phrased or where it comes from (verbal, Confluence page,
+  â€” regardless of how it is phrased or where it comes from (verbal, Confluence page,
   Jira ticket, BRD, PM brief, or mid-conversation statement). Also invoke when a
   requirement is being questioned after a solution exists, when something has changed
   in scope or understanding, or when development is already in flight and a requirement
@@ -20,7 +20,7 @@ description: >
 
 Challenges and interrogates requirements through conversation. The goal is to
 reach a shared, verified understanding of *why* a requirement exists and *what
-it really means* — before it is written up, before it is ticketed, and before
+it really means* â€” before it is written up, before it is ticketed, and before
 code is written against it.
 
 Also runs when requirements change mid-flight: surfaces the impact across
@@ -48,13 +48,13 @@ The conversation mimics the best PM-PO-BA dynamic:
 
 This is a conversation between peers. The BA is a thinking partner helping
 the PM or PO articulate something they already understand but haven't yet
-made fully explicit — not interrogating a witness.
+made fully explicit â€” not interrogating a witness.
 
 - Be curious and genuinely interested in the problem
-- Ask one good question at a time — follow the thread, don't fire a list
+- Ask one good question at a time â€” follow the thread, don't fire a list
 - Challenge with care: "help me understand if we're solving X or Y" not "why do you need this"
-- Be comfortable with ambiguity — surfacing uncertainty is valuable even if the answer waits
-- Never block — if a question can't be answered now, log it and keep moving
+- Be comfortable with ambiguity â€” surfacing uncertainty is valuable even if the answer waits
+- Never block â€” if a question can't be answered now, log it and keep moving
 - Never jump to solutions before the problem is understood
 
 ---
@@ -63,9 +63,9 @@ made fully explicit — not interrogating a witness.
 
 Before drafting any provisional requirement statement, surface in chat:
 
-- **What's known** with evidence (cite the source — Confluence page X, user said in this session, Jira PROJ-N).
-- **Knowledge gaps** — things you don't know that affect the requirement. Don't bury them in the draft.
-- **Assumptions** — what you're assuming to be true so the draft can exist. Surface so the user can challenge.
+- **What's known** with evidence (cite the source â€” Confluence page X, user said in this session, Jira PROJ-N).
+- **Knowledge gaps** â€” things you don't know that affect the requirement. Don't bury them in the draft.
+- **Assumptions** â€” what you're assuming to be true so the draft can exist. Surface so the user can challenge.
 
 Then state your recommended direction and the trade-off, and ask the user's take with `AskQuestion`. Produce the provisional requirement (see Discovery output below) only after the user responds.
 
@@ -79,13 +79,13 @@ Detect which mode applies from these signals. State the mode at the start.
 
 | Signal | Mode |
 |---|---|
-| "We need X", "can we add Y", "the requirement is Z" — no solution exists | **Discovery** |
+| "We need X", "can we add Y", "the requirement is Z" â€” no solution exists | **Discovery** |
 | Solution/design/tickets exist and someone is questioning or evolving a requirement | **Rethink** |
 | Stories are in progress or done, branches exist, code has been written | **In-flight** |
 
 If unsure, ask: "Has work started on this yet?" That single question routes to the right mode.
 
-### Mode 1 — Discovery
+### Mode 1 â€” Discovery
 *A requirement has been stated. No solution exists yet.*
 
 The job is to understand the real need before anything gets written down.
@@ -95,7 +95,7 @@ change. Ask whether it is one requirement or three.
 Do not write a requirements document until the interrogation produces a
 clear, confirmed understanding of the need.
 
-### Mode 2 — Rethink
+### Mode 2 â€” Rethink
 *A solution or design exists, and the requirement is being questioned
 or has evolved.*
 
@@ -103,10 +103,10 @@ The job is to re-anchor the requirement against what now exists. What
 changed? Did the requirement change, or did the understanding of it change?
 What does the delta mean for the solution?
 
-Surface: original understanding → new understanding → gap → what needs
+Surface: original understanding â†’ new understanding â†’ gap â†’ what needs
 to change in the solution.
 
-### Mode 3 — In-flight
+### Mode 3 â€” In-flight
 *Development has started. Code, tickets, or branches exist against this
 requirement. The requirement is now being changed or questioned.*
 
@@ -119,13 +119,13 @@ See the **In-flight impact assessment** section for the full process.
 
 ---
 
-## The conversation — discovery mode
+## The conversation â€” discovery mode
 
-The questions below are prompts for the BA's judgment — not a script to
+The questions below are prompts for the BA's judgment â€” not a script to
 work through sequentially. A good interrogation uses three or four of these
 at most, following the thread that surfaces the most uncertainty.
 
-**Always start here — this single question opens almost everything:**
+**Always start here â€” this single question opens almost everything:**
 
 > "Help me understand the problem this is solving. Who is experiencing it,
 > and what does that experience look like for them today?"
@@ -134,13 +134,13 @@ Follow the answer. If it is clear and specific, you may only need one or
 two more questions. If it is vague or general, keep following until it
 becomes concrete.
 
-**Prompts to draw on as needed — pick the ones that matter:**
+**Prompts to draw on as needed â€” pick the ones that matter:**
 
 ### Understanding the why
 
 - Why does this need to exist? What is the underlying problem?
 - Who experiences this problem today, and how often?
-- What does it cost them — in time, in decisions made incorrectly, in
+- What does it cost them â€” in time, in decisions made incorrectly, in
   manual work, in risk?
 - How are they dealing with it right now in the absence of this?
 - Would they describe this as a blocker, a pain point, or a nice-to-have?
@@ -191,14 +191,14 @@ becomes concrete.
 
 Ask directly: "What happens if we don't do this?"
 
-If the answer is specific and consequential — proceed.
-If the answer is vague or is really about future optionality —
+If the answer is specific and consequential â€” proceed.
+If the answer is vague or is really about future optionality â€”
 challenge the priority. Is this needed now, or is it being pulled
 forward prematurely?
 
 ---
 
-### JTBD lens — when to apply
+### JTBD lens â€” when to apply
 
 Apply Jobs-to-be-Done framing when the requirement is about a *user goal*
 or *customer experience*. Less applicable for pure system, integration,
@@ -212,7 +212,7 @@ JTBD asks: what *job* is the user "hiring" this for, across three dimensions?
 | **Emotional** | How do they want to feel during and after? | "Confident the payment will succeed; not embarrassed at the counter" |
 | **Social** | How do they want to be perceived by others? | "Look as professional as a bigger business; not amateurish" |
 
-**Job story format** — alternative to user stories when the JTBD lens is in play:
+**Job story format** â€” alternative to user stories when the JTBD lens is in play:
 
 > When [situation], I want to [motivation], so I can [expected outcome].
 
@@ -238,7 +238,7 @@ persona-bias (assuming what "the merchant" wants based on category).
   in the moment they need this?"
 - "How do they want to *feel* after using this? What would they
   *avoid* feeling?"
-- "How do they want to be *perceived* by others — customers, peers,
+- "How do they want to be *perceived* by others â€” customers, peers,
   regulators, their team?"
 - "Is the solution doing the functional job, but not the emotional or
   social one? Is that good enough?"
@@ -250,30 +250,30 @@ satisfies all three dimensions or only one.
 
 ---
 
-## The conversation — rethink mode
+## The conversation â€” rethink mode
 
 When a requirement is being revisited after a solution exists, start by
-understanding what changed — not by redesigning.
+understanding what changed â€” not by redesigning.
 
 > "What changed? Was it new information, a different understanding, or
 > did the requirement itself evolve?"
 
 Then work through:
 
-1. **Original understanding** — what did we agree the requirement meant?
+1. **Original understanding** â€” what did we agree the requirement meant?
    Read the Confluence page, the Jira epic description, or the BRD section
    to get the original stated intent.
 
-2. **New understanding** — what does it mean now? How is it different?
+2. **New understanding** â€” what does it mean now? How is it different?
 
-3. **Gap** — where exactly do they diverge? Is it scope, priority,
+3. **Gap** â€” where exactly do they diverge? Is it scope, priority,
    definition, or a completely different need?
 
-4. **Solution impact** — given the delta, what needs to change in the
+4. **Solution impact** â€” given the delta, what needs to change in the
    solution? Is this a small clarification, a story-level change, or
    a fundamental redesign?
 
-5. **In-flight check** — has development started? If yes, switch to
+5. **In-flight check** â€” has development started? If yes, switch to
    Mode 3 (In-flight) before anything else changes.
 
 ---
@@ -283,7 +283,7 @@ Then work through:
 When a requirement changes after development has started, the impact
 must be assessed across the full lifecycle before any changes are made.
 
-### Step 1 — Read current state
+### Step 1 â€” Read current state
 
 Gather what already exists against this requirement. Use available tools
 (Confluence MCP, Jira MCP, filesystem) where connected. If tools are not
@@ -311,7 +311,7 @@ Read codebase (if accessible):
 what the BA needs to check and where, so the impact assessment can be
 completed offline.
 
-### Step 2 — Categorise the impact
+### Step 2 â€” Categorise the impact
 
 Once the current state is read, categorise what the change affects:
 
@@ -320,15 +320,15 @@ Once the current state is read, categorise what the change affects:
 | PRD / requirements doc | Minor clarification | Update in place |
 | PRD / requirements doc | Scope change | Flag for re-sign-off |
 | Confluence design docs | Affected by change | Update + version |
-| Jira — open stories | Affected | Re-refine before work starts |
-| Jira — in-progress stories | Affected | Surface to EM immediately |
-| Jira — done stories | Affected | Raise a new change ticket |
+| Jira â€” open stories | Affected | Re-refine before work starts |
+| Jira â€” in-progress stories | Affected | Surface to EM immediately |
+| Jira â€” done stories | Affected | Raise a new change ticket |
 | Code on main | Affected | Raise a change ticket with scope of rework |
-| WIP branch | Affected | Flag to engineer — pause or rework |
+| WIP branch | Affected | Flag to engineer â€” pause or rework |
 | DB migration already run | Affected | New migration required |
 | Rosetta stone published | Affected | Data team engagement required |
 
-### Step 3 — Produce impact summary
+### Step 3 â€” Produce impact summary
 
 Output a clear summary:
 
@@ -341,9 +341,9 @@ Requirement change:
 Impact assessment:
   PRD: [no change / update in place / re-sign-off needed]
   Confluence pages: [list affected pages]
-  Jira — open: [list affected stories + recommended action]
-  Jira — in progress: [list + flag to EM]
-  Jira — done: [list + change ticket needed]
+  Jira â€” open: [list affected stories + recommended action]
+  Jira â€” in progress: [list + flag to EM]
+  Jira â€” done: [list + change ticket needed]
   Codebase: [affected files/modules if identifiable]
   WIP branches: [list if accessible]
   DB / migrations: [any already-run migrations affected]
@@ -354,7 +354,7 @@ Recommended actions:
   New tickets needed: [description of any change tickets to raise]
 ```
 
-### Step 4 — Recommend change actions
+### Step 4 â€” Recommend change actions
 
 This skill does not create or modify Jira tickets directly. It produces a clear
 recommendation of what needs to happen and hands off to the BA or Delivery Definition skill.
@@ -368,7 +368,7 @@ For each affected item, state the recommended action explicitly:
 
 Surface all recommended actions in a single prioritised list so the BA can act on them
 in sequence. Do not silently omit affected items. Do not assume the BA has already seen
-the impact — make it explicit.
+the impact â€” make it explicit.
 
 ---
 
@@ -382,7 +382,7 @@ the person to confirm. Do not call it final. Explicitly ask for confirmation.
 ```
 Provisional requirement statement
 ----------------------------------
-As [who], I need [what] so that [why — the real underlying need].
+As [who], I need [what] so that [why â€” the real underlying need].
 
 OR (when JTBD lens applies):
 When [situation], I want to [motivation], so I can [expected outcome].
@@ -421,7 +421,7 @@ Original understanding: [what was agreed]
 New understanding: [what it means now]
 Delta: [what specifically changed]
 Solution impact: [what needs to change in the solution]
-In-flight: [yes/no — if yes, see impact assessment]
+In-flight: [yes/no â€” if yes, see impact assessment]
 Recommended action: [update doc / re-refine / raise change ticket / pause work]
 ```
 
@@ -433,13 +433,13 @@ See impact summary format in Step 3 above.
 
 ## What this skill does NOT do
 
-- It does not write the final requirements document — the requirement-gatherer
+- It does not write the final requirements document â€” the requirement-gatherer
   does that once interrogation is complete
-- It does not create Jira tickets — the Jira integrator does that based on
+- It does not create Jira tickets â€” the Jira integrator does that based on
   interrogation outputs
-- It does not design solutions — solution shaping happens after requirements
+- It does not design solutions â€” solution shaping happens after requirements
   are confirmed
-- It does not make decisions — it surfaces them for the PM/PO/BA to confirm
+- It does not make decisions â€” it surfaces them for the PM/PO/BA to confirm
 
 ---
 
@@ -447,7 +447,7 @@ See impact summary format in Step 3 above.
 
 **Phase 2 (Discovery & Requirements):**
 Invoke for every requirement before it is accepted. Discovery mode.
-Output → provisional requirement statement → PM confirms → requirement
+Output â†’ provisional requirement statement â†’ PM confirms â†’ requirement
 accepted into register.
 
 **Phase 4 (Solution Shaping):**
@@ -455,19 +455,20 @@ Invoke when a solution element is being justified by an uninterrogated
 requirement, or when the solution reveals that a requirement is narrower
 or broader than originally understood. Rethink mode.
 
-**Any phase — when something changes:**
+**Any phase â€” when something changes:**
 Invoke immediately when a requirement changes, is questioned, or is
 revealed to mean something different than originally understood.
-If development has started → In-flight mode.
+If development has started â†’ In-flight mode.
 
 **Living tracker updates after every interrogation:**
-- Open questions → OQ log
-- Unconfirmed assumptions → assumptions log + RAID
-- Confirmed requirements → requirements register with provisional
+- Open questions â†’ OQ log
+- Unconfirmed assumptions â†’ assumptions log + RAID
+- Confirmed requirements â†’ requirements register with provisional
   statement + sign-off date
-- In-flight impacts → risk register + immediate actions
+- In-flight impacts â†’ risk register + immediate actions
 
 **Anti-pattern this skill prevents:**
 Solutioning ahead of understanding. The most common and most expensive
 failure mode in delivery. If a design decision exists and there is no
-interrogation output for the requirement behind it — that is a red flag.
+interrogation output for the requirement behind it â€” that is a red flag.
+

@@ -1,4 +1,4 @@
-# Visual Output Format Standard
+﻿# Visual Output Format Standard
 
 **Location:** `~/.cursor/skills/ba-assistant/references/visual-output-format.md`
 **Owner:** ba-visual-storytelling (primary), ba-project-canvas (canvas-specific outputs)
@@ -87,7 +87,7 @@ Every interactive HTML diagram uses the same design system so they feel like one
 
 ### Interaction pattern
 
-- Click a node → slide-out detail panel from the right
+- Click a node â†’ slide-out detail panel from the right
 - Detail panel shows: type chip (colour-coded), title, actor, duration, what happens, failure modes, connected requirements / RAID tags
 - Esc key closes the detail panel
 - Hover on a node: subtle brightness shift and translateY(-1px)
@@ -110,7 +110,7 @@ Every interactive HTML diagram uses the same design system so they feel like one
 | **Flowchart** | Current state, future state, logic, decision flow, end-to-end process | `references/templates/flowchart.html` |
 | **Swimlane** | Cross-functional process where actor matters (who does what when) | `references/templates/swimlane.html` (TODO) |
 | **Timeline / Gantt** | Work items, milestones, sprint plans, dependencies across time | `references/templates/timeline.html` (TODO) |
-| **Journey map** | Customer or user phases × touchpoints with sentiment / data per cell | `references/templates/journey.html` (TODO) |
+| **Journey map** | Customer or user phases Ã— touchpoints with sentiment / data per cell | `references/templates/journey.html` (TODO) |
 | **State diagram** | Entity states and valid transitions (e.g. application lifecycle) | `references/templates/state.html` (TODO) |
 | **Sequence diagram** | System or actor interactions over time, message-level detail | `references/templates/sequence.html` (TODO) |
 | **Architecture / system** | Boxes-and-arrows for systems, services, data stores | `references/templates/architecture.html` (TODO) |
@@ -135,13 +135,13 @@ Flowchart is the only template fully built. The others are TODO until first real
 ### Required content per node
 
 Every node has, captured in the `nodes` JS object:
-- `type` — one of: deterministic / ai / human / decision / output
-- `title` — short label visible on the node
-- `actor` — who or what performs the step
-- `duration` — typical time
-- `desc` — 1-2 sentence plain-English description of what happens
-- `failures` — known failure modes (1-2 sentences)
-- `tags` — array of related requirement IDs, RAID IDs, ADR IDs
+- `type` â€” one of: deterministic / ai / human / decision / output
+- `title` â€” short label visible on the node
+- `actor` â€” who or what performs the step
+- `duration` â€” typical time
+- `desc` â€” 1-2 sentence plain-English description of what happens
+- `failures` â€” known failure modes (1-2 sentences)
+- `tags` â€” array of related requirement IDs, RAID IDs, ADR IDs
 
 ### Required content on edges
 
@@ -150,11 +150,11 @@ Every node has, captured in the `nodes` JS object:
 
 ### Anti-patterns for flowcharts
 
-- More than 12 nodes on one diagram → split into sub-flows
-- Decision gates with more than 4 outgoing edges → restructure
-- No `desc` or no `failures` content → fails the standard
-- Generic node titles ("Process step 1") → fails the standard
-- Mixed taxonomy (a node coloured human but described as automated) → fails the standard
+- More than 12 nodes on one diagram â†’ split into sub-flows
+- Decision gates with more than 4 outgoing edges â†’ restructure
+- No `desc` or no `failures` content â†’ fails the standard
+- Generic node titles ("Process step 1") â†’ fails the standard
+- Mixed taxonomy (a node coloured human but described as automated) â†’ fails the standard
 
 ---
 
@@ -177,7 +177,7 @@ Every node has, captured in the `nodes` JS object:
 
 ### Required interactivity
 
-- Click any bar → slide-out detail panel (same pattern as flowchart)
+- Click any bar â†’ slide-out detail panel (same pattern as flowchart)
 - Detail panel shows: work item title, type, scope, owner, dates, dependencies, status, linked tickets
 - Today line visible as vertical rule
 - Past work fades slightly (opacity 0.7); current and future at full opacity
@@ -203,7 +203,7 @@ Every node has, captured in the `nodes` JS object:
 
 ### Required interactivity
 
-- Click any cell → slide-out detail panel with full description, evidence (research data, ticket links, customer quotes), opportunity sizing
+- Click any cell â†’ slide-out detail panel with full description, evidence (research data, ticket links, customer quotes), opportunity sizing
 
 ---
 
@@ -211,7 +211,7 @@ Every node has, captured in the `nodes` JS object:
 
 Three patterns depending on environment support.
 
-### Pattern A — Confluence supports native Mermaid
+### Pattern A â€” Confluence supports native Mermaid
 
 Inline the Mermaid block in the Confluence page. Use the same colour taxonomy via `classDef`:
 
@@ -225,14 +225,14 @@ classDef out fill:#ede9fe,stroke:#7c3aed,stroke-width:2px,color:#1c1c1c
 
 Use this when the reader will only consume in Confluence and the diagram has <12 nodes.
 
-### Pattern B — Confluence does NOT support native Mermaid (some Confluence instances)
+### Pattern B â€” Confluence does NOT support native Mermaid (no Mermaid plugin installed)
 
 1. Generate the interactive HTML standalone file
 2. Attach to the Confluence page (`createConfluenceAttachment` or manual upload)
 3. Take a screenshot of the rendered HTML and embed the image inline as a preview
 4. Add a caption: "Interactive version attached to this page. Click to download for clickable detail."
 
-### Pattern C — Standalone link (Slack, email, ticket)
+### Pattern C â€” Standalone link (Slack, email, ticket)
 
 1. Generate the interactive HTML file in the initiative's `visuals/` folder
 2. Share the file directly or host on internal share
@@ -240,9 +240,9 @@ Use this when the reader will only consume in Confluence and the diagram has <12
 ### Decision rule
 
 The Visual Storytelling skill decides based on context:
-- If output destination is Confluence AND environment has Mermaid plugin → Pattern A
-- If output destination is Confluence AND no plugin → Pattern B (default when native Mermaid is unavailable)
-- If output destination is non-Confluence (Slack, email, attached file) → Pattern C
+- If output destination is Confluence AND environment has Mermaid plugin â†’ Pattern A
+- If output destination is Confluence AND no plugin â†’ Pattern B (default when no Mermaid plugin)
+- If output destination is non-Confluence (Slack, email, attached file) â†’ Pattern C
 
 When ambiguous, ask the user once via AskQuestion. Don't guess.
 
@@ -268,12 +268,12 @@ The template HTML files are the source of truth for design system + interaction 
 
 | Watching | Trigger | Anti-pattern flagged |
 |---|---|---|
-| Visual Storytelling | Visual produced as Mermaid AND destination is Confluence Pattern B (no native render) | Mermaid in non-rendering environment — should be interactive HTML |
-| Visual Storytelling | Visual produced AND no colour taxonomy applied (default browser styling) | Off-standard visual — missing design system |
-| Visual Storytelling | Flowchart >12 nodes on one page | Diagram too dense — split into sub-flows |
-| Visual Storytelling | Node lacks `desc` or `failures` content in the data object | Incomplete node detail — fails the standard |
+| Visual Storytelling | Visual produced as Mermaid AND destination is Confluence Pattern B (no native render) | Mermaid in non-rendering environment â€” should be interactive HTML |
+| Visual Storytelling | Visual produced AND no colour taxonomy applied (default browser styling) | Off-standard visual â€” missing design system |
+| Visual Storytelling | Flowchart >12 nodes on one page | Diagram too dense â€” split into sub-flows |
+| Visual Storytelling | Node lacks `desc` or `failures` content in the data object | Incomplete node detail â€” fails the standard |
 | Visual Storytelling | Mixed taxonomy (e.g. node coloured human but described as system action) | Taxonomy mismatch |
-| Project Canvas | Canvas regenerated AND visual outputs not refreshed | Stale linked visuals — canvas update implies visual update |
+| Project Canvas | Canvas regenerated AND visual outputs not refreshed | Stale linked visuals â€” canvas update implies visual update |
 
 ---
 
@@ -299,3 +299,4 @@ ATTACH TO CONFLUENCE: HTML file + PNG preview inline
 MERMAID: only for Confluence pages with working plugin AND <12 nodes
 TEMPLATE LOCATION: references/templates/<type>.html
 ```
+

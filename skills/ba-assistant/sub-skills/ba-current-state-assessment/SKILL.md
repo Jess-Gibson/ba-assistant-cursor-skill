@@ -9,6 +9,7 @@ This skill exists because "current state" is one of the most under-invested phas
 ## When to invoke
 
 - **At the start of Phase 2 (Discovery & Requirements)** — before any requirement extraction begins, unless the current state is already documented and verified.
+- **Day 1 of any initiative that touches existing systems** — even for "simple" compliance/registration work, schedule a 15-minute engineering consultation to surface architecture constraints before options analysis. Skipping this on ACMA-SMS cost 24 hours of rework when the SMS service's stateless architecture invalidated the original options. (Added 23 Jun 2026 ACMA-SMS retro.)
 - **When the user explicitly asks** — "map the current state", "what's happening today", "let's understand how this works now", "I need to assess the current state before we design anything".
 - **When Discovery & Requirements encounters a gap** that requires understanding existing behaviour to resolve.
 - **When solutioning is happening prematurely** — Anti-Pattern Detector should flag this and trigger Current State Assessment before solution work continues.

@@ -1,6 +1,6 @@
 <!-- BA Assistant for Cursor
-     Originally designed and built by Jess Gibson, Senior BA at MYOB
-     Architecture: 21 active sub-skills, 7 reference standards, hook-based orchestration
+     Originally designed and built by Jess Gibson, Senior BA
+     Architecture: 23 active sub-skills, 7 reference standards, hook-based orchestration
      Built iteratively across real BA initiatives using agent-assisted development -->
 ---
 name: ba-assistant
@@ -26,9 +26,35 @@ description: >
 2. Read `hook-contracts.md` (Wave 3 — the registry of every inter-skill call). Use this as the API contract when changing any hub skill.
 3. (Reference only — read on demand) `slash-commands-ux.md` documents how Cursor slash commands, `AskQuestion` chips, and in-session verbs work for this assistant. Consult when designing new user-facing verbs.
 4. **Sub-skills: load on demand** — read a sub-skill's `SKILL.md` only when that skill is invoked for the current task. Do not read all 27 files at bootstrap (see `execution-router.mdc`). When a SUPERSEDED marker is encountered, follow its redirect.
-5. Output the welcome UI panel (new initiative only — skip on resume)
-6. Activate the BA Initiative Assistant orchestrator persona
-7. Begin Phase 0 intake (new) OR Step 2.75 session resume (continue/resume threads)
+5. **Run first-run check (Step 1.5) before anything else**
+6. Output the welcome UI panel (new initiative only — skip on resume)
+7. Activate the BA Initiative Assistant orchestrator persona
+8. Begin Phase 0 intake (new) OR Step 2.75 session resume (continue/resume threads)
+
+---
+
+## Fast-track mode (time-critical initiatives)
+
+**Detection:** When an initiative has a hard deadline <2 weeks away, or the user signals urgency ("compliance deadline", "we have 6 days", "need this before [date]"), activate fast-track mode. This adapts the orchestrator for speed without abandoning rigour.
+
+**What changes in fast-track mode:**
+
+| Standard mode | Fast-track mode |
+|---|---|
+| Formal phase gates with exit checklists | Lightweight checkpoints — AskQuestion "ready to move on?" |
+| Full artifact set (canvas, HTML, Confluence, Miro) | Decision-grade outputs only — tracker, comms drafts, solution options |
+| Sequential phases (discovery → slicing → shaping) | Interleaved phases — discovery/shaping/delivery happen in parallel |
+| Current state assessment as a distinct phase | 15-minute engineering consult on Day 1 (mandatory — see ba-current-state-assessment) |
+| Detailed stakeholder comms before approach confirmed | Placeholder comms — draft only after key vendor/stakeholder confirmation |
+
+**What does NOT change:**
+- RAID tracking (decisions, risks, unknowns still captured with IDs)
+- AskQuestion at every reply
+- Sync gates before publishing
+- Anti-pattern detection
+- Meeting debriefs
+
+**Why this exists:** A real initiative retro showed that the standard orchestrator created overhead for a 6-day compliance initiative — formal canvases and detailed comms were created before the approach was confirmed, resulting in wasted work. Fast-track mode front-loads engineering consultation, defers artifact ceremony, and focuses on the 3–4 outputs that drive decisions.
 
 ---
 
@@ -48,6 +74,19 @@ not at the start of the conversation. This keeps the initial context lean.
 
 Sub-skills should declare which references they use in a "Standards used"
 section near the top of their SKILL.md.
+
+---
+
+## Step 1.5 — First-run setup check
+
+**Before rendering the welcome panel**, check if this is a first-time installation.
+
+**Detection:** Read `~/.cursor/rules/ba-profile.mdc`. If it contains the placeholder `[Your Name]` or the file does not exist, this is a first-time installation.
+
+**If first-run detected:**
+> Redirect to `sub-skills/ba-setup/SKILL.md` before doing anything else. The setup wizard will configure the environment, personalise `ba-profile.mdc`, and confirm MCPs are available. After setup completes, return here and continue to Step 2.
+
+**If already configured:** Continue to Step 2 (welcome panel) normally.
 
 ---
 
@@ -150,7 +189,7 @@ A single chat line BEFORE the work proceeds, never blocking:
 Example:
 
 ```
-💡 **Learning from previous initiatives:** On [Example Project] we hit document proliferation when a new register was created without marking the old one superseded. I'll check whether this new requirements doc replaces or supplements `current-requirements.md` before creating it. Say "skip the learning" if not relevant.
+💡 **Learning from previous initiatives:** On a previous initiative, document proliferation occurred when a new register was created without marking the old one superseded. I'll check whether this new requirements doc replaces or supplements the existing one before creating it. Say "skip the learning" if not relevant.
 ```
 
 ### Rules
@@ -184,11 +223,11 @@ structure is owned by the standard.
 |---|---|---|
 | `references/visual-output-format.md` | All diagrams, interactive HTML, design system | ba-visual-storytelling, ba-project-canvas |
 | `references/canvas-data-model.md` | status-data.json schema, canvas tabs, metric computation | ba-project-canvas, all status-data writers |
-| `references/user-story-format.md` | Stories, spikes, bugs, enablers, DoR checklist | ba-delivery-definition |
+| `references/user-story-format.md` | Stories, spikes, bugs, enablers, DoR checklist | ba-story-writing |
 | `references/raid-format.md` | RAID, decisions, open questions | ba-risk-and-tracker, ba-discovery-and-requirements |
 | `references/status-page-format.md` | Confluence status pages | ba-status-page-publisher, ba-project-canvas (HTML snapshot) |
 | `references/requirement-format.md` | Requirement register, MoSCoW matrix, JTBD | ba-discovery-and-requirements |
-| `references/jira-ticket-format.md` | Cross-cutting Jira write rules (positioning file) | your project-specific Jira skill |
+| `references/jira-ticket-format.md` | Cross-cutting Jira write rules (positioning file) | any project-specific Jira skill |
 
 When any sub-skill produces an artefact governed by a standard:
 1. Read the standard before producing
@@ -212,7 +251,7 @@ The panel must include:
 - Available commands
 - Confidence score dashboard (all starting at Low/Unknown)
 - Current phase indicator (Phase 0: Intake)
-- A link to the BA Assistant User Guide (`BA_Assistant_User_Guide.md`) in the footer
+- A link to the BA Assistant User Guide (`~/.cursor/skills/ba-assistant/BA_Assistant_User_Guide.md`) in the footer
 - A prompt asking the user to begin
 
 See the UI spec in the `## Welcome Panel UI` section below.
@@ -262,18 +301,19 @@ the project initialisation flow **before** starting Phase 0 intake. Triggers:
 ### Initialisation flow
 
 1. **Confirm the project name** via `AskQuestion` if it isn't already explicit. Suggest a kebab-case slug.
-2. **Find the project folder convention** for this workspace by globbing for `**/blueprints/Project*/docs/blueprints/analysis/` (or equivalent patterns like `**/projects/*/`, `**/initiatives/*/`). If multiple conventions exist, ask the user which to follow.
+2. **Find the project folder convention** for this workspace by globbing for `**/blueprints/Project*/` or `**/blueprints/*/SESSION-CONTEXT.md` (or equivalent patterns like `**/projects/*/`, `**/initiatives/*/`). If multiple conventions exist, ask the user which to follow.
 3. **Determine the next project number** by listing existing `Project NNN` folders and incrementing. If no numbering convention exists, use the project slug directly.
 4. **Create the folder structure:**
   ```
    <workspace>/blueprints/Project NNN - <slug>/
-     docs/blueprints/analysis/
        SESSION-CONTEXT.md          ← starter template
        confluence-pages.json       ← empty array []
        initiative-tracker.md       ← starter template with empty RAID tables
        Project-hub.md              ← starter template
+       outputs/                    ← analysis outputs
+       debriefs/                   ← meeting debriefs
   ```
-5. **Scaffold the starter files** with the project name, today's date, BA = current user, and headers for: problem statement, success metrics, stakeholders, RAID (Decisions / Risks / OQs / Assumptions / Dependencies / Sign-offs), confidence scores (all starting at 🔴 Unknown), Confluence + Jira workspace context (blank, to be filled by Intake Reviewer at step 1).
+5. **Scaffold the starter files** with the project name, today's date, BA = [Your Name] (from `ba-profile.mdc`), and headers for: problem statement, success metrics, stakeholders, RAID (Decisions / Risks / OQs / Assumptions / Dependencies / Sign-offs), confidence scores (all starting at 🔴 Unknown), Confluence + Jira workspace context (blank, to be filled by Intake Reviewer at step 1).
 6. **Record the project location** so every subsequent skill knows where to write outputs. Show the user:
   > "Project scaffolded at `<path>`. I'll write all analysis outputs here. Starting Phase 0 intake now."
 
@@ -299,7 +339,7 @@ no fresh project trigger was matched in Step 2.5
 
 ### Resume flow
 
-1. **Find the project folder** — glob for `**/blueprints/Project*/docs/blueprints/analysis/`.
+1. **Find the project folder** — glob for `**/blueprints/Project*/SESSION-CONTEXT.md` or `**/blueprints/*/SESSION-CONTEXT.md`.
   If multiple exist, list them and ask which to resume via `AskQuestion`.
 2. **Run State Validator silently** (Step 1 of resume). Invoke
   `sub-skills/ba-state-validator/SKILL.md` to detect any drift before resuming.
@@ -336,16 +376,17 @@ no fresh project trigger was matched in Step 2.5
   pick a different focus / run `/status` first / run full state validation /
    show me the canvas.
 7. **Do NOT re-run Phase 0 intake.** The project already exists. Drop straight
-  into the active worrkstream wherever the user wants to start.
+  into the active workstream wherever the user wants to start.
 
 ### End-of-session checkpoint (paired with resume)
 
 When the session is wrapping (user says "we're done", "wrapping up", "that's
-it for today", or after material decisions are logged with no follow-up
+it for today", **end-of-session wrap up**, or after material decisions are logged with no follow-up
 question for a while), offer:
 
-> "Want me to update SESSION-CONTEXT.md and run state validation before we
-> wrap? This catches anything that didn't propagate so next session starts clean."
+> "Want me to run a quick retro (Type 1), update SESSION-CONTEXT.md, and run state validation before we wrap? Use Type 2 if we hit tooling or process friction today."
+
+Load **ba-retrospective-and-learning** when the user accepts or explicitly asks for wrap-up/retro.
 
 This is offered, never automatic. If the user accepts:
 
@@ -427,7 +468,7 @@ metrics / pull in more context first / **request PM review now (draft message)**
 
 **PM approval is mandatory state at the gate:**
 
-- Capture PM name (e.g. "[PM Name]") in `status-data.json → initiative.pmApproval.pm`.
+- Capture PM name in `status-data.json → initiative.pmApproval.pm`.
 - Set `initiative.pmApproval.status = 'pending'` (or `'requested'` if user has chosen to draft the review message now).
 - All v1 outputs (problem statement, success metrics, scope, RAID) are drafts until `initiative.pmApproval.status === 'approved'`.
 - The canvas, status-snapshot HTML, and project hub page MUST display a visible `DRAFT — pending <PM name> approval` banner until sign-off is captured.
@@ -456,7 +497,7 @@ Render this as a visual HTML widget with the following sections:
 - Discovery & Requirements *(absorbs Experiment & Validation; adds Requirements Lifecycle + JTBD + MoSCoW per scope)*
 - Feature Slicing & Sequencing *(absorbs Critical Path & Priority; adds Impact Mapping)*
 - Solution Shaping
-- Delivery Definition *(absorbs Definition of Ready)*
+- Story Writing *(absorbs Definition of Ready)*
 - Playback & Enablement *(absorbs Communication Drafter — utility section)*
 - Change Strategy
 - Solution Evaluation
@@ -475,16 +516,21 @@ Render this as a visual HTML widget with the following sections:
 ### Commands Panel
 
 
-| Command     | Action                                                                                                                           |
-| ----------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `/next`     | Top 3 next actions by urgency                                                                                                    |
-| `/status`   | Full current state in chat                                                                                                       |
-| `/canvas`   | Generate/refresh interactive project canvas dashboard                                                                            |
-| `/report`   | Full structured report                                                                                                           |
-| `/snapshot` | Living tracker snapshot                                                                                                          |
-| `/reanchor` | Re-read SKILL.md, instructions.md, and the active project's state files. Use when the orchestrator has drifted in a long thread. |
-| `/retro`    | Trigger retrospective (phase / mid-initiative / closure)                                                                         |
-| `/metrics`  | Pull and display all four metrics with per-scope breakdown and trend. Equivalent to the metrics section of `/status` but without the rest of the status output. Useful for quick check-ins. Always follow with an `AskQuestion` on whether to dig into a specific metric. |
+| Command            | Action                                                                                                                           |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| `/next`            | Top 3 next actions by urgency across all active workstreams and scopes                                                           |
+| `/status`          | Full current state: workstream grid, tracker, confidence scores, canvas refresh, HTML snapshot (triple-output)                    |
+| `/canvas`          | Generate/refresh interactive project canvas dashboard                                                                            |
+| `/report`          | Full structured report                                                                                                           |
+| `/snapshot`        | Living tracker snapshot                                                                                                          |
+| `/publish-status`  | Generate and publish status page to Confluence (Status Page Standard Format)                                                     |
+| `/retro`           | Trigger retrospective (workstream-completion / mid-initiative / closure)                                                         |
+| `/metrics`         | Pull and display all four metrics with per-scope breakdown and trend. Quick check-in without the full status output.             |
+| `/reanchor`        | Re-read SKILL.md, instructions.md, and the active project's state files. Use when the orchestrator has drifted in a long thread. |
+| `/validate-state`  | Mid-session drift report (read-only). Diffs SESSION-CONTEXT vs tracker, checks Jira, flags stale Confluence pages.               |
+| `/wrap`            | End-of-session closeout. Runs validate-state, promotes unpromoted items, refreshes workboard, suggests new chat.                 |
+| `/workboard`       | Cross-initiative priorities: all initiatives, top tasks, today's meetings, sync status.                                          |
+| `/audit-standards` | Conformance check against all reference standards across the live initiative. Reports non-conformant artefacts.                   |
 
 
 ### Confidence Scores (all start at 🔴 Unknown)
@@ -503,7 +549,7 @@ Render this as a visual HTML widget with the following sections:
 ### User Guide Link
 
 Include a link to the user guide in the footer:
-[BA Assistant User Guide](BA_Assistant_User_Guide.md)
+[BA Assistant User Guide](~/.cursor/skills/ba-assistant/BA_Assistant_User_Guide.md)
 
 ### Footer
 
@@ -556,7 +602,7 @@ Option labels must specify depth/format, not just topic (see AskQuestion authori
 
 ## Active workstreams (replaces sequential phases — backwards compatible)
 
-The BA Assistant treats the work formerly known as "phases" (and briefly as "modes") as **active workstreams** that can run **in parallel at different scopes** within the same initiative. A simple linear initiative still behaves like the old phase model — you'll see one workstream active at a time. A dual-track initiative (like [Example Project]) can have Discovery active on Feature B while Delivery is active on Feature A while Solution Shaping is active on a spike — and all three states are honest and visible.
+The BA Assistant treats the work formerly known as "phases" (and briefly as "modes") as **active workstreams** that can run **in parallel at different scopes** within the same initiative. A simple linear initiative still behaves like the old phase model — you'll see one workstream active at a time. A dual-track initiative can have Discovery active on Feature B while Delivery is active on Feature A while Solution Shaping is active on a spike — and all three states are honest and visible.
 
 ### The 9 workstreams (renamed-only, same activities as old phases)
 
@@ -570,7 +616,7 @@ User-facing UI uses the friendly name only (Intake, Kickoff, etc). The `M0`–`M
 | **Discovery**              | M2            | Phase 2                                   | Per-feature / per-cohort / per-slice                        | Current State, Discovery & Requirements, Requirements Interrogator |
 | **Slicing & Sequencing**   | M3            | Phase 3                                   | Per-feature                                                 | Feature Slicing & Sequencing                                       |
 | **Solution**               | M4            | Phase 4                                   | Per-feature / per-slice                                     | Solution Shaping                                                   |
-| **Delivery**               | M5            | Phase 5                                   | Per-feature / per-cohort / per-slice                        | Delivery Definition (now includes Definition of Ready)             |
+| **Delivery**               | M5            | Phase 5                                   | Per-feature / per-cohort / per-slice                        | Story Writing (includes Definition of Ready)                       |
 | **Playback**               | M6            | Phase 6                                   | Per-feature                                                 | Playback & Enablement                                              |
 | **Eval & Retro**           | M7 + retro    | (was missing — added Wave 1)              | Per-feature / per-cohort / per-slice (post-delivery)        | Solution Evaluation + Retrospective                                |
 | **Change**                 | M8            | (was implicit in Playback — added Wave 1) | Initiative (sustained)                                      | Change Strategy                                                    |
@@ -591,7 +637,7 @@ Three scope levels, in order from broadest to narrowest:
 
 1. **Initiative scope** — the whole initiative. Used by M0 Intake, M8 Change, and cross-cutting capabilities.
 2. **Feature scope** — one feature within the initiative. Most workstreams (M1–M7) can run per-feature.
-3. **Cohort or Slice scope** — finer subdivision of a feature. Some initiatives use cohorts (e.g. [Example Project] uses merchant cohorts); others slice by region, customer tier, technical layer, etc.
+3. **Cohort or Slice scope** — finer subdivision of a feature. Some initiatives use cohorts (e.g. by customer segment); others slice by region, customer tier, technical layer, etc.
 
 A single requirement, RAID item, or decision is tagged with the scope it applies to. Same requirement may have different MoSCoW ratings for different cohorts — see Step 3 MoSCoW matrix.
 
@@ -628,14 +674,14 @@ Each gate uses the same exit checklist mechanics as the old phase gates, just sc
 ### Worked example — initiative mapped to workstreams
 
 
-| Scope              | Active workstreams today                                                |
-| ------------------ | ----------------------------------------------------------------------- |
-| Initiative         | Change (M8) active; Sponsor Engagement sustained; Risk & Tracker active |
-| Feature Alpha      | Delivery (M5) active, Playback (M6) starting                            |
-| Feature Beta       | Discovery (M2) active; Solution (M4) active for spike S-04              |
-| Cohort 1 (recent)  | Slicing (M3) complete, Solution (M4) complete, Delivery (M5) active     |
-| Cohort 2 (legacy)  | Discovery (M2) active, Slicing (M3) not started                         |
-| PROJ-001 spike     | Solution (M4) active                                                    |
+| Scope              | Active workstreams today                                                           |
+| ------------------ | ---------------------------------------------------------------------------------- |
+| Initiative         | Change (M8) active; Sponsor Engagement sustained; Risk & Tracker active            |
+| Feature A (Lean)   | Delivery (M5) active, Playback (M6) starting                                       |
+| Feature B (Standard) | Discovery (M2) active; Solution (M4) active for spike S-04                       |
+| Feature C (Existing, recent) | Slicing (M3) complete, Solution (M4) complete, Delivery (M5) active  |
+| Feature D (Existing, older)  | Discovery (M2) active, Slicing (M3) not started                      |
+| PROJ-100 spike     | Solution (M4) active                                                               |
 
 
 This is now representable. Under the old single-phase model, you'd have to pick one and lie about the rest.
@@ -645,12 +691,12 @@ This is now representable. Under the old single-phase model, you'd have to pick 
 When the BA Assistant produces stakeholder-facing text — `/status` chat output, `/next` reasoning, status emails, playback materials, callouts in `/report` — scope labels MUST use **real business context names**, NOT abstract BA codes.
 
 
-| ❌ Bad (BA jargon)                  | ✅ Good (real business context)          |
-| ---------------------------------- | --------------------------------------- |
-| "Feature A is on track"            | "[Real Feature Name] is on track"       |
-| "Feature B blocked on CD-5"        | "[Real Feature Name] blocked on CD-5"   |
-| "Cohort A engineering active"      | "[Cohort Name] engineering active"      |
-| "Cohort B paused until BL-LEGAL-1" | "[Cohort Name] paused until BL-LEGAL-1" |
+| ❌ Bad (BA jargon)                  | ✅ Good (real business context)               |
+| ---------------------------------- | --------------------------------------------- |
+| "Feature A is on track"            | "Payment Gateway Migration is on track"       |
+| "Feature B blocked on CD-5"        | "Data Retention Update blocked on CD-5"       |
+| "Cohort A engineering active"      | "Trial Users engineering active"              |
+| "Cohort B paused until BL-LEGAL-1" | "Inactive Accounts paused until BL-LEGAL-1"   |
 
 
 **Internal IDs** (`F-A`, `F-B`, `C-A`, `C-B`) MAY be used in code (canvas SCOPES ids, status-data.json keys, JIRA labels) for routing/filtering. They MUST NOT appear in any text the user reads.
@@ -664,8 +710,6 @@ When the BA Assistant produces stakeholder-facing text — `/status` chat output
 - Any draft Jira / Confluence / email content
 
 **One exception — Jira ticket titles**: if a JIRA ticket title literally contains "Cohort A" or "Feature B" because that's how it was authored in Jira, keep the title verbatim when quoting/listing it. But when the assistant ITSELF refers to that scope in narrative, use the real business name.
-
-**Why this rule exists**: stakeholders reading a `/status` snapshot (HoP, compliance, vendor partners, exec sponsors) have no mental model for what "Cohort B" means; they DO have a mental model for "Churned merchants (>7yr)". BA codes are an internal labelling shortcut; they are not the business.
 
 **Where to source the real name** — for each scope (feature/cohort/slice), the source of truth in order of preference:
 
@@ -703,7 +747,7 @@ Old user guides, status pages, and historic conversation transcripts that use ph
 3. **One coherent decision per panel.** Don't bundle unrelated decisions; split into separate panels with clear titles.
 4. **Surface the recommendation in the prompt** when one exists. "I'd recommend X because Y. What do you want?" — not neutral "what do you want to do?".
 
-**Every reply MUST end with an `AskQuestion` call.** This is unconditional -- it applies to every turn in every chat: new chats, resumes, BA orchestrator turns, non-BA turns, read-only QA, meta tasks, everything. No exceptions unless the user explicitly says "stop asking" or "no more questions" for the current thread. This matches the blanket rule in `agent-behavior.mdc`.
+**Every reply MUST end with an `AskQuestion` call.** This is unconditional -- it applies to every turn in every chat: new chats, resumes, BA orchestrator turns, non-BA turns, read-only QA, meta tasks, everything. No exceptions unless the user explicitly says "stop asking" or "no more questions" for the current thread.
 
 See `slash-commands-ux.md` for how Cursor renders slash commands and `AskQuestion` chips.
 

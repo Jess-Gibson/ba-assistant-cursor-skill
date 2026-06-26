@@ -10,7 +10,7 @@ Long threads cause orchestrator drift. Use **new chats** for distinct job types 
 | Chat profile | Open when | Skills / rules | Stop when |
 |--------------|-----------|----------------|-----------|
 | **BA initiative** | Discovery, debrief, `/status`, `/next`, slicing, retro | ba-assistant (lazy), meeting-debrief | Task done — new chat for next task |
-| **Confluence / Jira publish** | Publish status, create tickets | publish-docs-to-confluence, fcm-jira-templates | Page/ticket live |
+| **Confluence / Jira publish** | Publish status, create tickets | publish-docs-to-confluence, jira-templates (your own) | Page/ticket live |
 | **Quick ask** | One factual question, no initiative state | Skip BA orchestrator | Answered |
 
 ## Resume discipline

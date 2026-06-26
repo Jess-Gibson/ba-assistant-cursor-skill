@@ -1,17 +1,15 @@
-> **Configure this file with your Jira project key, instance URL, and canonical example tickets.**
-
-# Jira Ticket Format Standard
+﻿﻿# Jira Ticket Format Standard
 
 **Location:** `~/.cursor/skills/ba-assistant/references/jira-ticket-format.md`
-**Owner:** Your project-specific Jira skill (workflow and full format detail), this standard (positioning and high-level rules)
+**Owner:** `jira-templates` skill (workflow and full format detail, if configured), this standard (positioning and high-level rules)
 **Last reviewed:** 2026-05-30
 
-This reference is a **positioning file**. The detailed format definition for Jira tickets — ADF panels, mandatory custom fields, canonical example issue IDs, panel type quick reference, verification considerations, full templates for Bug / Story / Spike — lives in your project-specific Jira skill (configure one for your Jira project).
+This reference is a **positioning file**. The detailed format definition for your project's Jira tickets — ADF panels, mandatory custom fields, canonical example issue IDs, panel type quick reference, verification considerations, full templates for Bug / Story / Spike — lives in your project-specific `jira-templates` skill (structured as a separate top-level skill in `.cursor/skills/`).
 
 This file exists to:
 1. Make Jira format discoverable as part of the references index
-2. Define the contract between `references/user-story-format.md` (the WHAT of a ticket) and your project-specific Jira skill (the HOW for Jira specifically)
-3. Capture cross-cutting rules that apply to any Jira write, independent of project-specific specifics
+2. Define the contract between `references/user-story-format.md` (the WHAT of a ticket) and your project-specific `jira-templates` skill (the HOW for Jira specifically)
+3. Capture cross-cutting rules that apply to any Jira write, independent of project-specific conventions
 
 ---
 
@@ -22,10 +20,10 @@ Three layers, each owns something distinct:
 | Layer | Owns | Lives in |
 |---|---|---|
 | **Content structure** | What sections a ticket has (Why, AC, Negative case, Scope, etc.) and how they're written | `references/user-story-format.md` |
-| **Jira-specific rendering** | ADF panels, panel types, emoji headings, project custom fields, canonical example IDs, panel layout for PROJ-001, PROJ-002 (configure your canonical examples) | your project-specific Jira skill/SKILL.md |
-| **Workflow** | When to clarify, when to draft, when to create the ticket, the mandatory `AskQuestion` gate | your project-specific Jira skill/SKILL.md |
+| **Jira-specific rendering** | ADF panels, panel types, emoji headings, project custom fields, canonical example IDs, panel layouts | `jira-templates/SKILL.md` (your project-specific skill) |
+| **Workflow** | When to clarify, when to draft, when to create the ticket, the mandatory `AskQuestion` gate | `jira-templates/SKILL.md` (your project-specific skill) |
 
-The two files are read together when producing a Jira ticket. The story-format file is the source of truth for content; your project-specific Jira skill is the source of truth for how that content gets rendered into Jira-specific structures.
+The two files are read together when producing a Jira ticket. The story-format file is the source of truth for content; the Jira-templates file is the source of truth for how that content gets rendered into Jira-specific structures.
 
 ---
 
@@ -41,21 +39,21 @@ This rule is non-negotiable. The Anti-Pattern Detector flags Jira writes that sk
 
 ### 2b. Mirror the canonical example for structure
 
-For every project that has canonical example tickets recorded (your project may have examples for Bug, Story, Spike, Story with panels, dense Spike), the assistant reads the canonical example via `getJiraIssue` before drafting, and mirrors its structure — sections, panels, headings, custom fields. **Structure only, never content.**
+For every project that has canonical example tickets recorded (FCM has examples for Bug, Story, Spike, Story with panels, dense Spike), the assistant reads the canonical example via `getJiraIssue` before drafting, and mirrors its structure â€” sections, panels, headings, custom fields. **Structure only, never content.**
 
 For projects without recorded canonical examples, the assistant should produce the ticket against `references/user-story-format.md` and flag in the chat that no canonical Jira example was available.
 
 ### 2c. ADF format for writes with panels
 
-When the ticket type requires coloured panels ([YOUR-PROJECT] Bug, Story, Spike), the write uses ADF (`contentFormat: "adf"`) with `panel` nodes. Markdown content format drops panels and is not acceptable as a shortcut.
+When the ticket type requires coloured panels (FCM Bug, Story, Spike), the write uses ADF (`contentFormat: "adf"`) with `panel` nodes. Markdown content format drops panels and is not acceptable as a shortcut.
 
 If ADF JSON is large, build it in a UTF-8 `.json` file, parse, and pass the object to the MCP tool. Don't inline it as a string in the chat.
 
 ### 2d. Title format
 
-`[Area] Imperative outcome` — short, specific, searchable. Independent of project.
+`[Area] Imperative outcome` â€” short, specific, searchable. Independent of project.
 
-Good: `[Onboarding] Reject applications when phone format invalid`
+Good: `[Onboarding] Reject Fiserv applications when phone format invalid`
 Bad: `Bug in onboarding`, `Investigation needed`, `Fix the thing from yesterday`
 
 ### 2e. Type correctness
@@ -71,11 +69,11 @@ Mixing types (e.g. a Bug that's actually scope expansion, or a Story that's actu
 
 ## 3. Content conformance
 
-Tickets must conform to **both** `references/user-story-format.md` (content structure) and the project-specific format file (your project-specific Jira skill/SKILL.md for your project).
+Tickets must conform to **both** `references/user-story-format.md` (content structure) and the project-specific format file (`jira-templates/SKILL.md` for your project).
 
 If the two ever conflict:
 - For content structure (sections, what each section contains, INVEST conformance, DoR): `user-story-format.md` wins
-- For Jira-specific rendering (which panel type, emoji choice, custom field mapping): your project-specific Jira skill/SKILL.md wins
+- For Jira-specific rendering (which panel type, emoji choice, custom field mapping): your project-specific `jira-templates/SKILL.md` wins
 
 If a true conflict appears, raise it as a learnings.md entry so the two files can be reconciled.
 
@@ -87,22 +85,22 @@ Currently:
 
 | Project | Format file | Site |
 |---|---|---|
-| [YOUR-PROJECT] ([your-instance]) | your project-specific Jira skill/SKILL.md | [your-instance].atlassian.net |
+| [YOUR-PROJECT] | `jira-templates/SKILL.md` | [your-instance].atlassian.net |
 
 When new projects need their own ticket conventions (different panel layouts, different custom fields, different canonical examples), they get their own format skill following the same pattern. The references/jira-ticket-format.md file (this one) doesn't expand; the project-specific skill is the source of detail.
 
 ---
 
-## 5. Pre-write checks (the verification considerations from your project-specific Jira skill)
+## 5. Pre-write checks (standard verification considerations)
 
-Before a ticket gets created, the BA Assistant runs the verification considerations from your project-specific Jira skill/SKILL.md Section "Verification considerations":
+Before a ticket gets created, the BA Assistant runs these standard verification checks (adapt to your project-specific format skill where applicable):
 
 **Always check:**
-- Telemetry — what events fire, where
-- Feature toggling — flag, default state, rollout plan
-- Geo scope (e.g. [Your geo scope])
-- Unhappy paths — including UI behaviour for each
-- Flow variants — which flows does this hit
+- Telemetry â€” what events fire, where
+- Feature toggling â€” flag, default state, rollout plan
+- Geo scope (e.g. regional scope for your initiative)
+- Unhappy paths â€” including UI behaviour for each
+- Flow variants â€” which flows does this hit
 
 **Context-dependent (only if relevant):**
 - Error handling
@@ -114,9 +112,9 @@ Before a ticket gets created, the BA Assistant runs the verification considerati
 - Backward compatibility
 
 Every item that applies must end up in one of three places:
-1. **In scope** — covered by an acceptance criterion
-2. **Out of scope** — explicitly listed
-3. **Clarify with user** — flagged, not silently dropped
+1. **In scope** â€” covered by an acceptance criterion
+2. **Out of scope** â€” explicitly listed
+3. **Clarify with user** â€” flagged, not silently dropped
 
 Silence on an always-check item that applies is itself an anti-pattern.
 
@@ -168,7 +166,7 @@ A sub-skill producing a Jira ticket follows this sequence:
 
 1. **Read this file** (`references/jira-ticket-format.md`) for the hard rules
 2. **Read `references/user-story-format.md`** for content structure
-3. **Read the project-specific format skill** (e.g. your project-specific Jira skill/SKILL.md) for rendering
+3. **Read the project-specific format skill** (e.g. `jira-templates/SKILL.md` for your project) for rendering, if one exists
 4. **Run AskQuestion** for clarification (per 2a)
 5. **Fetch canonical example** via `getJiraIssue` (per 2b)
 6. **Draft** the ticket content per `user-story-format.md` structure
@@ -186,8 +184,9 @@ v1.0 (2026-05-30). Changes to the hard rules (Section 2) require version bump. P
 
 ---
 
-## 11. Note on project-specific Jira skills
+## 11. Creating your own jira-templates skill
 
-Configure a project-specific Jira skill (following the same pattern as this reference) for your Jira project conventions. It can live as a top-level skill or sub-skill — the reference index points to it from this file.
+When you are ready to create project-specific Jira templates, create a skill at `~/.cursor/skills/jira-templates/SKILL.md` (or a project-specific name). This skill should define your ADF panel layouts, required custom fields, canonical example ticket IDs, and any team-specific conventions.
 
-If a future change wants to bring it under `ba-assistant/sub-skills/` for consistency, that's a separate refactor and out of scope for the reference-guides work.
+See `CUSTOMIZATION.md` for guidance on what to include.
+

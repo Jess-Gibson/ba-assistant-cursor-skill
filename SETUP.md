@@ -1,7 +1,7 @@
 # BA Assistant for Cursor — Setup Guide
 
-> Originally designed and built by Jess Gibson, Senior BA at MYOB (2025–2026).
-> Architecture: 21 active sub-skills, 7 reference standards, hook-based orchestration.
+> Originally designed and built by Jess Gibson, Senior BA (2025–2026).
+> Architecture: 23 active sub-skills, 7 reference standards, hook-based orchestration.
 > Built iteratively across real BA initiatives using agent-assisted development.
 
 ---
@@ -26,30 +26,30 @@
 
 ### Step 1 — Install the BA Assistant skill
 
-Clone this repo into your Cursor skills directory:
+Clone this repo and copy the skill into your Cursor skills directory:
 
 ```bash
 # macOS / Linux
-cd ~/.cursor/skills
-git clone https://github.com/Jess-Gibson/ba-assistant-cursor-skill.git ba-assistant
+git clone https://github.com/Jess-Gibson/ba-assistant-cursor-skill.git /tmp/ba-cursor-skill
+cp -r /tmp/ba-cursor-skill/skills/ba-assistant ~/.cursor/skills/ba-assistant
 
 # Windows (PowerShell)
-cd "$env:USERPROFILE\.cursor\skills"
-git clone https://github.com/Jess-Gibson/ba-assistant-cursor-skill.git ba-assistant
+git clone https://github.com/Jess-Gibson/ba-assistant-cursor-skill.git "$env:TEMP\ba-cursor-skill"
+Copy-Item "$env:TEMP\ba-cursor-skill\skills\ba-assistant" "$env:USERPROFILE\.cursor\skills\ba-assistant" -Recurse
 ```
 
 This creates `~/.cursor/skills/ba-assistant/` with the full skill tree.
 
 ### Step 2 — Install the rules
 
-Copy the rules from the `rules/` folder in this repo into your Cursor rules directory:
+Copy the rules from the repo into your Cursor rules directory:
 
 ```bash
-# macOS / Linux
-cp rules/*.mdc ~/.cursor/rules/
+# macOS / Linux — copy from the cloned temp location
+cp /tmp/ba-cursor-skill/rules/*.mdc ~/.cursor/rules/
 
 # Windows (PowerShell)
-Copy-Item rules\*.mdc "$env:USERPROFILE\.cursor\rules\"
+Copy-Item "$env:TEMP\ba-cursor-skill\rules\*.mdc" "$env:USERPROFILE\.cursor\rules\"
 ```
 
 **Important:** Review each rule before copying. If you already have rules with the same names, merge rather than overwrite.
@@ -60,15 +60,15 @@ Copy the hooks configuration and scripts:
 
 ```bash
 # macOS / Linux
-cp hooks/hooks.json ~/.cursor/hooks.json
-cp hooks/*.sh ~/.cursor/hooks/
-cp hooks/*.ps1 ~/.cursor/hooks/
+cp /tmp/ba-cursor-skill/hooks/hooks.json ~/.cursor/hooks.json
+mkdir -p ~/.cursor/hooks
+cp /tmp/ba-cursor-skill/hooks/*.sh ~/.cursor/hooks/
 chmod +x ~/.cursor/hooks/*.sh
 
 # Windows (PowerShell)
-Copy-Item hooks\hooks.json "$env:USERPROFILE\.cursor\hooks.json"
+Copy-Item "$env:TEMP\ba-cursor-skill\hooks\hooks.json" "$env:USERPROFILE\.cursor\hooks.json"
 New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.cursor\hooks"
-Copy-Item hooks\*.ps1 "$env:USERPROFILE\.cursor\hooks\"
+Copy-Item "$env:TEMP\ba-cursor-skill\hooks\*.ps1" "$env:USERPROFILE\.cursor\hooks\"
 ```
 
 **Important:** If you already have a `hooks.json`, merge the entries rather than replacing the file.
@@ -85,14 +85,22 @@ Copy-Item hooks\*.ps1 "$env:USERPROFILE\.cursor\hooks\"
    - Example: `export BA_INITIATIVES_ROOT="$HOME/ba-initiatives"`
    - If not set, the BA Assistant will search for `blueprints/Project*/`, `Initiatives/`, or `projects/` patterns
 
-### Step 5 — Customize your BA profile
+### Step 5 — Run the first-time setup wizard
 
-Edit `rules/ba-profile.mdc` to personalize:
-- Your name and role
-- Your preferred communication style
-- Any industry-specific or org-specific status page sections
+The BA Assistant includes an interactive setup wizard that handles personalization for you.
 
-See `CUSTOMIZATION.md` for detailed guidance on what to personalize.
+Start a new Cursor chat and type: `run BA assistant`
+
+If `ba-profile.mdc` still contains placeholder values (`[Your Name]`, `[your-instance]`), the assistant will automatically launch the **ba-setup wizard** which will:
+- Ask for your name and role
+- Configure your Jira instance and project key
+- Configure your Confluence space
+- Check your MCP connections
+- Write a personalized `ba-profile.mdc` to your `~/.cursor/rules/` directory
+
+You can also run the wizard manually by typing: `run the BA setup wizard`
+
+See `CUSTOMIZATION.md` for manual overrides if you prefer to configure by hand.
 
 ### Step 6 — Install companion skills (optional)
 
@@ -109,8 +117,8 @@ The BA Assistant can invoke these optional companion skills if they are installe
 
 Start a new Cursor chat and type: "run BA assistant"
 
-You should see:
-1. The BA Assistant welcome panel with 21 active skills listed
+If it's your first time, the setup wizard will launch automatically to configure your profile. Otherwise you should see:
+1. The BA Assistant welcome panel with 23 active skills listed
 2. A draft depth preference question
 3. A prompt asking what you're working on
 
@@ -153,12 +161,13 @@ After installation, your `.cursor` directory should look like:
     publish-docs-to-confluence/  (optional)
     miro-board-analysis/         (optional)
   rules/
-    ba-profile.mdc
+    ba-profile.mdc             (generic — customize with your name or use the setup wizard)
     ba-assistant-default.mdc
     ba-delivery-process.mdc
     execution-router.mdc
     session-start-protocol.mdc
     skills-routing.mdc
+    sync-gates.mdc
     agent-behavior.mdc
     chat-profiles.mdc
     workspace-operations.mdc
@@ -189,6 +198,10 @@ After installation, your `.cursor` directory should look like:
 | `/status` | Full current state with canvas and HTML snapshot |
 | `/canvas` | Generate/refresh the interactive project dashboard |
 | `/report` | Full structured deep-dive report |
+| `/validate-state` | Mid-session drift check (read-only) |
+| `/wrap` | End-of-session closeout — promotes items, refreshes workboard |
+| `/fast-track` | Enable condensed BA flow for time-critical initiatives |
+| `/metrics` | Show BA quality metrics for the initiative |
 | `/retro` | Trigger a retrospective |
 | `/reanchor` | Re-read state files when the assistant drifts in long threads |
 

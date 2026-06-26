@@ -40,7 +40,7 @@ This skill is **distinct from Playback & Enablement**. Playback prepares a speci
 ## Tasks
 
 1. **Identify impacted audiences** — Cross-reference the stakeholder map with the solution scope. For each impacted group, capture:
-   - Audience name (be specific — "[Ops team in Location]", not "ops")
+   - Audience name (be specific — "Verifications ops team in Auckland", not "ops")
    - Approximate size (people count or %)
    - Current state (what they do today)
    - Future state (what they'll do after the change)

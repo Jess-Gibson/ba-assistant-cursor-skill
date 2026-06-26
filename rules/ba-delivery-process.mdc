@@ -51,7 +51,7 @@ The runbook names `.claude` agents and generic skills. In **this** workspace, ro
 - Requirement / AC / discovery → `requirement-gatherer`  
 - Diagrams / flows → `pm-diagram-generator`  
 - Confluence → `publish-docs-to-confluence` (read MCP schemas first)  
-- Jira (FCM patterns) → `fcm-jira-templates` or Atlassian MCP as appropriate  
+- Jira (project-specific patterns) → `jira-templates` skill (create your own per CUSTOMIZATION.md) or Atlassian MCP as appropriate  
 - Data / metrics / narrative → `pm-data-analyst`  
 - Prototyping → `prototype-builder`  
 - Quality review of requirements or design → `qa-checker`  

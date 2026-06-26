@@ -128,7 +128,7 @@ When the initiative uses a Miro board for DRAID tables:
 
 4. **Conflict resolution:** Markdown tracker (`initiative-tracker.md`) is the source of truth. If Miro has entries not in the tracker (e.g. someone added directly to the board), pull them into the tracker first, then sync back.
 
-*Source: [previous initiative retro] — two failed Miro API calls due to column title mismatches. Batch pattern would have caught the issue once instead of twice.*
+*Source: RBA Week 1 retro — two failed Miro API calls due to column title mismatches. Batch pattern would have caught the issue once instead of twice.*
 
 ## Challenge Rules
 

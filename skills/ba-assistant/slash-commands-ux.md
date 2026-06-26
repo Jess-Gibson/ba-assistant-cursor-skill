@@ -1,10 +1,10 @@
 # Cursor slash commands & button UX — what's possible today
 
-*Wave 4 exploration — May 2026. Based on Cursor 2.4 documentation, the skill system, and how our BA Assistant is actually wired.*
+*Wave 4 exploration — May 2026. Based on Cursor 2.4 documentation, the skill system, and how the BA Assistant is wired.*
 
 This document answers the question: **"Slash commands aren't always working — is there a better way? Claude has button prompts."**
 
-Short answer: Cursor in May 2026 does **not** have user-side button prompts (clickable predefined-prompt chips above the input). The closest things are (a) the slash-menu picker for skills and commands, and (b) the assistant-side `AskQuestion` tool that renders clickable options inline. The BA Assistant is built around `AskQuestion` because that's the best available UX for a guided, low-typing experience.
+Short answer: Cursor does **not** have user-side button prompts (clickable predefined-prompt chips above the input). The closest things are (a) the slash-menu picker for skills and commands, and (b) the assistant-side `AskQuestion` tool that renders clickable options inline. The BA Assistant is built around `AskQuestion` because that's the best available UX for a guided, low-typing experience.
 
 ---
 
@@ -18,7 +18,7 @@ Short answer: Cursor in May 2026 does **not** have user-side button prompts (cli
 | **Always-applied rules** | `~/.cursor/rules/*.mdc` (no `globs` or `alwaysApply: true`) | Loaded into every chat | Can teach the agent to honour in-chat verbs like `/status` even when not in the slash menu |
 | **AskQuestion tool** | Assistant-side tool that renders clickable option chips | Built into Agent | Closest thing to "button prompts" — but the agent initiates, not the user |
 
-**Notable absences (May 2026):**
+**Notable absences:**
 
 - No user-initiated button prompts (like Claude's persistent suggestion chips above the input).
 - No `commands.json` registry.
@@ -38,7 +38,7 @@ LAYER 2 — Intent routing (always-on rule)
   ~/.cursor/rules/skills-routing.mdc         → "run BA assistant", "/ba-assistant" → load this skill
 
 LAYER 3 — Command semantics (always-on rule)
-  ~/.cursor/rules/ba-profile.mdc        → defines /next, /status, /report, /publish-status, /retro, /canvas semantics
+  ~/.cursor/rules/ba-profile.mdc             → defines /next, /status, /report, /publish-status, /retro, /canvas semantics
 
 LAYER 4 — Orchestrator
   ~/.cursor/skills/ba-assistant/SKILL.md
@@ -100,7 +100,7 @@ Track these for future waves:
 
 ---
 
-## 6. Quick reference for the BA Assistant team
+## 6. Quick reference for the BA Assistant
 
 | What the BA wants to do | What works today |
 |---|---|
@@ -110,6 +110,10 @@ Track these for future waves:
 | See the visual canvas | Type `/canvas`, say "show the canvas", or click "open canvas" in an `AskQuestion` chip |
 | Publish status to Confluence | Type `/publish-status` |
 | Run a retro | Type `/retro` |
+| Check if things are in sync | Type `/validate-state` (or old `/sync-check` — same thing) |
+| Close out and checkpoint | Type `/wrap` — fixes drift, refreshes workboard, suggests new chat |
+| See cross-initiative priorities | Type `/workboard` |
+| Re-anchor after long thread | Type `/reanchor` — re-reads state files, resumes from current position |
 | Fill intake as a form | Pick "form canvas" when the orchestrator offers it at Phase 0 |
 
 ---

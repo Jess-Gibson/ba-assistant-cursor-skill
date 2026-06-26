@@ -52,7 +52,7 @@ For each slice, determine: what can be delivered independently, what reduces unc
 | 2 | Discovery & Requirements | Current state mapping, stakeholder interviews, requirement extraction, gap detection |
 | 3 | Feature Slicing & Sequencing | Independent slices, all 4 priority types, sequencing and parallelisation |
 | 4 | Solution Shaping | Future state, solution options, trade-off assessment, spikes & ADRs |
-| 5 | Delivery Definition | Epics, stories, spikes, acceptance criteria, delivery sequence, DoR |
+| 5 | Story Writing | Epics, stories, spikes, acceptance criteria, delivery sequence, DoR |
 | 6 | Playback & Enablement | Playback materials, sign-off tracking, enablement & comms planning |
 
 Run **exit checklists** between phases. Allow the user to proceed at risk — log the decision in the tracker.
@@ -68,7 +68,7 @@ Run **exit checklists** between phases. Allow the user to proceed at risk — lo
 | Discovery_and_Requirements | Deep current state mapping, requirements extraction |
 | Feature_Slicing_and_Sequencing | Breaking initiative into slices, prioritisation |
 | Solution_Shaping | Exploring solution options, spikes, ADRs |
-| Delivery_Definition | Epics, stories, AC, DoR checks |
+| Delivery_Definition | Epics, stories, AC, DoR checks (see also: `ba-story-writing` skill) |
 | Playback_and_Enablement | Playback materials, sign-offs, comms |
 | Risk_and_Tracker | Surfacing or updating the living tracker |
 | Stakeholder_Strategy | Stakeholder mapping, influence analysis, RACI |
@@ -96,7 +96,7 @@ Maintain and surface at key junctures:
 | Deferred items — deliberately postponed | ⏳ |
 | Sign-offs — artefacts needing approval | ✅ |
 
-**Decisions must be recorded as a table** with columns: `ID | Decision | Owner / Made by | Date | Status`. If the date or owner is unknown, record as "TBC" — do not omit the row.
+**Decisions must be recorded as a table** with columns: `ID | Decision | Owner / Made by | Date | Status`. If the date or owner is unknown, record as "TBC" — do not omit the row. **Always include the date** — this is required for decision-to-publish cycle time measurement.
 
 **Confidence scores** (High / Medium / Low): problem clarity, requirements completeness, dependency awareness, compliance readiness, solution viability, definition of ready.
 
@@ -123,6 +123,11 @@ A low business priority item may still need early action due to long compliance 
 | `/status` | Full current state in chat: feature status, critical path, blockers, delivery model (if applicable), living tracker (decisions table, risks, unknowns), confidence scores. Replaces the old `/summary` and `/snapshot`. Always follow with an **AskQuestion** on what to focus on next. |
 | `/report` | Full structured deep-dive — all major outputs, requirements, slices, ADRs, backlog. |
 | `/publish-status` | Generate the initiative status page in the **Status Page Standard Format** (see below) and publish it to Confluence. **Always check `confluence-pages.json` first** for an existing status page entry. If one exists, **update** that page (using `updateConfluencePage`) with the new title "Status as at [DD Mon YYYY]" and refreshed body. Only **create** a new page (using `createConfluencePage`) if no prior status page entry exists. Parent = initiative hub page. Always use `contentFormat: "markdown"`. Update `confluence-pages.json` and `SESSION-CONTEXT.md` with the page ID after publishing. |
+| `/canvas` | Generate the project canvas and HTML snapshot — interactive view of current initiative state. Invokes `ba-project-canvas` skill. |
+| `/validate-state` | Mid-session drift report — check that all state files are in sync (tracker vs status-data.json vs SESSION-CONTEXT vs canvas). Read-only; offers fix options but does not auto-write. |
+| `/wrap` | End-of-session closeout — runs `/validate-state`, promotes unpromoted items, refreshes workboard, suggests new chat. |
+| `/metrics` | Show the 4 BA quality metrics: MoSCoW coverage rate, DoR hit rate, requirement interrogation rate, sign-off cycle time. Invokes `ba-project-canvas` metrics computation. |
+| `/fast-track` | Enable fast-track mode for compliance or time-critical initiatives. Condenses the BA phase structure, runs discovery/slicing/solution shaping in parallel. Log activation as a decision in the tracker. |
 | `/reanchor` | Re-read the orchestrator and current project state. Use when long-thread drift is obvious. Always follow with an **AskQuestion** offering the current next action vs re-prioritising. |
 | `/retro` | Trigger a retrospective. Invoke the `ba-retrospective-and-learning` skill. Three modes: **phase retro** (quick, at phase boundaries), **mid-initiative retro** (deeper, when something is off track or on reflection), **closure retro** (comprehensive, at initiative end). Always follow with an **AskQuestion** on which actions to implement. |
 

@@ -1,4 +1,4 @@
----
+﻿---
 name: ba-feature-slicing-and-sequencing
 description: Feature slices before epics, prioritisation, critical path. Use when slicing or sequencing work in BA Assistant.
 ---
@@ -7,9 +7,9 @@ description: Feature slices before epics, prioritisation, critical path. Use whe
 
 ## Description
 
-The Feature Slicing and Sequencing skill breaks an initiative into manageable, independently valuable **feature slices** before converting them into epics and stories.  It balances business priorities, uncertainty, critical path dependencies, and lead times to propose a delivery order and parallelisation plan.  It distinguishes business priority (what's most valuable), analysis priority (what needs understanding first), delivery priority (what should be built first), and **critical path priority** (what must start earliest to avoid blocking later).  This skill integrates PM input on dates and priorities and surfaces long‑lead activities such as compliance reviews, design, or spikes.
+The Feature Slicing and Sequencing skill breaks an initiative into manageable, independently valuable **feature slices** before converting them into epics and stories.  It balances business priorities, uncertainty, critical path dependencies, and lead times to propose a delivery order and parallelisation plan.  It distinguishes business priority (what’s most valuable), analysis priority (what needs understanding first), delivery priority (what should be built first), and **critical path priority** (what must start earliest to avoid blocking later).  This skill integrates PM input on dates and priorities and surfaces long‑lead activities such as compliance reviews, design, or spikes.
 
-## Intake light pass mode (added May 2026 after [previous initiative retro])
+## Intake light pass mode (added May 2026 after RBA dry-run retro)
 
 This section is invoked from **Intake Reviewer hook 4.5** — a *light* slicing pass run during Phase 0 intake, BEFORE the deeper Phase 3 slicing work below. The purpose is to surface candidate slice axes early so the BA and PM can co-shape scope at intake, not have it dropped on them at Phase 3.
 
@@ -88,7 +88,7 @@ This light-pass mode **does not replace Phase 3 slicing**. It exists to ensure s
    - *Critical path priority*: long‑lead items that must start early (e.g., compliance approvals, design work, external integrations).
 3. **Identify critical path items** – List activities with fixed dates or long lead times (compliance, legal, design, service design, spikes, ADRs, data analysis, stakeholder sign‑offs).  For each, note the owner, due date, lead time, what it blocks, and its current status and risk.
 4. **Propose sequencing** – Recommend a delivery order that balances value, risk, and dependency management.  Identify which slices can be executed in parallel versus sequentially.  Suggest deferring slices that have low value or heavy dependencies until later.
-5. **Capture rationale** – For each slice and sequencing decision, record the reasoning: why it's ordered first, next, or later; what dependencies it has; and what the potential risks are.
+5. **Capture rationale** – For each slice and sequencing decision, record the reasoning: why it’s ordered first, next, or later; what dependencies it has; and what the potential risks are.
 6. **Interact with PM priorities** – Ask the PM/product owner about target dates and must‑have outcomes.  Incorporate these into the sequencing plan.  Highlight conflicts between business priorities and critical path needs.
 7. **Update tracker** – Pass the slicing plan, critical path items, and sequencing rationale to the Risk & Tracker skill and orchestrator for ongoing management.
 
@@ -105,36 +105,36 @@ GOAL (WHY)
             └── DELIVERABLES (WHAT — features/things we could build to cause those behaviour changes)
 ```
 
-**Example — "Increase new feature onboarding completion to 90%":**
+**Example — "Increase quick T2P onboarding completion to 90%":**
 
 ```
-GOAL: 90% new feature onboarding completion (up from 72%)
+GOAL: 90% quick T2P onboarding completion (up from 72%)
 
-  ACTOR: Existing customer (< 12 months)
-    IMPACT: Completes new feature sign-up in the same session as bank verification
-      DELIVERABLE: Pre-fill form from existing customer application
-      DELIVERABLE: Single-page confirmation step
+  ACTOR: Existing OIP merchant (< 12 months)
+    IMPACT: Completes T2P sign-up in the same session as bank verification
+      DELIVERABLE: Pre-fill T2P form from existing OIP application
+      DELIVERABLE: Single-page T2P confirmation step
     IMPACT: Doesn't drop off when shown the T&C page
       DELIVERABLE: Summarised T&C with explicit changes from v3 to v4
       DELIVERABLE: Allow T&C review post-signup (deferred consent)
 
-  ACTOR: [ops team]
-    IMPACT: Approves new feature applications within 4 hours (vs 24 hours)
+  ACTOR: Verifications ops team
+    IMPACT: Approves quick T2P applications within 4 hours (vs 24 hours)
       DELIVERABLE: Auto-approval rule for low-risk segment
-      DELIVERABLE: Triage queue showing new feature applications separately
-    IMPACT: Doesn't have to look up source customer record manually
+      DELIVERABLE: Triage queue showing quick T2P separately
+    IMPACT: Doesn't have to look up source OIP record manually
       DELIVERABLE: Linked record view in ops portal
 
   ACTOR: Compliance team
     IMPACT: Signs off the auto-approval rule
       DELIVERABLE: Auto-approval logic documented + audit trail
-    IMPACT: Doesn't require re-verification for in-scope cohort
+    IMPACT: Doesn't require re-KYC for in-scope cohort
       DELIVERABLE: Confluence policy update + sign-off
 ```
 
 **Why this helps slicing:**
 
-- Slices map naturally to *Actor + Impact* combinations (e.g. "Customer pre-fill slice", "Ops auto-approve slice", "Compliance sign-off slice")
+- Slices map naturally to *Actor + Impact* combinations (e.g. "Merchant pre-fill slice", "Ops auto-approve slice", "Compliance sign-off slice")
 - Deliverables can be ranked by which Impact they most efficiently cause — easy to defer or cut
 - The Goal stays visible — features get cut without losing line-of-sight to outcomes
 - Surfaces non-software deliverables (Confluence policy update, Ops portal training) that pure feature slicing tends to miss
@@ -193,7 +193,7 @@ The slicing skill must protect against typical pitfalls:
 - **Premature solutioning:** Do not define epics or stories until feature slices are understood.  Avoid committing to technical solutions during slicing; focus on value and uncertainty.
 - **Overscoping:** If a slice encompasses too many disparate capabilities, challenge the user to break it further.  Smaller slices deliver value faster and reduce risk.
 - **Ignoring long‑lead items:** Surface long‑lead activities as critical path items.  Highlight if something needs to start early despite its business priority being low.
-- **Misaligned priorities:** Challenge if the PM's priority conflicts with critical path; propose an alternative approach or highlight risk.
+- **Misaligned priorities:** Challenge if the PM’s priority conflicts with critical path; propose an alternative approach or highlight risk.
 - **Lack of rationale:** Require a reason for ordering decisions.  If the user cannot justify, mark it as an assumption or risk.
 - **Gating flexibility:** Recognise that unknowns might allow slices to proceed in parallel or be deferred.  Use the active prompting approach rather than strict gating.
 
@@ -251,3 +251,4 @@ A low business priority item may still need early action due to long compliance 
 ### Migration note (Wave 3)
 
 This content was previously the `ba-critical-path-and-priority` skill. The standalone skill is now a SUPERSEDED marker; all critical-path work is performed here as part of slicing + sequencing.
+

@@ -1,4 +1,4 @@
-# Requirement Format Standard
+﻿# Requirement Format Standard
 
 **Location:** `~/.cursor/skills/ba-assistant/references/requirement-format.md`
 **Owner:** ba-discovery-and-requirements (workflow), this standard (format)
@@ -14,8 +14,8 @@ This file is the canonical source for requirement structure, requirements regist
 |---|---|---|
 | `<initiative>/requirements/register.md` | Narrative requirement entries | Requirement content, evidence, history |
 | `<initiative>/requirements/moscow-matrix.md` | Per-scope MoSCoW classification | Prioritisation per scope |
-| `status-data.json → stories[].linkedRequirements` | Story-to-requirement traceability | Forward linkage |
-| Confluence requirements page | Published view for stakeholders | Sharing only — derived |
+| `status-data.json â†’ stories[].linkedRequirements` | Story-to-requirement traceability | Forward linkage |
+| Confluence requirements page | Published view for stakeholders | Sharing only â€” derived |
 
 The register.md file is the source of truth. The MoSCoW matrix and Confluence views are derived.
 
@@ -41,21 +41,21 @@ ID numbering is unique within each type. BR-001 and FR-001 can coexist. Within a
 Each requirement in `register.md`:
 
 ```markdown
-### BR-005 · Customer identity must be verified to applicable regulatory standard
+### BR-005 Â· Merchant identity must be verified to NZ AML/CFT Act standard
 **Type:** Business requirement (compliance-driven)
 **Status:** Confirmed
 **Priority (initiative-level):** Must
 **Owner:** [Compliance lead] + [BA]
-**Source:** Compliance interview 18 Apr 2026; applicable anti-money-laundering regulation reference
+**Source:** Compliance interview 18 Apr 2026; AML/CFT Act 2009 reference
 **Created:** 2026-04-18
 **Last reviewed:** 2026-05-25
 **Interrogator output:** `interrogations/BR-005.md`
 
 **Statement:**
-The system must verify customer identity (individual or business) to a standard that satisfies applicable customer due diligence requirements, including standard due diligence for low-risk customers and enhanced due diligence for high-risk customers.
+The system must verify merchant identity (individual or business) to a standard that satisfies the NZ AML/CFT Act 2009 customer due diligence requirements, including standard CDD for low-risk merchants and enhanced CDD for high-risk merchants.
 
 **Rationale:**
-Regulatory obligation. Failure to meet this standard exposes the organisation to civil penalties and operational restrictions. Risk-rated approach is permitted under applicable regulation.
+Regulatory obligation. Failure to meet this standard exposes the organisation to civil penalties and operational restrictions. Risk-rated approach is permitted under the Act.
 
 **Acceptance for "met":**
 - Standard CDD performed for all merchants in low-risk category
@@ -98,11 +98,11 @@ Regulatory obligation. Failure to meet this standard exposes the organisation to
 ### Status transitions
 
 ```
-draft → confirmed (interrogator pass complete; stakeholder agreement)
-draft → descoped (decided not to pursue)
-confirmed → superseded (replaced by new requirement; supersededBy link required)
-confirmed → deferred (deferred to future initiative; reason logged)
-superseded / descoped / deferred → confirmed (rare; with explicit re-confirmation)
+draft â†’ confirmed (interrogator pass complete; stakeholder agreement)
+draft â†’ descoped (decided not to pursue)
+confirmed â†’ superseded (replaced by new requirement; supersededBy link required)
+confirmed â†’ deferred (deferred to future initiative; reason logged)
+superseded / descoped / deferred â†’ confirmed (rare; with explicit re-confirmation)
 ```
 
 ---
@@ -112,29 +112,29 @@ superseded / descoped / deferred → confirmed (rare; with explicit re-confirmat
 `register.md` is organised by **type**, then **scope**. Each requirement appears under its primary scope. Cross-scope requirements appear under "Initiative-wide".
 
 ```markdown
-# Requirements register — <Initiative name>
+# Requirements register â€” <Initiative name>
 
 ## Summary
 - Total requirements: N (BR: x, FR: y, NFR: z, COMP: a, CON: b)
-- Confirmed: N · Draft: N · Other: N
-- Interrogator coverage: N% (target: ≥95% for confirmed)
+- Confirmed: N Â· Draft: N Â· Other: N
+- Interrogator coverage: N% (target: â‰¥95% for confirmed)
 
 ## Initiative-wide
-### BR-001 · ...
-### COMP-21 · ...
+### BR-001 Â· ...
+### COMP-21 Â· ...
 
-## Cohort A — High-risk merchants
-### BR-005 · ...
-### FR-014 · ...
+## Cohort A â€” High-risk merchants
+### BR-005 Â· ...
+### FR-014 Â· ...
 
-## Cohort B — Standard merchants
-### BR-006 · ...
+## Cohort B â€” Standard merchants
+### BR-006 Â· ...
 
-## Feature Alpha pilot
-### BR-009 · ...
+## Quick T2P pilot
+### BR-009 Â· ...
 
 ## Out of scope (recorded for context)
-### OOS-01 · Self-service onboarding for sole traders
+### OOS-01 Â· Self-service onboarding for sole traders
 **Out because:** Out of scope for initiative; deferred to FY27 roadmap.
 **Decision link:** D-08
 ```
@@ -147,19 +147,19 @@ MoSCoW is **per scope**, not just initiative-wide. A requirement can be a `Must`
 
 ### Matrix layout
 
-| Requirement | Initiative | Cohort A | Cohort B | Feature Alpha |
+| Requirement | Initiative | Cohort A | Cohort B | Quick T2P |
 |---|---|---|---|---|
-| BR-005 — AML/CFT identity verification | M | M | M | M |
-| BR-013 — Customer-facing decline messaging | S | M | S | C |
-| FR-014 — High-risk routing logic | M | M | — | — |
-| NFR-04 — <500ms verification latency at p95 | S | S | S | M |
+| BR-005 â€” AML/CFT identity verification | M | M | M | M |
+| BR-013 â€” Customer-facing decline messaging | S | M | S | C |
+| FR-014 â€” High-risk routing logic | M | M | â€” | â€” |
+| NFR-04 â€” <500ms verification latency at p95 | S | S | S | M |
 
 Cell values:
-- `M` — Must
-- `S` — Should
-- `C` — Could
-- `W` — Won't (for this scope)
-- `—` — Not applicable to this scope
+- `M` â€” Must
+- `S` â€” Should
+- `C` â€” Could
+- `W` â€” Won't (for this scope)
+- `â€”` â€” Not applicable to this scope
 
 ### Override rule
 
@@ -167,7 +167,7 @@ If the initiative-level priority is `Must`, no scope can have it as `C` or `W` w
 
 ### Re-prioritisation
 
-MoSCoW values are reviewed at each phase gate. Changes are logged in the requirement's `History` section. Repeated changes (>2 per requirement per month) trigger a flag — sign of unstable scope.
+MoSCoW values are reviewed at each phase gate. Changes are logged in the requirement's `History` section. Repeated changes (>2 per requirement per month) trigger a flag â€” sign of unstable scope.
 
 ---
 
@@ -178,9 +178,9 @@ Jobs to be Done sit alongside requirements. Not every initiative needs them; use
 Format:
 
 ```markdown
-### JTBD-01 · When a merchant applies to accept payments, they want to know quickly whether they're approved, so they can plan opening their business
+### JTBD-01 Â· When a merchant applies to accept payments, they want to know quickly whether they're approved, so they can plan opening their business
 
-**Situation:** Customer has decided to use [Organisation] for the service and submitted application
+**Situation:** Merchant has decided to use [Your Organisation] for payment processing and submitted application
 **Motivation:** Wants to plan their first trading day with confidence
 **Expected outcome:** Decision (approval / decline / more info needed) within hours, not days
 
@@ -212,7 +212,7 @@ This is the requirement equivalent of acceptance criteria. Specific, observable,
 **Bad:**
 - "System is secure" (untestable)
 - "Process is efficient" (no threshold)
-- "Compliance is met" (recursive — that's literally the requirement)
+- "Compliance is met" (recursive â€” that's literally the requirement)
 - "Works well for users" (no measure)
 
 If the requirement can't be written with specific acceptance, that's a signal it needs interrogation first. Don't confirm a requirement that can't be tested.
@@ -239,7 +239,7 @@ Re-interrogation happens when:
 Out-of-scope items get IDs and entries too. The point is to capture "we considered this and decided not to" so it doesn't get re-litigated in the next phase.
 
 ```markdown
-### OOS-01 · Self-service onboarding for sole traders
+### OOS-01 Â· Self-service onboarding for sole traders
 **Considered during:** Phase 1 discovery
 **Decision date:** 2026-04-30
 **Decision link:** D-08
@@ -282,10 +282,10 @@ Published page is regenerated from register.md, not edited directly in Confluenc
 
 ---
 
-## 12. Worked example — minimal requirement entry
+## 12. Worked example â€” minimal requirement entry
 
 ```markdown
-### NFR-04 · Verification latency must be <500ms at p95 under sustained load
+### NFR-04 Â· Verification latency must be <500ms at p95 under sustained load
 **Type:** Non-functional
 **Status:** Confirmed
 **Priority (initiative-level):** Must
@@ -308,7 +308,7 @@ Verification latency directly affects merchant onboarding completion time. Inter
 **Linked elements:**
 - Decisions: D-04 (vendor X)
 - Risks: R-12 (vendor capacity at launch)
-- Stories: PROJ-004 (load test setup)
+- Stories: PROJ-010 (load test setup)
 - Slices: SL-02 (verification pipeline)
 
 **History:**
@@ -322,3 +322,4 @@ Verification latency directly affects merchant onboarding completion time. Inter
 ## 13. Versioning
 
 v1.0 (2026-05-30). Changes to required fields, new requirement type, or MoSCoW rule changes require version bump.
+

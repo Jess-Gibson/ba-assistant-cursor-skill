@@ -1,0 +1,143 @@
+﻿---
+description: Automatic sync checks at natural breakpoints to prevent state drift across initiative files
+alwaysApply: true
+---
+
+# Sync Gates
+
+State drift is the number one workflow pain. This rule defines **when** and **how** the agent checks that canonical files are in sync.
+
+## Two sync layers
+
+| Layer | Trigger | Agent action |
+|-------|---------|-------------|
+| **Inline capture** | Every conversation turn | Context Capture skill silently appends to SESSION-CONTEXT.md. No user-visible action. |
+| **Sync gate** | See triggers below | Run sync check, present sync card if drift detected. Fix on `/wrap`; report-only on `/validate-state`. |
+
+## Commands (simplified)
+
+| Command | Purpose | Mutates? |
+|---------|---------|----------|
+| `/validate-state` | Mid-session drift report â€” "am I behind?" | No (read-only, offers fix options) |
+| `/wrap` | End-of-session closeout â€” runs validate-state then promotes + refreshes workboard + suggests new chat | Yes |
+
+**`/sync-check` is retired.** Use `/validate-state` for diagnostics or `/wrap` to close out. If the user types `/sync-check`, treat it as `/validate-state`.
+
+## Sync gate triggers (mandatory)
+
+The agent MUST run a **quick sync check** at each of these breakpoints:
+
+1. **After a debrief completes** -- the debrief just wrote to SESSION-CONTEXT and possibly tracker. Check: did all outputs land? Is status-data.json still consistent?
+2. **Before switching initiatives** -- when the user switches between initiatives, run sync on the OUTGOING initiative before loading the new one.
+3. **Before any Confluence publish** -- check that local files are current before pushing stale data to Confluence.
+4. **On `/validate-state` command** -- user-initiated, runs for current initiative (report only).
+5. **On `/validate-state all` command** -- runs across all initiatives (report only).
+6. **On `/wrap` command** -- session closeout: run **action runthrough** (see below), then validate-state, then fix all drift + refresh workboard + checkpoint.
+7. **At 20 turns in a BA thread** -- regardless of topic drift. Run a lightweight mid-session sync: check for unpromoted items in SESSION-CONTEXT, promote if >3 items, suggest a checkpoint. Present as a brief inline note, not a full sync card. If the user defers, don't ask again until 40 turns.
+
+## Quick sync check procedure
+
+When a sync gate fires, the agent performs these checks (fast, no MCP calls unless needed):
+
+### Step 1: SESSION-CONTEXT vs initiative-tracker
+- Scan SESSION-CONTEXT.md for items tagged with sync markers (decisions, risks, unknowns, actions) that don't appear in initiative-tracker.md
+- Look for: `DEC-`, `RISK-`, `OQ-`, `ACT-`, `DEP-` prefixes, or items under `## Decisions`, `## Open Questions`, `## New Risks` headings
+- Flag any items present in SESSION-CONTEXT but missing from tracker as "unpromoted"
+
+### Step 2: status-data.json consistency
+- If status-data.json exists, check that its `workstreams` or `features` statuses match what's described in the tracker narrative
+- Flag mismatches (e.g. tracker says "in progress" but status-data says "not started")
+
+### Step 3: Confluence staleness (lightweight)
+- Read `confluence-pages.json` for the current initiative
+- For each registered page with a `last_published_hash`, compare against current local file hash
+- Flag pages where local content has changed since last publish
+
+### Step 4: Jira delta (only on full reconciliation or if explicitly requested)
+- Query `searchJiraIssuesUsingJql` for the initiative's active tickets
+- Compare ticket statuses against status-data.json
+- Flag any tickets that have moved since last recorded state
+
+## Sync card output
+
+When drift is detected, present a compact sync card:
+
+```
+--- Sync Check: [initiative] ---
+Unpromoted items: 2 (1 decision, 1 open question)
+Status-data drift: PROJ-001 is "Done" in Jira but "In Progress" in status-data
+Confluence stale: 1 page (status page, last published 3 days ago)
+
+Options:
+  [Approve all updates] -- write all fixes now
+  [Show details] -- expand each item before deciding
+  [Defer] -- skip for now, I'll handle it later
+  [Just promote items] -- update tracker only, skip Jira/Confluence
+---
+```
+
+Use AskQuestion to present options. If "Approve all", execute all writes. If "Show details", expand each item with the specific content that would be written.
+
+## Automated state cascade
+
+When a sync gate fires and detects unpromoted items (Step 1), the agent SHOULD auto-promote them â€” **unless** the user is in a `/validate-state` (report-only) context.
+
+### Auto-promotion rules
+
+1. **Decisions** (`DEC-` or items under `## Decisions`) â€” copy to the tracker's decisions table with the timestamp from SESSION-CONTEXT. If no timestamp exists, use the file modification time.
+2. **Risks** (`RISK-` or `## New Risks`) â€” add to tracker's risk table.
+3. **Open questions** (`OQ-` or `## Open Questions`) â€” add to tracker's unknowns section.
+4. **Actions** (`ACT-`) â€” add to tracker's actions section.
+5. **Dependencies** (`DEP-`) â€” add to tracker's dependencies section.
+
+After promotion, add a `[promoted]` tag to the item in SESSION-CONTEXT so it is not promoted again.
+
+### When NOT to auto-promote
+
+- During `/validate-state` (read-only mode) â€” report only, let the user choose
+- If the item's content is ambiguous or incomplete â€” flag it for review instead
+- If the tracker section doesn't exist yet â€” create it, but flag this as a structural addition
+
+## Action runthrough (part of `/wrap`)
+
+Before running the state validation, walk through **every open action** in the actions list one at a time. For each action:
+
+1. Present the action description and current recorded status via **AskQuestion** with status options (Done, In progress, Blocked, No update, etc.)
+2. Capture any verbal context the user provides (new facts, decisions, status changes, follow-up tasks)
+3. Update the actions list with the new status
+4. If the user surfaces new actions or tasks during the runthrough, add them
+
+This pattern works because:
+- It forces a structured review of every open item at end of day
+- It surfaces updates that wouldn't come up organically
+- It captures verbal context and turns it into formal state updates
+- It naturally identifies new actions and follow-ups
+
+After the runthrough, present a summary table of all actions with updated statuses, then proceed to state validation.
+
+## What NOT to sync-gate
+
+- Do not run sync gates on every single message (that's what inline capture is for)
+- Do not block the user from working if sync is out of date -- always offer "defer"
+- Do not auto-write without approval (except inline capture to SESSION-CONTEXT, which is already approved by design)
+- Do not run Jira MCP calls on every sync gate -- only on full reconciliation or when the user asks
+
+## Integration with other rules
+
+- `execution-router.mdc`: On BA-resume, the router already reads state files. After reading, if the re-entry card shows sync issues, mention them but don't block.
+- `ba-state-validator`: The full State Validator is the "heavy" version of this. Sync gates are the "light" version that runs at breakpoints. They share the same mental model but sync gates skip the cross-document deep diff.
+- `ba-context-capture`: Context Capture is Layer 1. It writes to SESSION-CONTEXT. Sync gates (Layer 2) check whether those writes have been promoted to the tracker.
+
+## Canonical file hierarchy (for conflict resolution)
+
+If two files disagree, the canonical source wins:
+
+1. **initiative-tracker.md** -- canonical for narrative RAID, decisions, requirements
+2. **status-data.json** -- canonical for structured ticket/workstream data (should reflect Jira)
+3. **SESSION-CONTEXT.md** -- scratch space, gets promoted to tracker
+4. **workboard.json** -- derived from all initiative trackers + Jira + calendar
+5. **Confluence pages** -- derived from local files, published on command
+6. **Canvas / HTML snapshots** -- derived from status-data.json, regenerated on demand
+
+When in doubt: tracker > status-data > SESSION-CONTEXT > everything else.
+

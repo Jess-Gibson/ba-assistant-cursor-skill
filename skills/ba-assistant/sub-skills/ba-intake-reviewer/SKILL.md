@@ -24,7 +24,7 @@ Run these steps in order. The user sees them as a numbered Phase 0 progress chec
 | # | Step | What it does | Sub-skill invoked |
 |---|---|---|---|
 | 1 | **Workspace context** | Confirm Jira project, Confluence space, parent page, repos, Slack channel before any other work. | — (this skill) |
-| 2 | **Multi-source context gathering** | Search Confluence, Jira, Glean (enterprise + code), and the web for existing context BEFORE asking the user to restate anything. Vet every source for freshness, AI-generated content, and authority. **Regulator gate:** if the work touches a regulator (configure for your jurisdiction — see Regulatory bodies section below), web-search the regulator's own publication directly — internal Confluence summaries are secondary. **AI source verification:** if a source looks AI-written, verify every Confluence/Jira ID it cites returns 200 OK before quoting any claim. **Skip-acknowledgement:** tell the user what was searched and what was skipped, and why. Lean intakes can skip Glean + Web unless the regulator gate fires. | — (this skill) + Glean skills + WebSearch |
+| 2 | **Multi-source context gathering** | Search Confluence, Jira, Glean (enterprise + code), and the web for existing context BEFORE asking the user to restate anything. Vet every source for freshness, AI-generated content, and authority. **Regulator gate:** if the work touches a regulator (RBA, AUSTRAC, APRA, ACCC, OAIC, AML/CTF, PSD2, GDPR, etc.), web-search the regulator's own publication directly — internal Confluence summaries are secondary. **AI source verification:** if a source looks AI-written, verify every Confluence/Jira ID it cites returns 200 OK before quoting any claim. **Skip-acknowledgement:** tell the user what was searched and what was skipped, and why. Lean intakes can skip Glean + Web unless the regulator gate fires. | — (this skill) + Glean skills + WebSearch |
 | 3 | **Confirm complexity** | Now that sources have been read and vetted, present a complexity choice (Lean / Standard / Full) via `AskQuestion`. Show what was found so the user picks informed. If the regulator gate fired in step 2, Lean is unavailable. | — (this skill) |
 | 4 | **Problem statement interrogation** | Invoke Requirements Interrogator in Discovery mode for the problem statement. One good question at a time, follow the thread, surface the underlying need. Lean intakes skip — straight to scope + RAID. | `ba-requirements-interrogator` |
 | 5 | **Success metrics interrogation** | Invoke Requirements Interrogator in Discovery mode for success metrics. Same conversational pattern. Lean intakes skip — straight to scope + RAID. | `ba-requirements-interrogator` |
@@ -55,6 +55,8 @@ Not every intake needs the full Phase 0 treatment. Adapt depth to size of work.
 
 **Override the user's pick** when the situation demands it. Examples: compliance work in scope → Lean → Standard; multi-cohort scope → Standard → Full; sparse 1-line brief with nothing found → Lean → Standard. Always tell the user what you bumped and why. They can re-override and accept the risk; log the decision in the tracker.
 
+**Compliance scope expansion warning:** When a regulatory/compliance keyword is detected (RBA, AUSTRAC, APRA, ACCC, OAIC, ACMA, ATO, etc.), surface this risk flag: *"Compliance initiatives frequently expand in scope once implementation complexity is understood. Even 'simple registration' tasks have historically grown into multi-week architecture and lifecycle work. Budget for scope discovery — consult engineering on Day 1 before committing to timelines."* (Observed pattern — compliance initiatives frequently expand once engineering is consulted.)
+
 **Recording:** write `initiative.complexity` to `status-data.json` after the user picks. The canvas and other skills read this to tune behaviour.
 
 **Revisit anytime** — at any phase boundary or when scope grows, the user can bump complexity up or down.
@@ -71,7 +73,7 @@ For every source, capture and surface:
 | Signal | What to record | Action if poor |
 |---|---|---|
 | **Last modified date** | ISO date | If >6 months for fast-moving topics or >12 months for stable topics → flag as **stale**. Challenge the user: "this hasn't been updated since X — should I treat it as current?" |
-| **Author** | Person or "unknown" | Check whether sources are current and from authoritative authors — if author is unknown or no longer relevant, flag for verification. |
+| **Author** | Person or "unknown" | If author no longer at the organisation or unknown, flag for verification. |
 | **AI-generated signal** | Detect AI markers: overly polished prose, generic phrasing, hedging language, no specific examples, no named people or dates, "this document outlines..." preamble | If suspected AI-generated and unverified → flag as **unverified AI content**. Do NOT treat as authoritative. Ask the user: "this looks AI-generated — do you know who verified it?" |
 | **Authority** | Authoritative (signed-off Confluence page, official policy doc, vendor doc) / Informal (Slack thread, draft page, personal notes) / Unknown | Weight authoritative sources higher. Treat informal as evidence, not fact. |
 | **Recency vs topic velocity** | Match document age against how fast the topic moves (regulation = stable; product changes = fast) | Flag mismatches. |
@@ -96,11 +98,11 @@ decide what to use, verify, or ignore.
 
 | # | Source | Tool / skill | What to look for |
 |---|---|---|---|
-| 1 | **Confluence** | Your configured Confluence MCP server → `searchConfluenceUsingCql` (see MCP configuration) | Pages matching initiative name, keywords, related domains. Check for existing PRDs, BRDs, requirements pages, decision logs. |
-| 2 | **Jira** | Your configured Jira MCP server → `searchJiraIssuesUsingJql` (see MCP configuration) | Existing epics, stories, problem cards, spikes related to the initiative. Look in [YOUR-PROJECT] and other relevant projects. |
+| 1 | **Confluence** | `user-atlassian-confluence-Server` MCP → `searchConfluenceUsingCql` | Pages matching initiative name, keywords, related domains. Check for existing PRDs, BRDs, requirements pages, decision logs. |
+| 2 | **Jira** | `user-atlassian-jira-Server` MCP → `searchJiraIssuesUsingJql` | Existing epics, stories, problem cards, spikes related to the initiative. Look in project keys from your configuration and other relevant projects. |
 | 3 | **Glean — enterprise** | `enterprise-search` skill | Docs, Slack threads, email, design docs, RFCs across the org. Use confidence signals to weight results. |
 | 4 | **Glean — code** | `code-exploration` skill | Existing code that implements related capability. Useful for technical initiatives — answer "has this been built before?" before designing it again. |
-| 5 | **Web** | `WebSearch` tool | External context: regulations, vendor documentation, industry standards, news. Especially important for regulatory or compliance-driven initiatives (e.g. [Regulatory Initiative], industry rule changes, privacy updates). Search using current year per workspace rules. |
+| 5 | **Web** | `WebSearch` tool | External context: regulations, vendor documentation, industry standards, news. Especially important for regulatory or compliance-driven initiatives (e.g. RBA surcharge ban, AUSTRAC changes, APP updates). Search using current year per workspace rules. |
 
 ### Reporting findings to the user
 
@@ -111,32 +113,32 @@ signals applied. Example format:
 Internal sources found:
 
 Confluence (3 results)
-- "[Regulatory Initiative] Policy Brief" (12894521098)
+- "[Initiative] Policy Brief" ([PAGE-ID-1])
   Last updated: Nov 2024 — STALE (regulation moved Mar 2026, this predates it)
-  Author: [Author Name] (unknown if still relevant)
+  Author: Sarah K (unknown if still relevant)
   Authority: Informal — draft page, never signed off
   Recommendation: read for historical context but verify against current regulation
-- "[Relevant Architecture Page]" (12876543210)
+- "[System] Architecture Overview" ([PAGE-ID-2])
   Last updated: May 2026 — CURRENT
-  Author: [Author Name]
+  Author: [Tech Lead]
   Authority: Authoritative — linked from architecture hub
   Recommendation: read in full
-- "[Regulatory Initiative] Implementation Notes (draft)" (12892100123)
+- "[Initiative] Implementation Notes (draft)" ([PAGE-ID-3])
   Last updated: Apr 2026
   Author: AI-generated per page header, no human verifier listed
   Authority: UNVERIFIED AI CONTENT
   Recommendation: DO NOT treat as authoritative — ask the team who reviewed it
 
 Jira (2 results)
-- PROJ-001 "Feature config epic" — status: Closed, Sept 2025 (potentially stale)
-- PROJ-002 "[Regulatory Initiative] impact analysis" — status: In Progress, opened Apr 2026
+- PROJ-001 "[Feature X] epic" — status: Closed, Sept 2025 (potentially stale)
+- PROJ-002 "[Initiative] impact analysis" — status: In Progress, opened Apr 2026
 
 External sources found:
 
 Web (5 results)
-- [Financial regulator] "Review of Card Payments Regulation" final report ([relevant regulator website], Mar 2026) — authoritative
-- [Industry body] response to [regulator] consultation (Apr 2026) — authoritative
-- News: "[Industry] welcomes regulatory reform" (Apr 2026) — informational only
+- RBA "Review of Card Payments Regulation" final report (rba.gov.au, Mar 2026) — authoritative
+- AusPayNet response to RBA consultation (Apr 2026) — authoritative
+- News: "Retail bodies welcome surcharge ban" (Apr 2026) — informational only
 - ...
 ```
 
@@ -147,13 +149,7 @@ Then present an `AskQuestion`:
 
 ### Regulator gate (mandatory)
 
-If the work touches a regulator or regulatory framework — or generic cues like "compliance deadline", "regulatory reform", "industry mandate" — **web search is mandatory regardless of complexity.**
-
-**Regulatory bodies to check (configure for your jurisdiction):**
-- [Your financial regulator]
-- [Your privacy/data protection authority]
-- [Your consumer protection body]
-- [Your industry-specific regulators]
+If the work touches a regulator or regulatory framework — RBA, AUSTRAC, APRA, ACCC, ASIC, OAIC, ATO, AusPayNet, AML/CTF, Privacy Act / APP, CDR, PCI DSS, GDPR, PSD2/PSD3, CCPA, or generic cues like "surcharge ban", "interchange reform", "compliance deadline" — **web search is mandatory regardless of complexity.**
 
 Always read the regulator's own publication directly. Internal Confluence summaries are secondary evidence, never primary. Surface the regulator source to the user separately from internal sources, with a recency check. If WebSearch isn't available, block intake — don't proceed past source vetting without acknowledgement that the external view is missing.
 
@@ -187,7 +183,7 @@ At the start of intake (step 1), confirm workspace context. Batch related questi
 
 Capture:
 
-- **Jira project key** — e.g. [YOUR-PROJECT]
+- **Jira project key** — e.g. PROJ, TEAM
 - **Jira template story** (optional) — paste a key (e.g. `PROJ-XXXX`) to use its structure as the template for new stories, or "use most recent" to pick the project's latest, or "skip" (ask again at Delivery Definition). Stored as `initiative.jiraTemplateKey`.
 - **Confluence space + parent page** — record page IDs in `confluence-pages.json`
 - **All-in-one / intake doc link** — Confluence URL, PM brief, BRD, PRD, or pasted text
@@ -275,3 +271,4 @@ The Intake Reviewer challenges vague or unjustified statements immediately but d
 - If an assumption is unstated, call it out: “It seems we’re assuming X.  Should we validate that?”
 - Highlight potential scope creep if the PM’s description is broad or unspecific.  Suggest clearly defining what is out of scope.
 - Do not block progress; simply capture questions and assumptions and proceed to kickoff preparation.
+

@@ -1,4 +1,4 @@
-﻿# User Story Format Standard
+# User Story Format Standard
 
 **Location:** `~/.cursor/skills/ba-assistant/references/user-story-format.md`
 **Owner:** ba-story-writing (workflow), this standard (format)
@@ -63,19 +63,19 @@ And [additional behaviour, if needed]
 [SL-XX identifier from feature slicing. Required for any story past Phase 3.]
 
 ## DoR checklist
-[Definition of Ready criteria â€” see Section 6]
+[Definition of Ready criteria — see Section 6]
 
 ## Definition of Done
-[Specific to this story. What does "done" actually mean â€” tested, deployed, monitored, documented?]
+[Specific to this story. What does "done" actually mean — tested, deployed, monitored, documented?]
 ```
 
 ### Optional sections
 
-- `## Technical notes` â€” for technical context the dev team needs but isn't business-facing
-- `## Mockups / visuals` â€” link to or embed visuals
-- `## Out of scope` â€” explicit exclusions (different from Negative case; out-of-scope is "we considered this and won't do it here")
-- `## Dependencies` â€” other tickets that must complete first
-- `## Risks` â€” story-specific risks (not initiative-level)
+- `## Technical notes` — for technical context the dev team needs but isn't business-facing
+- `## Mockups / visuals` — link to or embed visuals
+- `## Out of scope` — explicit exclusions (different from Negative case; out-of-scope is "we considered this and won't do it here")
+- `## Dependencies` — other tickets that must complete first
+- `## Risks` — story-specific risks (not initiative-level)
 
 ### INVEST conformance
 
@@ -135,10 +135,10 @@ Format: `Spike: investigate [question or uncertainty]`
 
 ### Spike anti-patterns
 
-- Spike with no time-box â†’ reject; spikes are bounded by definition
-- Spike with no specific question â†’ reject; "investigate the API" isn't a question
-- Spike that closes without filling in the Outcome capture section â†’ reject; the knowledge dies otherwise
-- Spike open >2 sprints â†’ Anti-Pattern Detector triggers stalled spike review
+- Spike with no time-box → reject; spikes are bounded by definition
+- Spike with no specific question → reject; "investigate the API" isn't a question
+- Spike that closes without filling in the Outcome capture section → reject; the knowledge dies otherwise
+- Spike open >2 sprints → Anti-Pattern Detector triggers stalled spike review
 
 ---
 
@@ -169,13 +169,13 @@ Format: `Bug: [system] [unintended behaviour] [trigger condition]`
 [Where was this observed? Prod, staging, specific cohort, specific browser?]
 
 ## Severity
-[critical | high | medium | low â€” see Severity rubric in your project-specific jira-templates skill]
+[critical | high | medium | low — see Severity rubric in your project-specific jira-templates skill]
 
 ## Impact
 [Who is affected and how. Number of customers, business impact, compliance impact.]
 
 ## Root cause hypothesis
-[If known. If not, leave blank â€” engineering will investigate.]
+[If known. If not, leave blank — engineering will investigate.]
 
 ## Linked story / requirement
 [What was the bug masking? Which story or requirement does the bug violate?]
@@ -204,13 +204,13 @@ Format: `Enabler: [technical change] so [downstream capability]`
 [Specific technical change]
 
 ## Why this matters
-[What downstream capability this enables. Be specific â€” vague "improves maintainability" claims fail this section.]
+[What downstream capability this enables. Be specific — vague "improves maintainability" claims fail this section.]
 
 ## Without this enabler, what breaks or doesn't happen
 [The case for prioritising. If nothing concrete breaks, the enabler is probably not justified now.]
 
 ## Acceptance criteria
-[Observable system change â€” even if not user-facing. "X service publishes to queue Y" is observable. "Code is cleaner" is not.]
+[Observable system change — even if not user-facing. "X service publishes to queue Y" is observable. "Code is cleaner" is not.]
 
 ## Risk of doing this
 [Technical risk of the change itself]
@@ -239,7 +239,7 @@ Format: `Enabler: [technical change] so [downstream capability]`
 - [ ] Compliance / security implications assessed (or marked N/A with reason)
 ```
 
-A story that passes DoR on first attempt is a `pass` in `status-data.json â†’ dorChecks`. Partial passes (1-2 missing) are `partial`. Multiple missing items make it `fail`.
+A story that passes DoR on first attempt is a `pass` in `status-data.json → dorChecks`. Partial passes (1-2 missing) are `partial`. Multiple missing items make it `fail`.
 
 ---
 
@@ -257,7 +257,7 @@ Then the application routes to manual review with the score and rationale visibl
 
 ### Rule-based (table form) for criteria with many variants
 
-When acceptance criteria have multiple input Ã— outcome combinations, use a table:
+When acceptance criteria have multiple input × outcome combinations, use a table:
 
 | Risk score | Doc verification | Sanctions check | Expected route |
 |---|---|---|---|
@@ -282,7 +282,7 @@ Every story has a Negative case section explicitly stating what should NOT happe
 
 | Watching | Trigger | Anti-pattern |
 |---|---|---|
-| Any skill producing a ticket | Story has no Negative case section | Happy-path only â€” missing negative case |
+| Any skill producing a ticket | Story has no Negative case section | Happy-path only — missing negative case |
 | Any skill producing a ticket | Story lacks linked requirement | Untraceable story |
 | Any skill producing a ticket | Story past Phase 3 lacks linked slice | Slice not assigned |
 | Any skill producing a ticket | Acceptance criteria contain vague terms ("performant", "user-friendly", "robust") without measurable definition | Non-testable AC |
@@ -330,7 +330,7 @@ SL-07
 ## Definition of Done
 - Decline messaging shows approved reason code
 - Reason codes match Reason Code Register SO-04 (legal-approved)
-- A/B test confirms reduction in "what does this mean" support tickets â‰¥30% over 4 weeks
+- A/B test confirms reduction in "what does this mean" support tickets ≥30% over 4 weeks
 ```
 
 ### Example: Good spike

@@ -25,7 +25,7 @@ description: >
 1. Read master instructions from `instructions.md`
 2. Read `hook-contracts.md` (Wave 3 — the registry of every inter-skill call). Use this as the API contract when changing any hub skill.
 3. (Reference only — read on demand) `slash-commands-ux.md` documents how Cursor slash commands, `AskQuestion` chips, and in-session verbs work for this assistant. Consult when designing new user-facing verbs.
-4. **Sub-skills: load on demand** — read a sub-skill's `SKILL.md` only when that skill is invoked for the current task. Do not read all 27 files at bootstrap (see `execution-router.mdc`). When a SUPERSEDED marker is encountered, follow its redirect.
+4. **Sub-skills: load on demand** — read a sub-skill's `SKILL.md` only when that skill is invoked for the current task. Do not read all 27 files at bootstrap (see `execution-router.mdc`).
 5. **Run first-run check (Step 1.5) before anything else**
 6. Output the welcome UI panel (new initiative only — skip on resume)
 7. Activate the BA Initiative Assistant orchestrator persona
@@ -247,7 +247,7 @@ widget. Show the project name if available from context.
 The panel must include:
 
 - Assistant title and status (active)
-- List of all 21 active skills with green indicators (the 6 SUPERSEDED markers are loaded silently for redirect compatibility but not shown in the welcome panel)
+- List of all 22 active skills with green indicators (the 6 SUPERSEDED markers are loaded silently for redirect compatibility but not shown in the welcome panel)
 - Available commands
 - Confidence score dashboard (all starting at Low/Unknown)
 - Current phase indicator (Phase 0: Intake)
@@ -355,20 +355,24 @@ no fresh project trigger was matched in Step 2.5
   - `confluence-pages.json` — published artefact registry
   - `superseded-pages.json` — pages to skip in context gathering (if exists)
   - `learnings.md` — patterns to stay alert for in this initiative class
-4. **Surface a resume summary:**
+4. **Present the re-entry card (mandatory — replaces the old resume summary block):**
   ```
-   Resuming **<Initiative Name>**
+  --- Re-entry: [initiative] | [phase] | Day [N] ---
 
-   **Active workstreams:** <list from status-data.json workstream grid>
-   **Last session:** <date>
-   **State validation:** <✓ clean | N divergences detected — see above>
-   **PM approval state:** <pending <name> | approved | TBC>
-   **Top open blockers:** <count + top item>
-   **Top open questions:** <top 2-3 OQs>
-   **Recommended next action:** <from /next logic, scope-labelled>
+  Where we are: [One sentence — last significant action + current state]
+  Next action: [The single most valuable thing to do right now]
 
-   Ready to continue.
+  Today's meetings: [count] ([relevant ones by name])
+  New transcripts: [count or "none"]
+  Jira delta: [count of tickets that moved since last check, or "no changes"]
+  Sync status: [ok / N items unpromoted / stale pages]
+
+  ---
   ```
+  Populate each field from the files read in step 3. Always include all six lines.
+  For "Jira delta": query Jira for changed tickets since the last recorded state in `status-data.json`; use "Jira: unable to check" if the MCP call fails.
+  For "Today's meetings": check `_workstream/calendar-feed.json` if present.
+  For "New transcripts": check `CURSOR_NEW_TRANSCRIPTS` env var (set by session-init hook).
 5. **Pre-populate Anti-Pattern Detector** with initiative-specific watchlist
   items from SESSION-CONTEXT.md and any patterns in learnings.md flagged for
    this initiative type.
@@ -710,6 +714,8 @@ When the BA Assistant produces stakeholder-facing text — `/status` chat output
 - Any draft Jira / Confluence / email content
 
 **One exception — Jira ticket titles**: if a JIRA ticket title literally contains "Cohort A" or "Feature B" because that's how it was authored in Jira, keep the title verbatim when quoting/listing it. But when the assistant ITSELF refers to that scope in narrative, use the real business name.
+
+**Why this rule exists**: stakeholders reading a `/status` snapshot (sponsors, compliance, partners, exec stakeholders) have no mental model for what "Cohort B" means; they DO have a mental model for "Inactive Accounts". BA codes are an internal labelling shortcut; they are not the business.
 
 **Where to source the real name** — for each scope (feature/cohort/slice), the source of truth in order of preference:
 

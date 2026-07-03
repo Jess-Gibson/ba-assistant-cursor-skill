@@ -32,7 +32,7 @@ First, check if an existing installation exists:
 
 **If an existing installation is found:**
 - List the files to show the user what's there
-- Check if the existing SKILL.md contains the credit line "Originally designed and built by Jess Gibson" — if yes, it's likely the generic package already installed
+- Check if the existing SKILL.md contains the credit line "Originally designed and built" — if yes, it's likely the generic package already installed
 - If it does NOT contain the credit line, or contains files like `demo-cheat-sheet.md` or `audit-2026-05-20.md`, warn the user: "You have an existing BA Assistant installation that appears to be a personal/customized version, not the shareable package. Would you like to: (a) back up the existing version and replace it, (b) skip this step — I'm already using my own version, (c) compare the two versions."
 - **Never overwrite without confirmation.**
 

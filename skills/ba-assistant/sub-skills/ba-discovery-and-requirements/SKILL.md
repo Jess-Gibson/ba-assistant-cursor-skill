@@ -1,4 +1,4 @@
-﻿# Skill: Discovery and Requirements
+# Skill: Discovery and Requirements
 
 ## Standards used
 
@@ -169,7 +169,7 @@ re-interrogated and a confirmed statement is produced.
     - Stories with `Could` rating that are blocking critical-path delivery for a `Must` requirement flag as anti-pattern ("low-priority work blocking high-priority").
 
     **Why this matters:**
-    - The same requirement can be Must for one cohort but Could for another (e.g. for KYC/KYB Project 002, "Audit log" is Must for the Existing OIP cohort but Could for the New OP cohort).
+    - The same requirement can be Must for one cohort but Could for another (e.g. "Audit log" is Must for an existing-customer cohort but Could for a new-customer cohort).
     - Forces the PM to commit to scoping decisions explicitly rather than rolling forward with ambiguity.
     - Gives the BA defensible evidence in playback about why specific scope was/wasn't delivered.
     - Surfaces MoSCoW gaps automatically rather than discovering them at delivery review.
@@ -229,7 +229,7 @@ The Experiment and Validation work encourages evidence-based decision making. It
 1. **Identify assumptions and hypotheses** — Review the requirements (especially `proposed` and `interrogated` lifecycle states), slicing, and solution documents to identify assumptions that require validation (e.g., "Users will adopt the new flow," "System X can handle double the throughput," "Reducing the error rate by 20% will improve satisfaction"). Each assumption is recorded in the tracker (⚠️ Assumption) with a `validation` field pointing to its experiment plan.
 2. **Propose experiments or POCs** — For each assumption or hypothesis, suggest an appropriate experiment or POC. Define what will be measured, how to measure it, and what success looks like. Experiments can include usability tests, A/B tests, shadow traffic tests, or small pilots with a subset of users.
 3. **Define metrics** — Specify the success metrics and thresholds for each experiment. Align metrics with the success criteria defined in intake (problem framing) and with MoSCoW ratings (Must requirements need stronger validation).
-4. **Plan data collection** — Describe how data will be collected: what tracking needs to be implemented, which databases or logs to query (invoke `pm-data-analyst` for warehouse queries), and whether any tooling changes are required.
+4. **Plan data collection (`HK-DISC-BDI-validate`)** — Describe how data will be collected: what tracking needs to be implemented, which databases or logs to query (invoke `ba-data-investigation` to validate assumptions/hypotheses against real data, applying cross-validation and dedup discipline rather than trusting a single query), and whether any tooling changes are required. Warn, not block — if data isn't available, proceed with the assumption flagged ⚠️ in the tracker.
 5. **Interpretation guidelines** — Provide guidance on how to interpret results. Warn about common pitfalls (small sample sizes, biased samples, confounding variables) and suggest how to draw conclusions.
 6. **Update decisions** — Based on experiment outcomes, recommend whether to proceed, iterate, or abandon a solution. Update the RAID and decision logs with findings. If the experiment invalidates an assumption underlying a requirement, trigger `Requirements_Interrogator` in **Rethink mode** for that requirement.
 
@@ -253,7 +253,7 @@ The Experiment and Validation work encourages evidence-based decision making. It
   - *Metrics* (quantitative and qualitative)
   - *Success criteria* (thresholds or expected changes)
   - *Duration* (how long the experiment runs)
-  - *Data collection plan* (what to log, how to instrument, who analyses — invoke `pm-data-analyst` if warehouse data is involved)
+  - *Data collection plan* (what to log, how to instrument, who analyses — invoke `ba-data-investigation` if warehouse data is involved)
   - *Ownership* (who is responsible)
 - **Results interpretation guidance** — A short guideline on how to analyse experiment data, what constitutes meaningful results, and how to avoid misinterpretation.
 - **Decision recommendations** — Based on the outcomes, recommend actions (continue, iterate, pivot, stop). Update the tracker with the decision and rationale. If the experiment changes a requirement's understanding, trigger `Requirements_Interrogator` Rethink mode.

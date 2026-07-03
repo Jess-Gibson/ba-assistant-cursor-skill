@@ -1,4 +1,4 @@
-﻿---
+---
 name: ba-playback-and-enablement
 description: Playback materials, sign-offs, enablement. Use for playback phase in BA Assistant.
 ---

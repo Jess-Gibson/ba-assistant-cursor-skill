@@ -1,4 +1,4 @@
-﻿﻿# Jira Ticket Format Standard
+# Jira Ticket Format Standard
 
 **Location:** `~/.cursor/skills/ba-assistant/references/jira-ticket-format.md`
 **Owner:** `jira-templates` skill (workflow and full format detail, if configured), this standard (positioning and high-level rules)
@@ -39,7 +39,7 @@ This rule is non-negotiable. The Anti-Pattern Detector flags Jira writes that sk
 
 ### 2b. Mirror the canonical example for structure
 
-For every project that has canonical example tickets recorded (FCM has examples for Bug, Story, Spike, Story with panels, dense Spike), the assistant reads the canonical example via `getJiraIssue` before drafting, and mirrors its structure â€” sections, panels, headings, custom fields. **Structure only, never content.**
+For every project that has canonical example tickets recorded, the assistant reads the canonical example via `getJiraIssue` before drafting, and mirrors its structure — sections, panels, headings, custom fields. **Structure only, never content.**
 
 For projects without recorded canonical examples, the assistant should produce the ticket against `references/user-story-format.md` and flag in the chat that no canonical Jira example was available.
 
@@ -51,12 +51,34 @@ If ADF JSON is large, build it in a UTF-8 `.json` file, parse, and pass the obje
 
 ### 2d. Title format
 
-`[Area] Imperative outcome` â€” short, specific, searchable. Independent of project.
+`[Area] Imperative outcome` — short, specific, searchable. Independent of project.
 
-Good: `[Onboarding] Reject Fiserv applications when phone format invalid`
+Good: `[Onboarding] Reject applications when phone format invalid`
 Bad: `Bug in onboarding`, `Investigation needed`, `Fix the thing from yesterday`
 
-### 2e. Type correctness
+### 2e. Stories describe the problem, not the solution
+
+Stories are written from the **business perspective**. The BA Assistant does not make implementation, architecture, or technical design decisions — those belong to engineers and architects.
+
+**What goes where:**
+
+| Section | Written at | Contains |
+|---|---|---|
+| Story (As a / I want / So that) | Business level | The user or business need |
+| Context | Business level | Why this work matters, the problem being solved |
+| In scope / Out of scope | Business level | Business behaviours and boundaries |
+| Acceptance criteria | Business level | Observable outcomes — Given/When/Then from user perspective |
+| Tech Details | Implementation level | Service names, code paths, event names, API references, links to solution design docs or ADRs |
+
+**Rules:**
+- A BA or PM must be able to read everything above Tech Details without needing to know the codebase
+- Service names, class names, event names, and code paths belong in Tech Details only
+- When a solution has been designed and documented (Confluence page, ADR), **link to it from Tech Details** — do not restate implementation detail in the story body
+- Engineers add implementation specifics to Tech Details as they design the solution — the BA does not prescribe these
+
+This rule applies to Stories, Spikes, and Bugs. The existing anti-pattern "no solutioning inside a Bug" is a subset of this rule.
+
+### 2f. Type correctness
 
 - Bug = something broken vs. expected behaviour
 - Story = new user-visible or system-observable value
@@ -96,11 +118,11 @@ When new projects need their own ticket conventions (different panel layouts, di
 Before a ticket gets created, the BA Assistant runs these standard verification checks (adapt to your project-specific format skill where applicable):
 
 **Always check:**
-- Telemetry â€” what events fire, where
-- Feature toggling â€” flag, default state, rollout plan
+- Telemetry — what events fire, where
+- Feature toggling — flag, default state, rollout plan
 - Geo scope (e.g. regional scope for your initiative)
-- Unhappy paths â€” including UI behaviour for each
-- Flow variants â€” which flows does this hit
+- Unhappy paths — including UI behaviour for each
+- Flow variants — which flows does this hit
 
 **Context-dependent (only if relevant):**
 - Error handling
@@ -112,9 +134,9 @@ Before a ticket gets created, the BA Assistant runs these standard verification 
 - Backward compatibility
 
 Every item that applies must end up in one of three places:
-1. **In scope** â€” covered by an acceptance criterion
-2. **Out of scope** â€” explicitly listed
-3. **Clarify with user** â€” flagged, not silently dropped
+1. **In scope** — covered by an acceptance criterion
+2. **Out of scope** — explicitly listed
+3. **Clarify with user** — flagged, not silently dropped
 
 Silence on an always-check item that applies is itself an anti-pattern.
 
@@ -157,6 +179,7 @@ This is the same gate as the status page DRAFT banner. Creation OK; advancement 
 | Any Jira write | Ticket created without linked requirements | Untraceable requirements |
 | Any Jira write | Story moved into active sprint while initiative PM approval `pending` | Approval gate bypassed at sprint level |
 | Any Jira write | Always-check verification consideration omitted with no explanation | Silence on always-check item |
+| Any Jira write | AC text names specific services, classes, events, or code paths instead of business outcomes | Implementation detail in AC |
 
 ---
 

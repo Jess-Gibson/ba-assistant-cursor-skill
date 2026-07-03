@@ -28,6 +28,7 @@ This file documents **every inter-skill hook** in the BA Assistant as a stable c
 - 🟡 **Wave 3** — added or modified in Wave 3 (May 2026); monitor for first 2 initiatives
 - 🟣 **Wave 4** — added or modified in Wave 4 (May 2026)
 - 🟣 **Wave 5** — added or modified in Wave 5 (May–Jun 2026)
+- 🟤 **Wave 8** — added or modified in Wave 8 (Jul 2026) — `ba-data-investigation` data-grounding rollout
 - 🔴 **Deprecated** — kept for compatibility but a replacement exists
 
 ### Visible status header rule (Wave 4 — MANDATORY)
@@ -63,6 +64,7 @@ These skills receive the most hooks. Changes to them are highest-risk.
 | `Sponsor_Engagement` | 7+ | Sustained sponsor relationship — many phases call back |
 | `Anti_Pattern_Detector` | passive (no inbound) | Watches all outputs; flags inline |
 | `Meeting_Debrief` | event-driven | Called after every meeting; routes outputs to many skills |
+| `ba-data-investigation` | 7 | Canonical data-pairing skill — every confidence score, priority, risk rating, and solution comparison that wants evidence routes here (Wave 8) |
 
 ---
 
@@ -76,6 +78,7 @@ These skills receive the most hooks. Changes to them are highest-risk.
 | HK-INTK-CSA-baseline | Current_State_Assessment | If initiative deemed `standard` or `full` complexity (Wave 3 — Step 7) | Initiative context, known systems | Current state report draft | Lean intake skips; logs as assumption | 🟡 W3 |
 | HK-INTK-RT-init | Risk_and_Tracker | Always at end of Phase 0 | Initial knowns/unknowns from intake | Tracker initialised | Block — no Phase 1 without tracker | 🟢 |
 | HK-INTK-CANV-init | Project_Canvas | Always at end of Phase 0 | Tracker, initial scope | Canvas + HTML snapshot at Phase 0 state | Warn; not blocking | 🟢 |
+| HK-INTK-BDI-baseline | ba-data-investigation | Step 2 (multi-source context gathering), if a quantitative baseline exists to check | Candidate baseline metric, sources found | Cross-validated baseline or qualitative flag | Warn — cap Problem Clarity confidence at Medium until checked | 🟤 W8 |
 
 ### Workshop Design (M1 Kickoff and workshop triggers) — outbound
 
@@ -94,7 +97,7 @@ These skills receive the most hooks. Changes to them are highest-risk.
 | Hook ID | Callee | Trigger | Inputs | Outputs | Failure mode | Status |
 |---|---|---|---|---|---|---|
 | HK-CSA-VIS-diagrams | Visual_Storytelling | Always — current state needs diagrams | Process/system maps | Mermaid/PlantUML diagrams | Block — undocumented current state | 🟢 |
-| HK-CSA-PMDA-data | pm-data-analyst (external skill) | If quantitative current state needed | Data sources, metrics needed | Data analysis | Warn — proceed with qualitative if data unavailable | 🟢 |
+| HK-CSA-BDI-data | ba-data-investigation | If quantitative current state needed | Data sources, metrics needed | Cross-validated data analysis | Warn — proceed with qualitative if data unavailable | 🟤 W8 (was HK-CSA-PMDA-data → pm-data-analyst) |
 | HK-CSA-GLEAN-code | Glean code-exploration (external) | If initiative is technical | Repos in scope | Code findings | Warn — fall back to interviews | 🟢 |
 | HK-CSA-WD-tribal | Workshop_Design | When tribal knowledge is the gap | Audience, gap description | Tribal-knowledge workshop plan | Warn | 🟡 W1 |
 
@@ -108,7 +111,7 @@ These skills receive the most hooks. Changes to them are highest-risk.
 | HK-DISC-INT-jtbd | Requirements_Interrogator (JTBD lens) | When the requirement is user-experience-related | Stated requirement | JTBD breakdown (functional / emotional / social) | Optional — skip for non-UX requirements | 🟡 W2 |
 | HK-DISC-COMD-moscow | Communication_Drafter (section in Playback) | When MoSCoW is missing for a story's scope | Story, scope, PM name | MoSCoW gap message | Warn — proceed if PM overrides | 🟡 W3 |
 | HK-DISC-VIS-process | Visual_Storytelling | When process/data flow needs a diagram | Process description | Diagram | Warn — fall back to text-only | 🟢 |
-| HK-DISC-PMDA-validate | pm-data-analyst | When an assumption needs data validation (Wave 3 — was Experiment_and_Validation hook) | Assumption, metrics, data source | Validation result | Warn — proceed with assumption flagged | 🟡 W3 |
+| HK-DISC-BDI-validate | ba-data-investigation | When an assumption needs data validation (Wave 3 — was Experiment_and_Validation hook; Wave 8 — rerouted from pm-data-analyst) | Assumption, metrics, data source | Cross-validated result | Warn — proceed with assumption flagged | 🟤 W8 (was HK-DISC-PMDA-validate → pm-data-analyst) |
 
 ### Solution Shaping (M4) — outbound
 
@@ -119,6 +122,7 @@ These skills receive the most hooks. Changes to them are highest-risk.
 | HK-SOL-VIS-arch | Visual_Storytelling | Architecture/sequence diagrams needed | Solution structure | Diagram | Warn — fall back to text-only | 🟢 |
 | HK-SOL-SPON-prebrief | Sponsor_Engagement | Before locking solution direction | Options, recommendation, trade-offs | Sponsor pre-brief | Block on high-stakes initiatives | 🟡 W1 |
 | HK-SOL-CHG-burden | Change_Strategy | When evaluating change burden of each option | Solution options | Per-option change burden assessment | Warn | 🟡 W1 |
+| HK-SOL-BDI-viability | ba-data-investigation | Before recording confidence in viability, or finalising the options table | Options under comparison, candidate metrics | Data-grounded or qualitative-tagged viability rating | Warn — tag `evidence: qualitative` and proceed | 🟤 W8 |
 
 ### Delivery Definition (M5 + DoR) — outbound
 
@@ -138,6 +142,13 @@ These skills receive the most hooks. Changes to them are highest-risk.
 | HK-SLI-VIS-gantt | Visual_Storytelling | Always — sequencing needs Gantt-style timeline | Sequence plan | Gantt diagram | Warn — fall back to table | 🟢 |
 | HK-SLI-RT-cp | Risk_and_Tracker | Critical path tracker entries (Wave 3 — was Critical_Path_and_Priority's outbound) | Critical path items | Tracker entries | Block — undocumented critical path is highest-risk | 🟡 W3 |
 | HK-SLI-IMP-mapping | (internal — Impact Mapping section) | When user requests impact mapping | Goal, actors | Impact map artefact | Optional — alternative to traditional slicing | 🟡 W2 |
+| HK-SLI-BDI-sizing | ba-data-investigation | Before finalising business priority or sequencing order (skipped for intake light pass) | Candidate slices, sizing signals needed | Data-grounded or qualitative-tagged priority | Warn — tag `evidence: qualitative` and proceed | 🟤 W8 |
+
+### Risk and Tracker — outbound
+
+| Hook ID | Callee | Trigger | Inputs | Outputs | Failure mode | Status |
+|---|---|---|---|---|---|---|
+| HK-RT-BDI-evidence | ba-data-investigation | Before setting a new risk's probability/impact level | Risk description, candidate data sources | Data-grounded or qualitative-tagged rating | Warn — tag `evidence: qualitative` and proceed | 🟤 W8 |
 
 ### Stakeholder Strategy — outbound
 
@@ -173,7 +184,7 @@ These skills receive the most hooks. Changes to them are highest-risk.
 
 | Hook ID | Callee | Trigger | Inputs | Outputs | Failure mode | Status |
 |---|---|---|---|---|---|---|
-| HK-EVAL-PMDA-actual | pm-data-analyst | Pull actual outcome metrics | Metrics defined at intake | Actual metrics | Block — no evaluation without actuals | 🟡 W1 |
+| HK-EVAL-BDI-actual | ba-data-investigation | Pull actual outcome metrics | Metrics defined at intake | Cross-validated actual metrics | Block — no evaluation without actuals | 🟤 W8 (was HK-EVAL-PMDA-actual → pm-data-analyst) |
 | HK-EVAL-VIS-charts | Visual_Storytelling | Outcome charts | Actual vs expected | Charts | Warn | 🟡 W1 |
 | HK-EVAL-INT-rethink | Requirements_Interrogator (Rethink mode) | When actual ≠ expected | Requirement, gap | Rethink analysis | Warn | 🟡 W1 |
 | HK-EVAL-RT-postlaunch | Risk_and_Tracker | Post-launch issues | Issue | Risk logged | Block | 🟡 W1 |
@@ -252,3 +263,12 @@ Before modifying a hub skill, run through:
 - **New hooks (W3):** MoSCoW gate hooks (DEL-DOR-internal, DISC-COMD-moscow, DEL-RT-moscow-override); workstream-aware hooks in Anti-Pattern Detector; scope on every tracker hook; action register hooks; data-model hooks moved internal to Canvas.
 - **Internalised hooks (W3 — were external, now in-skill):** Kickoff Prep → Workshop Design; DoR → Delivery Definition; Critical Path → Slicing; Experiment → Discovery; Status Data Model → Canvas; Communication Drafter → Playback.
 - **Hook name preservation:** All caller skills still use the same hook names (`Definition_of_Ready`, `Communication_Drafter`, `Critical_Path_and_Priority`, etc). The orchestrator routes those names to the new locations. Callers don't need to change.
+
+## Wave 8 hook changes summary (Jul 2026 — `ba-data-investigation`)
+
+- **New skill:** `ba-data-investigation` — the canonical BA Assistant data-pairing skill, encoding a disciplined cross-validation / dedup-forensics / annotated-SQL / blocking-questions methodology (see `sub-skills/ba-data-investigation/SKILL.md`). Not a replacement for the generic `pm-data-analyst` skill, which remains available for standalone PM analytics outside BA Assistant decision points.
+- **New hooks (W8):** HK-SOL-BDI-viability (Solution Shaping), HK-SLI-BDI-sizing (Feature Slicing & Sequencing), HK-RT-BDI-evidence (Risk & Tracker), HK-INTK-BDI-baseline (Intake Reviewer, extends hook 2).
+- **Rerouted hooks (W8 — were → pm-data-analyst, now → ba-data-investigation):** HK-CSA-PMDA-data → HK-CSA-BDI-data (Current State Assessment); HK-DISC-PMDA-validate → HK-DISC-BDI-validate (Discovery and Requirements); HK-EVAL-PMDA-actual → HK-EVAL-BDI-actual (Solution Evaluation, still a block-on-failure hook).
+- **Schema change:** `confidenceScores.*` (and the flat `confidence[]` alternative) in `status-data.json` gained an `evidence: { type: "data" | "qualitative" | "not-yet-assessed", source: string | null }` field — see `references/canvas-data-model.md`.
+- **Anti-Pattern Detector additions:** "Ungrounded rating", "Options compared on gut feel only", "Stale blocking question" triggers; extended the "Missing co-thinking journey" trigger to include data-pairing hook awareness.
+- **Why a new skill instead of extending `pm-data-analyst`:** `pm-data-analyst` is generic and wasn't built around this specific investigation discipline (source ranking with status tags, row-level dedup/null/sentinel-date forensics before trusting an aggregate, annotated SQL, mandatory cross-validation against a second source, a persistent Blocking Questions Log and Data Quality Caveats register). Keeping it as a dedicated BA Assistant skill means every data-pairing hook across the assistant behaves consistently.

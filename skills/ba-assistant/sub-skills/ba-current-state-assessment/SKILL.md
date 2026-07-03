@@ -19,7 +19,7 @@ This skill exists because "current state" is one of the most under-invested phas
 | # | Hook | What it does | Skill invoked |
 |---|---|---|---|
 | 1 | **Visual outputs** | Every assessment ends with at least one Mermaid diagram per relevant lens (process, system, data flow, journey, pain heatmap). | `ba-visual-storytelling` |
-| 2 | **Data analysis handoff** | Any quantitative slice (volumes, failure rates, latency, error counts) is delegated to the data analyst skill, not duplicated here. | `pm-data-analyst` |
+| 2 | **Data analysis handoff (`HK-CSA-BDI-data`)** | Any quantitative slice (volumes, failure rates, latency, error counts) is delegated to the data investigation skill, not duplicated here. Applies the cross-validation and dedup discipline before any number is treated as current-state fact. | `ba-data-investigation` |
 | 3 | **Stakeholder identification** | Use Stakeholder Strategy to identify who must be interviewed or invited to workshops. | `ba-stakeholder-strategy` |
 | 4 | **Code exploration** | When the initiative is technical, use Glean code search to understand existing implementations before relying on docs alone. | Glean `code-exploration` |
 | 5 | **Source skepticism** | Apply the source vetting principles from `ba-intake-reviewer` to every source read. Flag stale, AI-generated, or unverified content. | — (inherit from intake-reviewer) |
@@ -74,7 +74,7 @@ Run these in order. Phase 2 of an initiative begins with these tasks before requ
 
 5. **People interviews and workshops** — Use the Workshop crafting section below to design specific interventions when knowledge lives in people's heads. Don't default to "send a survey" — workshops are usually higher fidelity for tribal knowledge.
 
-6. **Data slice handoff** — Any volume, failure rate, latency, or quality metric is delegated to `pm-data-analyst`. Provide the query intent; let the data analyst skill produce the actual query and analysis.
+6. **Data slice handoff** — Any volume, failure rate, latency, or quality metric is delegated to `ba-data-investigation` (`HK-CSA-BDI-data`). Provide the query intent; let the data investigation skill produce the cross-validated query and analysis.
 
 7. **Build the current state picture per lens** — For each lens in scope, produce a narrative + at least one diagram (Mermaid). Highlight pain points and tribal knowledge gaps inline.
 

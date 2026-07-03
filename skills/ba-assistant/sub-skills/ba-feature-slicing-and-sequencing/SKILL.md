@@ -1,4 +1,4 @@
-﻿---
+---
 name: ba-feature-slicing-and-sequencing
 description: Feature slices before epics, prioritisation, critical path. Use when slicing or sequencing work in BA Assistant.
 ---
@@ -9,7 +9,7 @@ description: Feature slices before epics, prioritisation, critical path. Use whe
 
 The Feature Slicing and Sequencing skill breaks an initiative into manageable, independently valuable **feature slices** before converting them into epics and stories.  It balances business priorities, uncertainty, critical path dependencies, and lead times to propose a delivery order and parallelisation plan.  It distinguishes business priority (what’s most valuable), analysis priority (what needs understanding first), delivery priority (what should be built first), and **critical path priority** (what must start earliest to avoid blocking later).  This skill integrates PM input on dates and priorities and surfaces long‑lead activities such as compliance reviews, design, or spikes.
 
-## Intake light pass mode (added May 2026 after RBA dry-run retro)
+## Intake light pass mode (added May 2026 after a dry-run retro)
 
 This section is invoked from **Intake Reviewer hook 4.5** — a *light* slicing pass run during Phase 0 intake, BEFORE the deeper Phase 3 slicing work below. The purpose is to surface candidate slice axes early so the BA and PM can co-shape scope at intake, not have it dropped on them at Phase 3.
 
@@ -75,6 +75,12 @@ The output candidate axes set is initiative-specific — the 3 above are generic
 This light-pass mode **does not replace Phase 3 slicing**. It exists to ensure scope-shape is co-thinking territory at intake, not a post-hoc Phase 3 surprise.
 
 > **Cross-cutting rule:** This skill produces multiple artefact-class outputs at full Phase 3 invocation (slice register, critical path tracker, sequencing rationale, priority alignment, parallelisation plan). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `ba-assistant\SKILL.md → Co-thinking and artefact production protocol` — surface planned artefacts upfront and ask the user to select. The intake light pass mode (above) is intentionally constrained and does NOT trigger the multi-artefact rule.
+
+---
+
+## Mandatory hook
+
+**`HK-SLI-BDI-sizing`** — before finalising business priority or the sequencing order (Task 2 and Task 4 below), invoke `ba-data-investigation` to check whether usage volume, cohort size, incident frequency, or similar data exists to ground the priority call, rather than ranking slices on judgement alone. This is a warn, not a block: the pairing prompt's "proceed on judgement" option is always valid, but must be an explicit, logged choice (tag `evidence: qualitative` on the priority) rather than a silent default. Skip for the intake light pass mode above — that's deliberately judgement-based and pre-data.
 
 ---
 

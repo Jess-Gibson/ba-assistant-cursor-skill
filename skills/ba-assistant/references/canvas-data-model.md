@@ -1,9 +1,9 @@
-﻿# Canvas Data Model Standard
+# Canvas Data Model Standard
 
 **Location:** `~/.cursor/skills/ba-assistant/references/canvas-data-model.md`
 **Owner:** ba-project-canvas (this file is its data layer specification)
 **Last reviewed:** 2026-06-01
-**Status:** ACTIVE â€” content migrated from ba-project-canvas/SKILL.md (Wave 7 Patch 2a)
+**Status:** ACTIVE — content migrated from ba-project-canvas/SKILL.md (Wave 7 Patch 2a)
 
 This file is the canonical source for the `status-data.json` schema, the canvas tab structure, and the metric computation rules. Any sub-skill writing to `status-data.json` or producing canvas output MUST conform to this standard.
 
@@ -85,7 +85,7 @@ If a tracker item applies to the whole initiative, `scope.level = "initiative"`.
     // initiative-level modeStates (backwards-compat alias for workstreams)
   },
 
-  "narrative": "string â€” 2-4 sentence 'Where We Are' summary",
+  "narrative": "string — 2-4 sentence 'Where We Are' summary",
   "lastWeek": [],
   "thisWeek": [],
 
@@ -147,10 +147,10 @@ If a tracker item applies to the whole initiative, `scope.level = "initiative"`.
 
   "sponsor": "[name]",
   "productManager": "[name]",
-  "pm": "[name]",                    // alias â€” use productManager as canonical
+  "pm": "[name]",                    // alias — use productManager as canonical
   "techLead": "[name]",
   "businessAnalyst": "[Your Name]",
-  "ba": "[Your Name]",              // alias â€” use businessAnalyst as canonical
+  "ba": "[Your Name]",              // alias — use businessAnalyst as canonical
 
   "charterUrl": "string | null",
   "jiraProjectKey": "string (e.g. PROJ)",
@@ -169,19 +169,19 @@ If a tracker item applies to the whole initiative, `scope.level = "initiative"`.
   "pmApproval": {
     "status": "pending",             // "pending" | "requested" | "approved" | "tbc" | "rejected"
     "approver": "[PM name]",
-    "pm": "[PM name]",              // alias â€” use approver as canonical
+    "pm": "[PM name]",              // alias — use approver as canonical
     "requestedAt": "2026-05-20",
-    "requestedDate": "YYYY-MM-DD | null",  // alias â€” use requestedAt as canonical
+    "requestedDate": "YYYY-MM-DD | null",  // alias — use requestedAt as canonical
     "approvedAt": null,
-    "approvedDate": "YYYY-MM-DD | null",   // alias â€” use approvedAt as canonical
+    "approvedDate": "YYYY-MM-DD | null",   // alias — use approvedAt as canonical
     "version": "v3",
-    "scope": "string[] â€” which v1 artefacts the approval covers (e.g. ['problem-statement','success-metrics','scope','raid-v1'])",
-    "notes": "string | null â€” change requests, conditions, or context from PM"
+    "scope": "string[] — which v1 artefacts the approval covers (e.g. ['problem-statement','success-metrics','scope','raid-v1'])",
+    "notes": "string | null — change requests, conditions, or context from PM"
   }
 }
 ```
 
-**Drift rule:** Sponsor, PM, Tech Lead names must match across every artefact. State Validator cross-checks this. The canonical source is `status-data.json â†’ initiative` (synced from intake or tracker on change).
+**Drift rule:** Sponsor, PM, Tech Lead names must match across every artefact. State Validator cross-checks this. The canonical source is `status-data.json → initiative` (synced from intake or tracker on change).
 
 ### `sourcesSearched` block
 
@@ -202,7 +202,7 @@ Records which MCP sources were queried during intake and whether results were ac
 
 ### `workstreams` block
 
-Workstreams are the BA Assistant's primary state model. Each cell represents one (workstream Ã— scope) combination.
+Workstreams are the BA Assistant's primary state model. Each cell represents one (workstream × scope) combination.
 
 ```jsonc
 {
@@ -240,7 +240,7 @@ Workstreams are the BA Assistant's primary state model. Each cell represents one
 **Valid state values:**
 - `not_started`
 - `active`
-- `delivering` (for delivery workstream only â€” implies stories are in flight)
+- `delivering` (for delivery workstream only — implies stories are in flight)
 - `blocked`
 - `paused`
 - `complete`
@@ -256,7 +256,7 @@ Workstreams are the BA Assistant's primary state model. Each cell represents one
 
 #### `modeStates` object (backwards-compatible representation)
 
-The internal data-model field name may still be `modes` for backwards compatibility; all user-facing labels use "Workstreams". Each scope (initiative, each feature, each cohort, each slice) has its own `modeStates` object. Not all modes apply to all scope levels â€” e.g. M0 Intake only ever sits at initiative level. Set inapplicable ones to `not started` and never advance them.
+The internal data-model field name may still be `modes` for backwards compatibility; all user-facing labels use "Workstreams". Each scope (initiative, each feature, each cohort, each slice) has its own `modeStates` object. Not all modes apply to all scope levels — e.g. M0 Intake only ever sits at initiative level. Set inapplicable ones to `not started` and never advance them.
 
 ```json
 {
@@ -279,7 +279,7 @@ The internal data-model field name may still be `modes` for backwards compatibil
   "scopes": [
     {
       "id": "feature_cohort_a",
-      "label": "Cohort A â€” High-risk merchants",
+      "label": "Cohort A — High-risk merchants",
       "level": "feature",   // "initiative" | "feature" | "cohort" | "slice"
       "parentScope": null,
       "priority": "must",
@@ -337,7 +337,7 @@ These collections provide granular scope detail with relationships. The `scopes`
     }
   ],
   "modes": {
-    "initiative": "modeStates object â€” initiative-level modes (M0 Intake, M8 Change, etc)"
+    "initiative": "modeStates object — initiative-level modes (M0 Intake, M8 Change, etc)"
   }
 }
 ```
@@ -346,7 +346,7 @@ These collections provide granular scope detail with relationships. The `scopes`
 
 ```jsonc
 {
-  "narrative": "string â€” 2-4 sentence 'Where We Are' summary",
+  "narrative": "string — 2-4 sentence 'Where We Are' summary",
   "lastWeek": [
     { "item": "string", "date": "YYYY-MM-DD (optional)", "scope": "scope object (optional)" }
   ],
@@ -413,7 +413,7 @@ Flat alternative (backwards-compatible):
       "impact": "string",
       "owner": "string",
       "targetDate": "YYYY-MM-DD | null",
-      "daysOverdue": "number (computed â€” never stored, recalculate on every read)",
+      "daysOverdue": "number (computed — never stored, recalculate on every read)",
       "scope": "scope object (optional)"
     }
   ]
@@ -509,7 +509,7 @@ The operational tracker extends RAID with knowns, unknowns, actions, and signoff
       { "id": "string", "fact": "string", "scope": "scope object (optional)" }
     ],
     "unknowns": [
-      { "id": "string", "description": "string", "owner": "string", "targetDate": "YYYY-MM-DD | null", "scope": "scope object (optional)", "ageDays": "number (computed â€” never stored)" }
+      { "id": "string", "description": "string", "owner": "string", "targetDate": "YYYY-MM-DD | null", "scope": "scope object (optional)", "ageDays": "number (computed — never stored)" }
     ],
     "assumptions": [
       { "id": "string", "assumption": "string", "scope": "scope object (optional)", "validation": "string | null" }
@@ -524,7 +524,7 @@ The operational tracker extends RAID with knowns, unknowns, actions, and signoff
       { "id": "string", "decision": "string", "owner": "string", "date": "string", "status": "string", "scope": "scope object (optional)", "sourceMeeting": "string | null" }
     ],
     "actions": [
-      { "id": "string", "description": "string", "owner": "string", "due": "YYYY-MM-DD | null", "status": "open | in-progress | done | dropped", "scope": "scope object (optional)", "sourceMeeting": "string | null", "ageDays": "number (computed â€” never stored)" }
+      { "id": "string", "description": "string", "owner": "string", "due": "YYYY-MM-DD | null", "status": "open | in-progress | done | dropped", "scope": "scope object (optional)", "sourceMeeting": "string | null", "ageDays": "number (computed — never stored)" }
     ],
     "signoffs": [
       { "id": "string", "artefact": "string", "approver": "string", "status": "approved | pending | overdue", "date": "YYYY-MM-DD | null", "scope": "scope object (optional)" }
@@ -655,7 +655,7 @@ The canvas has 8 tabs. Each tab reads from specific `status-data.json` fields.
 
 | Tab | Primary data source | Purpose |
 |---|---|---|
-| Workstreams | `workstreams` Ã— `scopes` | Grid view of state per cell |
+| Workstreams | `workstreams` × `scopes` | Grid view of state per cell |
 | Features | `scopes` (level=feature) + their workstream states | Feature-level status |
 | Timeline | `milestones`, `stories` (with dates), `signOffs` | Time-ordered work view |
 | Tracker (RAID) | `raid.*`, `openQuestions`, `decisions` | RAID and decision narrative |
@@ -701,7 +701,7 @@ function dorHitRate(scopeId, windowDays = 30) {
 
 **Source:** `dorChecks` array in `status-data.json` capturing every DoR run with `storyKey`, `firstAttempt: pass | partial | fail`, `date`, `scope`. Delivery Definition writes to this array on every DoR check.
 
-Warning threshold: <70% on any scope with active delivery. Trend matters more than absolute value â€” a falling rate is the signal.
+Warning threshold: <70% on any scope with active delivery. Trend matters more than absolute value — a falling rate is the signal.
 
 ### Requirement interrogation rate
 
@@ -716,7 +716,7 @@ function requirementInterrogationRate(scopeId) {
 
 **Source:** requirements register cross-referenced with the existence of an interrogation artefact (either inline in the requirement entry or in a separate `interrogations/` folder). Discovery and Requirements should already be writing these.
 
-Warning threshold: <95% on any scope past Discovery completion. Below 95% means at least one requirement entered the register without challenge â€” which is the failure mode the Interrogator exists to prevent.
+Warning threshold: <95% on any scope past Discovery completion. Below 95% means at least one requirement entered the register without challenge — which is the failure mode the Interrogator exists to prevent.
 
 ### Sign-off cycle time
 
@@ -740,9 +740,9 @@ Warning thresholds: median >5 working days OR any sign-off open >10 working days
 
 ### Failure handling
 
-Any metric that can't be computed returns `null`, displayed as `n/a`. Never fabricate `0%` for missing data â€” that looks like a real signal and triggers false alarms.
+Any metric that can't be computed returns `null`, displayed as `n/a`. Never fabricate `0%` for missing data — that looks like a real signal and triggers false alarms.
 
-After 3 status outputs with the same metric `n/a`, surface a one-line nudge: "DoR hit rate has been n/a for 3 status runs â€” likely missing instrumentation in Delivery Definition. Want me to look?"
+After 3 status outputs with the same metric `n/a`, surface a one-line nudge: "DoR hit rate has been n/a for 3 status runs — likely missing instrumentation in Delivery Definition. Want me to look?"
 
 ### Caching
 
@@ -750,7 +750,7 @@ Computed metrics are NOT stored in `status-data.json` as canonical (they're deri
 - `/status` (after Jira sync, before the chat status text is generated)
 - `/snapshot`
 - `/metrics`
-- Any retro invocation (Type 2 / Type 3 â€” the retro skill reads them)
+- Any retro invocation (Type 2 / Type 3 — the retro skill reads them)
 
 Anything older than 1 hour is recomputed on next request.
 
@@ -767,7 +767,7 @@ Other skills update `status-data.json` via these triggers:
 | Discovery and Requirements | New requirement entered | `confidenceScores.requirementsCompleteness.current` re-evaluated |
 | Delivery Definition | DoR check performed | Appends to `dorChecks` |
 | Sponsor Engagement | Touchpoint complete | Appends to RAID if outcomes warrant |
-| State Validator | Detects drift | Reports only â€” does not auto-write |
+| State Validator | Detects drift | Reports only — does not auto-write |
 
 ---
 
@@ -794,20 +794,20 @@ Anti-Pattern Detector flags writes that omit required fields.
 Valid transitions:
 
 ```
-not_started â†’ active
-active â†’ blocked
-active â†’ paused
-active â†’ complete
-active â†’ delivering   (delivery workstream only)
-blocked â†’ active
-blocked â†’ paused
-paused â†’ active
-delivering â†’ active   (back to non-delivery work)
-delivering â†’ complete
-complete â†’ active   (rare â€” rework triggered)
+not_started → active
+active → blocked
+active → paused
+active → complete
+active → delivering   (delivery workstream only)
+blocked → active
+blocked → paused
+paused → active
+delivering → active   (back to non-delivery work)
+delivering → complete
+complete → active   (rare — rework triggered)
 ```
 
-Invalid transitions are rejected. Reason for any transition that crosses a sensitive boundary (e.g. `active â†’ blocked`, `complete â†’ active`) is logged in `initiative-tracker.md` with a date.
+Invalid transitions are rejected. Reason for any transition that crosses a sensitive boundary (e.g. `active → blocked`, `complete → active`) is logged in `initiative-tracker.md` with a date.
 
 ---
 
@@ -841,7 +841,7 @@ Both always regenerate together. Never one without the other.
 | Any skill | Adds a ticket to `status-data.json` without a Jira key | Untraceable ticket |
 | Any skill | Skips the Jira sync before updating ticket statuses | Stale ticket data |
 | Any skill | Stores computed fields (`daysOverdue`, `ageDays`, `moscowFlag`) as persisted values | Computed field stored as canonical |
-| Any skill | Computes a metric as `0%` when the underlying data is missing | Fabricated zero â€” should be `n/a` |
+| Any skill | Computes a metric as `0%` when the underlying data is missing | Fabricated zero — should be `n/a` |
 | Any skill | Caches metrics longer than 1 hour without recomputation | Stale metric cache |
 
 ---
@@ -851,8 +851,8 @@ Both always regenerate together. Never one without the other.
 Migration from `sub-skills/ba-project-canvas/SKILL.md` completed 2026-06-01 (Wave 7 Patch 2a).
 
 **What was migrated:**
-- Schema â€” scope identifier convention, main structure, modeStates object
-- Metrics â€” four metric formulas, sources, thresholds, failure handling, caching rules
+- Schema — scope identifier convention, main structure, modeStates object
+- Metrics — four metric formulas, sources, thresholds, failure handling, caching rules
 - Data anti-patterns
 - Implementation notes and Wave 3 schema evolution history
 
@@ -866,15 +866,15 @@ Migration from `sub-skills/ba-project-canvas/SKILL.md` completed 2026-06-01 (Wav
 
 ## 11. Versioning
 
-This standard is at v1.0 (2026-05-30, shell created) â†’ v1.1 (2026-06-01, content migrated). When the schema evolves (new field, new workstream state, new metric), increment to v1.2, etc. Breaking changes (renamed field, removed field) require a major bump to v2.0 and a migration note in `initiative-tracker.md` for any in-flight initiatives.
+This standard is at v1.0 (2026-05-30, shell created) → v1.1 (2026-06-01, content migrated). When the schema evolves (new field, new workstream state, new metric), increment to v1.2, etc. Breaking changes (renamed field, removed field) require a major bump to v2.0 and a migration note in `initiative-tracker.md` for any in-flight initiatives.
 
 ---
 
 ## 12. Implementation notes
 
-- The schema is deliberately flat and readable â€” it should be hand-editable if needed.
+- The schema is deliberately flat and readable — it should be hand-editable if needed.
 - `lastJiraSync` per ticket allows partial refreshes (only query tickets not synced recently).
-- `daysOverdue` and `ageDays` fields are always computed, never stored â€” recalculate on every read.
+- `daysOverdue` and `ageDays` fields are always computed, never stored — recalculate on every read.
 
 ---
 

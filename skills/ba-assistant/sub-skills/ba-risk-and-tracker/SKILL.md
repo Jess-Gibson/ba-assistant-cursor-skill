@@ -10,6 +10,10 @@ If standards conflict with skill-specific guidance below, the standard wins.
 
 The Risk and Tracker Management skill is responsible for maintaining the living memory of the initiative.  It records and updates all known facts, unknowns, assumptions, risks, dependencies, decisions, validation items, deferred items, and sign‑offs.  It provides visibility into the current status of each item and their impact on the initiative.  The skill does not make decisions but supports the orchestrator and other skills by surfacing critical information at the right time.
 
+## Mandatory hook
+
+**`HK-RT-BDI-evidence`** — before setting a **new** risk's probability/impact level (Task 1, Risks), invoke `ba-data-investigation` to check whether incident history, error rates, volumes, or similar data exists to ground the rating, rather than defaulting to a judgement call. Warn, not block — "proceed on judgement" is always valid, but tag the risk entry's evidence as `qualitative` rather than leaving it unstated. Re-rating an existing risk on new information doesn't require re-running the hook unless the rating itself is being re-derived from scratch.
+
 ## Tasks
 
 1. **Maintain the living tracker** – Store and update entries for:
@@ -128,7 +132,7 @@ When the initiative uses a Miro board for DRAID tables:
 
 4. **Conflict resolution:** Markdown tracker (`initiative-tracker.md`) is the source of truth. If Miro has entries not in the tracker (e.g. someone added directly to the board), pull them into the tracker first, then sync back.
 
-*Source: RBA Week 1 retro — two failed Miro API calls due to column title mismatches. Batch pattern would have caught the issue once instead of twice.*
+*Source: a Week 1 retro — two failed Miro API calls due to column title mismatches. Batch pattern would have caught the issue once instead of twice.*
 
 ## Challenge Rules
 

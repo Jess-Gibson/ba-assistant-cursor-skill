@@ -172,6 +172,23 @@ At the next workstream gate for the same scope, the orchestrator reads back the 
 
 This calibration data feeds the cross-initiative learnings — a pre-mortem that consistently catches real failures is itself an established pattern worth surfacing.
 
+### Time-boxed recommendations need a tripwire, not just a date
+
+When a retro produces a recommendation of the form "check X after N days/weeks",
+don't just write the date in prose. Either:
+1. Add it to a personal task tracker as a dated task (so a `/workboard`-style
+   command surfaces it automatically), or
+2. Name it explicitly in the retro's own "Recommendations" section with the
+   exact file/metric to check next time this skill runs.
+
+A recommendation with no forcing function is a recommendation that doesn't
+happen. One skill-usage-audit rerun found its own example: an earlier audit
+recommended checking a telemetry log after 2 weeks to confirm a hook fix
+worked. Nothing was scheduled anywhere. The hook had actually been silently
+broken the entire time — zero events captured for weeks — and this was only
+discovered because the audit was manually re-run, not because the
+recommendation had a forcing function.
+
 ### Type 1 — Phase / workstream-completion retro (lightweight)
 
 **When:** End of any phase, before moving to the next.

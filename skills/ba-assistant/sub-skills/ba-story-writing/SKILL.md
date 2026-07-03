@@ -1,4 +1,4 @@
-﻿# Skill: Delivery Definition
+# Skill: Delivery Definition
 
 ## Standards used
 
@@ -49,6 +49,20 @@ Before any story is marked as ready, this skill MUST invoke:
 3. **Definition of Ready** — runs as the final check on every story.
 
 ## Tasks
+
+0. **Business path walkthrough (mandatory pre-step)** – Before generating any stories, verify that every business path has been traced through downstream systems. This is the bridge between "the solution is designed" and "the stories cover everything."
+
+   **If the Solution Shaping skill has produced an integration contract matrix (Task 7),** read it and verify it covers all paths. For any path where the consumer action column says "TBD" or "unknown", flag it as a spike or open question — do not generate a story that assumes it works.
+
+   **If no integration contract matrix exists** (legacy initiatives or those that skipped the step), produce a lightweight version now:
+   - List every business path in the data model or solution design (e.g., "application approved", "manual override", "automatic approval")
+   - For each path, trace forward: what event fires? What system receives it? What should that system do?
+   - For each path, trace backward from the business outcome: what needs to be true? Is the trigger being produced?
+   - Flag gaps as story candidates
+
+   **Stories are generated from the gaps in path coverage, not from the architecture diagram.** Each story should describe a business outcome that isn't yet delivered, not an implementation task on a specific service.
+
+   **Origin:** a retrospective where several go-live blockers were knowable from the requirements but weren't caught until late-stage testing because downstream path coverage was never traced.
 
 1. **Map slices to epics** – For each feature slice defined in the slicing phase, create one or more epics that capture the key objectives and requirements.  Ensure each epic aligns with the problem statement, requirements, and solution direction.
 2. **Write user stories** – Break each epic into user stories that follow a clear template (e.g., As a <user>, I want <capability> so that <benefit>).  Each story should be an independently valuable, testable chunk of work tied to specific requirements and slices.

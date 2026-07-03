@@ -1,4 +1,4 @@
-﻿# Skill: Solution Shaping
+# Skill: Solution Shaping
 
 ## Description
 
@@ -23,9 +23,20 @@ MUST invoke:
    question → storage justification) before the field is committed to the
    schema.
 
+3. **Data Investigation** (`HK-SOL-BDI-viability`) — before recording
+   "confidence in viability" for any option, or finalising the options table.
+   Invoke `ba-data-investigation` to check whether usage volume, cost, error-rate,
+   or other quantitative data exists to ground the comparison, rather than
+   scoring viability on judgement alone. Fires the skill's standard pairing
+   prompt: pull data now / user shares data / proceed on judgement (tag
+   `evidence: qualitative`) / not needed for this call. This is a warn, not a
+   block — proceeding on judgement is always a valid answer, but it must be an
+   explicit choice, not a silent default.
+
 These are not optional. The most common failure mode in solution shaping is
-designing against an uninterrogated requirement or adding a field that
-duplicates data owned elsewhere. These hooks close that loop.
+designing against an uninterrogated requirement, adding a field that
+duplicates data owned elsewhere, or comparing options on gut feel when data
+was available and simply wasn't checked. These hooks close that loop.
 
 ## Tasks
 
@@ -43,7 +54,9 @@ duplicates data owned elsewhere. These hooks close that loop.
    For each option, also state explicitly:
    - What this option does NOT solve
    - What this option assumes
-   - Confidence in viability (high/medium/low)
+   - Confidence in viability (high/medium/low) — tagged with an `evidence` source
+     (`data` with the source cited, or `qualitative` if judgement-based; see
+     `HK-SOL-BDI-viability` mandatory hook below)
    - Effort estimate (dev / AI-paired / risk)
 
    Invoke Visual_Storytelling to produce a Mermaid architecture diagram for each option.
@@ -63,7 +76,22 @@ duplicates data owned elsewhere. These hooks close that loop.
 4. **Identify spikes and ADRs** – Determine which aspects of the solution require technical validation (spikes) or formal decisions (Architectural Decision Records).  Suggest specific spike questions (e.g., “Can system X handle Y throughput?”) and ADR topics (e.g., “Monolith vs microservice separation?”).
 5. **Consider compliance, legal, and design** – Check whether each option meets compliance and legal requirements.  Assess the need for UI/UX design, copy updates, and service design.  If relevant, plan to involve external teams (e.g., security review).
 6. **Refine requirements** – Identify new or changed requirements arising from the preferred solution.  Update the requirements documentation accordingly and trace the changes.
-7. **Recommend next steps** – Suggest a preferred solution direction (or top two options) based on the assessment and rationale.  Define what validation or sign‑offs are needed to proceed (e.g., compliance approval, design mock‑ups, technical spikes completed).
+7. **Downstream path analysis (integration contract matrix)** – For initiatives that span multiple services or systems, trace each business path through all downstream integration points. Produce an **integration contract matrix**:
+
+   | Business path | Trigger | Producer | Event / signal | Consumer | Expected consumer action |
+   |---|---|---|---|---|---|
+   | e.g. Application approved | Approval step completes | Service A | Approval event | Service B | Close the related support ticket |
+   | e.g. Manual override | Ops approves in support tool | Service A | Approval event | Service B | Close the related support ticket |
+
+   For each row, ask:
+   - Is the event being published today? If not, which story covers publishing it?
+   - Does the consumer have a handler for this event? If not, which story covers adding it?
+   - Does the event carry sufficient data for the consumer to act? If unknown, flag as a spike or open question.
+
+   This step catches downstream integration gaps before stories are written. It is the bridge between "we designed the data model" and "we have stories that cover every downstream effect." Skip this step only if the initiative is single-service with no downstream integrations.
+
+   **Origin:** a retrospective where several go-live blockers were knowable from the requirements but weren't caught until late-stage testing because downstream path coverage was never systematically traced.
+8. **Recommend next steps** – Suggest a preferred solution direction (or top two options) based on the assessment and rationale.  Define what validation or sign‑offs are needed to proceed (e.g., compliance approval, design mock‑ups, technical spikes completed).
 
 ## Typical Questions to Ask
 

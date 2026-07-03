@@ -1,7 +1,7 @@
 # BA Assistant for Cursor — Setup Guide
 
 > Originally designed and built by Jess Gibson, Senior BA (2025–2026).
-> Architecture: 23 active sub-skills, 7 reference standards, hook-based orchestration.
+> Architecture: 24 active sub-skills, 7 reference standards, hook-based orchestration.
 > Built iteratively across real BA initiatives using agent-assisted development.
 
 ---
@@ -18,7 +18,7 @@
 |-----|---------|
 | Miro MCP | Workshop board creation, DRAID table sync, board analysis |
 | Glean MCP | Internal doc/code search during intake and current state assessment |
-| Snowflake MCP | Quantitative validation and post-launch metrics via pm-data-analyst |
+| Snowflake MCP | Quantitative validation and post-launch metrics via ba-data-investigation |
 
 ---
 
@@ -118,7 +118,7 @@ The BA Assistant can invoke these optional companion skills if they are installe
 Start a new Cursor chat and type: "run BA assistant"
 
 If it's your first time, the setup wizard will launch automatically to configure your profile. Otherwise you should see:
-1. The BA Assistant welcome panel with 23 active skills listed
+1. The BA Assistant welcome panel with 24 active skills listed
 2. A draft depth preference question
 3. A prompt asking what you're working on
 
@@ -157,7 +157,8 @@ After installation, your `.cursor` directory should look like:
         ba-anti-pattern-detector/
         ba-change-strategy/
         ba-context-capture/
-        ... (21 active + 7 redirect stubs)
+        ba-data-investigation/
+        ... (24 active skills total)
     publish-docs-to-confluence/  (optional)
     miro-board-analysis/         (optional)
   rules/

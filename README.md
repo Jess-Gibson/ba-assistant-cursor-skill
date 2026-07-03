@@ -18,10 +18,11 @@ The BA Assistant is an AI-powered BA thinking partner that runs inside [Cursor](
 - **Meeting debrief** — process transcripts into decisions, actions, risks, and requirement changes
 - **Workshop design** — 9 facilitation templates from kickoff through change management
 - **Anti-pattern detection** — passive monitoring for premature solutioning, scope creep, and missing analysis
+- **Data investigation and evidence pairing** — grounds confidence scores, priorities, and risk ratings in cross-validated data instead of judgement alone, before they get locked in
 - **Retrospectives** — structured learning capture that feeds back into future initiatives
 - **Confluence/Jira integration** — status page publishing, ticket creation, and live sync via MCP
 
-### 23 active sub-skills
+### 24 active sub-skills
 
 | Phase | Skills |
 |-------|--------|
@@ -34,7 +35,13 @@ The BA Assistant is an AI-powered BA thinking partner that runs inside [Cursor](
 | Playback | Playback & Enablement |
 | Evaluation | Solution Evaluation, Retrospective & Learning |
 | Change | Change Strategy |
-| Cross-cutting | Risk & Tracker, Stakeholder Strategy, Sponsor Engagement, Anti-Pattern Detector, Context Capture, Meeting Debrief, Visual Storytelling, Project Canvas, State Validator |
+| Cross-cutting | Risk & Tracker, Stakeholder Strategy, Sponsor Engagement, Anti-Pattern Detector, Context Capture, Meeting Debrief, Visual Storytelling, Project Canvas, State Validator, **Data Investigation** |
+
+**Data Investigation** is the canonical data-pairing skill — before a confidence score, priority, risk rating, or solution comparison gets locked in on judgement alone, it's invoked to cross-validate against real data (source ranking, dedup/null/sentinel-date forensics, annotated SQL, a persistent Blocking Questions Log). Called via hooks from Intake, Current State Assessment, Discovery, Solution Shaping, Slicing, Risk & Tracker, and Solution Evaluation.
+
+### Optional companion skill: Miro board analysis
+
+`skills/miro-board-analysis/` is a separate, optional top-level skill (not a `ba-assistant` sub-skill) for building and analysing Miro boards — workshop boards, kickoff templates, debrief boards, spike cards, and a verified design system for consistent widget styling. Install it alongside `ba-assistant` only if you use Miro for workshop facilitation; it requires its own Miro MCP connection.
 
 ### Key commands
 
@@ -62,11 +69,15 @@ The BA Assistant is an AI-powered BA thinking partner that runs inside [Cursor](
 git clone https://github.com/Jess-Gibson/ba-assistant-cursor-skill.git /tmp/ba-cursor-skill
 cp -r /tmp/ba-cursor-skill/skills/ba-assistant ~/.cursor/skills/ba-assistant
 cp /tmp/ba-cursor-skill/rules/*.mdc ~/.cursor/rules/
+# Optional — only if you use Miro for workshop facilitation:
+cp -r /tmp/ba-cursor-skill/skills/miro-board-analysis ~/.cursor/skills/miro-board-analysis
 
 # Windows (PowerShell)
 git clone https://github.com/Jess-Gibson/ba-assistant-cursor-skill.git "$env:TEMP\ba-cursor-skill"
 Copy-Item "$env:TEMP\ba-cursor-skill\skills\ba-assistant" "$env:USERPROFILE\.cursor\skills\ba-assistant" -Recurse
 Copy-Item "$env:TEMP\ba-cursor-skill\rules\*.mdc" "$env:USERPROFILE\.cursor\rules\"
+# Optional — only if you use Miro for workshop facilitation:
+Copy-Item "$env:TEMP\ba-cursor-skill\skills\miro-board-analysis" "$env:USERPROFILE\.cursor\skills\miro-board-analysis" -Recurse
 ```
 
 Then follow the full setup guide in [SETUP.md](SETUP.md).
@@ -92,7 +103,8 @@ skills/ba-assistant/
   hook-contracts.md           # Inter-skill API registry
   learnings.md                # Cross-initiative patterns (grows over time)
   references/                 # 7 artefact format standards
-  sub-skills/                 # 23 active skills
+  sub-skills/                 # 24 active skills
+skills/miro-board-analysis/   # Optional companion skill — Miro board building & analysis
 rules/                        # 10 Cursor rules for routing, behaviour, and session management
 hooks/                        # Cross-platform session hooks (PowerShell + Bash)
 blueprints/                   # Starter project folder convention

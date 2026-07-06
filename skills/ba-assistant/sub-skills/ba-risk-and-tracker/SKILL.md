@@ -83,7 +83,7 @@ The Risk and Tracker Management skill is responsible for maintaining the living 
     - Flagged red in `/status` workstream grid
     - Surfaced in `/next` (high priority — "PM hasn't rated MoSCoW for these stories")
     - Drafted message ready for the PM (via Communication_Drafter)
-    Override mechanism: PM can explicitly proceed without MoSCoW; the decision is logged in the decisions table with rationale.
+    **Register (E-promote):** MoSCoW ratings and overrides read/write the **tracker's MoSCoW register** (`references/raid-format.md § Tracker-owned structured registers`); the status-data mirror follows on canvas refresh. Override mechanism: PM can explicitly proceed without MoSCoW; the decision is logged in the decisions table with rationale.
 
 12. **Mode-related anti-patterns (Wave 3)** – Watch for and flag (alongside `ba-anti-pattern-detector`):
     - **M4/M5 active without M2 complete for the same scope** — solutioning or building against unfinished discovery for that scope

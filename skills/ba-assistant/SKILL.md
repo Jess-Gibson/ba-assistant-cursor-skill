@@ -1,6 +1,6 @@
 <!-- BA Assistant for Cursor
      Originally designed and built by Jess Gibson, Senior BA
-     Architecture: 23 active sub-skills, 7 reference standards, hook-based orchestration
+     Architecture: 24 active sub-skills, 10 reference standards, hook-based orchestration
      Built iteratively across real BA initiatives using agent-assisted development -->
 ---
 name: ba-assistant
@@ -12,8 +12,8 @@ description: >
   (4) Work involves scoping, slicing, requirements, discovery, or feature definition.
   (5) Work involves creating Miro frames for workshops or sessions.
   (6) Work involves stakeholder strategy, RAID, decision capture, or delivery definition.
-  (7) The session-start-protocol rule determined this is BA-heavy work.
-  Loads BA Initiative Assistant: instructions.md + hook-contracts.md upfront; sub-skills on demand (not all 27 at bootstrap).
+  (7) The execution-router rule determined this is BA-heavy work.
+  Loads BA Initiative Assistant: instructions.md + hook-contracts.md upfront; sub-skills on demand (not all 24 at bootstrap).
   Activates the orchestrator persona. On new initiative: welcome panel + Phase 0 intake. On resume: Step 2.75 (read state files, act).
   Use in any project — no uploads or setup required.
 ---
@@ -25,7 +25,7 @@ description: >
 1. Read master instructions from `instructions.md`
 2. Read `hook-contracts.md` (Wave 3 — the registry of every inter-skill call). Use this as the API contract when changing any hub skill.
 3. (Reference only — read on demand) `slash-commands-ux.md` documents how Cursor slash commands, `AskQuestion` chips, and in-session verbs work for this assistant. Consult when designing new user-facing verbs.
-4. **Sub-skills: load on demand** — read a sub-skill's `SKILL.md` only when that skill is invoked for the current task. Do not read all 27 files at bootstrap (see `execution-router.mdc`).
+4. **Sub-skills: load on demand** — read a sub-skill's `SKILL.md` only when that skill is invoked for the current task. Do not read all 24 files at bootstrap (see `execution-router.mdc`).
 5. **Run first-run check (Step 1.5) before anything else**
 6. Output the welcome UI panel (new initiative only — skip on resume)
 7. Activate the BA Initiative Assistant orchestrator persona
@@ -49,7 +49,7 @@ description: >
 
 **What does NOT change:**
 - RAID tracking (decisions, risks, unknowns still captured with IDs)
-- AskQuestion at every reply
+- AskQuestion at genuine decision points
 - Sync gates before publishing
 - Anti-pattern detection
 - Meeting debriefs
@@ -65,7 +65,7 @@ Read **before anything else**:
 - `instructions.md` — operating principles, phases, commands, tone
 - `hook-contracts.md` — inter-skill call registry
 
-**Sub-skills:** read individual `sub-skills/*/SKILL.md` files **only when invoked** for the current task (retro, debrief, slicing, etc.). See `execution-router.mdc`. The 6 SUPERSEDED markers are read only when a caller references them.
+**Sub-skills:** read individual `sub-skills/*/SKILL.md` files **only when invoked** for the current task (retro, debrief, slicing, etc.). See `execution-router.mdc`. The 7 SUPERSEDED markers are read only when a caller references them.
 
 **Load references on demand, not upfront:**
 
@@ -96,6 +96,8 @@ The BA Assistant uses multiple state files. Each owns specific facts. The
 State Validator (see `sub-skills/ba-state-validator/SKILL.md`) enforces
 consistency between them and downstream artefacts.
 
+**E-demote note:** status-data.json is a **derived cache** — regenerated from the tracker + Jira before any canvas/status/metrics read — except for Jira-synced ticket statuses, workstream states, and confidence scores, which remain status-data-canonical.
+
 ### Ownership table
 
 
@@ -112,7 +114,10 @@ consistency between them and downstream artefacts.
 | Workstream states (per scope)                                    | `status-data.json`                                   | canvas Workstreams tab, status page                                             |
 | Confidence scores                                                | `status-data.json`                                   | canvas, status page                                                             |
 | Sponsor / PM / Tech Lead names                                   | `status-data.json → initiative`                      | every artefact                                                                  |
-| pmApproval state                                                 | `status-data.json → initiative.pmApproval`           | DRAFT banner everywhere                                                         |
+| pmApproval state                                                 | `initiative-tracker.md` (PM approval register — E-promote) | `status-data.json → initiative.pmApproval` (derived mirror), DRAFT banner everywhere |
+| DoR checks                                                       | `initiative-tracker.md` (DoR checks register — E-promote) | `status-data.json → dorChecks` (derived mirror), canvas metrics                 |
+| MoSCoW ratings + overrides                                       | `initiative-tracker.md` (MoSCoW register — E-promote) | `status-data.json → requirements[].moscowMatrix` (derived mirror), canvas MoSCoW tab |
+| Sign-offs                                                        | `initiative-tracker.md` (Sign-offs register — E-promote) | `status-data.json → signOffs` (derived mirror), canvas Sign-offs tab            |
 | Workspace context (Jira project, Confluence space, parent page)  | `confluence-pages.json` + `status-data.json`         | every artefact                                                                  |
 | This-session decisions, blockers, OQs (before they're confirmed) | `SESSION-CONTEXT.md`                                 | promoted to tracker / status-data.json at session end                           |
 | Cross-initiative patterns                                        | `learnings.md`                                       | Anti-Pattern Detector watchlist                                                 |
@@ -221,13 +226,16 @@ structure is owned by the standard.
 
 | Standard | Owns format for | Used by |
 |---|---|---|
-| `references/visual-output-format.md` | All diagrams, interactive HTML, design system | ba-visual-storytelling, ba-project-canvas |
+| `references/visual-output-format.md` | All diagrams, interactive HTML, design system | all visual-producing skills (ba-visual-storytelling absorbed W10) |
 | `references/canvas-data-model.md` | status-data.json schema, canvas tabs, metric computation | ba-project-canvas, all status-data writers |
 | `references/user-story-format.md` | Stories, spikes, bugs, enablers, DoR checklist | ba-story-writing |
 | `references/raid-format.md` | RAID, decisions, open questions | ba-risk-and-tracker, ba-discovery-and-requirements |
 | `references/status-page-format.md` | Confluence status pages | ba-status-page-publisher, ba-project-canvas (HTML snapshot) |
 | `references/requirement-format.md` | Requirement register, MoSCoW matrix, JTBD | ba-discovery-and-requirements |
 | `references/jira-ticket-format.md` | Cross-cutting Jira write rules (positioning file) | any project-specific Jira skill |
+| `references/activity-map.md` | Activity grouping, invocation types, model tier per skill | execution-router, ba-profile, all sub-skills |
+| `references/ears-translation.md` | EARS render of confirmed requirements at handover export | ba-dev-handover |
+| `references/dev-handover-format.md` | Handover artefact shapes, handover note, shared-repo folder convention, confirmed-vs-working boundary | ba-dev-handover, ba-state-validator |
 
 When any sub-skill produces an artefact governed by a standard:
 1. Read the standard before producing
@@ -247,7 +255,7 @@ widget. Show the project name if available from context.
 The panel must include:
 
 - Assistant title and status (active)
-- List of all 22 active skills with green indicators (the 6 SUPERSEDED markers are loaded silently for redirect compatibility but not shown in the welcome panel)
+- 24 active sub-skills, grouped by invocation: 6 you call, 2 on cadence, 12 auto-loaded, 3 background monitors, 1 first-run wizard (the 7 SUPERSEDED markers are loaded silently for redirect compatibility but not shown in the welcome panel)
 - Available commands
 - Confidence score dashboard (all starting at Low/Unknown)
 - Current phase indicator (Phase 0: Intake)
@@ -493,29 +501,28 @@ Render this as a visual HTML widget with the following sections:
 - Project name (if known from context, otherwise blank)
 - Phase badge: `Phase 0 — Intake`
 
-### Skills Loaded (two-column grid, all with ✅ green indicator)
+### Skills (grouped by how they're used — you only ever drive the first group)
 
-- Intake Reviewer
-- Workshop Design *(absorbs Kickoff Preparation)*
-- Current State Assessment
-- Discovery & Requirements *(absorbs Experiment & Validation; adds Requirements Lifecycle + JTBD + MoSCoW per scope)*
-- Feature Slicing & Sequencing *(absorbs Critical Path & Priority; adds Impact Mapping)*
-- Solution Shaping
-- Story Writing *(absorbs Definition of Ready)*
-- Playback & Enablement *(absorbs Communication Drafter — utility section)*
-- Change Strategy
-- Solution Evaluation
-- Risk & Tracker *(now includes Action Register + scoped tracker)*
-- Stakeholder Strategy
-- Sponsor Engagement
-- State Validator *(Wave 5 — cross-document consistency)*
-- Anti-Pattern Detector *(now workstream-aware)*
-- Requirements Interrogator *(with JTBD lens)*
-- Meeting Debrief
-- Visual Storytelling
-- Retrospective & Learning *(now workstream-aware + scoped)*
-- Project Canvas *(absorbs Status Data Model; now 8 tabs + scope navigator + MoSCoW)*
-- Jira Sync
+**You call these (6):**
+- Meeting Debrief — drop a transcript or say "debrief"
+- Project Canvas — `/status`, `/canvas`
+- Dev Handover — `/handover` *(Wave 9 — publishes confirmed analysis to the delivery repo, gated)*
+- State Validator — `/wrap`, `/validate-state`
+- Data Investigation — "pull real numbers" *(Wave 8 — evidence before ratings)*
+- Workshop Design — "design a workshop for X" *(pairs with the optional Miro companion skill)*
+
+**As and when (2):**
+- Retrospective & Learning — `/retro` at phase ends
+- Solution Evaluation — 2/6/12 weeks post-launch (the orchestrator reminds you)
+
+**These appear on their own when the work needs them (12):**
+- Intake Reviewer · Requirements Interrogator · Current State Assessment · Discovery & Requirements · Feature Slicing & Sequencing · Solution Shaping · Story Writing · Playback & Enablement · Change Strategy · Stakeholder Strategy · Sponsor Engagement · Jira Sync
+
+**Always watching, never invoked (3):**
+- Risk & Tracker · Anti-Pattern Detector · Context Capture *(passive — logs facts, decisions, blockers as you talk)*
+
+**Once, ever (1):**
+- Setup — first-run wizard
 
 ### Commands Panel
 
@@ -525,6 +532,7 @@ Render this as a visual HTML widget with the following sections:
 | `/next`            | Top 3 next actions by urgency across all active workstreams and scopes                                                           |
 | `/status`          | Full current state: workstream grid, tracker, confidence scores, canvas refresh, HTML snapshot (triple-output)                    |
 | `/canvas`          | Generate/refresh interactive project canvas dashboard                                                                            |
+| `/handover`        | Publish confirmed analysis to the delivery repo (requirements pack / spike request / ADR request / story pack). Gated before it leaves; feeds the Jira ticket. |
 | `/report`          | Full structured report                                                                                                           |
 | `/snapshot`        | Living tracker snapshot                                                                                                          |
 | `/publish-status`  | Generate and publish status page to Confluence (Status Page Standard Format)                                                     |
@@ -753,7 +761,7 @@ Old user guides, status pages, and historic conversation transcripts that use ph
 3. **One coherent decision per panel.** Don't bundle unrelated decisions; split into separate panels with clear titles.
 4. **Surface the recommendation in the prompt** when one exists. "I'd recommend X because Y. What do you want?" — not neutral "what do you want to do?".
 
-**Every reply MUST end with an `AskQuestion` call.** This is unconditional -- it applies to every turn in every chat: new chats, resumes, BA orchestrator turns, non-BA turns, read-only QA, meta tasks, everything. No exceptions unless the user explicitly says "stop asking" or "no more questions" for the current thread.
+**Use `AskQuestion` at genuine decision points, per `agent-behavior.mdc`.** The four authoring rules above govern HOW to ask when a real decision exists. Skip the call entirely for verbatim artefacts, obvious single next steps, and trivial confirmations — a reflex "anything else?" turn is an authoring failure, not diligence.
 
 See `slash-commands-ux.md` for how Cursor renders slash commands and `AskQuestion` chips.
 

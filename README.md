@@ -35,7 +35,7 @@ The BA Assistant is an AI-powered BA thinking partner that runs inside [Cursor](
 | Playback | Playback & Enablement |
 | Evaluation | Solution Evaluation, Retrospective & Learning |
 | Change | Change Strategy |
-| Cross-cutting | Risk & Tracker, Stakeholder Strategy, Sponsor Engagement, Anti-Pattern Detector, Context Capture, Meeting Debrief, Visual Storytelling, Project Canvas, State Validator, **Data Investigation** |
+| Cross-cutting | Risk & Tracker, Stakeholder Strategy, Sponsor Engagement, Anti-Pattern Detector, Context Capture, Meeting Debrief, Project Canvas, State Validator, **Data Investigation** |
 
 **Data Investigation** is the canonical data-pairing skill — before a confidence score, priority, risk rating, or solution comparison gets locked in on judgement alone, it's invoked to cross-validate against real data (source ranking, dedup/null/sentinel-date forensics, annotated SQL, a persistent Blocking Questions Log). Called via hooks from Intake, Current State Assessment, Discovery, Solution Shaping, Slicing, Risk & Tracker, and Solution Evaluation.
 

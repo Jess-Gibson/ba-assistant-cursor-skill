@@ -62,16 +62,31 @@ Copy the hooks configuration and scripts:
 # macOS / Linux
 cp /tmp/ba-cursor-skill/hooks/hooks.json ~/.cursor/hooks.json
 mkdir -p ~/.cursor/hooks
-cp /tmp/ba-cursor-skill/hooks/*.sh ~/.cursor/hooks/
+cp /tmp/ba-cursor-skill/hooks/*.{sh,py} ~/.cursor/hooks/
 chmod +x ~/.cursor/hooks/*.sh
 
 # Windows (PowerShell)
 Copy-Item "$env:TEMP\ba-cursor-skill\hooks\hooks.json" "$env:USERPROFILE\.cursor\hooks.json"
 New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.cursor\hooks"
 Copy-Item "$env:TEMP\ba-cursor-skill\hooks\*.ps1" "$env:USERPROFILE\.cursor\hooks\"
+Copy-Item "$env:TEMP\ba-cursor-skill\hooks\*.py" "$env:USERPROFILE\.cursor\hooks\"
 ```
 
 **Important:** If you already have a `hooks.json`, merge the entries rather than replacing the file.
+
+**Windows Python:** The hook scripts call `python`. If `python` is not on your PATH, either add it or edit `hooks.json` to use `py` instead (the Windows Python launcher).
+
+### Step 3b — Install slash commands
+
+```bash
+# macOS / Linux
+mkdir -p ~/.cursor/commands
+cp /tmp/ba-cursor-skill/commands/*.md ~/.cursor/commands/
+
+# Windows (PowerShell)
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.cursor\commands"
+Copy-Item "$env:TEMP\ba-cursor-skill\commands\*.md" "$env:USERPROFILE\.cursor\commands\"
+```
 
 ### Step 4 — Configure your environment
 
@@ -115,16 +130,29 @@ The BA Assistant can invoke these optional companion skills if they are installe
 
 ## Verify Installation
 
-Start a new Cursor chat and type: "run BA assistant"
+### Structural check (run first)
 
-If it's your first time, the setup wizard will launch automatically to configure your profile. Otherwise you should see:
-1. The BA Assistant welcome panel with 24 active skills listed
-2. A draft depth preference question
-3. A prompt asking what you're working on
+From the cloned repo:
+
+```bash
+python3 tools/conformance-check.py --root ~/.cursor
+# Windows: py tools\conformance-check.py --root $env:USERPROFILE\.cursor
+```
+
+Expect **0 FAIL, 0 WARN, 6 PASS**.
+
+### Behavioural check (fresh Cursor chat, model = Auto)
+
+1. **Welcome panel** — type `run BA assistant` → grouped panel (6-2-12-3-1), 24 skills, draft-depth question
+2. **AskQuestion judgement** — ask for a requirement verbatim → text only, no trailing AskQuestion; at a real fork → clickable options
+3. **Slash menu** — type `/` → status, canvas, handover, wrap, validate-state, retro, metrics, reanchor appear
+4. **`/status`** — triple-output flow runs (grid + tracker + canvas refresh)
+5. **`/reanchor`** — re-reads SKILL + state files, ends with AskQuestion
+6. **`/metrics`** — loads `metrics.md` + `canvas-data-model` only (not the full canvas generation spec)
 
 If the welcome panel does not appear, check:
-- The `ba-assistant/SKILL.md` file exists at `~/.cursor/skills/ba-assistant/SKILL.md`
-- The `ba-assistant-default.mdc` rule exists in `~/.cursor/rules/`
+- `~/.cursor/skills/ba-assistant/SKILL.md` exists
+- `~/.cursor/rules/execution-router.mdc` exists (the always-on router — it replaced the old `ba-assistant-default` and `session-start-protocol` rules)
 - Restart Cursor if rules were just added
 
 ---
@@ -161,23 +189,21 @@ After installation, your `.cursor` directory should look like:
         ... (24 active skills total)
     publish-docs-to-confluence/  (optional)
     miro-board-analysis/         (optional)
+  commands/
+    status.md, canvas.md, handover.md, wrap.md, ...
   rules/
     ba-profile.mdc             (generic — customize with your name or use the setup wizard)
-    ba-assistant-default.mdc
-    ba-delivery-process.mdc
-    execution-router.mdc
-    session-start-protocol.mdc
+    execution-router.mdc       (always-on router — turn classification + skill routing)
     skills-routing.mdc
     sync-gates.mdc
     agent-behavior.mdc
-    chat-profiles.mdc
-    workspace-operations.mdc
-    read-claude-first.mdc
+    agent-behavior-extended.mdc
+    ba-delivery-process.mdc
+    critical-gates.mdc
   hooks/
-    session-init.ps1  (Windows)
-    session-init.sh   (macOS/Linux)
-    snapshot-before-compact.ps1 (Windows)
-    snapshot-before-compact.sh  (macOS/Linux)
+    session-init.ps1 / .sh
+    snapshot-before-compact.ps1 / .sh
+    jira-dor-gate.py, shared-repo-guard.py, inject-state-reminder.py (+ .sh/.ps1 twins)
   hooks.json
 ```
 

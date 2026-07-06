@@ -121,6 +121,8 @@ This section absorbs the former `ba-definition-of-ready` skill. DoR is the gate 
 
 The Definition of Ready ensures that each epic or story in the backlog meets a clear set of criteria before development begins. It verifies that requirements are understood, dependencies are known, acceptance criteria are defined, risks are logged, MoSCoW rating is captured (warn-and-flag), and necessary sign-offs are obtained. DoR acts as a gatekeeper to reduce churn during development and to give engineering teams confidence that work is actionable.
 
+**Where results land (E-promote):** DoR check results are **written to the tracker's DoR checks register** (`references/raid-format.md § Tracker-owned structured registers`); `status-data.json → dorChecks` is updated only via canvas refresh (derived mirror), never written directly.
+
 ### DoR tasks
 
 1. **Define DoR criteria** — Establish a checklist that a story or epic must satisfy before it can enter development. Typical criteria include: requirements clearly stated, scope defined, acceptance criteria agreed, dependencies identified, constraints (compliance/legal/design) considered, risks logged, sign-offs obtained, and **MoSCoW rating set for the story's scope (Wave 3 — warn-and-flag, see Task 6)**.
@@ -128,6 +130,8 @@ The Definition of Ready ensures that each epic or story in the backlog meets a c
 2. **Evaluate backlog items** — For each story or epic, assess whether it meets the DoR. If criteria are missing, flag the gaps and suggest actions to fill them (e.g., get design approval, clarify requirements, identify dependencies).
 
 3. **Track readiness status** — Maintain a readiness status (Ready / Not Ready / Partial) for each story and summarise the reasons for items that are not ready. Communicate this to the orchestrator and delivery planning skills.
+
+3b. **Stamp the Jira description (C1 — the deterministic gate reads this).** A story that passes DoR includes the line `DoR: PASS (<date>)` in its Jira description; a PM override includes `DoR: PASS (override, see decision D-NNN)`. The `jira-dor-gate` hook denies Story creation in Jira when neither marker is present in the payload (its file-lookup fallback also checks the tracker's DoR checks register / status-data pre-E). Spikes, bugs, and enablers are not gated.
 
 4. **Enforce stop-the-line** — If a critical DoR criterion is missing (e.g., legal sign-off), warn that proceeding may cause rework or delay. Let the user decide to proceed at risk, and log that decision in the tracker.
 

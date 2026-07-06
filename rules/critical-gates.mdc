@@ -1,0 +1,21 @@
+---
+description: Critical gates registry — WHEN every gate fires and WHERE its logic lives. Compact, always-on. Gate logic stays lazy.
+alwaysApply: true
+---
+
+# Critical gates registry
+
+This registry is the always-on **WHEN**. The **WHAT** (each gate's logic) stays in lazily-loaded skills and references — an unloaded skill must never be an invisible trigger. Hard gates are enforced by lifecycle hooks (deterministic, fire regardless of what's loaded); reasoning gates are soft-but-visible (see agent-behavior → Gate visibility: visible result line + default-deny).
+
+| Gate | Fires when | Enforcement | Logic lives in |
+|---|---|---|---|
+| Jira DoR gate | A Story is about to be created in Jira | **HARD** — `beforeMCPExecution` hook (jira-dor-gate) denies without DoR pass evidence | `ba-story-writing` DoR section, `user-story-format.md §6` |
+| Shared-repo leak guard | A file under `BA_SHARED_REPO_ROOT` is edited / committed | **HARD** — `afterFileEdit` warns; `beforeShellExecution` denies git commit/push with leaks | `dev-handover-format.md §1, §7` |
+| Handover readiness + gate | `/handover` before any publish | Reasoning gate — visible result, default-deny | `ba-dev-handover` Tasks 3–4 |
+| Interrogate before register | A requirement is about to enter the register | Reasoning gate | `ba-requirements-interrogator` (HK-DISC-INT-pre-register) |
+| Ground before scoring | A confidence score / priority / risk rating is about to be locked in | Reasoning gate | `ba-data-investigation` (HK-*-BDI-* hooks) |
+| Pre-publish state validation | Before `/publish-status` or any Confluence publish | Reasoning gate | `ba-state-validator`, `references/sync-procedures.md` |
+| Phase/workstream exit gates | A workstream is about to be marked complete for a scope | Reasoning gate | `ba-assistant/SKILL.md → Gates` |
+| Unpromoted-state breakpoints | End of agent response / pre-compaction | **HARD** — `stop` + `preCompact` hooks compute drift from files | `stop-sync-check.sh`, `references/sync-procedures.md` |
+
+Rules: a hook denial is never argued with — fix the cause. A reasoning gate that can't confirm it ran = the gated output does not ship. This table changes only with a matching update to `hook-contracts.md`.

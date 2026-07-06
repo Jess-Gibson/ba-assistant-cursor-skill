@@ -1,7 +1,9 @@
----
-description: Workspace file locations and available tools
-alwaysApply: true
----
+# Workspace Operations Reference (doc — demoted from always-on rule)
+
+**Location:** `~/.cursor/skills/ba-assistant/references/workspace-operations.md`
+**Was:** `rules/workspace-operations.mdc` (alwaysApply). Demoted in the always-on restructure (D). The Downloads check is hard-wired into the session-init hook (D5); this reference keeps the full procedure and locations.
+**Last reviewed:** 2026-07-05
+
 
 # Workspace Operations
 

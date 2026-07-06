@@ -89,6 +89,24 @@ Capture: `profile.team`, `profile.domain`.
 
 ---
 
+### Step 2.5 — Machine paths (environment variables)
+
+One-time machine setup — these used to live in always-on rules; they belong here now (always-on restructure).
+
+**Collect and persist as user environment variables** (Windows: `setx`; macOS/Linux: shell profile export):
+
+| Variable | What | Default offered |
+|---|---|---|
+| `BA_INITIATIVES_ROOT` | Root folder containing initiative folders (SESSION-CONTEXT.md etc.) | `~/.cursor/blueprints` |
+| `BA_DOWNLOADS_PATH` | Where meeting transcripts and downloads land | `~/Downloads` |
+| `BA_SHARED_REPO_ROOT` | Devs' shared delivery repo (only if using `/handover` — skip otherwise) | (none — ask when first handover runs) |
+
+**AskQuestion:** confirm each default or supply a path. After capture, verify each path exists (`Test-Path` / `[ -d ]`) and warn on misses. The session-init hook and `ba-dev-handover` read these.
+
+**Optional:** offer the Claude Code install (extension `anthropic.claude-code` — steps in SETUP.md) as a one-time extra. Skip freely.
+
+---
+
 ### Step 3 — Jira workspace
 
 **Collect:**

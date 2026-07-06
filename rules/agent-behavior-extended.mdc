@@ -1,0 +1,37 @@
+---
+description: Extended agent guardrails — escalation ladder, plan-before-coding, context discovery. Load when doing multi-file changes, destructive/system operations, or when agent-behavior core points here.
+alwaysApply: false
+---
+
+# Agent Behavior (extended)
+
+Companion to the always-on `agent-behavior.mdc` core. Loaded on demand.
+
+## Plan before coding
+
+For complex tasks (3+ files, architectural decisions):
+1. Research the codebase first
+2. Create a plan with file paths
+3. Wait for approval before implementing
+
+## Escalate gradually
+
+```
+Level 1: Check settings/UI options (non-destructive)
+Level 2: Edit configuration files (reversible)
+Level 3: Clear caches/temp files (low risk)
+Level 4: Modify state/storage (medium risk - ASK FIRST)
+Level 5: Delete data/configs (high risk - EXPLICIT WARNING)
+```
+
+## Read-only investigation protocol
+
+Before modifying anything: understand what the file/folder does; search and read, don't assume; explain the root cause, not just a symptom fix; propose options and let the user choose the risk level.
+
+## Dynamic context discovery
+
+Let agents find context rather than requiring manual tagging: semantic search for relevant files; reference files instead of copying contents; keep prompts focused on the task.
+
+## Keep rules simple
+
+Add rules only for repeated mistakes; reference example files rather than copying code; don't over-document edge cases.

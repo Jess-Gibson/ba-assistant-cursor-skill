@@ -166,6 +166,8 @@ If a tracker item applies to the whole initiative, `scope.level = "initiative"`.
     "linkPattern": "string"
   },
 
+  // pmApproval: derived (E-promote) — canonical in the tracker's PM approval register
+  // (raid-format.md § Tracker-owned structured registers); re-derived on canvas refresh.
   "pmApproval": {
     "status": "pending",             // "pending" | "requested" | "approved" | "tbc" | "rejected"
     "approver": "[PM name]",
@@ -438,6 +440,8 @@ Flat alternative (backwards-compatible):
         "social": "string | null",
         "dimensionsSolvingFor": "string"
       },
+      // moscowMatrix: derived (E-promote) — canonical in the tracker's MoSCoW register
+      // (raid-format.md § Tracker-owned structured registers); re-derived on canvas refresh.
       "moscowMatrix": [
         { "scope": "scope object", "rating": "Must | Should | Could | Won't", "ratedBy": "string", "date": "YYYY-MM-DD" }
       ],
@@ -535,6 +539,8 @@ The operational tracker extends RAID with knowns, unknowns, actions, and signoff
 
 ### `signOffs` array
 
+**Derived (E-promote):** canonical in the tracker's Sign-offs register (`raid-format.md § Tracker-owned structured registers`); this array is re-derived from it on every canvas refresh.
+
 ```jsonc
 {
   "signOffs": [
@@ -559,6 +565,8 @@ signOffCycleTime = approvedDate - requestedDate (in working days)
 ```
 
 ### `dorChecks` array
+
+**Derived (E-promote):** canonical in the tracker's DoR checks register (`raid-format.md § Tracker-owned structured registers`); this array is re-derived from it on every canvas refresh. Metric computations are unchanged — they read this mirror after refresh.
 
 ```jsonc
 {
@@ -757,6 +765,8 @@ Anything older than 1 hour is recomputed on next request.
 ---
 
 ## 5. State sync triggers
+
+**Regenerate-before-read (E-demote):** before any read of status-data.json for canvas, `/status`, or `/metrics`, **regenerate it from the tracker + Jira** (same pattern as metrics-cache.json). A stale copy stops mattering because it is rebuilt each time. status-data.json is a derived cache except for Jira-synced ticket statuses, workstream states, and confidence scores, which remain status-data-canonical.
 
 Other skills update `status-data.json` via these triggers:
 

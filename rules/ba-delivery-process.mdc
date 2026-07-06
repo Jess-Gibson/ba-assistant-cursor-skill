@@ -1,6 +1,6 @@
 ---
-description: BA end-to-end process and runbook for AI-enhanced delivery (discovery through retrospective); map to this workspace's skills and MCPs
-alwaysApply: true
+description: "BA end-to-end process and runbook — load for full-lifecycle delivery process questions or when phase gates/DoD need the source docs"
+alwaysApply: false
 ---
 
 # Business analysis (BA) — process and runbook

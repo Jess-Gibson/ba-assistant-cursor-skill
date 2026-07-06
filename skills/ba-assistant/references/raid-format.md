@@ -348,6 +348,24 @@ Drift between RAID in `initiative-tracker.md` and `status-data.json → raid` is
 
 ---
 
+## 8b. Tracker-owned structured registers (E-promote)
+
+The initiative tracker owns four structured registers previously canonical in status-data.json. The canvas mirrors them INTO status-data.json on refresh; the mirror is a derived cache.
+
+### DoR checks
+| Story | First attempt (pass/partial/fail) | Date | Scope |
+
+### MoSCoW (per scope)
+| Requirement | Scope | Rating | Override decision (D-NNN if any) |
+
+### PM approval
+| PM | Status (pending/requested/approved) | Date |
+
+### Sign-offs
+| ID | Artefact | Requested | Approved | Owner |
+
+---
+
 ## 9. Output anti-patterns (Anti-Pattern Detector triggers)
 
 | Watching | Trigger | Anti-pattern |

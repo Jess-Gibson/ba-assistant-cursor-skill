@@ -59,12 +59,13 @@ These skills receive the most hooks. Changes to them are highest-risk.
 |---|---|---|
 | `Requirements_Interrogator` | 6+ | Interrogation gate before requirements/stories/design are accepted |
 | `Risk_and_Tracker` | 12+ | All RAID, actions, decisions, sign-offs route here |
-| `Visual_Storytelling` | 9+ | Every output that has a visual element calls here |
+| `Visual_Storytelling` | 9+ | Every output that has a visual element calls here (Wave 10: resolves to `references/visual-output-format.md`, applied inline) |
 | `Communication_Drafter` *(now inside Playback)* | 12+ | Every stakeholder-facing message routes here |
 | `Sponsor_Engagement` | 7+ | Sustained sponsor relationship — many phases call back |
 | `Anti_Pattern_Detector` | passive (no inbound) | Watches all outputs; flags inline |
 | `Meeting_Debrief` | event-driven | Called after every meeting; routes outputs to many skills |
 | `ba-data-investigation` | 7 | Canonical data-pairing skill — every confidence score, priority, risk rating, and solution comparison that wants evidence routes here (Wave 8) |
+| `ba-dev-handover` | outbound only | Publishes confirmed analysis to the delivery repo; calls Interrogator (handoff-and-halt), Data Investigation, Risk & Tracker, Jira, State Validator (Wave 9) |
 
 ---
 
@@ -229,16 +230,26 @@ These skills receive the most hooks. Changes to them are highest-risk.
 | HK-CANV-RT-read | Risk_and_Tracker | Reads tracker data | n/a | Tracker data | Block — canvas without tracker is empty | 🟢 |
 | HK-CANV-JIRA-sync | Jira_Sync | Refresh ticket data | Project, epics | Updated tickets | Warn — proceed with stale data flagged | 🟢 |
 | HK-CANV-VIS-embedded | Visual_Storytelling | Embedded diagrams in tabs | Diagram definitions | Inline SVG/Mermaid | Warn | 🟢 |
-| HK-CANV-DATA-internal | Data Model section (formerly Status_Data_Model) | Read/write status-data.json | n/a | JSON | Block | 🟡 W3 |
+| HK-CANV-DATA-internal | Data Model section (ba-project-canvas/status-page-and-data.md) | Read/write status-data.json | n/a | JSON | Block | 🟡 W3 |
 
 ### State Validator (Wave 5) — outbound
 
 | Hook ID | Callee | Trigger | Inputs | Outputs | Failure mode | Status |
 |---|---|---|---|---|---|---|
 | HK-SV-JS-presync | Jira_Sync | Always before validation | Ticket list from status-data.json | Refreshed ticket statuses | Warn — proceed with stale; flag in report | 🟣 W5 |
-| HK-SV-CANV-refresh | Project_Canvas (Data Model section) | Always before validation | Tracker content | Refreshed status-data.json | Block — can't validate against stale derived state | 🟣 W5 |
+| HK-SV-CANV-refresh | Project_Canvas (Data Model section — ba-project-canvas/status-page-and-data.md) | Always before validation | Tracker content | Refreshed status-data.json | Block — can't validate against stale derived state | 🟣 W5 |
 | HK-SV-APD-patterns | Anti_Pattern_Detector | After validation | Divergence list | Updated watchlist entries (only if patterns) | Warn | 🟣 W5 |
 | HK-SV-COMD-supersede | Communication_Drafter | When pages need superseding | Page list | Supersede banner content | Warn — manual fallback | 🟣 W5 |
+
+### Dev Handover (Wave 9) — outbound
+
+| Hook ID | Callee | Trigger | Inputs | Outputs | Failure mode | Status |
+|---|---|---|---|---|---|---|
+| HK-DH-INT-confirm | Requirements_Interrogator | Handover needs a requirement not yet confirmed | Requirement, source | Handoff-and-halt: Interrogator conversation runs; requirement confirmed in register as a separate event; user re-runs /handover | Block (reqs/story pack); warn+flag provisional (spike/ADR) | 🟠 W9 |
+| HK-DH-BDI-ground | ba-data-investigation | Requirement touches a real system with qualitative/absent grounding | Requirement, candidate sources | Grounded facts or qualitative tag | Warn — publish as qualitative after acknowledgement | 🟠 W9 |
+| HK-DH-RT-raid | Risk_and_Tracker | Handover references a dependency/decision/constraint | RAID reference | RAID summary table EMBEDDED in the artefact (tracker IDs preserved; tracker never linked) | Block — untraceable handover | 🟠 W9 |
+| HK-DH-JIRA-ticket | Project Jira skill (jira-templates convention; create-your-own in the public repo) | Spike/ADR/story published, gate passed | Published markdown | Jira ticket created/updated | Warn — markdown stands; ticket pending | 🟠 W9 |
+| HK-DH-SV-register | ba-state-validator | After publish | Handover + source artefact IDs | Dependency registered for drift watch | Warn — manual re-check fallback | 🟠 W9 |
 
 ---
 
@@ -272,3 +283,15 @@ Before modifying a hub skill, run through:
 - **Schema change:** `confidenceScores.*` (and the flat `confidence[]` alternative) in `status-data.json` gained an `evidence: { type: "data" | "qualitative" | "not-yet-assessed", source: string | null }` field — see `references/canvas-data-model.md`.
 - **Anti-Pattern Detector additions:** "Ungrounded rating", "Options compared on gut feel only", "Stale blocking question" triggers; extended the "Missing co-thinking journey" trigger to include data-pairing hook awareness.
 - **Why a new skill instead of extending `pm-data-analyst`:** `pm-data-analyst` is generic and wasn't built around this specific investigation discipline (source ranking with status tags, row-level dedup/null/sentinel-date forensics before trusting an aggregate, annotated SQL, mandatory cross-validation against a second source, a persistent Blocking Questions Log and Data Quality Caveats register). Keeping it as a dedicated BA Assistant skill means every data-pairing hook across the assistant behaves consistently.
+
+## Wave 9 hook changes summary (Jul 2026 — `ba-dev-handover`)
+
+- **New skill:** `ba-dev-handover` — publishes confirmed analysis to the shared delivery repo, gated. Derived-publish pattern, parallel to Confluence publish. Confirmation and publication are two separate events.
+- **New hooks (W9):** HK-DH-INT-confirm (handoff-and-halt, not a synchronous sub-call), HK-DH-BDI-ground, HK-DH-RT-raid (embed, never link), HK-DH-JIRA-ticket, HK-DH-SV-register.
+- **State Validator extension:** dev-handover exports added to the watched artefact set; new conformance row (handover freshness vs confirmed register; no working-file links).
+- **No format changes to existing artefacts.** EARS is render-at-export only; the register is untouched. Optional: requirement-format gains an `evidence` field (Patch 6) if your local doesn't already have it.
+
+## Wave 10 hook changes summary (Jul 2026)
+
+- **ba-visual-storytelling merged into `references/visual-output-format.md`** (§4 expanded types, §13 storytelling framework, §14 production workflow); all `HK-*-VIS-*` hooks unchanged by name, fulfilled inline against the standard. The sub-skill folder keeps a SUPERSEDED stub for redirect compatibility (7th SUPERSEDED marker).
+- **ba-project-canvas split into a router + 5 capability files** (`canvas-generate.md`, `canvas-tab-specs.md`, `intake-form-canvas.md`, `metrics.md`, `status-page-and-data.md`); no hook changes — HK-CANV-DATA-internal and HK-SV-CANV-refresh now point at `status-page-and-data.md`. Metric formulas deduplicated: canonical in `references/canvas-data-model.md` only.

@@ -19,6 +19,8 @@ This file is the canonical source for requirement structure, requirements regist
 
 The register.md file is the source of truth. The MoSCoW matrix and Confluence views are derived.
 
+Confirmed requirements are the handover-eligible set — see `references/dev-handover-format.md`.
+
 ---
 
 ## 2. Requirement types
@@ -94,6 +96,12 @@ Regulatory obligation. Failure to meet this standard exposes the organisation to
 | `rationale` | string | Why this matters |
 | `acceptanceForMet` | list | How we'll know the requirement is satisfied |
 | `linkedElements` | object | Decisions, risks, stories, slices, OOS |
+
+Optional fields:
+
+| Field | Type | Allowed values |
+|---|---|---|
+| `evidence` | object (optional) | `{ type: "data" \| "qualitative" \| "not-yet-assessed", source: string \| null }` — grounding state for requirements that assert facts about real systems. Written by ba-data-investigation hooks (Wave 8); read by ba-dev-handover gates (Wave 9). Absent = not-yet-assessed. |
 
 ### Status transitions
 

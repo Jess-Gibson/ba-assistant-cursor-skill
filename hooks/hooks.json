@@ -1,5 +1,6 @@
 {
   "version": 1,
+  "_comment": "Wave: D3/C1/C1b/C3 blocks added 5 Jul 2026, verified against Cursor hooks docs. Scripts are cross-platform python (sh/ps1 twins in hooks/). stop emits followup_message (only documented stop output); beforeSubmitPrompt additional_context is a documented no-op today, registered for future-proofing; postToolUse carries the shared-repo warning (afterFileEdit has no output channel).",
   "hooks": {
     "sessionStart": [
       {
@@ -16,6 +17,46 @@
       {
         "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/snapshot-before-compact.ps1",
         "timeout": 8
+      }
+    ],
+    "stop": [
+      {
+        "command": "python ./hooks/inject-state-reminder.py --stop",
+        "timeout": 5,
+        "loop_limit": 2
+      }
+    ],
+    "beforeMCPExecution": [
+      {
+        "command": "python ./hooks/jira-dor-gate.py",
+        "timeout": 8,
+        "failClosed": false
+      }
+    ],
+    "afterFileEdit": [
+      {
+        "command": "python ./hooks/shared-repo-guard.py",
+        "timeout": 8
+      }
+    ],
+    "postToolUse": [
+      {
+        "command": "python ./hooks/shared-repo-guard.py",
+        "timeout": 8,
+        "matcher": "Write|Edit"
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": "python ./hooks/shared-repo-guard.py",
+        "timeout": 8,
+        "failClosed": false
+      }
+    ],
+    "beforeSubmitPrompt": [
+      {
+        "command": "python ./hooks/inject-state-reminder.py",
+        "timeout": 5
       }
     ]
   }

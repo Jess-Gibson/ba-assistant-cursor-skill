@@ -62,14 +62,14 @@ LAYER 5 — Specialist execution
 The BA Assistant is designed to minimise the need to remember slash commands. The pattern:
 
 1. **Start once with the slash menu.** Type `/` → pick `ba-assistant` (or say "start BA assistant").
-2. **Let the agent drive.** After every reply, the agent ends with `AskQuestion` showing clickable options. The BA clicks options instead of typing.
+2. **Let the agent drive.** At genuine decision points, the agent ends with `AskQuestion` showing clickable options. The BA clicks options instead of typing.
 3. **In-session verbs are conveniences, not requirements.** If the BA forgets `/status`, the assistant will offer "see live status" as an `AskQuestion` option anyway.
 4. **Form-style intake (Wave 4).** Workspace setup batches related questions into one or two screens so the BA fills a form instead of answering 8 sequential questions.
 5. **Intake canvas (Wave 4).** Optional — the assistant can generate a Cursor Canvas with form fields the BA fills visually, then copies JSON back to chat.
 6. **Visible status headers (Wave 4 — enforced).** Every hook prints `> Running: <skill>` so the BA always knows what's happening.
 7. **Canvas for visual work.** `/canvas` (or "show me the canvas") opens the 8-tab dashboard beside the chat.
 
-**What we promise:** entry slash works, `AskQuestion` chips after every reply, optional intake canvas, visible status headers, scope-filterable canvas, natural-language intent routing.
+**What we promise:** entry slash works, `AskQuestion` chips at decision points, optional intake canvas, visible status headers, scope-filterable canvas, natural-language intent routing.
 
 **What we do NOT promise:** Claude-style persistent button chips above the input, guaranteed slash autocomplete for every in-session verb, magic button-driven UI.
 

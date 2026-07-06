@@ -47,7 +47,11 @@ Canonical ownership`. Quick reference:
 | Ticket statuses | `status-data.json` (synced from Jira) |
 | Workstream states per scope | `status-data.json` |
 | Confidence scores | `status-data.json` |
-| Sponsor / PM / Tech Lead names, pmApproval state | `status-data.json → initiative` |
+| Sponsor / PM / Tech Lead names | `status-data.json → initiative` |
+| pmApproval state | `initiative-tracker.md` PM approval register (E-promote; status-data mirror is derived) |
+| DoR checks | `initiative-tracker.md` DoR checks register (E-promote; `dorChecks` mirror is derived) |
+| MoSCoW ratings + overrides | `initiative-tracker.md` MoSCoW register (E-promote; `moscowMatrix` mirror is derived) |
+| Sign-offs | `initiative-tracker.md` Sign-offs register (E-promote; `signOffs` mirror is derived) |
 | Sprint context (day number, dates, days to deadline) | `status-data.json → sprintContext` (derived from calendar + tracker metadata) |
 | Session-scoped working memory | `SESSION-CONTEXT.md` (never canonical for facts that outlive the session) |
 
@@ -56,7 +60,7 @@ Canonical ownership`. Quick reference:
 | Hook | When | Why |
 |---|---|---|
 | **ba-jira-sync** | Before validation | Refresh ticket statuses so Jira-derived facts in status-data.json are current before comparison |
-| **ba-project-canvas (Data Model section)** | Before validation | Refresh status-data.json from tracker so structured view matches narrative source |
+| **ba-project-canvas (Data Model section — status-page-and-data.md)** | Before validation | Refresh status-data.json from tracker so structured view matches narrative source |
 | **Anti-Pattern Detector** | After validation | Log every divergence type observed so patterns can promote to the watchlist |
 | **Communication_Drafter** (in Playback) | If divergences include Confluence pages that need superseding | Draft the supersede banner content |
 
@@ -76,6 +80,7 @@ Read the project's analysis folder and identify every live artefact. Default set
 - `<initiative-slug>.canvas.tsx` — see **Canvas discovery** below
 - `status-snapshot.html`
 - `learnings.md` (read-only — never propagate INTO learnings, only ever read FROM)
+- `<shared-repo>/analysis/<slug>/confirmed/**` and `/exchanges/**` — published dev handovers (read-only comparison against the confirmed register they derived from)
 
 Plus, for each entry in `confluence-pages.json` flagged as live (not superseded):
 
@@ -334,6 +339,7 @@ don't promote to patterns yet — a single run doesn't establish a pattern.
 | End-of-session checkpoint | Offered when the session modified canonical state |
 | Requirements Interrogator (In-flight mode) | When a requirement changes, run the validator to catch downstream artefacts that need updating |
 | Intake Reviewer (Hook 2) | Run after Confluence/Jira context gathering if a previous status page is found, to confirm it's current before relying on it |
+| Dev Handover (`HK-DH-SV-register`) | After a handover publishes, register its source-artefact dependencies. On a later change to a confirmed artefact, flag any handover that derived from it as stale. |
 
 ## Standard conformance check (Wave 7)
 
@@ -366,6 +372,7 @@ The user can defer fixes. But it surfaces drift before it accumulates.
 | Confluence status page | `references/status-page-format.md` | Section order, outcome health present, DRAFT banner if applicable, supersede chain correct |
 | Visual (flowchart, etc.) | `references/visual-output-format.md` | Template used, colour taxonomy applied, node detail complete |
 | status-data.json | `references/canvas-data-model.md` | Schema match, required fields, valid state values |
+| Dev handover (requirements pack / spike / ADR / story pack) | `references/dev-handover-format.md` + `references/ears-translation.md` | No working-file links (workspace content embedded only); requirements all confirmed; published value matches current register (freshness); handover note present |
 
 Each check is non-blocking — surfaces in the divergence table with action "Update to conform". The user can defer fixes.
 

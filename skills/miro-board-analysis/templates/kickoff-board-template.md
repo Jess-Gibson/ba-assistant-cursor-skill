@@ -1,6 +1,6 @@
-# Kickoff Board Template — Miro DSL Reference
+# Kickoff Board Template  -  Miro DSL Reference
 
-> Extracted from a verified D2 Kickoff template (a prior kickoff board's reference frame).
+> Extracted from the verified D2 Kickoff template (`Copy of D2 Kickoff template`, frame `3458764674058246371` on board `uXjVHLY2mE4=`).
 > 112 items, ~26,300 x 2,750px single frame.
 
 ## Frame structure
@@ -22,17 +22,17 @@ Frame: w=26307 h=2747 fill=#ffffff
 | 2900–3800 | [unnamed section] | Tertiary (#fff854) | Empty (placeholder) |
 | 4000–5200 | Supporting data | Black (#000000) | "Supporting data" |
 | 5200–6200 | Dependencies | Primary (#7b14ef) | "Dependancies" [sic] |
-| 5700–6200 | [extra grey panel] | — | — |
+| 5700–6200 | [extra grey panel] |  -  |  -  |
 | 4600–6200 | Current state | Secondary (#c497fe) | "Current state" |
 | 6000–8800 | Questions (Q&A sticky grid) | Secondary (#c497fe, size 100) | "Questions" |
-| 8800–10800 | Proposed timeline | — (text label) | "Proposed timeline" |
+| 8800–10800 | Proposed timeline |  -  (text label) | "Proposed timeline" |
 | 10000–12700 | Draft high level plan | Dark (#232428) | "Draft high level plan" |
 | 13000–17200 | High level requirements | Tertiary (#fff854) | "High level requirements" |
 | 17400–21100 | High level service design | Primary (#7b14ef) | "High level service design" |
 | 21400–24800 | RAID (4 columns) | Secondary (#c497fe, opacity 0.7) | "RAID" |
 | 25000–26000 | Actions & Owners + Next steps | Primary (#7b14ef) + Tertiary (#fff854) | "Actions & Owners" / "Next steps" |
 
-## Header shapes — exact DSL patterns
+## Header shapes  -  exact DSL patterns
 
 ### Tertiary header (Agenda)
 ```
@@ -73,7 +73,7 @@ SHAPE x=7448 y=183 w=2397 h=157 type=round_rectangle fill=#c497fe fill_opacity=1
 
 All use: `type=round_rectangle fill=#e6e6e6 fill_opacity=1.0 border_color=#ffffff border_style=normal border_width=1.0 border_opacity=1.0`
 
-Note: skill says use `type=rectangle` for grey backdrops (user adjusts radius manually). Template uses `round_rectangle` — follow the skill guidance for new boards.
+Note: skill says use `type=rectangle` for grey backdrops (user adjusts radius manually). Template uses `round_rectangle`  -  follow the skill guidance for new boards.
 
 ### Standard panel (under Problem statement)
 ```
@@ -90,7 +90,7 @@ SHAPE x=505 y=438 w=874 h=473 type=round_rectangle fill=#e6e6e6 ...
 SHAPE x=505 y=1103 w=874 h=595 type=round_rectangle fill=#e6e6e6 ...
 ```
 
-## Text elements — patterns
+## Text elements  -  patterns
 
 ### Body text (inside grey panel)
 ```

@@ -1,20 +1,21 @@
-# Quality metrics — invocation, caching, surfacing
+# Quality metrics  -  invocation, caching, surfacing
 <!-- Wave 10: moved from SKILL.md. Formulas are NOT here: canonical formulas live in
-     references/canvas-data-model.md → Metric computation rules. -->
+     references/canvas-data-model.md → Metric computation rules. This file owns when to
+     compute, where to cache, how to surface, and failure handling. -->
 
-## Metrics computation (Wave 6 — new)
+## Metrics computation (Wave 6  -  new)
 
 The Project Canvas computes four derivable BA quality metrics from existing state. These are surfaced in `/status`, `/snapshot`, and feed every retro automatically (per `ba-retrospective-and-learning` Metrics integration section).
 
-## The four metrics — formulas
+## The four metrics  -  formulas
 
-Canonical formulas, sources, and thresholds live in `references/canvas-data-model.md → Metric computation rules`. Read that section before computing. (Deduplicated Wave 10 — the formulas previously lived in both files and drifted risk was real. Note: the E-promote wave shipped, so sources for dorChecks / MoSCoW / sign-offs are the tracker registers, mirrored into status-data.json on refresh — canvas-data-model documents this.)
+Canonical formulas, sources, and thresholds live in `references/canvas-data-model.md → Metric computation rules`. Read that section before computing. (Deduplicated Wave 10  -  the formulas previously lived in both files and drifted risk was real. Note: the E-promote wave shipped, so sources for dorChecks / MoSCoW / sign-offs are the tracker registers, mirrored into status-data.json on refresh  -  canvas-data-model documents this.)
 
 ### Computation invocation
 
 Compute these:
 - Before every `/status` output (after Jira sync, before the chat status text is generated)
-- Before every retro (Type 2 / Type 3 — the retro skill reads them)
+- Before every retro (Type 2 / Type 3  -  the retro skill reads them)
 - Before every `/snapshot`
 - On demand via `/metrics` (new command)
 
@@ -42,9 +43,9 @@ Add a new section to the `/status` output template:
 
 ### Failure handling
 
-If any metric can't be computed (insufficient data — e.g. no DoR checks logged yet on a new initiative), display `n/a` in the metrics table, NOT 0% or a fabricated value. Showing `n/a` is honest; showing 0% looks like everything is broken.
+If any metric can't be computed (insufficient data  -  e.g. no DoR checks logged yet on a new initiative), display `n/a` in the metrics table, NOT 0% or a fabricated value. Showing `n/a` is honest; showing 0% looks like everything is broken.
 
-After 3 status outputs with the same metric `n/a`, surface a one-line nudge: "DoR hit rate has been n/a for 3 status runs — likely missing instrumentation in Delivery Definition. Want me to look?"
+After 3 status outputs with the same metric `n/a`, surface a one-line nudge: "DoR hit rate has been n/a for 3 status runs  -  likely missing instrumentation in Delivery Definition. Want me to look?"
 
 ### New `/metrics` command
 

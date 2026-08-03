@@ -101,7 +101,7 @@ mitigated → closed
 - Risk with no `owner` or `owner: "TBD"`
 - Risk with `status: open` and no mitigation
 - Risk where likelihood × impact would suggest "high" but `status` has been "open" >30 days with no progress
-- Risk that's actually an issue (it has already happened) — should be in the Issues section
+- Risk that's actually an issue (it has already happened)  -  should be in the Issues section
 
 ---
 
@@ -193,7 +193,7 @@ Dependencies are things outside your direct control that you need.
 ```markdown
 ### DEP-05 · Legal sign-off on customer-facing decline messaging
 **Type:** Internal
-**Owner (us):** [BA Name]
+**Owner (us):** [BA name] (BA)
 **Owner (them):** [Legal lead]
 **Status:** Pending
 **Target date:** 6 June 2026
@@ -202,7 +202,7 @@ Dependencies are things outside your direct control that you need.
 **Description:**
 Customer-facing decline messages need legal review for fraud-coaching risk and clarity. Three message variants need approval before merchant-facing implementation can ship.
 
-**Critical path?** Yes — blocks Phase 5 delivery for Cohort A.
+**Critical path?** Yes  -  blocks Phase 5 delivery for Cohort A.
 
 **Escalation path:**
 If not received by 3 June, escalate via PM to legal team lead.
@@ -252,8 +252,8 @@ Vendor X selected over Vendor Y based on:
 - Regulatory coverage matches our jurisdictions
 
 **Alternatives considered:**
-1. Vendor Y — higher cost, marginally better accuracy on edge cases
-2. Build in-house — rejected due to 6-month timeline vs 6-week vendor integration
+1. Vendor Y  -  higher cost, marginally better accuracy on edge cases
+2. Build in-house  -  rejected due to 6-month timeline vs 6-week vendor integration
 
 **Trade-offs accepted:**
 - Vendor X has 1.5 percentage points lower published accuracy on identity documents from emerging markets
@@ -294,7 +294,7 @@ Open questions are *known unknowns* that need answers.
 ```markdown
 ### OQ-08 · Should rejected applications retain a record we'd re-show on re-application?
 **Owner to answer:** [PM]
-**Asked by:** [BA Name]
+**Asked by:** [BA name] (BA)
 **Date raised:** 18 May 2026
 **Target answer date:** 2 June 2026
 **Status:** Open
@@ -385,4 +385,3 @@ The initiative tracker owns four structured registers previously canonical in st
 ## 10. Versioning
 
 v1.0 (2026-05-30). Changes to required fields, new RAID type, or new status enum values require version bump.
-

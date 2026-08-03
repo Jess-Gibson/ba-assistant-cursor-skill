@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<!-- Visual produced against visual-output-format.md v1.0 / 2026-05-30 -->
+<!-- Template: flowchart (references/templates/flowchart.html) -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dev Handover  -  Process Flow</title>
+<style>
+  :root {
+    --bg: #faf9f6;
+    --panel: #ffffff;
+    --ink: #1c1c1c;
+    --ink-soft: #4a4a4a;
+    --ink-faint: #8a8a8a;
+    --rule: #e5e3dd;
+    --deterministic: #2563eb;
+    --ai: #0891b2;
+    --human: #059669;
+    --decision: #d97706;
+    --output: #7c3aed;
+    --deterministic-bg: #dbeafe;
+    --ai-bg: #cffafe;
+    --human-bg: #d1fae5;
+    --decision-bg: #fed7aa;
+    --output-bg: #ede9fe;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+  .container { max-width: 1280px; margin: 0 auto; padding: 32px 40px 64px; }
+
+  header { border-bottom: 1px solid var(--rule); padding-bottom: 20px; margin-bottom: 24px; }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 8px;
+  }
+  h1 {
+    font-family: 'Source Serif Pro', Georgia, serif;
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+  }
+  h3 {
+    font-family: 'Source Serif Pro', Georgia, serif;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .subtitle { color: var(--ink-soft); font-size: 15px; max-width: 720px; }
+  .meta { display: flex; gap: 24px; margin-top: 16px; font-size: 12px; color: var(--ink-faint); }
+  .meta span strong { color: var(--ink); font-weight: 500; }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .stat { background: var(--panel); padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+  .stat-num { font-family: 'Source Serif Pro', Georgia, serif; font-size: 24px; font-weight: 600; line-height: 1; }
+  .stat-label { font-size: 11px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.06em; }
+  .stat.det .stat-num { color: var(--deterministic); }
+  .stat.ai .stat-num { color: var(--ai); }
+  .stat.human .stat-num { color: var(--human); }
+  .stat.decision .stat-num { color: var(--decision); }
+  .stat.output .stat-num { color: var(--output); }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    padding: 12px 16px;
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    margin-bottom: 24px;
+    font-size: 12px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .legend-swatch { width: 12px; height: 12px; border-radius: 3px; }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+  }
+  .inputs-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 24px; }
+  .inputs-item { display: flex; gap: 10px; font-size: 13px; align-items: baseline; }
+  .inputs-item .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--deterministic); flex: none; margin-top: 5px; }
+  .inputs-item strong { color: var(--ink); font-weight: 600; }
+  .inputs-item span.src { color: var(--ink-soft); }
+
+  table.outputs { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.outputs th, table.outputs td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--rule); }
+  table.outputs th { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); font-weight: 500; }
+  table.outputs td.fmt { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-soft); }
+  table.outputs tr:last-child td { border-bottom: none; }
+
+  .flow {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 32px 24px;
+    overflow-x: auto;
+    margin-bottom: 24px;
+  }
+  svg { display: block; margin: 0 auto; max-width: 100%; }
+
+  .node { cursor: pointer; transition: transform 0.15s ease, filter 0.15s ease; }
+  .node:hover { filter: brightness(0.95); transform: translateY(-1px); }
+  .node rect { stroke-width: 1.5; }
+  .node.deterministic rect { fill: var(--deterministic-bg); stroke: var(--deterministic); }
+  .node.ai rect { fill: var(--ai-bg); stroke: var(--ai); }
+  .node.human rect { fill: var(--human-bg); stroke: var(--human); }
+  .node.decision polygon { fill: var(--decision-bg); stroke: var(--decision); stroke-width: 1.5; }
+  .node.output rect { fill: var(--output-bg); stroke: var(--output); stroke-width: 2; }
+  .node text {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    fill: var(--ink);
+    text-anchor: middle;
+    dominant-baseline: middle;
+    pointer-events: none;
+  }
+  .node text.sub { font-size: 10px; font-weight: 400; fill: var(--ink-soft); }
+  .node.active rect, .node.active polygon { stroke-width: 3; }
+
+  .edge { stroke: var(--ink-faint); stroke-width: 1.5; fill: none; }
+  .edge.loop { stroke-dasharray: 4 3; }
+  .edge-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    fill: var(--ink-soft);
+    text-anchor: middle;
+  }
+
+  .detail {
+    position: fixed;
+    top: 0;
+    right: -480px;
+    width: 460px;
+    height: 100vh;
+    background: var(--panel);
+    border-left: 1px solid var(--rule);
+    padding: 32px 28px;
+    overflow-y: auto;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: -20px 0 40px -20px rgba(0,0,0,0.1);
+    z-index: 10;
+  }
+  .detail.open { right: 0; }
+  .detail-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--ink-faint);
+    width: 32px;
+    height: 32px;
+    line-height: 1;
+  }
+  .detail-close:hover { color: var(--ink); }
+  .detail-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+    padding: 4px 10px;
+    display: inline-block;
+    border-radius: 4px;
+  }
+  .detail-eyebrow.deterministic { color: var(--deterministic); background: var(--deterministic-bg); }
+  .detail-eyebrow.ai { color: var(--ai); background: var(--ai-bg); }
+  .detail-eyebrow.human { color: var(--human); background: var(--human-bg); }
+  .detail-eyebrow.decision { color: var(--decision); background: var(--decision-bg); }
+  .detail-eyebrow.output { color: var(--output); background: var(--output-bg); }
+  .detail h2 {
+    font-family: 'Source Serif Pro', Georgia, serif;
+    font-size: 22px;
+    font-weight: 600;
+    margin: 8px 0 20px;
+    line-height: 1.25;
+  }
+  .detail-section { margin-bottom: 20px; }
+  .detail-section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    margin-bottom: 6px;
+  }
+  .detail-section-value { font-size: 14px; color: var(--ink); }
+  .detail-section-value.body { color: var(--ink-soft); line-height: 1.55; }
+  .detail-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .detail-tag {
+    font-size: 11px;
+    padding: 3px 8px;
+    background: #f4f3ee;
+    border-radius: 4px;
+    color: var(--ink-soft);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .empty-hint { text-align: center; padding: 24px; color: var(--ink-faint); font-size: 13px; font-style: italic; }
+
+  footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+    font-size: 11px;
+    color: var(--ink-faint);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+Pro:wght@600&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+
+<header>
+  <div class="eyebrow">BA Assistant · Dev Handover</div>
+  <h1>Dev Handover  -  Process Flow</h1>
+  <p class="subtitle">How confirmed analysis crosses from the BA workspace into the shared delivery repo  -  inputs, the readiness/gate pipeline, and the four output artefact shapes. Click any node to see its detail.</p>
+  <div class="meta">
+    <span><strong>Owner:</strong> BA Assistant  -  ba-dev-handover</span>
+    <span><strong>Last reviewed:</strong> 7 Jul 2026</span>
+    <span><strong>Process ID:</strong> ba-dev-handover</span>
+  </div>
+</header>
+
+<div class="stats">
+  <div class="stat"><div class="stat-num">11</div><div class="stat-label">Total steps</div></div>
+  <div class="stat det"><div class="stat-num">3</div><div class="stat-label">Deterministic</div></div>
+  <div class="stat ai"><div class="stat-num">0</div><div class="stat-label">AI / probabilistic</div></div>
+  <div class="stat human"><div class="stat-num">3</div><div class="stat-label">Human-in-loop</div></div>
+  <div class="stat decision"><div class="stat-num">2</div><div class="stat-label">Decision gates</div></div>
+  <div class="stat output"><div class="stat-num">3</div><div class="stat-label">Outputs</div></div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="legend-swatch" style="background: var(--deterministic-bg); border: 1.5px solid var(--deterministic);"></span> Deterministic / automated</div>
+  <div class="legend-item"><span class="legend-swatch" style="background: var(--ai-bg); border: 1.5px solid var(--ai);"></span> AI / probabilistic</div>
+  <div class="legend-item"><span class="legend-swatch" style="background: var(--human-bg); border: 1.5px solid var(--human);"></span> Human-in-the-loop</div>
+  <div class="legend-item"><span class="legend-swatch" style="background: var(--decision-bg); border: 1.5px solid var(--decision); transform: rotate(45deg);"></span> Decision gate</div>
+  <div class="legend-item"><span class="legend-swatch" style="background: var(--output-bg); border: 2px solid var(--output);"></span> Output</div>
+</div>
+
+<div class="panel">
+  <h3>Inputs  -  BA workspace (source of truth, never re-authored here)</h3>
+  <div class="inputs-list">
+    <div class="inputs-item"><span class="dot"></span><div><strong>register.md</strong>  -  <span class="src">requirements at status: confirmed only</span></div></div>
+    <div class="inputs-item"><span class="dot"></span><div><strong>initiative-tracker.md</strong>  -  <span class="src">RAID: risks, decisions, dependencies</span></div></div>
+    <div class="inputs-item"><span class="dot"></span><div><strong>Solution Shaping outputs</strong>  -  <span class="src">spike list, ADR list</span></div></div>
+    <div class="inputs-item"><span class="dot"></span><div><strong>Story Writing outputs</strong>  -  <span class="src">DoR-passed stories, slices</span></div></div>
+    <div class="inputs-item"><span class="dot"></span><div><strong>Data Investigation evidence</strong>  -  <span class="src">grounded facts for real-system claims</span></div></div>
+    <div class="inputs-item"><span class="dot"></span><div><strong>Shared-repo config</strong>  -  <span class="src">BA_SHARED_REPO_ROOT env or confluence-pages.json</span></div></div>
+  </div>
+</div>
+
+<div class="flow">
+<svg viewBox="0 0 1200 920" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8a8a8a"/>
+    </marker>
+  </defs>
+
+  <!-- EDGES -->
+  <path class="edge" d="M 600 78 L 600 112" marker-end="url(#arrow)"/>
+  <path class="edge" d="M 600 168 L 600 202" marker-end="url(#arrow)"/>
+  <path class="edge" d="M 600 258 L 600 295" marker-end="url(#arrow)"/>
+  <path class="edge" d="M 505 340 L 372 340" marker-end="url(#arrow)"/>
+  <text class="edge-label" x="438" y="328">gap found</text>
+  <path class="edge" d="M 600 385 L 600 425" marker-end="url(#arrow)"/>
+  <text class="edge-label" x="628" y="410">ready</text>
+  <path class="edge loop" d="M 260 312 C 260 130, 380 50, 490 50" marker-end="url(#arrow)"/>
+  <text class="edge-label" x="300" y="180">re-run /handover</text>
+  <path class="edge" d="M 700 470 L 828 470" marker-end="url(#arrow)"/>
+  <text class="edge-label" x="765" y="458">hard fail</text>
+  <path class="edge" d="M 600 515 L 600 572" marker-end="url(#arrow)"/>
+  <text class="edge-label" x="655" y="545">pass / warn+ack</text>
+  <path class="edge" d="M 600 628 L 600 662" marker-end="url(#arrow)"/>
+  <path class="edge" d="M 600 718 L 600 752" marker-end="url(#arrow)"/>
+  <path class="edge" d="M 600 808 L 600 842" marker-end="url(#arrow)"/>
+
+  <!-- NODES -->
+  <g class="node human" data-id="n1">
+    <rect x="490" y="22" width="220" height="56" rx="6"/>
+    <text x="600" y="46">Determine handover type</text>
+    <text x="600" y="64" class="sub">Requirements / Spike / ADR / Story pack</text>
+  </g>
+
+  <g class="node deterministic" data-id="n2">
+    <rect x="490" y="112" width="220" height="56" rx="6"/>
+    <text x="600" y="136">Confirm shared-repo target</text>
+    <text x="600" y="154" class="sub">env var or confluence-pages.json</text>
+  </g>
+
+  <g class="node human" data-id="n3">
+    <rect x="490" y="202" width="220" height="56" rx="6"/>
+    <text x="600" y="226">Readiness check</text>
+    <text x="600" y="244" class="sub">Required inputs present + confirmed?</text>
+  </g>
+
+  <g class="node decision" data-id="n4">
+    <polygon points="600,295 695,340 600,385 505,340"/>
+    <text x="600" y="340">Gap found?</text>
+  </g>
+
+  <g class="node human" data-id="n5">
+    <rect x="150" y="312" width="220" height="56" rx="6"/>
+    <text x="260" y="336">Halt → Interrogator</text>
+    <text x="260" y="354" class="sub">Confirmation happens there, not here</text>
+  </g>
+
+  <g class="node decision" data-id="n6">
+    <polygon points="600,425 700,470 600,515 500,470"/>
+    <text x="600" y="470">Gate result?</text>
+  </g>
+
+  <g class="node output" data-id="n7">
+    <rect x="830" y="442" width="220" height="56" rx="6"/>
+    <text x="940" y="466">Blocked</text>
+    <text x="940" y="484" class="sub">No override  -  fix and resubmit</text>
+  </g>
+
+  <g class="node deterministic" data-id="n8">
+    <rect x="490" y="572" width="220" height="56" rx="6"/>
+    <text x="600" y="596">Render</text>
+    <text x="600" y="614" class="sub">EARS + RAID embedded, not linked</text>
+  </g>
+
+  <g class="node output" data-id="n9">
+    <rect x="490" y="662" width="220" height="56" rx="6"/>
+    <text x="600" y="686">Publish to shared repo</text>
+    <text x="600" y="704" class="sub">confirmed/ or exchanges/</text>
+  </g>
+
+  <g class="node deterministic" data-id="n10">
+    <rect x="490" y="752" width="220" height="56" rx="6"/>
+    <text x="600" y="776">Feed Jira + register &amp; log</text>
+    <text x="600" y="794" class="sub">Ticket offer, dependency registered</text>
+  </g>
+
+  <g class="node output" data-id="n11">
+    <rect x="490" y="842" width="220" height="56" rx="6"/>
+    <text x="600" y="866">Downstream outputs</text>
+    <text x="600" y="884" class="sub">Jira · index row · handover log</text>
+  </g>
+</svg>
+</div>
+
+<div class="empty-hint" id="empty-hint">↑ Click any node to open its detail</div>
+
+<div class="panel">
+  <h3>Output artefacts, formats &amp; destinations</h3>
+  <table class="outputs">
+    <thead>
+      <tr><th>Artefact</th><th>Handover type</th><th>Format</th><th>Destination</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Requirements pack</td><td>Requirements pack</td><td class="fmt">Markdown (EARS-style)</td><td>&lt;shared-repo&gt;/analysis/&lt;slug&gt;/confirmed/requirements.md</td></tr>
+      <tr><td>Spike request</td><td>Spike request</td><td class="fmt">Markdown</td><td>&lt;shared-repo&gt;/analysis/&lt;slug&gt;/exchanges/</td></tr>
+      <tr><td>ADR request</td><td>ADR request</td><td class="fmt">Markdown</td><td>&lt;shared-repo&gt;/analysis/&lt;slug&gt;/exchanges/</td></tr>
+      <tr><td>Story pack</td><td>Story pack</td><td class="fmt">Markdown</td><td>&lt;shared-repo&gt;/analysis/&lt;slug&gt;/confirmed/stories/</td></tr>
+      <tr><td>Handover note (wrapper)</td><td>All types</td><td class="fmt">Markdown</td><td>&lt;shared-repo&gt;/analysis/&lt;slug&gt;/exchanges/handover-notes/</td></tr>
+      <tr><td>Jira ticket</td><td>Spike / ADR / Story pack</td><td class="fmt">Jira issue</td><td>Jira, via the project-specific Jira skill</td></tr>
+      <tr><td>Index entry</td><td>All types</td><td class="fmt">Markdown row</td><td>&lt;shared-repo&gt;/analysis/&lt;slug&gt;/README.md</td></tr>
+      <tr><td>Handover log</td><td>All types</td><td class="fmt">JSON</td><td>metrics-cache.json → handovers</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+
+<aside class="detail" id="detail">
+  <button class="detail-close" id="close-btn">&times;</button>
+  <span class="detail-eyebrow" id="detail-type"></span>
+  <h2 id="detail-title"></h2>
+  <div class="detail-section">
+    <div class="detail-section-label">Actor</div>
+    <div class="detail-section-value" id="detail-actor"></div>
+  </div>
+  <div class="detail-section">
+    <div class="detail-section-label">Typical duration</div>
+    <div class="detail-section-value" id="detail-duration"></div>
+  </div>
+  <div class="detail-section">
+    <div class="detail-section-label">What happens</div>
+    <div class="detail-section-value body" id="detail-desc"></div>
+  </div>
+  <div class="detail-section">
+    <div class="detail-section-label">Failure modes</div>
+    <div class="detail-section-value body" id="detail-failures"></div>
+  </div>
+  <div class="detail-section">
+    <div class="detail-section-label">Connected references</div>
+    <div class="detail-tags" id="detail-tags"></div>
+  </div>
+</aside>
+
+<footer>
+  <div class="container">Generated 7 Jul 2026 · Interactive process flow · Click nodes for detail · Print to PDF for static share</div>
+</footer>
+
+<script>
+const nodes = {
+  n1: { type: 'human', title: '1. Determine handover type', actor: 'BA (with AskQuestion if the type is ambiguous)', duration: '~1 min  -  instant if context makes it obvious (e.g. Solution Shaping just produced a spike list)', desc: 'Chooses which of the four handover types to produce: Requirements pack, Spike request, ADR request, or Story pack. Each maps to a different derived artefact and a different set of required inputs.', failures: 'Wrong type picked because intent was ambiguous  -  mitigated by asking via AskQuestion rather than guessing.', tags: ['Task 1'] },
+  n2: { type: 'deterministic', title: '2. Confirm shared-repo target', actor: 'System (reads config)', duration: 'instant', desc: 'Reads BA_SHARED_REPO_ROOT env var or confluence-pages.json → sharedRepo to determine where the confirmed export and exchanges land. Asks once and caches if neither exists.', failures: 'Shared repo path unknown  -  ask once, cache in confluence-pages.json → sharedRepo.', tags: ['dev-handover-format.md'] },
+  n3: { type: 'human', title: '3. Readiness check', actor: 'BA, checked against register.md, initiative-tracker.md, Solution Shaping / Story Writing outputs, Data Investigation evidence', duration: '5-15 min depending on scope', desc: 'For each required input for the chosen type, checks it exists and is at the required state  -  e.g. is the requirement status: confirmed, is the RAID item in the tracker, does the story pass DoR.', failures: 'A gap here is the process working, not failing. The real failure mode is skipping this check and publishing a draft anyway.', tags: ['register.md', 'initiative-tracker.md'] },
+  n4: { type: 'decision', title: 'Gap found?', actor: 'Gate logic', duration: 'instant', desc: 'Branches on whether the readiness check found a missing or not-yet-confirmed input. If yes, the handover halts. If no, it proceeds to the per-type gate.', failures: 'n/a  -  decision point.', tags: [] },
+  n5: { type: 'human', title: 'Halt → handoff to Requirements Interrogator', actor: 'BA + stakeholder, via the Interrogator conversation (run separately)', duration: 'Variable  -  a separate conversation, not part of this publish flow', desc: 'This skill never confirms requirements itself. If a requirement is draft rather than confirmed, the handover stops here and the user is told which requirements are not ready. The Interrogator conversation runs as its own event; once the register shows confirmed, the user re-runs /handover.', failures: "Anti-pattern: 'synchronous interrogation'  -  attempting to confirm inline as a sub-call during publish instead of this proper handoff-and-halt.", tags: ['HK-DH-INT-confirm'] },
+  n6: { type: 'decision', title: '4. Run per-type gate', actor: 'Gate logic, per the Gates section for the chosen type', duration: 'instant', desc: "Applies the Hard / Warn-hard checklist for the type (e.g. story pack DoR, spike decision-link, requirements pack grounding). Posture is 'warn hard': a soft fail requires an explicit user acknowledgement to override.", failures: 'n/a  -  decision point. Story pack DoR failures are always a hard block with no override.', tags: ['Gates section'] },
+  n7: { type: 'output', title: 'Blocked (hard fail)', actor: 'Gate logic', duration: 'instant', desc: 'A hard-fail item (e.g. story missing DoR, spike with no decision link, ungrounded requirement with no acknowledgement) stops publication outright. No override exists for a hard fail.', failures: 'None  -  this is the safety mechanism working as intended. Fix the gap and resubmit; do not bypass the gate.', tags: ['Gates section'] },
+  n8: { type: 'deterministic', title: '5. Render', actor: 'System', duration: 'instant', desc: 'Produces the artefact per dev-handover-format.md. Requirements are rendered in EARS form (the register entry stays untouched  -  EARS is generated at export). RAID and any workspace-sourced context are embedded as summary tables, never linked, since the tracker is git-ignored and inaccessible to devs. Provisional items are flagged inline.', failures: "EARS render fails for a requirement that can't be expressed as a testable 'shall'  -  flag it back for interrogation rather than forcing a mangled render.", tags: ['ears-translation.md', 'raid-format.md'] },
+  n9: { type: 'output', title: '6. Publish to shared repo', actor: 'System', duration: 'instant', desc: 'Writes the rendered artefact and its wrapping handover note to the shared-repo paths  -  confirmed/ for requirements packs and story packs, exchanges/ for spike and ADR requests. Nothing from the BA working set (SESSION-CONTEXT, debriefs, the tracker file itself) is written; only the embedded RAID summary crosses.', failures: "Anti-pattern: 'working doc leaked to devs'  -  a handover linking to a working file instead of embedding the relevant content.", tags: ['dev-handover-format.md'] },
+  n10: { type: 'deterministic', title: '7 &amp; 8. Feed Jira + register &amp; log', actor: "System, offering ticket creation via the project's Jira skill", duration: '1-2 min if a Jira ticket is created', desc: 'For spike/ADR/story types, offers to create or update the matching Jira ticket from the published markdown. Also registers the handover dependencies with the State Validator (so it can flag the handover as stale if a source artefact changes later) and appends an index entry.', failures: 'Jira MCP unavailable  -  the markdown still publishes; ticket creation is skipped and noted as pending in the handover note.', tags: ['HK-DH-JIRA-ticket', 'HK-DH-SV-register'] },
+  n11: { type: 'output', title: '9. Downstream outputs', actor: 'System', duration: 'instant', desc: 'The full output set: Jira ticket (issue, for spike/ADR/story), index entry (markdown row in the shared-repo README), and handover log (JSON entry in metrics-cache.json → handovers, used to track bounce rate).', failures: "A confirmed artefact changes after a handover derived from it, and the handover isn't re-checked  -  caught by the State Validator, not by this step.", tags: ['metrics-cache.json'] }
+};
+
+const detail = document.getElementById('detail');
+const hint = document.getElementById('empty-hint');
+
+document.querySelectorAll('.node').forEach(node => {
+  node.addEventListener('click', () => {
+    const id = node.dataset.id;
+    const data = nodes[id];
+    if (!data) return;
+    document.querySelectorAll('.node.active').forEach(n => n.classList.remove('active'));
+    node.classList.add('active');
+    const typeEl = document.getElementById('detail-type');
+    typeEl.textContent = data.type.replace(/^./, c => c.toUpperCase());
+    typeEl.className = 'detail-eyebrow ' + data.type;
+    document.getElementById('detail-title').textContent = data.title;
+    document.getElementById('detail-actor').textContent = data.actor;
+    document.getElementById('detail-duration').textContent = data.duration;
+    document.getElementById('detail-desc').textContent = data.desc;
+    document.getElementById('detail-failures').textContent = data.failures;
+    const tagsEl = document.getElementById('detail-tags');
+    tagsEl.innerHTML = '';
+    data.tags.forEach(t => {
+      const span = document.createElement('span');
+      span.className = 'detail-tag';
+      span.textContent = t;
+      tagsEl.appendChild(span);
+    });
+    detail.classList.add('open');
+    hint.style.display = 'none';
+  });
+});
+
+document.getElementById('close-btn').addEventListener('click', () => {
+  detail.classList.remove('open');
+  document.querySelectorAll('.node.active').forEach(n => n.classList.remove('active'));
+  hint.style.display = '';
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    detail.classList.remove('open');
+    document.querySelectorAll('.node.active').forEach(n => n.classList.remove('active'));
+    hint.style.display = '';
+  }
+});
+</script>
+</body>
+</html>

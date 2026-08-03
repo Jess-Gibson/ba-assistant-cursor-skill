@@ -1,15 +1,17 @@
-# Board Construction Algorithm (MANDATORY — 6 passes)
+# Board Construction Algorithm (MANDATORY  -  6 passes)
 
 **This algorithm replaces ad-hoc board creation.** Before any `layout_create` call, the agent MUST complete passes 1–4 and show the working. Do not skip passes. Do not start writing DSL until Pass 5. The algorithm prevents the #1 recurring failure: elements that are too small, overlapping, or poorly spaced because the agent started building without planning dimensions.
 
-> **Self-check (run this before proceeding):** Did you arrive here by reading `SKILL.md` first and following its routing table? If you opened this file directly from memory or a conversation summary — stop. Go read `SKILL.md`, confirm the board type, load the template, then come back. The orchestrator sets context that this file depends on (board type, template loaded, DSL spec cached). Skipping the orchestrator is how boards get built wrong.
+> **Self-check (run this before proceeding):** Did you arrive here by reading `SKILL.md` first and following its routing table? If you opened this file directly from memory or a conversation summary  -  stop. Go read `SKILL.md`, confirm the board type, load the template, then come back. The orchestrator sets context that this file depends on (board type, template loaded, DSL spec cached). Skipping the orchestrator is how boards get built wrong.
 
 **Prerequisites:** Before starting Pass 1, complete these preparation steps:
 
-1. **Understand the task** — gather workshop purpose, desired outcomes, attendee count, activities planned, whether populating an existing board or building new
-2. **Get DSL spec** — call `layout_get_dsl` once to cache the DSL syntax for the conversation
-3. **Read the active template** — the orchestrator (`SKILL.md`) tells you which template file to load. Read it now.
-4. **Read the design system** — open `design-system.md` for dimensional values, colour system, and DSL patterns
+1. **Understand the task**  -  gather workshop purpose, desired outcomes, attendee count, activities planned, whether populating an existing board or building new
+2. **`context_explore` (mandatory if a board URL exists)**  -  call `context_explore` on the target board **before** Pass 1. Paste the frame inventory into the plan file under `## Board inventory (context_explore)`. Do not guess what is on the board from memory or a prior chat.
+3. **Get DSL spec**  -  call `layout_get_dsl` once to cache the DSL syntax for the conversation
+4. **Read the active template**  -  the orchestrator (`SKILL.md`) tells you which template file to load. Read it now.
+5. **Read the design system**  -  open `design-system.md` for dimensional values, colour system, and DSL patterns
+6. **Style reference frames**  -  run `layout_read mode=structured` on at least two existing frames **from the inventory** (not random frames from memory)
 
 ---
 
@@ -25,12 +27,12 @@ Determine what the board needs before thinking about coordinates.
 
 Output: An ordered list like:
 ```
-Section 1: "Problem & Scope" — header + grey_box + text (problem statement), header + grey_box + text (scope)
-Section 2: "Key People & Dates" — header + grey_box + text, header + grey_box + text
-Section 3: "Analysis Findings" — header + grey_box + text (3 sub-sections stacked)
-Section 4: "Solution Options" — 3x side-by-side comparison columns with headers + stickies
-Section 5: "RAID" — 4x bordered columns with stickies
-Section 6: "Actions" — header + urgency-tiered stickies + header + text
+Section 1: "Problem & Scope"  -  header + grey_box + text (problem statement), header + grey_box + text (scope)
+Section 2: "Key People & Dates"  -  header + grey_box + text, header + grey_box + text
+Section 3: "Analysis Findings"  -  header + grey_box + text (3 sub-sections stacked)
+Section 4: "Solution Options"  -  3x side-by-side comparison columns with headers + stickies
+Section 5: "RAID"  -  4x bordered columns with stickies
+Section 6: "Actions"  -  header + urgency-tiered stickies + header + text
 ```
 
 ---
@@ -39,7 +41,7 @@ Section 6: "Actions" — header + urgency-tiered stickies + header + text
 
 For each section from Pass 1, assign a width and calculate the frame.
 
-**Width assignment** — use these defaults, overridden by the active template if it specifies section widths:
+**Width assignment**  -  use these defaults, overridden by the active template if it specifies section widths:
 
 | Section content | Width to assign |
 |---|---|
@@ -65,6 +67,112 @@ frame_w = left_margin(200) + sum(section_widths) + (n_gaps × gap_size) + right_
 
 ---
 
+## Pass 2b: Board placement (MANDATORY when adding a frame to an existing board)
+
+**Do this before Pass 3 if the board already has content.** Skipping this pass caused Jul 2026 frame-on-frame overlap (new analysis frame landed on an existing release-planning cluster).
+
+### Step 2b-0: Board inventory (context_explore)  -  write to plan first
+
+**Tool call (required):**
+
+```
+CallMcpTool → plugin-miro-miro → context_explore
+  miro_url: https://miro.com/app/board/{boardId}/
+```
+
+Copy the output into the plan file **before** placement math. Required section:
+
+```markdown
+## Board inventory (context_explore)
+
+**Board URL:** https://miro.com/app/board/uXjVHdjL1c4=/
+**Explored:** this session (before layout_create)
+
+| Frame title | Widget ID | Board x | Board y | w | h | Relevant to this build? |
+|---|---|---|---|---|---|---|
+| MoSCoW 20 Jul | 3458764678608204701 | 286983 | 2359 | 5900 | 2400 | style reference |
+| Release pillars | 3458764678608456596 | 286633 | 5621 | 5200 | 3629 | neighbour  -  overlap risk |
+| Prior analysis frame | 3458764678609592937 | 287000 | 9800 | 5000 | 10800 | prior attempt  -  do not overlap |
+
+**Frames in placement zone (~20k px of target):** Release pillars, MoSCoW 20 Jul, …
+**Empty zone confirmed:** no / yes  -  if yes, cite inventory rows
+```
+
+If the board is genuinely empty, still run `context_explore` and record: `No frames returned  -  new/empty board confirmed.`
+
+The pre-flight hook **denies** `layout_create` without this section.
+
+### Step 2b-1: Discover neighbours
+
+1. Use the **inventory table above**  -  do not skip straight to placement from memory.
+2. Identify all frames within ~20,000px of the intended placement zone (from inventory x/y).
+3. Run `layout_read mode=structured` on **each neighbour frame** listed as relevant.
+
+### Step 2b-2: Compute occupied area (item-level, not frame box)
+
+For every item in each neighbour frame, compute board-absolute edges:
+
+```
+item_board_y_top    = neighbour_frame_y + item_y - (item_h / 2)   # shapes; tables may differ  -  trust layout_read
+item_board_y_bottom = neighbour_frame_y + item_y + (item_h / 2)
+item_board_x_left   = neighbour_frame_x + item_x - (item_w / 2)
+item_board_x_right  = neighbour_frame_x + item_x + (item_w / 2)
+```
+
+Record:
+
+```
+occupied_top    = min(all item tops)
+occupied_bottom = max(all item bottoms)   # often BELOW frame_y + frame_h
+occupied_left   = min(all item lefts)
+occupied_right  = max(all item rights)
+```
+
+**Never use `neighbour_frame_y + neighbour_frame_h` alone.** Tables spill outside frames.
+
+### Step 2b-3: Choose placement
+
+| Priority | Strategy | Formula |
+|---|---|---|
+| **1 (default)** | New column to the right | `new_x = occupied_right + 500` ; align `new_y` with cluster top or user-specified anchor |
+| **2** | Stack below (only if horizontal space exhausted) | `new_y = occupied_bottom + 2000` |
+| **3** | User override | [BA name] says "below pillars" or "right of MoSCoW"  -  still verify gap ≥2000px / ≥500px |
+
+Horizontal overlap check:
+
+```
+new_right = new_x + frame_w
+FAIL if new_x < occupied_right + 500 AND new_right > occupied_left   # unless deliberate overlap requested
+```
+
+Vertical overlap check:
+
+```
+new_bottom = new_y + frame_h
+FAIL if new_y < occupied_bottom + 2000 AND new_bottom > occupied_top
+```
+
+### Step 2b-4: Write to plan file (required section)
+
+Every coordinate manifest MUST include:
+
+```markdown
+## Board placement
+
+| Neighbour | Frame ID | Frame box (x, y, w, h) | Content bottom (board-absolute) | Content right |
+|---|---|---|---|---|
+| Release pillars | 3458764678608456596 | 286633, 5621, 5200, 3629 | **9250+ (items spill)** | 291833 |
+
+**Proposed new frame:** x=293500, y=5621, w=5000, h=10800
+**Gap:** 167px horizontal from content right (FAIL  -  need ≥500) → revised x=292400
+**Placement gate:** PASS after revision
+**Default used:** right column / below cluster / [BA name] override: …
+```
+
+**Do not proceed to Pass 5** until Placement gate = PASS.
+
+---
+
 ## Pass 3: Content Sizing
 
 For each section, measure the actual content and calculate element heights.
@@ -79,7 +187,7 @@ For each text block, count:
 
 ### Step 3b: Estimate rendered height
 
-Miro renders text wider than expected — bold text, HTML entities, and inline formatting consume more horizontal space, causing more line wraps than a simple character count suggests. **Always estimate generously.**
+Miro renders text wider than expected  -  bold text, HTML entities, and inline formatting consume more horizontal space, causing more line wraps than a simple character count suggests. **Always estimate generously.**
 
 | Element | Height per unit | Line-wrap multiplier |
 |---|---|---|
@@ -93,7 +201,7 @@ Miro renders text wider than expected — bold text, HTML entities, and inline f
 | Bold sub-heading in text | ~48px | 1.0 (usually short) |
 | Empty line between sections | ~30px | 1.0 |
 
-**Line-wrap estimation:** At size=30 with `w=786` and `align=left`, assume ~42 characters per rendered line (including bold/HTML overhead). Divide each text line's character count by 42, round up, then multiply by line height. This is the #1 source of sizing errors — agents consistently underestimate wrapping.
+**Line-wrap estimation:** At size=30 with `w=786` and `align=left`, assume ~42 characters per rendered line (including bold/HTML overhead). Divide each text line's character count by 42, round up, then multiply by line height. This is the #1 source of sizing errors  -  agents consistently underestimate wrapping.
 
 Formula: `estimated_text_height = sum(line_height × ceil(char_count / 42))` for each content line
 
@@ -104,7 +212,7 @@ Formula: `estimated_text_height = sum(line_height × ceil(char_count / 42))` for
 grey_box_h = (estimated_text_height × 1.15) + 65  (15px top padding + 50px bottom padding + 15% safety margin)
 ```
 
-**NEVER normalise grey box heights across a row.** Each grey box is independently sized to its content via this formula. If two columns in the same row have different content lengths, their grey boxes will be different heights — uneven bottom edges are correct and expected. Normalising to the tallest box creates massive empty grey space (confirmed: Frame 8 V3 had 656-1184px of wasted grey in shorter sections).
+**NEVER normalise grey box heights across a row.** Each grey box is independently sized to its content via this formula. If two columns in the same row have different content lengths, their grey boxes will be different heights  -  uneven bottom edges are correct and expected. Normalising to the tallest box creates massive empty grey space (confirmed: Frame 8 V3 had 656-1184px of wasted grey in shorter sections).
 
 ### Step 3d: Calculate section total height
 ```
@@ -137,7 +245,7 @@ section_2_center_x = section_1_center_x + (section_1_width / 2) + gap + (section
 
 **Vertical positioning (y-axis) within each section:**
 
-**CRITICAL:** SHAPE elements (grey boxes, headers) use **center-anchored y**. TEXT elements use **top-edge-anchored y**. These are different coordinate systems — never mix them up.
+**CRITICAL:** SHAPE elements (grey boxes, headers) use **center-anchored y**. TEXT elements use **top-edge-anchored y**. These are different coordinate systems  -  never mix them up.
 
 ```
 header_y = 146                                    # standard: near frame top (center of header shape)
@@ -148,7 +256,7 @@ text_w = section_width - 88                         # 44px padding each side
 text_x = section_center_x                           # same centre as header
 ```
 
-The old formula `text_y = grey_box_top + 15 + (est_text_h / 2)` was wrong — it assumed TEXT y was center-anchored like SHAPE y. TEXT y is the top edge. The correct formula is simply `text_y = grey_box_top + 15`.
+The old formula `text_y = grey_box_top + 15 + (est_text_h / 2)` was wrong  -  it assumed TEXT y was center-anchored like SHAPE y. TEXT y is the top edge. The correct formula is simply `text_y = grey_box_top + 15`.
 
 **Centering validation (mandatory):**
 ```
@@ -180,12 +288,16 @@ _workstream/miro-plans/[board-name].plan.md
 
 Present the plan to the user with:
 - Board type and template used
+- **`## Board inventory (context_explore)`**  -  frame table from the tool call (mandatory)
+- **`## Board placement`**  -  Pass 2b neighbour collision math (mandatory)
 - Frame dimensions
 - Section list with assigned widths
 - Full coordinate manifest
 - Any flags (sections that may not fit, content that was truncated, assumptions made)
 
 **Wait for user approval before proceeding to Pass 5.** If the user requests changes, update the manifest and re-present.
+
+The pre-flight hook (`gate-miro-preflight.py`) **denies** `layout_create` unless the plan file contains **both** required sections. Chat memory does not count; the plan file does.
 
 ---
 
@@ -201,21 +313,21 @@ Convert the coordinate manifest into layout DSL text.
 
 **Style rules:** Apply all styles from `design-system.md`:
 - Header shapes: `h=82, size=64` for ALL headers including section headers. Differentiate frame title from sections via width (full-width vs column-width) and color tier. Use the 5-tier colour system for color differentiation.
-- Grey boxes: `type=rectangle fill=#e6e6e6` with content `""`. Content-fitted heights only — NEVER normalise.
+- Grey boxes: `type=rectangle fill=#e6e6e6` with content `""`. Content-fitted heights only  -  NEVER normalise.
 - Body text: `size=30` minimum, `align=left`
 - Omit `font=` parameter entirely for headers and body text
 - Use the Dimensional Reference Table for all hard values
 - Use the DSL Quick Reference snippets as copy-paste starting points
 
 **Critical DSL rules:**
-- `parent=` alias only works within the same `layout_create` call. If content exceeds 50K chars and requires multiple calls, use the frame's full Miro URL (returned from the first call) as `parent=` in subsequent calls — NOT the alias.
+- `parent=` alias only works within the same `layout_create` call. If content exceeds 50K chars and requires multiple calls, use the frame's full Miro URL (returned from the first call) as `parent=` in subsequent calls  -  NOT the alias.
 - Frame name ≠ title shape text. Frame name = short ID (e.g. "3. Solution Options"). Title shape = descriptive text.
 
 ---
 
 ## Pass 6: Post-build Verification
 
-**Run the full `verification-checklist.md` procedure.** This pass is not optional — the user has explicitly flagged skipped verification as a recurring problem.
+**Run the full `verification-checklist.md` procedure.** This pass is not optional  -  the user has explicitly flagged skipped verification as a recurring problem.
 
 Summary of what verification covers (see `verification-checklist.md` for the full procedure):
 1. Run `layout_read mode=full` on the new frame

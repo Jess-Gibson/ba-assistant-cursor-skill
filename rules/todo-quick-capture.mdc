@@ -1,0 +1,66 @@
+---
+description: "/todo slash command — quick-capture personal tasks into ba-actions.json from any chat"
+alwaysApply: false
+---
+
+# /todo — Quick task capture
+
+Triggered by `/todo` or natural-language equivalents ("add to my to-do list", "quick task", "reminder to", "I need to remember to"). Writes to `_workstream/ba-actions.json` per `ba-assistant/references/ba-actions-format.md`. Pairs with `/workboard` (inline procedure in `workboard-procedure.md`).
+
+## Behaviour
+
+**Fast and silent.** No status dump, no skill loading, no orchestrator. Just capture and confirm.
+
+### 1. Parse the input
+
+Extract from the user's message:
+- **Task description** (required)
+- **Initiative tag** — explicit `#slug` matching one of your active initiatives, or inferred from context. If ambiguous, use `null` (general task).
+- **Priority** — explicit `!high`, `!medium`, `!low`. Default: `medium`.
+- **Due date** — explicit date or relative ("tomorrow", "Friday", "next week"). Default: `null`.
+
+Multiple tasks in one message are fine — process each.
+
+### 2. Write to ba-actions.json
+
+Read `_workstream/ba-actions.json` (create from the schema in `ba-actions-format.md` if missing). Allocate the next `BA-NNN` (or continue the store's `next_id` / id scheme). Upsert each new action with status `open`.
+
+**Do not** append to legacy `workboard.json → personal_tasks[]`.
+
+After JSON write, regenerate `_workstream/ba-actions.md` (full derive from JSON — never hand-edit MD). Print `Gate: ba-actions-md-regen: PASS` when done.
+
+### 3. Confirm (compact)
+
+Reply with a short confirmation only. No AskQuestion needed for pure `/todo` captures unless the task is ambiguous.
+
+**Format:**
+
+```
+Added:
+- BA-017: Book handover meeting for the vendor #initiative-slug
+- BA-018: Chase data export
+
+(12 open actions)
+```
+
+If any task is ambiguous (can't determine initiative), ask one clarifying question via AskQuestion.
+
+### 4. Marking tasks done
+
+User can also say:
+- `/done BA-013` or "BA-013 is done" or "completed the handover meeting booking"
+- Agent sets `status: "done"` and regenerates MD.
+
+Multiple completions: `/done BA-013 BA-014`
+
+### 5. Listing tasks
+
+- `/todo list` or "show my to-dos" → list from `ba-actions.json` (open / in_progress / blocked), sorted by urgency
+- `/todo list #<slug>` → filter to one initiative
+- `/todo overdue` → overdue items only
+
+## Related
+
+- **`/workboard`** canvas reads a curated subset from `ba-actions.json` (high + due-soon)
+- **`/wrap`** runs `sync-ba-actions` then refreshes the workboard
+- Legacy `workboard.json → personal_tasks[]` is deprecated — do not add new PT rows

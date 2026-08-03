@@ -4,17 +4,15 @@ This file is the persistent learning loop across BA initiatives. It is:
 
 - **Written to** by `Retrospective_and_Learning` at Type 2 (mid-initiative when a pattern is confirmed) and Type 3 (closure) retros
 - **Read from** by `Intake_Reviewer` at the start of every new initiative
-- **Read from** by the orchestrator at key inflection points during work (see Active Surfacing section in `ba-assistant/SKILL.md`)
+- **Read from** by the orchestrator at key inflection points during work
 - **Updated by** `Anti_Pattern_Detector` when a learnings-watchlist item is confirmed across multiple initiatives
-- **Audited by** `ba-state-validator` for pattern ↔ trigger consistency
+- **Audited by** `ba-state-validator` for pattern / trigger consistency
 
-The format is deliberately simple — patterns, watchlist items, and skill refinements. Not a journal, not a narrative, just the things that should change how the next initiative runs.
+The format is deliberately simple: patterns, watchlist items, and skill refinements. Not a journal.
 
 ---
 
-## File format (Wave 6)
-
-Each pattern row carries lifecycle metadata so the file stays scannable as it grows.
+## File format
 
 | Required column | Purpose |
 |---|---|
@@ -23,48 +21,40 @@ Each pattern row carries lifecycle metadata so the file stays scannable as it gr
 | `First identified` | Date + retro that first surfaced it |
 | `Last confirmed` | Most recent date the pattern was observed or its trigger fired |
 | `Status` | `candidate` (1 initiative) / `established` (2+) / `archived` (no activity 6+ months) |
-| `Trigger ID` | Anti-Pattern Detector trigger ID (if any). `none — observational` is acceptable |
-| `Evidence` | Dated log of times the trigger fired and what happened (max 5 entries; older ones rotate) |
+| `Trigger ID` | Anti-Pattern Detector trigger ID (if any). `none - observational` is acceptable |
+| `Evidence` | Dated log of times the trigger fired (max 5 entries) |
 
 ### Lifecycle rules
 
-- **Candidate** (observed in 1 initiative): the APD trigger WARNS but does not block. Intake Reviewer surfaces the pattern in intake conversation with a note that it's based on one initiative.
-- **Established** (observed in 2+ initiatives): the APD trigger BLOCKS by default (user can still proceed at risk, logged in tracker). Intake Reviewer surfaces aggressively.
-- **Archived** (no activity in 6+ months OR explicit retire): skipped by Intake Reviewer and APD. Kept for audit. Can be promoted back if the trigger fires again.
-
-### When to write to learnings.md
-
-- **At Type 3 (closure retro):** Always update — new patterns, watchlist items, skill refinements, log entry.
-- **At Type 2 (mid-initiative retro):** Update only when a pattern is confirmed across 2+ instances OR the user agrees it carries forward.
-- **At Type 1 (workstream-completion retro):** Do not write. Workstream-level learnings stay within the initiative.
-- **At Type 0 (pre-mortem):** Do not write. Pre-mortem outputs go to the tracker, not learnings.md. (Exception: if the pre-mortem identifies a risk that learnings.md should already have flagged but didn't, that's a meta-pattern — log it.)
-
-### Promotion and decay
-
-Once per session, the Retrospective skill reviews learnings.md for status transitions:
-
-- Candidate → Established: pattern now observed in 2+ initiatives. Update Trigger ID's block/warn status.
-- Established → Archived: pattern has had no Last-confirmed activity in 6+ months. Move to archive section.
-- Archived → Established: archived pattern's trigger fires again. Restore.
-
-The State Validator flags inconsistencies: pattern marked Established but Trigger ID is missing, pattern Confirmed-in count doesn't match initiatives listed, etc.
+- **Candidate** (1 initiative): APD warns but does not block.
+- **Established** (2+ initiatives): APD blocks by default (user can proceed at risk, logged).
+- **Archived** (6+ months inactive or explicit retire): skipped by Intake and APD.
 
 ---
 
 ## Patterns (cross-initiative)
 
-Patterns that have appeared across initiatives. These become default triggers in the Anti-Pattern Detector.
-
 | Pattern | Confirmed-in | First identified | Last confirmed | Status | Trigger ID | Evidence |
 |---|---|---|---|---|---|---|
-
-<!-- Learnings are added automatically by the /retro command. You can also add entries manually following the format above. -->
+| Document proliferation before consolidation - requirements scattered across multiple docs without a clear canonical source | P002 | mid-initiative retro | | candidate | none - observational | |
+| Confluence page hierarchy not established upfront - pages created under wrong parents | P002 | mid-initiative retro | | candidate | none - observational | |
+| External dependencies tracked but not chased - blockers age without escalation | P002 | mid-initiative retro | | candidate | none - observational | |
+| **Regulatory / governmental initiative without external research** - assistant relied on internal wiki interpretation without reading the regulator's own publication | P003 | mid-initiative retro | | candidate | Regulatory initiative without external research | |
+| **AI-generated source cites fabricated Confluence/Jira IDs** - prior-session AI page referenced IDs that 404 | P003 | mid-initiative retro | | candidate | AI source not verified / hallucinated references | |
+| **v1 Phase 0 outputs presented as authoritative without explicit draft-pending-PM-approval stamp** | P003 | mid-initiative retro | | candidate | v1 outputs presented as authoritative without PM approval state captured | |
+| **"Propose" treated as "do it"** - assistant acted on a cleanup recommendation without waiting for explicit go-ahead | P003 | in-session correction | | candidate | none - observational | |
+| **Options analysis without engineering consultation** - architectural constraints surface late and force a full reframe | Sample-Compliance | mid-initiative retro | | candidate | Options analysis without engineering consultation | |
+| **Compliance initiatives frequently expand in scope** - "simple registration" becomes multi-week architecture work | Sample-Compliance | mid-initiative retro | | candidate | none - observational (intake-reviewer flag) | |
+| **Don't create detailed artefacts for unconfirmed paths** - finished drafts invalidated when approach confirmed later | Sample-Compliance | mid-initiative retro | | candidate | none - observational | |
+| **BA assistant phase sequencing doesn't hold for fast-track initiatives** - discovery/slicing/shaping interleaved; use `/fast-track` | Sample-Compliance | mid-initiative retro | | candidate | none - observational | |
+| **Architecture-first story generation misses downstream path coverage** - stories cover writing data but not every integration outcome | P004 | mid-initiative retro | | candidate | Architecture-first story generation | |
+| **Implementation-level stories mask gap visibility** - prefer business-outcome stories so missing paths are obvious | P004 | mid-initiative retro | | candidate | Implementation detail in AC | |
+| **Soft Miro pre-flight insufficient after recurrence** - mandatory Pass 2b inventory/placement + HARD gate before `layout_create` | P003 | recurring | | established | Miro board creation without pre-flight compliance | |
+| **Promotion cascade must reach personal BA-actions store** - debrief/tracker capture team actions but BA-owned rows do not auto-upsert; user discovers gaps later | P003 | mid-initiative retro | | candidate | Debrief or wrap without ba-actions-sync gate | |
 
 ---
 
 ## Watchlist items (cross-initiative)
-
-Specific things to watch for proactively at the start of every initiative.
 
 | Pattern | Confirmed-in | First identified | Last confirmed | Status | Trigger ID | Evidence |
 |---|---|---|---|---|---|---|
@@ -73,66 +63,21 @@ Specific things to watch for proactively at the start of every initiative.
 
 ## Skill refinements (cross-initiative)
 
-Changes to specific skills that have been validated and should persist.
-
 ### Anti-Pattern Detector
 
 | Refinement | Reason | Date added |
 |---|---|---|
+| Trigger: debrief or `/wrap` without `Gate: ba-actions-sync: PASS` | Personal working list went stale after tracker promotion | Version 10 |
 
-### Definition of Ready
-
-| Refinement | Reason | Date added |
-|---|---|---|
-
-### Requirements Interrogator
+### Requirements / register
 
 | Refinement | Reason | Date added |
 |---|---|---|
-
-### Discovery and Requirements
-
-| Refinement | Reason | Date added |
-|---|---|---|
-
-### Risk and Tracker
-
-| Refinement | Reason | Date added |
-|---|---|---|
-
-### Intake Reviewer
-
-| Refinement | Reason | Date added |
-|---|---|---|
-
-### Meeting Debrief
-
-| Refinement | Reason | Date added |
-|---|---|---|
-
-### Other skills
-
-| Skill | Refinement | Reason | Date added |
-|---|---|---|---|
+| Unified register + Mode 4 Kickoff HLR review | One canonical register; human closure before `interrogated` | Version 10 |
+| Inline `/workboard` + `ba-actions` (not standalone workboard skill / not `personal_tasks[]`) | Cross-initiative view + personal actions store | Version 10 |
 
 ---
 
-## Initiative log
+## Version
 
-A lightweight log of every initiative that has gone through the BA assistant, with one-line summary.
-
-| Initiative | Closed | Verdict (met / partial / not met) | Top learning |
-|---|---|---|---|
-
----
-
-## Archive
-
-Patterns that have had no activity in 6+ months. Kept for audit and possible promotion.
-
-| Pattern | Confirmed-in | Last confirmed | Archived on | Reason archived |
-|---|---|---|---|---|
-
----
-
-*This file persists across initiatives. Do not reset it. The Retrospective_and_Learning skill is responsible for keeping it accurate and actionable.*
+Version 10 (2026-08-03). Selective genericized patterns from prior initiative retros. Add new rows via `/retro`; do not paste personal initiative dumps.

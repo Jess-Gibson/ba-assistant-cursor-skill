@@ -3,7 +3,7 @@
 **Location:** `~/.cursor/skills/ba-assistant/references/canvas-data-model.md`
 **Owner:** ba-project-canvas (this file is its data layer specification)
 **Last reviewed:** 2026-06-01
-**Status:** ACTIVE — content migrated from ba-project-canvas/SKILL.md (Wave 7 Patch 2a)
+**Status:** ACTIVE  -  content migrated from ba-project-canvas/SKILL.md (Wave 7 Patch 2a)
 
 This file is the canonical source for the `status-data.json` schema, the canvas tab structure, and the metric computation rules. Any sub-skill writing to `status-data.json` or producing canvas output MUST conform to this standard.
 
@@ -85,7 +85,7 @@ If a tracker item applies to the whole initiative, `scope.level = "initiative"`.
     // initiative-level modeStates (backwards-compat alias for workstreams)
   },
 
-  "narrative": "string — 2-4 sentence 'Where We Are' summary",
+  "narrative": "string  -  2-4 sentence 'Where We Are' summary",
   "lastWeek": [],
   "thisWeek": [],
 
@@ -134,10 +134,10 @@ If a tracker item applies to the whole initiative, `scope.level = "initiative"`.
 
 ```jsonc
 {
-  "id": "[initiative-id]",
-  "name": "[Initiative Name]",
-  "slug": "[initiative-slug]",
-  "code": "string (e.g. INI-001)",
+  "id": "PROJ-Project-002",
+  "name": "Data Collection Uplift Merchant Onboarding",
+  "slug": "sample-data-collection-merchant-onboarding",
+  "code": "string (e.g. P002)",
   "stage": "string",
   "startedAt": "2026-04-15",
   "phase": "Phase 3 - Feature Slicing",
@@ -147,10 +147,10 @@ If a tracker item applies to the whole initiative, `scope.level = "initiative"`.
 
   "sponsor": "[name]",
   "productManager": "[name]",
-  "pm": "[name]",                    // alias — use productManager as canonical
+  "pm": "[name]",                    // alias  -  use productManager as canonical
   "techLead": "[name]",
-  "businessAnalyst": "[Your Name]",
-  "ba": "[Your Name]",              // alias — use businessAnalyst as canonical
+  "businessAnalyst": "[BA name]",
+  "ba": "[BA name]",              // alias  -  use businessAnalyst as canonical
 
   "charterUrl": "string | null",
   "jiraProjectKey": "string (e.g. PROJ)",
@@ -166,19 +166,19 @@ If a tracker item applies to the whole initiative, `scope.level = "initiative"`.
     "linkPattern": "string"
   },
 
-  // pmApproval: derived (E-promote) — canonical in the tracker's PM approval register
+  // pmApproval: derived (E-promote)  -  canonical in the tracker's PM approval register
   // (raid-format.md § Tracker-owned structured registers); re-derived on canvas refresh.
   "pmApproval": {
     "status": "pending",             // "pending" | "requested" | "approved" | "tbc" | "rejected"
     "approver": "[PM name]",
-    "pm": "[PM name]",              // alias — use approver as canonical
+    "pm": "[PM name]",              // alias  -  use approver as canonical
     "requestedAt": "2026-05-20",
-    "requestedDate": "YYYY-MM-DD | null",  // alias — use requestedAt as canonical
+    "requestedDate": "YYYY-MM-DD | null",  // alias  -  use requestedAt as canonical
     "approvedAt": null,
-    "approvedDate": "YYYY-MM-DD | null",   // alias — use approvedAt as canonical
+    "approvedDate": "YYYY-MM-DD | null",   // alias  -  use approvedAt as canonical
     "version": "v3",
-    "scope": "string[] — which v1 artefacts the approval covers (e.g. ['problem-statement','success-metrics','scope','raid-v1'])",
-    "notes": "string | null — change requests, conditions, or context from PM"
+    "scope": "string[]  -  which v1 artefacts the approval covers (e.g. ['problem-statement','success-metrics','scope','raid-v1'])",
+    "notes": "string | null  -  change requests, conditions, or context from PM"
   }
 }
 ```
@@ -242,7 +242,7 @@ Workstreams are the BA Assistant's primary state model. Each cell represents one
 **Valid state values:**
 - `not_started`
 - `active`
-- `delivering` (for delivery workstream only — implies stories are in flight)
+- `delivering` (for delivery workstream only  -  implies stories are in flight)
 - `blocked`
 - `paused`
 - `complete`
@@ -258,7 +258,7 @@ Workstreams are the BA Assistant's primary state model. Each cell represents one
 
 #### `modeStates` object (backwards-compatible representation)
 
-The internal data-model field name may still be `modes` for backwards compatibility; all user-facing labels use "Workstreams". Each scope (initiative, each feature, each cohort, each slice) has its own `modeStates` object. Not all modes apply to all scope levels — e.g. M0 Intake only ever sits at initiative level. Set inapplicable ones to `not started` and never advance them.
+The internal data-model field name may still be `modes` for backwards compatibility; all user-facing labels use "Workstreams". Each scope (initiative, each feature, each cohort, each slice) has its own `modeStates` object. Not all modes apply to all scope levels  -  e.g. M0 Intake only ever sits at initiative level. Set inapplicable ones to `not started` and never advance them.
 
 ```json
 {
@@ -281,7 +281,7 @@ The internal data-model field name may still be `modes` for backwards compatibil
   "scopes": [
     {
       "id": "feature_cohort_a",
-      "label": "Cohort A — High-risk merchants",
+      "label": "Cohort A  -  High-risk merchants",
       "level": "feature",   // "initiative" | "feature" | "cohort" | "slice"
       "parentScope": null,
       "priority": "must",
@@ -339,7 +339,7 @@ These collections provide granular scope detail with relationships. The `scopes`
     }
   ],
   "modes": {
-    "initiative": "modeStates object — initiative-level modes (M0 Intake, M8 Change, etc)"
+    "initiative": "modeStates object  -  initiative-level modes (M0 Intake, M8 Change, etc)"
   }
 }
 ```
@@ -348,7 +348,7 @@ These collections provide granular scope detail with relationships. The `scopes`
 
 ```jsonc
 {
-  "narrative": "string — 2-4 sentence 'Where We Are' summary",
+  "narrative": "string  -  2-4 sentence 'Where We Are' summary",
   "lastWeek": [
     { "item": "string", "date": "YYYY-MM-DD (optional)", "scope": "scope object (optional)" }
   ],
@@ -367,6 +367,11 @@ The 6 confidence scores per the SKILL.md ownership table. Each carries current v
   "confidenceScores": {
     "problemClarity": {
       "current": "high",      // "unknown" | "low" | "medium" | "high"
+      "evidence": {
+        "type": "data",        // "data" | "qualitative" | "not-yet-assessed"
+        "source": "warehouse: ANALYTICS_MART.FEATURE_EVENTS, validated against product analytics (see HK-INTK-BDI-baseline)"
+                                // null when type is "qualitative" or "not-yet-assessed"
+      },
       "history": [
         { "date": "2026-04-20", "value": "low", "trigger": "intake complete" },
         { "date": "2026-05-02", "value": "medium", "trigger": "interrogator confirmed" },
@@ -384,12 +389,20 @@ The 6 confidence scores per the SKILL.md ownership table. Each carries current v
 
 Threshold rules for transitions: see Wave 5 SKILL.md addition `Confidence score thresholds`.
 
+**`evidence` field (added with `ba-data-investigation`):** every confidence score carries an `evidence` object. `type: "data"` requires a non-null `source` naming the table/query/report the rating was grounded in (set via the relevant `HK-*-BDI-*` hook  -  see `hook-contracts.md`). `type: "qualitative"` means the user explicitly chose "proceed on judgement" in the data-investigation pairing prompt. `type: "not-yet-assessed"` is the default for a score that hasn't been through a data-pairing hook yet and is not itself a red flag  -  only `"qualitative"` accumulating across many scores of the same type is what the Anti-Pattern Detector's "Ungrounded rating" trigger watches for.
+
 Flat alternative (backwards-compatible):
 
 ```jsonc
 {
   "confidence": [
-    { "area": "string", "score": "high | medium | low", "note": "string", "scope": "scope object (optional)" }
+    {
+      "area": "string",
+      "score": "high | medium | low",
+      "note": "string",
+      "scope": "scope object (optional)",
+      "evidence": { "type": "data | qualitative | not-yet-assessed", "source": "string | null" }
+    }
   ]
 }
 ```
@@ -415,7 +428,7 @@ Flat alternative (backwards-compatible):
       "impact": "string",
       "owner": "string",
       "targetDate": "YYYY-MM-DD | null",
-      "daysOverdue": "number (computed — never stored, recalculate on every read)",
+      "daysOverdue": "number (computed  -  never stored, recalculate on every read)",
       "scope": "scope object (optional)"
     }
   ]
@@ -440,7 +453,7 @@ Flat alternative (backwards-compatible):
         "social": "string | null",
         "dimensionsSolvingFor": "string"
       },
-      // moscowMatrix: derived (E-promote) — canonical in the tracker's MoSCoW register
+      // moscowMatrix: derived (E-promote)  -  canonical in the tracker's MoSCoW register
       // (raid-format.md § Tracker-owned structured registers); re-derived on canvas refresh.
       "moscowMatrix": [
         { "scope": "scope object", "rating": "Must | Should | Could | Won't", "ratedBy": "string", "date": "YYYY-MM-DD" }
@@ -513,7 +526,7 @@ The operational tracker extends RAID with knowns, unknowns, actions, and signoff
       { "id": "string", "fact": "string", "scope": "scope object (optional)" }
     ],
     "unknowns": [
-      { "id": "string", "description": "string", "owner": "string", "targetDate": "YYYY-MM-DD | null", "scope": "scope object (optional)", "ageDays": "number (computed — never stored)" }
+      { "id": "string", "description": "string", "owner": "string", "targetDate": "YYYY-MM-DD | null", "scope": "scope object (optional)", "ageDays": "number (computed  -  never stored)" }
     ],
     "assumptions": [
       { "id": "string", "assumption": "string", "scope": "scope object (optional)", "validation": "string | null" }
@@ -528,7 +541,7 @@ The operational tracker extends RAID with knowns, unknowns, actions, and signoff
       { "id": "string", "decision": "string", "owner": "string", "date": "string", "status": "string", "scope": "scope object (optional)", "sourceMeeting": "string | null" }
     ],
     "actions": [
-      { "id": "string", "description": "string", "owner": "string", "due": "YYYY-MM-DD | null", "status": "open | in-progress | done | dropped", "scope": "scope object (optional)", "sourceMeeting": "string | null", "ageDays": "number (computed — never stored)" }
+      { "id": "string", "description": "string", "owner": "string", "due": "YYYY-MM-DD | null", "status": "open | in-progress | done | dropped", "scope": "scope object (optional)", "sourceMeeting": "string | null", "ageDays": "number (computed  -  never stored)" }
     ],
     "signoffs": [
       { "id": "string", "artefact": "string", "approver": "string", "status": "approved | pending | overdue", "date": "YYYY-MM-DD | null", "scope": "scope object (optional)" }
@@ -566,13 +579,13 @@ signOffCycleTime = approvedDate - requestedDate (in working days)
 
 ### `dorChecks` array
 
-**Derived (E-promote):** canonical in the tracker's DoR checks register (`raid-format.md § Tracker-owned structured registers`); this array is re-derived from it on every canvas refresh. Metric computations are unchanged — they read this mirror after refresh.
+**Derived (E-promote):** canonical in the tracker's DoR checks register (`raid-format.md § Tracker-owned structured registers`); this array is re-derived from it on every canvas refresh. Metric computations are unchanged  -  they read this mirror after refresh.
 
 ```jsonc
 {
   "dorChecks": [
     {
-      "storyKey": "PROJ-001",
+      "storyKey": "PROJ-4287",
       "scope": "feature_cohort_a",
       "checkedAt": "2026-05-28",
       "firstAttempt": "pass",     // "pass" | "partial" | "fail"
@@ -588,7 +601,7 @@ signOffCycleTime = approvedDate - requestedDate (in working days)
 {
   "stories": [
     {
-      "key": "PROJ-001",
+      "key": "PROJ-4287",
       "title": "...",
       "type": "story",          // see references/user-story-format.md for types
       "scope": "feature_cohort_a",
@@ -601,7 +614,7 @@ signOffCycleTime = approvedDate - requestedDate (in working days)
   ],
   "tickets": [
     {
-      "key": "string (e.g. PROJ-XXX)",
+      "key": "string (e.g. PROJ-4300)",
       "summary": "string",
       "status": "To Do | In Progress | Done | Blocked",
       "assignee": "string | null",
@@ -626,7 +639,7 @@ signOffCycleTime = approvedDate - requestedDate (in working days)
       "title": "Legal sign-off complete",
       "targetDate": "2026-06-06",
       "actualDate": null,
-      "status": "on-track",       // "on-track" | "at-risk" | "missed" | "complete"
+      "status": "on-track",       // "on-track" | "at-risk" | "missed" | "complete"  (per-initiative milestone  -  NOT cross-initiative workboard status; see references/workboard-format.md)
       "scope": "feature_cohort_a",
       "linkedSignOff": "SO-03"
     }
@@ -709,7 +722,7 @@ function dorHitRate(scopeId, windowDays = 30) {
 
 **Source:** `dorChecks` array in `status-data.json` capturing every DoR run with `storyKey`, `firstAttempt: pass | partial | fail`, `date`, `scope`. Delivery Definition writes to this array on every DoR check.
 
-Warning threshold: <70% on any scope with active delivery. Trend matters more than absolute value — a falling rate is the signal.
+Warning threshold: <70% on any scope with active delivery. Trend matters more than absolute value  -  a falling rate is the signal.
 
 ### Requirement interrogation rate
 
@@ -724,7 +737,7 @@ function requirementInterrogationRate(scopeId) {
 
 **Source:** requirements register cross-referenced with the existence of an interrogation artefact (either inline in the requirement entry or in a separate `interrogations/` folder). Discovery and Requirements should already be writing these.
 
-Warning threshold: <95% on any scope past Discovery completion. Below 95% means at least one requirement entered the register without challenge — which is the failure mode the Interrogator exists to prevent.
+Warning threshold: <95% on any scope past Discovery completion. Below 95% means at least one requirement entered the register without challenge  -  which is the failure mode the Interrogator exists to prevent.
 
 ### Sign-off cycle time
 
@@ -748,9 +761,9 @@ Warning thresholds: median >5 working days OR any sign-off open >10 working days
 
 ### Failure handling
 
-Any metric that can't be computed returns `null`, displayed as `n/a`. Never fabricate `0%` for missing data — that looks like a real signal and triggers false alarms.
+Any metric that can't be computed returns `null`, displayed as `n/a`. Never fabricate `0%` for missing data  -  that looks like a real signal and triggers false alarms.
 
-After 3 status outputs with the same metric `n/a`, surface a one-line nudge: "DoR hit rate has been n/a for 3 status runs — likely missing instrumentation in Delivery Definition. Want me to look?"
+After 3 status outputs with the same metric `n/a`, surface a one-line nudge: "DoR hit rate has been n/a for 3 status runs  -  likely missing instrumentation in Delivery Definition. Want me to look?"
 
 ### Caching
 
@@ -758,7 +771,7 @@ Computed metrics are NOT stored in `status-data.json` as canonical (they're deri
 - `/status` (after Jira sync, before the chat status text is generated)
 - `/snapshot`
 - `/metrics`
-- Any retro invocation (Type 2 / Type 3 — the retro skill reads them)
+- Any retro invocation (Type 2 / Type 3  -  the retro skill reads them)
 
 Anything older than 1 hour is recomputed on next request.
 
@@ -773,11 +786,11 @@ Other skills update `status-data.json` via these triggers:
 | Source | Trigger | Updates |
 |---|---|---|
 | Jira Sync | Every `/status`, every resume, on demand | `stories[].status`, `tickets[].status`, derived workstream states |
-| Project Canvas (Data Model section) | Before every canvas render | Re-derives structured view from `initiative-tracker.md` |
+| Project Canvas (Data Model section) | Before every canvas render | Re-derives structured view from `initiative-tracker.md` (incl. the four tracker-owned registers: dorChecks, moscowMatrix, pmApproval, signOffs) |
 | Discovery and Requirements | New requirement entered | `confidenceScores.requirementsCompleteness.current` re-evaluated |
-| Delivery Definition | DoR check performed | Appends to `dorChecks` |
+| Delivery Definition | DoR check performed | Writes the tracker's DoR checks register; `dorChecks` mirror follows on refresh |
 | Sponsor Engagement | Touchpoint complete | Appends to RAID if outcomes warrant |
-| State Validator | Detects drift | Reports only — does not auto-write |
+| State Validator | Detects drift | Reports only  -  does not auto-write |
 
 ---
 
@@ -814,7 +827,7 @@ blocked → paused
 paused → active
 delivering → active   (back to non-delivery work)
 delivering → complete
-complete → active   (rare — rework triggered)
+complete → active   (rare  -  rework triggered)
 ```
 
 Invalid transitions are rejected. Reason for any transition that crosses a sensitive boundary (e.g. `active → blocked`, `complete → active`) is logged in `initiative-tracker.md` with a date.
@@ -844,6 +857,7 @@ Both always regenerate together. Never one without the other.
 | Any skill | Writes to `status-data.json` field not defined in this schema | Off-schema write |
 | Any skill | Writes to `status-data.json` and omits a required field | Required field missing |
 | Any skill | Updates `confidenceScores` without an entry in `history` | Score change without provenance |
+| Any skill | Sets `confidenceScores.*.current` to `high` or `medium` with `evidence.type` missing entirely | Score set without evidence tagging  -  retrofit as `not-yet-assessed` at minimum |
 | Any skill | Writes a workstream state transition not in Section 7's valid list | Invalid state transition |
 | Project Canvas | Regenerates `.tsx` or `.html` and `status-data.json` was not refreshed from `initiative-tracker.md` | Stale derived output |
 | State Validator | Field disagreement between `initiative-tracker.md` and `status-data.json` for >24 hours | Tracker/data drift |
@@ -851,7 +865,7 @@ Both always regenerate together. Never one without the other.
 | Any skill | Adds a ticket to `status-data.json` without a Jira key | Untraceable ticket |
 | Any skill | Skips the Jira sync before updating ticket statuses | Stale ticket data |
 | Any skill | Stores computed fields (`daysOverdue`, `ageDays`, `moscowFlag`) as persisted values | Computed field stored as canonical |
-| Any skill | Computes a metric as `0%` when the underlying data is missing | Fabricated zero — should be `n/a` |
+| Any skill | Computes a metric as `0%` when the underlying data is missing | Fabricated zero  -  should be `n/a` |
 | Any skill | Caches metrics longer than 1 hour without recomputation | Stale metric cache |
 
 ---
@@ -861,8 +875,8 @@ Both always regenerate together. Never one without the other.
 Migration from `sub-skills/ba-project-canvas/SKILL.md` completed 2026-06-01 (Wave 7 Patch 2a).
 
 **What was migrated:**
-- Schema — scope identifier convention, main structure, modeStates object
-- Metrics — four metric formulas, sources, thresholds, failure handling, caching rules
+- Schema  -  scope identifier convention, main structure, modeStates object
+- Metrics  -  four metric formulas, sources, thresholds, failure handling, caching rules
 - Data anti-patterns
 - Implementation notes and Wave 3 schema evolution history
 
@@ -882,9 +896,9 @@ This standard is at v1.0 (2026-05-30, shell created) → v1.1 (2026-06-01, conte
 
 ## 12. Implementation notes
 
-- The schema is deliberately flat and readable — it should be hand-editable if needed.
+- The schema is deliberately flat and readable  -  it should be hand-editable if needed.
 - `lastJiraSync` per ticket allows partial refreshes (only query tickets not synced recently).
-- `daysOverdue` and `ageDays` fields are always computed, never stored — recalculate on every read.
+- `daysOverdue` and `ageDays` fields are always computed, never stored  -  recalculate on every read.
 
 ---
 
@@ -902,4 +916,3 @@ This standard is at v1.0 (2026-05-30, shell created) → v1.1 (2026-06-01, conte
 | `unknowns[]` and `actions[]` gain computed `ageDays` | Surface rotting OQs and stale actions in `/next` |
 | `decisions[]`, `actions[]` gain `sourceMeeting` | Traceability back to the meeting where the item originated |
 | New `meetings[]` collection | Meeting Debrief skill writes here; status surfaces undebriefed meetings |
-

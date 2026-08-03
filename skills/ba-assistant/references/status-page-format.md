@@ -8,15 +8,33 @@ This file is the canonical source for Confluence status page structure. Any sub-
 
 ---
 
+## 0. Pre-publish quality gate (mandatory  -  moved here from the always-on profile)
+
+Before generating the status page content, run **all 5 checks**  -  do not publish if any fail:
+
+1. **Sync check**  -  run a quick sync gate (per `sync-gates.mdc` → `references/sync-procedures.md`). If unpromoted items exist in SESSION-CONTEXT, promote them to the tracker first. Do not publish stale data.
+2. **Check Jira**  -  query all active tickets using `getJiraIssue` with `expand: "changelog"`. Update any ticket statuses that have changed.
+3. **Check `confluence-pages.json`**  -  determine whether to update or create.
+4. **Check SESSION-CONTEXT.md**  -  ensure the latest decisions, blockers, and open questions are captured.
+5. **Log the publish**  -  after successful publish, append an entry to `metrics/publish-log.jsonl`:
+   ```json
+   {"ts":"ISO","initiative":"slug","page_id":"123","title":"Status as at...","decisions_included":["DEC-001","DEC-002"]}
+   ```
+   This enables decision-to-publish cycle time measurement.
+
+Generate content in **markdown** format (`contentFormat: "markdown"`). **Always update the existing status page** (check `confluence-pages.json` for the page ID) using `updateConfluencePage`; only create a new page if no status page exists yet. After publishing, update `confluence-pages.json` and `SESSION-CONTEXT.md`.
+
+---
+
 ## 1. Page identity
 
 ### Naming convention
 
-Every status page follows: `Status as at <DD Mon YYYY> — <Initiative name>`
+Every status page follows: `Status as at <DD Mon YYYY>  -  <Initiative name>`
 
 Examples:
-- `Status as at 30 May 2026 — Merchant Onboarding Uplift`
-- `Status as at 06 Jun 2026 — Quick T2P Pilot`
+- `Status as at 30 May 2026  -  Data Collection Uplift Merchant Onboarding`
+- `Status as at 06 Jun 2026  -  Quick T2P Pilot`
 
 Date is the day the page is published, not the day data was last refreshed. If data is stale at publish time, the freshness note in the header flags it.
 
@@ -33,9 +51,9 @@ The page ID is recorded in `confluence-pages.json`:
 ```json
 {
   "type": "status-page",
-  "initiative": "kyc-kyb-merchant-onboarding",
+  "initiative": "sample-data-collection-merchant-onboarding",
   "pageId": "1245891",
-  "title": "Status as at 30 May 2026 — Merchant Onboarding Uplift",
+  "title": "Status as at 30 May 2026  -  Data Collection Uplift Merchant Onboarding",
   "createdAt": "2026-05-30",
   "parentPageId": "1102453",
   "supersedes": "1238472"
@@ -61,7 +79,7 @@ A conformant status page has these sections in this order:
 11. Detail / appendix links
 12. Footer (freshness + audit info)
 
-Sections are not collapsible by default. Sections that have no content for this period show "No change since last status" rather than disappearing — silence is ambiguous.
+Sections are not collapsible by default. Sections that have no content for this period show "No change since last status" rather than disappearing  -  silence is ambiguous.
 
 ---
 
@@ -83,7 +101,7 @@ Supersedes: <link to previous status page>
 If `pmApproval.status` is not `approved`, a DRAFT banner appears immediately below the header banner:
 
 ```
-⚠️ DRAFT — pending PM approval (<approver name>, requested <date>)
+⚠️ DRAFT  -  pending PM approval (<approver name>, requested <date>)
 ```
 
 The DRAFT banner has a red `error` panel background to make it visually unmissable.
@@ -103,7 +121,7 @@ What goes in:
 What doesn't:
 - Process metrics
 - Detail that's covered in later sections (TL;DR is for executive scanning, not summary of summary)
-- Hedged language ("we're on track, mostly, although there are some things") — pick a position
+- Hedged language ("we're on track, mostly, although there are some things")  -  pick a position
 
 Example TL;DR:
 
@@ -116,7 +134,7 @@ Example TL;DR:
 
 ## 5. Section: Outcome health
 
-A small grid showing the three outcome signals (Wave 6 — outcome health concept). Subjective and explicitly captured from the BA / PM, not derived from data.
+A small grid showing the three outcome signals (Wave 6  -  outcome health concept). Subjective and explicitly captured from the BA / PM, not derived from data.
 
 | Signal | This period | Trend vs last | Notes |
 |---|---|---|---|
@@ -140,11 +158,11 @@ Pull from `metrics-cache.json` (per `references/canvas-data-model.md` Section 4)
 
 | Metric | Value | Trend | Threshold | Notes |
 |---|---|---|---|---|
-| MoSCoW coverage — Cohort A | 92% | → | ≥80% | ✓ |
-| MoSCoW coverage — Cohort B | 64% | ↘ | ≥80% | 🔴 below threshold |
-| DoR hit rate — Cohort A | 78% | → | ≥70% | ✓ |
-| DoR hit rate — Cohort B | n/a | — | ≥70% | No DoR checks this period |
-| Requirement interrogation rate — overall | 91% | → | ≥95% | 🟡 below target |
+| MoSCoW coverage  -  Cohort A | 92% | → | ≥80% | ✓ |
+| MoSCoW coverage  -  Cohort B | 64% | ↘ | ≥80% | 🔴 below threshold |
+| DoR hit rate  -  Cohort A | 78% | → | ≥70% | ✓ |
+| DoR hit rate  -  Cohort B | n/a |  -  | ≥70% | No DoR checks this period |
+| Requirement interrogation rate  -  overall | 91% | → | ≥95% | 🟡 below target |
 | Sign-off cycle time (median) | 6.5 days | ↗ | ≤5 days | 🔴 above target |
 
 Rules:
@@ -153,7 +171,7 @@ Rules:
 - Trend arrows: ↗ improving, → stable, ↘ degrading
 - Notes column for context, not for explaining away
 
-If outcome health is amber or red (per Section 5), this section is rendered collapsed by default with a note: "Process metrics — outcomes need attention first."
+If outcome health is amber or red (per Section 5), this section is rendered collapsed by default with a note: "Process metrics  -  outcomes need attention first."
 
 ---
 
@@ -163,13 +181,13 @@ The grid from `status-data.json → workstreams`. Render as table with workstrea
 
 |  | Initiative | Cohort A | Cohort B | Quick T2P |
 |---|---|---|---|---|
-| Intake | ✅ Complete | — | — | — |
-| Discovery | — | ✅ Complete | 🟡 Active | ✅ Complete |
-| Solution shaping | — | 🟡 Active | ⚪ Not started | ✅ Complete |
-| Feature slicing | — | ✅ Complete | ⚪ Not started | ✅ Complete |
-| Delivery | — | 🟢 Delivering | ⚪ Not started | 🟢 Delivering |
-| Verification | — | ⚪ Not started | ⚪ Not started | 🟡 Active |
-| Closure | — | ⚪ Not started | ⚪ Not started | ⚪ Not started |
+| Intake | ✅ Complete |  -  |  -  |  -  |
+| Discovery |  -  | ✅ Complete | 🟡 Active | ✅ Complete |
+| Solution shaping |  -  | 🟡 Active | ⚪ Not started | ✅ Complete |
+| Feature slicing |  -  | ✅ Complete | ⚪ Not started | ✅ Complete |
+| Delivery |  -  | 🟢 Delivering | ⚪ Not started | 🟢 Delivering |
+| Verification |  -  | ⚪ Not started | ⚪ Not started | 🟡 Active |
+| Closure |  -  | ⚪ Not started | ⚪ Not started | ⚪ Not started |
 
 State emoji mapping:
 - ⚪ not_started
@@ -209,7 +227,7 @@ Pull from `status-data.json → raid`. Show:
 
 Each entry shows: ID, title, owner, status, target date (where applicable). Detail links to the tracker.
 
-Do NOT inline full RAID content — that lives in the tracker. The status page shows the headline view.
+Do NOT inline full RAID content  -  that lives in the tracker. The status page shows the headline view.
 
 Format conforms to `references/raid-format.md`.
 
@@ -325,7 +343,7 @@ The Anti-Pattern Detector flags any wider-distribution comms drafted while PM ap
 | Watching | Trigger | Anti-pattern |
 |---|---|---|
 | Status page publisher | Page published without TL;DR or with TL;DR >5 bullets | TL;DR breach |
-| Status page publisher | Outcome health section absent or stale >14 days | Outcomes ignored — process metrics may mislead |
+| Status page publisher | Outcome health section absent or stale >14 days | Outcomes ignored  -  process metrics may mislead |
 | Status page publisher | Previous status page not marked superseded after new one published | Stale status page live |
 | Status page publisher | Page published without DRAFT banner when `pmApproval.status` not approved | Approval gate bypassed |
 | Status page publisher | RAID inline with full narrative content (should link to tracker) | Status page becoming tracker |
@@ -337,11 +355,11 @@ The Anti-Pattern Detector flags any wider-distribution comms drafted while PM ap
 ## 18. Worked example header
 
 ```
-📊 Status as at 30 May 2026 · Merchant Onboarding Uplift
+📊 Status as at 30 May 2026 · Data Collection Uplift Merchant Onboarding
 
 Sponsor: [name]
-PM: [name] · BA: [name] · Tech lead: [name]
-Phase: Phase 3 — Feature slicing (Cohort A delivery in flight)
+PM: [name] · BA: [BA name] · Tech lead: [name]
+Phase: Phase 3  -  Feature slicing (Cohort A delivery in flight)
 PM approval state: ✅ Approved (v3, 28 May 2026)
 Data freshness: 2026-05-30T16:10:00+13:00
 Supersedes: Status as at 23 May 2026

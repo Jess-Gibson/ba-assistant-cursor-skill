@@ -1,17 +1,17 @@
-# Spike Card Template — Miro DSL Reference
+# Spike Card Template  -  Miro DSL Reference
 
-> Extracted from a verified reference layout (a spike-card frame from a prior workshop board).
+> Extracted from the BA's verified reference layout (Frame 15, widget `3458764674327280316` on board `uXjVHdjL1c4=`).
 > Each spike is its own frame (w=2025, h=1500). Two-column layout with questions on the left, scope + priority on the right.
 
 ## Frame structure
 
-**Individual frame per spike card** — NOT shapes inside a shared frame. This prevents overlap.
+**Individual frame per spike card**  -  NOT shapes inside a shared frame. This prevents overlap.
 
 ```
 FRAME w=2025 h=1500 fill=#ffffff "S-{n} · {title} · {PRIORITY_LEVEL}"
 ```
 
-## Layout — two-column inside a bordered card
+## Layout  -  two-column inside a bordered card
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -92,7 +92,7 @@ Content guidance for the "Why" text:
 SHAPE parent={frame} x=505 y=451 w=880 h=42 type=round_rectangle fill=#7b14ef fill_opacity=1.0 color=#ffffff font=noto_sans size=22 align=center valign=middle border_color=#ffffff border_style=normal border_width=1.0 border_opacity=1.0 "Key questions for the spike"
 ```
 
-### 8. Question stickies — dark_blue, rectangle, w=257
+### 8. Question stickies  -  dark_blue, rectangle, w=257
 
 Grid layout: 3 columns, as many rows as needed.
 
@@ -112,7 +112,7 @@ Content guidance for questions:
 - Research insights, not implementation tasks
 - Focus on what we need to LEARN, not what we need to BUILD
 - Include business value/context questions where relevant
-- Variable count — use as many stickies as needed for key research insights
+- Variable count  -  use as many stickies as needed for key research insights
 
 ### 9. "IN" scope label
 ```
@@ -125,12 +125,12 @@ SHAPE parent={frame} x=1303 y=291 w=432 h=90 type=rectangle fill=#f5f5f5 fill_op
 TEXT parent={frame} x=1305 y=293 w=408 color=#1a1a1a fill=#ffffff fill_opacity=0.0 font=open_sans size=18 align=left "{in_scope_text}"
 ```
 
-### 11. "OUT" scope label — same as IN but at x=1751
+### 11. "OUT" scope label  -  same as IN but at x=1751
 ```
 SHAPE parent={frame} x=1751 y=210 w=432 h=36 type=round_rectangle fill=#ebdcfd fill_opacity=1.0 color=#7b14ef font=noto_sans size=18 align=center valign=middle border_color=#ffffff border_style=normal border_width=1.0 border_opacity=1.0 "OUT"
 ```
 
-### 12. OUT grey box + text — same pattern, x=1751
+### 12. OUT grey box + text  -  same pattern, x=1751
 ```
 SHAPE parent={frame} x=1751 y=291 w=432 h=90 type=rectangle fill=#f5f5f5 fill_opacity=1.0 color=#1a1a1a font=noto_sans size=14 align=left valign=top border_color=#e6e6e6 border_style=normal border_width=1.0 border_opacity=1.0 ""
 TEXT parent={frame} x=1753 y=293 w=408 color=#1a1a1a fill=#ffffff fill_opacity=0.0 font=open_sans size=18 align=left "{out_scope_text}"
@@ -141,7 +141,7 @@ TEXT parent={frame} x=1753 y=293 w=408 color=#1a1a1a fill=#ffffff fill_opacity=0
 SHAPE parent={frame} x=1527 y=451 w=880 h=42 type=round_rectangle fill=#fff854 fill_opacity=1.0 color=#000000 font=noto_sans size=22 align=center valign=middle border_color=#ffffff border_style=normal border_width=1.0 border_opacity=1.0 "Priority"
 ```
 
-### 14. MoSCoW chips — 5 round_rectangles in a row at y=542
+### 14. MoSCoW chips  -  5 round_rectangles in a row at y=542
 
 Each chip: `w=148 h=90 type=round_rectangle border_width=3.0 fill_opacity=0.3`
 Spacing: ~165px between centers.
@@ -177,7 +177,7 @@ When placing multiple spike cards in a parent frame:
 | Row spacing | 1600px | center-to-center |
 | Grid | 3 columns x N rows | Scale rows to spike count |
 
-**Placement must be intentional** — ensure cards sit below/beside existing facilitation content, not overlapping it. Always check the parent frame's existing content positions before placing.
+**Placement must be intentional**  -  ensure cards sit below/beside existing facilitation content, not overlapping it. Always check the parent frame's existing content positions before placing.
 
 ### Starting position calculation
 
@@ -188,13 +188,13 @@ When placing multiple spike cards in a parent frame:
 
 ## Content guidance
 
-### "Why" text — business-focused
+### "Why" text  -  business-focused
 - Explain the business problem or risk being addressed
 - Do NOT assume a solution (avoid words like "migration", "refactor", "rebuild")
 - Reference decisions (D-xxx) or knowns (K-xxx) where relevant
 - Focus on: what we don't know, what risk exists, what blocks delivery
 
-### Questions — research insights
+### Questions  -  research insights
 - Variable count (not fixed at 4)
 - Focus on what we need to LEARN
 - Include questions about business value, data availability, feasibility

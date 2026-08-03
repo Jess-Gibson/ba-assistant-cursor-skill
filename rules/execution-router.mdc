@@ -1,31 +1,43 @@
 ---
-description: Turn classification, default-agent behaviour, and skill routing for BA workspaces — the single always-on router (absorbs ba-assistant-default, session-start-protocol, read-claude-first)
+description: Turn classification, default-agent behaviour, and skill routing for BA workspaces  -  the single always-on router (absorbs ba-assistant-default, session-start-protocol, read-claude-first)
 alwaysApply: true
 ---
 
 # Execution router
 
-The one rule that decides **what to load and whether to act**. Runs before responding to the first user message in any conversation, including resumes. (Wave: always-on restructure — this file absorbed `ba-assistant-default.mdc`, `session-start-protocol.mdc`, and `read-claude-first.mdc`; they no longer exist.)
+The one rule that decides **what to load and whether to act**. Runs before responding to the first user message in any conversation, including resumes. (Wave: always-on restructure  -  this file absorbed `session-start-protocol.mdc`; the repo twins `ba-assistant-default.mdc` and `read-claude-first.mdc` are also folded in.)
 
 ## 0. Workspace detection and default agent
 
-The BA Assistant orchestrator is the **default agent** in any workspace containing `skills/ba-assistant/` or `blueprints/Project*/`, or set up per SETUP.md. The user does not type `/ba-assistant` — classify the turn and engage silently when BA-related. Outside BA workspaces, never auto-engage.
+The BA Assistant orchestrator is the **default agent** in any workspace containing `blueprints/Project*/`, `.cursor/skills/ba-assistant/`, or a `your shared BA workspace` root, or set up per SETUP.md. The user does not type `/ba-assistant`  -  classify the turn and engage silently when BA-related. Outside BA workspaces, never auto-engage.
 
 ## 1. Project context (first chat in a workspace)
 
-If the open workspace root has `AGENTS.md` or `!CLAUDE.md`, read it as primary context; else `README.md`. (The sessionStart hook also injects this instruction — belt and braces.) Do not assume a specific product; infer from the open project.
+If the open workspace root has `AGENTS.md` or `!CLAUDE.md`, read it as primary context; else `README.md`. (The sessionStart hook also injects this instruction  -  belt and braces.) Do not assume a specific product; infer from the open project.
 
 ## 2. Classify the turn (first action, silent)
 
 | Class | Signals | Required reads (Read tool) | Then |
 |-------|---------|---------------------------|------|
-| **BA-resume** | continue, resume, initiative name, `/next` `/status` | `SESSION-CONTEXT.md`, `initiative-tracker.md`, `Project-hub.md` | Run Step 2.75 resume — **act on recommended next**, do not status-dump only |
+| **BA-resume** | continue, resume, #2, initiative name, Sample Initiative/NP, `/next` `/status` | `SESSION-CONTEXT.md`, `initiative-tracker.md`, `Project-hub.md` | Run Step 2.75 resume  -  **act on recommended next**, do not status-dump only |
 | **BA-new** | new initiative, Phase 0, intake | `instructions.md` only | BA welcome panel + intake |
+| **Sync/publish-risk** | sync, push, team repo, harness, `/sync-team-repo` | `TEAM-REPO-HANDOFF.md` + **load `sync-team-repo` skill** | Present file table. **No write/push until "sync now"** (see Harness sync path below) |
+| **BA-tooling** | improve BA assistant, new skill/sub-skill/rule/command/hook, workboard package, "for another BA", change routing/orchestrator, edit `ba-assistant-cursor-skill` skills/rules/commands | `local-first packaging rule (if installed)` (always on  -  re-read if unsure) | **Edit `~/.cursor/` first.** No writes to `ba-assistant-cursor-skill/skills|rules|commands|hooks` until local exists and [BA name] has confirmed sync (packaging zips are distribution only  -  see that rule). |
 | **Non-BA** | debug code, syntax, generic explain | Project README/AGENTS only | Skip BA orchestrator |
-| **Ambiguous** | "help me think through something", short message either way | — | Ask once via AskQuestion: BA Assistant (recommended) / Quick chat / Specific skill. "Quick chat" = orchestrator stays off for the thread. |
+| **Ambiguous** | "help me think through something", short message either way |  -  | Ask once via AskQuestion: BA Assistant (recommended) / Quick chat / Specific skill. "Quick chat" = orchestrator stays off for the thread. |
 | **End-of-session** | wrap up, close out, done for tonight | `SESSION-CONTEXT.md` (tail) | Load **ba-retrospective-and-learning**: Type 1 default; Type 2 if tooling/process failure this session. Update session log. |
 
-Also classify the **activity** (Frame / Discover / Shape / Deliver / Run — see `references/activity-map.md`). On an activity transition, print the one-line model tier nudge (`ba-profile.mdc`), once, on the transition.
+Also classify the **activity** (Frame / Discover / Shape / Deliver / Run  -  see `references/activity-map.md`). Do not print model-tier nudges (Auto-balance handles model selection).
+
+### Harness sync path (publish-risk, mandatory steps)
+
+1. Read `TEAM-REPO-HANDOFF.md`
+2. List every file with action: share | exclude | update-first
+3. Hash-compare modified files against local master
+4. Explicit **"sync now"** from user
+5. Set env `CURSOR_HARNESS_SYNC_OK=1` for that shell session only, then push (hook allows)
+
+Bulk copy (`Copy-Item -Recurse`, copying whole folders) to the harness is **forbidden**  -  sync file-by-file with review.
 
 ### Mid-thread opt-out
 
@@ -39,20 +51,20 @@ Also classify the **activity** (Frame / Discover / Shape / Deliver / Run — see
 
 The Anti-Pattern Detector flags drift symptoms and offers `/reanchor` proactively.
 
-## 3. Skill loading — lazy, not bulk
+## 3. Skill loading  -  lazy, not bulk
 
 **On bootstrap read only:** `ba-assistant/instructions.md` + `ba-assistant/hook-contracts.md`.
 
-**Scan the first message against every intent row in `skills-routing.mdc`** and load **all** matching skills (complementary skills load together; "more specific wins" applies to conflicts only). Load sub-skills on demand thereafter. **Never** read all sub-skills before the first reply. **Never** skip Step 2.75 file reads on a resume thread.
+**Scan the first message against every intent row in `skills-routing.mdc`** and load **all** matching skills (complementary skills load together; "more specific wins" applies to conflicts only). Load sub-skills on demand thereafter. **Never** read all 24 BA sub-skills before the first reply. **Never** skip Step 2.75 file reads on a resume thread.
 
-**Report loads inline:** every skill load/invocation gets a one-line header — `> **Skill loaded:** [name] — [reason]`. Skip for internal tool calls.
+**Report loads inline:** every skill load/invocation gets a one-line header  -  `> **Skill loaded:** [name]  -  [reason]`. Skip for internal tool calls.
 
 ## 4. AskQuestion + prior decisions
 
 - AskQuestion is used **when it helps the user decide or move** (see agent-behavior), not on every reply.
-- If the user **already answered** the same decision this thread, do not re-ask — offer next-step options only.
+- If the user **already answered** the same decision this thread, do not re-ask  -  offer next-step options only.
 - If AskQuestion times out or fails, proceed from the transcript and state what you are doing.
-- If the user said "sync now" or chose sync in a prior answer, execute — do not ask again.
+- If the user said "sync now" or chose sync in a prior answer, execute  -  do not ask again.
 
 ## 5. Continuous monitors (every BA turn, silent unless triggered)
 
@@ -67,7 +79,7 @@ After any BA output, self-check against the top triggers. If one fires, load `ba
 | 3 | Skipped slicing | Epics/stories without feature slices |
 | 4 | Scope creep unlogged | Scope changed, no SESSION-CONTEXT entry |
 | 5 | Thread drift | >20 turns AND topic shifted from opening intent |
-| 6 | Long session unsynced | >20 turns regardless of topic — the stop-hook sync check will also flag unpromoted items |
+| 6 | Long session unsynced | >20 turns regardless of topic  -  the stop-hook sync check will also flag unpromoted items |
 
 ### Context Capture (passive)
 
@@ -89,21 +101,23 @@ After every user message in a BA thread, scan for new facts, decisions, blockers
 
 > **Session context:** [class] | Activity: [activity] | Skills: [loaded] | BA: [active/skipped]
 
-## 7. Required visible outputs (BA-resume reply) — the Re-entry Card
+## 7. Required visible outputs (BA-resume reply)  -  the Re-entry Card
 
 ### Pre-card actions (silent)
 
 1. Read `SESSION-CONTEXT.md` (tail 50) and `initiative-tracker.md` via Read tool
-2. Read `_workstream/workboard.json` if present
-3. Check `CURSOR_NEW_TRANSCRIPT_COUNT` / `CURSOR_NEW_TRANSCRIPTS` (set by the sessionStart hook)
-4. If the initiative has a Jira project key, run a quick Jira status delta
+2. Read `_workstream/workboard.json` for cross-initiative context
+2b. Read `_workstream/ba-actions.json`  -  count open/blocked; note overdue. Full list: `_workstream/ba-actions.md`.
+3. Read `_workstream/calendar-feed.json` for today's meetings
+4. Check `CURSOR_NEW_TRANSCRIPT_COUNT` / `CURSOR_NEW_TRANSCRIPTS` (set by the sessionStart hook)
+5. If the initiative has a Jira project key, run a quick Jira status delta
 
 ### Card format
 
 ```
 --- Re-entry: [initiative] | [phase] | Day [N] ---
 
-Where we are: [One sentence — last significant action + current state]
+Where we are: [One sentence  -  last significant action + current state]
 Next action: [The single most valuable thing to do right now]
 
 Today's meetings: [count] ([names])
@@ -118,11 +132,29 @@ Then AskQuestion: recommended next action (first, marked recommended), 2-3 alter
 
 ### Cross-initiative resume
 
-"Resume" with no initiative name → mini-workboard (one line per initiative, top 3 actions, today's meetings/transcripts), then AskQuestion: which initiative, or `/workboard`.
+"Resume" with no initiative name → mini-workboard, then AskQuestion: which initiative, or `/workboard`:
+
+```
+--- Cross-initiative re-entry ---
+
+Sample Initiative:              [phase]  -  [one-line state]
+Data Collection:              [phase]  -  [one-line state]
+Auto-reassessment: [phase]  -  [one-line state]
+
+Top 3 actions:
+1. [highest priority task from workboard]
+2. [next]
+3. [next]
+
+Today: [count] meetings | [count] new transcripts
+
+---
+```
 
 ### Non-negotiables
 
-- Read state files BEFORE the card — never generate from memory or summary alone
+- Read state files BEFORE the card  -  never generate from memory or summary alone
 - Always include the next action
+- Always include AskQuestion  -  the card without options is a dead end
 - Keep it one screen; `/status` is the deep view
-- Jira delta is best-effort — "Jira: unable to check" and proceed on MCP failure
+- Jira delta is best-effort  -  "Jira: unable to check" and proceed on MCP failure

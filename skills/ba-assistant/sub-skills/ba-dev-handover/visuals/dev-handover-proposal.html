@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<!-- Visual produced against visual-output-format.md v1.0 / 2026-05-30 -->
+<!-- Storytelling one-pager: Problem -> Evidence -> Choice -> Consequence -> Ask (see visual-output-format.md sec13) -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Proposal: Dev Handover  -  Confirmed-State Boundary</title>
+<style>
+  :root {
+    --bg: #faf9f6;
+    --panel: #ffffff;
+    --ink: #1c1c1c;
+    --ink-soft: #4a4a4a;
+    --ink-faint: #8a8a8a;
+    --rule: #e5e3dd;
+    --deterministic: #2563eb;
+    --ai: #0891b2;
+    --human: #059669;
+    --decision: #d97706;
+    --output: #7c3aed;
+    --deterministic-bg: #dbeafe;
+    --ai-bg: #cffafe;
+    --human-bg: #d1fae5;
+    --decision-bg: #fed7aa;
+    --output-bg: #ede9fe;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .container { max-width: 1180px; margin: 0 auto; padding: 32px 40px 64px; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--decision);
+    background: var(--decision-bg);
+    border: 1px solid var(--decision);
+    padding: 5px 12px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+  }
+
+  header { border-bottom: 1px solid var(--rule); padding-bottom: 22px; margin-bottom: 32px; }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 8px;
+  }
+  h1 {
+    font-family: 'Source Serif Pro', Georgia, serif;
+    font-size: 34px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    margin-bottom: 10px;
+    max-width: 900px;
+  }
+  h2 {
+    font-family: 'Source Serif Pro', Georgia, serif;
+    font-size: 21px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  h3 {
+    font-family: 'Source Serif Pro', Georgia, serif;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .subtitle { color: var(--ink-soft); font-size: 15.5px; max-width: 760px; }
+  .meta { display: flex; gap: 24px; margin-top: 16px; font-size: 12px; color: var(--ink-faint); flex-wrap: wrap; }
+  .meta span strong { color: var(--ink); font-weight: 500; }
+
+  section.arc { margin-bottom: 40px; }
+  .arc-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 6px;
+  }
+  .arc-title { margin-bottom: 18px; }
+  .arc-title .sub { color: var(--ink-soft); font-size: 13.5px; font-weight: 400; display: block; margin-top: 4px; max-width: 760px; }
+
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--decision);
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+  .card.pain { border-left-color: #b91c1c; }
+  .card.pain .card-eyebrow { color: #b91c1c; }
+  .card-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--decision);
+    margin-bottom: 6px;
+  }
+  .card p { font-size: 13px; color: var(--ink-soft); }
+  .card p strong { color: var(--ink); }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 22px 26px;
+    margin-bottom: 18px;
+  }
+
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 820px) { .split { grid-template-columns: 1fr; } }
+
+  .col-working { border-top: 4px solid var(--ink-faint); }
+  .col-confirmed { border-top: 4px solid var(--human); }
+  .col-exchanges { border-top: 4px solid var(--decision); }
+  .col-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .dot.working { background: var(--ink-faint); }
+  .dot.confirmed { background: var(--human); }
+  .dot.exchanges { background: var(--decision); }
+  ul.plain { padding-left: 18px; font-size: 13px; color: var(--ink-soft); }
+  ul.plain li { margin-bottom: 6px; }
+  ul.plain li strong { color: var(--ink); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-faint); font-weight: 500; }
+  tr:last-child td { border-bottom: none; }
+  td.hard { color: #b91c1c; font-weight: 600; font-size: 11.5px; font-family: 'IBM Plex Mono', monospace; }
+  td.warn { color: var(--decision); font-weight: 600; font-size: 11.5px; font-family: 'IBM Plex Mono', monospace; }
+  .chip { display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; padding: 2px 8px; border-radius: 4px; }
+  .chip.opnspec { background: var(--ai-bg); color: var(--ai); }
+  .chip.dh { background: var(--human-bg); color: var(--human); }
+
+  .flow {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 28px 20px;
+    overflow-x: auto;
+    margin-bottom: 12px;
+  }
+  svg { display: block; margin: 0 auto; max-width: 100%; }
+  .node { cursor: pointer; transition: transform 0.15s ease, filter 0.15s ease; }
+  .node:hover { filter: brightness(0.95); transform: translateY(-1px); }
+  .node rect { stroke-width: 1.5; }
+  .node.deterministic rect { fill: var(--deterministic-bg); stroke: var(--deterministic); }
+  .node.human rect { fill: var(--human-bg); stroke: var(--human); }
+  .node.decision polygon { fill: var(--decision-bg); stroke: var(--decision); stroke-width: 1.5; }
+  .node.output rect { fill: var(--output-bg); stroke: var(--output); stroke-width: 2; }
+  .node text { font-family: 'IBM Plex Sans', sans-serif; font-size: 12.5px; font-weight: 500; fill: var(--ink); text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
+  .node text.sub { font-size: 9.5px; font-weight: 400; fill: var(--ink-soft); }
+  .node.active rect, .node.active polygon { stroke-width: 3; }
+  .edge { stroke: var(--ink-faint); stroke-width: 1.5; fill: none; }
+  .edge-label { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; fill: var(--ink-soft); text-anchor: middle; }
+  .empty-hint { text-align: center; padding: 14px; color: var(--ink-faint); font-size: 12.5px; font-style: italic; margin-bottom: 18px; }
+
+  .timeline { display: flex; flex-direction: column; gap: 0; margin-top: 8px; }
+  .tl-row { display: grid; grid-template-columns: 110px 20px 1fr; gap: 0; align-items: start; }
+  .tl-date { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--ink-faint); padding-top: 2px; }
+  .tl-line-wrap { display: flex; flex-direction: column; align-items: center; height: 100%; }
+  .tl-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--human); margin-top: 3px; }
+  .tl-dot.draft { background: var(--ink-faint); }
+  .tl-dot.gate { background: var(--decision); }
+  .tl-line { width: 2px; flex: 1; background: var(--rule); min-height: 22px; }
+  .tl-content { padding-bottom: 22px; }
+  .tl-content strong { display: block; font-size: 13.5px; margin-bottom: 2px; }
+  .tl-content span { font-size: 12.5px; color: var(--ink-soft); }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; margin-bottom: 18px; }
+  .legend-item { display: flex; align-items: center; gap: 7px; }
+  .legend-swatch { width: 11px; height: 11px; border-radius: 3px; }
+
+  .ask-box {
+    background: var(--output-bg);
+    border: 1px solid var(--output);
+    border-radius: 8px;
+    padding: 20px 24px;
+  }
+  .ask-box h3 { color: var(--output); }
+  .ask-box ol { padding-left: 20px; font-size: 13.5px; }
+  .ask-box li { margin-bottom: 8px; }
+
+  .caveat {
+    background: #fff8e6;
+    border: 1px solid var(--decision);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin-bottom: 32px;
+  }
+  .caveat strong { color: var(--ink); }
+
+  footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+    font-size: 11px;
+    color: var(--ink-faint);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .detail {
+    position: fixed; top: 0; right: -480px; width: 460px; height: 100vh;
+    background: var(--panel); border-left: 1px solid var(--rule);
+    padding: 32px 28px; overflow-y: auto;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: -20px 0 40px -20px rgba(0,0,0,0.1); z-index: 10;
+  }
+  .detail.open { right: 0; }
+  .detail-close { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--ink-faint); width: 32px; height: 32px; line-height: 1; }
+  .detail-close:hover { color: var(--ink); }
+  .detail-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; padding: 4px 10px; display: inline-block; border-radius: 4px; }
+  .detail-eyebrow.deterministic { color: var(--deterministic); background: var(--deterministic-bg); }
+  .detail-eyebrow.human { color: var(--human); background: var(--human-bg); }
+  .detail-eyebrow.decision { color: var(--decision); background: var(--decision-bg); }
+  .detail-eyebrow.output { color: var(--output); background: var(--output-bg); }
+  .detail h2 { font-family: 'Source Serif Pro', Georgia, serif; font-size: 21px; font-weight: 600; margin: 8px 0 20px; line-height: 1.25; }
+  .detail-section { margin-bottom: 18px; }
+  .detail-section-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); margin-bottom: 6px; }
+  .detail-section-value { font-size: 13.5px; color: var(--ink); }
+  .detail-section-value.body { color: var(--ink-soft); line-height: 1.55; }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+Pro:wght@600&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+
+<header>
+  <div class="badge">Proposal  -  for discussion, not yet implemented</div>
+  <div class="eyebrow">BA ↔ Engineering · Working agreement proposal</div>
+  <h1>A confirmed-state boundary between BA analysis and engineering delivery</h1>
+  <p class="subtitle">Right now, requirements, decisions, and RAID items live in BA working docs that shift daily  -  and devs pick up whatever version they can find. This proposes a clear line: nothing crosses into "confirmed" without passing a structured check, and once it does, it's dated, stable, and yours to build on.</p>
+  <div class="meta">
+    <span><strong>From:</strong> BA</span>
+    <span><strong>Date:</strong> 7 Jul 2026</span>
+    <span><strong>Status:</strong> Proposal for feedback</span>
+    <span><strong>Ask:</strong> Reaction to the principle, not sign-off on the folder layout</span>
+  </div>
+</header>
+
+<div class="caveat">
+  <strong>This is a proposal, not a spec.</strong> The folder names, file paths, and exact mechanics shown below (e.g. <code>confirmed/</code>, <code>exchanges/</code>) are illustrative  -  the point being tested is the <em>principle</em>: a gated, dated, one-way boundary between draft analysis and things safe to build on. If a different structure works better for how you already work, that's an open question, not a constraint.
+</div>
+
+<!-- PROBLEM -->
+<section class="arc">
+  <div class="arc-label">01  -  Problem</div>
+  <div class="arc-title"><h2>What's causing rework today</h2></div>
+  <div class="card-grid">
+    <div class="card pain">
+      <div class="card-eyebrow">No confirmed/draft distinction</div>
+      <p>A requirement in a BA doc might be a first-pass idea or a stakeholder-agreed decision  -  from the outside, they look identical. Devs sometimes build against the wrong one.</p>
+    </div>
+    <div class="card pain">
+      <div class="card-eyebrow">Shared editing surface</div>
+      <p>BAs and devs sometimes end up working in or around the same working files. Edits collide, provenance gets lost, and it's unclear who last touched what.</p>
+    </div>
+    <div class="card pain">
+      <div class="card-eyebrow">No visible "as of" date</div>
+      <p>A requirement handed over in May can quietly go stale by July with no signal  -  the dev has no way to tell it's drifted from current thinking.</p>
+    </div>
+    <div class="card pain">
+      <div class="card-eyebrow">Vague asks bounce back</div>
+      <p>Spikes and ADR requests without a clear linked decision or a "done looks like" come back with "what do you actually want"  -  that round-trip is pure rework.</p>
+    </div>
+  </div>
+</section>
+
+<!-- OVERVIEW / EVIDENCE -->
+<section class="arc">
+  <div class="arc-label">02  -  What's proposed</div>
+  <div class="arc-title"><h2>Two kinds of thing, kept physically apart</h2>
+    <span class="sub">Everything BA-side stays working and constantly changing. Nothing crosses the line into the shared space until it's deliberately confirmed.</span>
+  </div>
+  <div class="split">
+    <div class="panel col-working">
+      <div class="col-head"><span class="dot working"></span><h3>Working (BA side only)</h3></div>
+      <ul class="plain">
+        <li>Session notes, meeting debriefs, draft requirements</li>
+        <li>RAID tracker (risks, decisions, dependencies)  -  changes constantly</li>
+        <li>Changes daily, sometimes hourly</li>
+        <li><strong>Devs never read this directly</strong>  -  and never need to</li>
+      </ul>
+    </div>
+    <div class="panel col-confirmed">
+      <div class="col-head"><span class="dot confirmed"></span><h3>Confirmed (safe to build on)</h3></div>
+      <ul class="plain">
+        <li>Requirements that passed interrogation + stakeholder agreement</li>
+        <li>Agreed current-state, ADRs, DoR-passed stories</li>
+        <li>Every artefact carries a <strong>"Last confirmed: [date]"</strong> header</li>
+        <li>Overwrites on republish  -  last confirmed always wins, no ambiguity about which version is live</li>
+      </ul>
+    </div>
+  </div>
+  <div class="panel col-exchanges" style="margin-top:16px;">
+    <div class="col-head"><span class="dot exchanges"></span><h3>Exchanges (the two-way conversation space)</h3></div>
+    <p style="font-size:13px; color:var(--ink-soft);">Spike requests, ADR requests, and their results live here  -  append-only. A new spike is a new dated file, never an edit to a closed one, so there's a permanent record of what was asked, when, and what came back. This is the "exchange" you mentioned: BAs and devs both write here, but never to the same file at the same time  -  a request in, a result back, each its own dated artefact.</p>
+  </div>
+</section>
+
+<!-- CHOICE / HOW IT RUNS -->
+<section class="arc">
+  <div class="arc-label">03  -  How it runs</div>
+  <div class="arc-title"><h2>The gate: nothing is "confirmed" without passing through this</h2>
+    <span class="sub">Confirmation and publication are two separate events. A requirement earns <code>status: confirmed</code> in the BA's register through a structured interrogation conversation and stakeholder agreement  -  <strong>that always happens first, on its own</strong>. Publishing to the shared space never confirms anything as a side effect; it only ever renders what's already confirmed.</span>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><span class="legend-swatch" style="background: var(--human-bg); border: 1.5px solid var(--human);"></span> Human judgement / conversation</div>
+    <div class="legend-item"><span class="legend-swatch" style="background: var(--deterministic-bg); border: 1.5px solid var(--deterministic);"></span> Automated render/publish</div>
+    <div class="legend-item"><span class="legend-swatch" style="background: var(--decision-bg); border: 1.5px solid var(--decision); transform: rotate(45deg);"></span> Gate</div>
+    <div class="legend-item"><span class="legend-swatch" style="background: var(--output-bg); border: 2px solid var(--output);"></span> Lands in shared space</div>
+  </div>
+
+  <div class="flow">
+  <svg viewBox="0 0 1180 260" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#8a8a8a"/>
+      </marker>
+    </defs>
+    <path class="edge" d="M 170 60 L 230 60" marker-end="url(#arrow)"/>
+    <path class="edge" d="M 300 88 L 300 110 L 480 110" marker-end="url(#arrow)"/>
+    <path class="edge" d="M 545 150 L 650 150" marker-end="url(#arrow)"/>
+    <text class="edge-label" x="598" y="138">agreed</text>
+    <path class="edge" d="M 790 150 L 820 150" marker-end="url(#arrow)"/>
+    <path class="edge" d="M 960 150 L 990 150" marker-end="url(#arrow)"/>
+
+    <g class="node human" data-id="p1">
+      <rect x="30" y="32" width="140" height="56" rx="6"/>
+      <text x="100" y="54">Draft requirement</text>
+      <text x="100" y="72" class="sub">Stated in BA working doc</text>
+    </g>
+    <g class="node human" data-id="p2">
+      <rect x="230" y="32" width="140" height="56" rx="6"/>
+      <text x="300" y="54">Interrogator</text>
+      <text x="300" y="72" class="sub">Conversation, not a form</text>
+    </g>
+    <g class="node decision" data-id="p3">
+      <polygon points="480,110 545,150 480,190 415,150"/>
+      <text x="480" y="150">Stakeholder agrees?</text>
+    </g>
+    <g class="node output" data-id="p4">
+      <rect x="650" y="122" width="140" height="56" rx="6"/>
+      <text x="720" y="144">status: confirmed</text>
+      <text x="720" y="162" class="sub">Dated, in the register</text>
+    </g>
+    <g class="node deterministic" data-id="p5">
+      <rect x="820" y="122" width="140" height="56" rx="6"/>
+      <text x="890" y="144">Render + publish</text>
+      <text x="890" y="162" class="sub">EARS, RAID embedded</text>
+    </g>
+    <g class="node output" data-id="p6">
+      <rect x="990" y="122" width="150" height="56" rx="6"/>
+      <text x="1065" y="144">Dev picks up</text>
+      <text x="1065" y="162" class="sub">confirmed/ or exchanges/</text>
+    </g>
+  </svg>
+  </div>
+  <div class="empty-hint" id="empty-hint">↑ Click any step for detail</div>
+
+  <div class="panel" style="margin-top:8px;">
+    <h3>Worked example, with dates</h3>
+    <div class="timeline">
+      <div class="tl-row">
+        <div class="tl-date">1 Jul</div>
+        <div class="tl-line-wrap"><div class="tl-dot draft"></div><div class="tl-line"></div></div>
+        <div class="tl-content"><strong>Draft stated</strong><span>PM says "we need sample-reassessment-initiative to flag high-risk vendors weekly" in a working session  -  captured, not yet a requirement.</span></div>
+      </div>
+      <div class="tl-row">
+        <div class="tl-date">2 Jul</div>
+        <div class="tl-line-wrap"><div class="tl-dot gate"></div><div class="tl-line"></div></div>
+        <div class="tl-content"><strong>Interrogator conversation</strong><span>BA and PM work through why weekly, what "high-risk" means, what happens on a flag. Still not confirmed.</span></div>
+      </div>
+      <div class="tl-row">
+        <div class="tl-date">3 Jul</div>
+        <div class="tl-line-wrap"><div class="tl-dot"></div><div class="tl-line"></div></div>
+        <div class="tl-content"><strong>status: confirmed</strong><span>PM signs off the refined statement + acceptance criteria. This date is the "as of" date devs will see.</span></div>
+      </div>
+      <div class="tl-row">
+        <div class="tl-date">4 Jul</div>
+        <div class="tl-line-wrap"><div class="tl-dot"></div><div class="tl-line"></div></div>
+        <div class="tl-content"><strong>Published to shared repo</strong><span>Rendered EARS form lands in <code>confirmed/requirements.md</code>, header reads "Last confirmed: 3 Jul 2026." Relevant dependency risk embedded as a summary table.</span></div>
+      </div>
+      <div class="tl-row">
+        <div class="tl-date">4 Jul</div>
+        <div class="tl-line-wrap"><div class="tl-dot"></div></div>
+        <div class="tl-content"><strong>Dev picks it up</strong><span>No ambiguity about whether it's live thinking or agreed scope  -  the date and the "CONFIRMED" status answer that on sight.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GATES -->
+<section class="arc">
+  <div class="arc-label">04  -  The gates in detail</div>
+  <div class="arc-title"><h2>What has to be true before anything publishes</h2>
+    <span class="sub">Posture is "warn hard": a soft-fail item can be overridden, but only with an explicit acknowledgement that's logged. Hard-fail items have no override.</span>
+  </div>
+  <div class="panel">
+    <table>
+      <thead><tr><th>Artefact</th><th>Hard gate (blocks, no override)</th><th>Warn-hard (overridable, logged)</th></tr></thead>
+      <tbody>
+        <tr><td>Requirements pack</td><td class="hard">Every requirement is status: confirmed, with a linked interrogation record. Real-system facts are grounded in evidence (or explicitly tagged qualitative).</td><td class="warn">Acceptance criteria testable; relevant RAID embedded; EARS renders cleanly</td></tr>
+        <tr><td>Spike request</td><td class="hard">Exactly one decision-linked question; "done looks like" + time-box defined; links only to confirmed shared content</td><td class="warn">Provisional assumptions flagged; suggested method included</td></tr>
+        <tr><td>ADR request</td><td class="hard">Confirmed requirements attached, plus current-state and the gap; the decision to be made is stated explicitly (not "review the architecture")</td><td class="warn">Known options/constraints noted; compliance flagged if relevant</td></tr>
+        <tr><td>Story pack</td><td class="hard">Every story passes Definition of Ready; requirement → AC → story traceability; a negative case on every story; grounded system facts</td><td class="warn">NFR / compliance noted; MoSCoW set</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- CONSEQUENCE -->
+<section class="arc">
+  <div class="arc-label">05  -  What changes</div>
+  <div class="arc-title"><h2>Before vs after</h2></div>
+  <div class="panel">
+    <table>
+      <thead><tr><th></th><th>Today</th><th>Proposed</th></tr></thead>
+      <tbody>
+        <tr><td>Where devs look</td><td>Whatever doc/link was last shared  -  could be draft or agreed</td><td>One confirmed store; anything there passed the gate</td></tr>
+        <tr><td>Confidence in a requirement</td><td>Ask the BA "is this still current?"</td><td>"Last confirmed: [date]" on every artefact, visible on sight</td></tr>
+        <tr><td>Spike / ADR asks</td><td>Ad hoc  -  sometimes missing the actual decision it unblocks</td><td>Blocked from publishing until the decision link and "done looks like" exist</td></tr>
+        <tr><td>Shared editing surface</td><td>BA working files sometimes doubling as the handover</td><td>BA working files never leave the BA side; only rendered, dated artefacts cross</td></tr>
+        <tr><td>Rework from bad handovers</td><td>Not tracked</td><td>Every publish + every override logged, so bounce-rate is measurable over time</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- COMPARISON TO OPENSPEC -->
+<section class="arc">
+  <div class="arc-label">06  -  How this relates to OpenSpec / spec-driven development</div>
+  <div class="arc-title"><h2>Same philosophy, different layer of the pipeline</h2>
+    <span class="sub">OpenSpec (and Spec Kit, Kiro, etc.) are spec-driven-development tools that sit inside a code repo and gate what an AI coding agent is allowed to build. This proposal is upstream of that  -  it's the boundary between BA analysis and whatever spec/ticket/code process picks it up next, OpenSpec included.</span>
+  </div>
+  <div class="panel">
+    <table>
+      <thead><tr><th>Dimension</th><th><span class="chip dh">This proposal</span></th><th><span class="chip opnspec">OpenSpec (spec-driven dev)</span></th></tr></thead>
+      <tbody>
+        <tr><td>Core principle</td><td>Agree before it's confirmed (human interrogation + stakeholder sign-off)</td><td>Agree before code is written (proposal → spec → apply)</td></tr>
+        <tr><td>What's separated</td><td>Working analysis (BA-side) vs confirmed (shared, dated)</td><td><code>specs/</code> current-state truth vs <code>changes/</code> active proposals</td></tr>
+        <tr><td>Change tracking</td><td>Republish overwrites with a "Last confirmed" date; exchanges are append-only, never edited</td><td>"Delta specs"  -  track only what's changing (ADDED / MODIFIED / REMOVED) against the current spec</td></tr>
+        <tr><td>The gate</td><td>Human conversation (Interrogator) + stakeholder agreement  -  a judgement call</td><td>Largely mechanical  -  CLI validation (e.g. <code>openspec validate --strict</code>) against structural rules</td></tr>
+        <tr><td>Notation</td><td>Prose in the register; rendered to EARS ("shall" statements) only at export, for the handover</td><td>EARS/"shall" statements natively, since specs feed an AI coding agent directly</td></tr>
+        <tr><td>Where it lives</td><td>A shared analysis repo, separate from the code repo</td><td>Inside the target code repo (<code>openspec/</code> folder)</td></tr>
+        <tr><td>Who it's for</td><td>BA ↔ engineering handoff, across multiple initiatives/stakeholders, before a build approach is even chosen</td><td>Engineering ↔ AI coding agent, once a change is scoped and someone's about to generate code</td></tr>
+        <tr><td>Where they'd connect</td><td colspan="2">A confirmed requirements pack from this process is a natural <strong>input</strong> to an OpenSpec (or Spec Kit / Kiro) proposal  -  it's already agreed, dated, and EARS-renderable. This isn't a competing tool; it's the upstream agreement layer that a downstream spec-driven tool could consume.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ASK -->
+<section class="arc">
+  <div class="arc-label">07  -  Ask</div>
+  <div class="arc-title"><h2>What we'd want from you</h2></div>
+  <div class="ask-box">
+    <h3>Not asking for a build commitment  -  asking for a reaction</h3>
+    <ol>
+      <li>Does the <strong>confirmed vs working</strong> split solve a real problem for you, or is the current mixed state not actually causing you pain?</li>
+      <li>Would a visible <strong>"Last confirmed: [date]"</strong> on requirements change how you currently double-check scope with the BA?</li>
+      <li>Is the <strong>exchanges (append-only, one-question-at-a-time)</strong> pattern for spikes/ADRs better or worse than however you currently field ad hoc BA questions?</li>
+      <li>If you already use (or plan to use) OpenSpec/Spec Kit/Kiro on a repo  -  would a confirmed requirements pack like this be a useful <em>input</em> to that, or would it just be duplicate ceremony?</li>
+      <li>Any objection to the general shape, regardless of folder names or exact file formats shown here?</li>
+    </ol>
+  </div>
+</section>
+
+</div>
+
+<aside class="detail" id="detail">
+  <button class="detail-close" id="close-btn">&times;</button>
+  <span class="detail-eyebrow" id="detail-type"></span>
+  <h2 id="detail-title"></h2>
+  <div class="detail-section">
+    <div class="detail-section-label">Who / what</div>
+    <div class="detail-section-value" id="detail-actor"></div>
+  </div>
+  <div class="detail-section">
+    <div class="detail-section-label">What happens</div>
+    <div class="detail-section-value body" id="detail-desc"></div>
+  </div>
+  <div class="detail-section">
+    <div class="detail-section-label">Why it matters</div>
+    <div class="detail-section-value body" id="detail-failures"></div>
+  </div>
+</aside>
+
+<footer>
+  <div class="container" style="padding:0;">Generated 7 Jul 2026 · Proposal for discussion  -  folder structure and file formats illustrative only · Print to PDF for static share</div>
+</footer>
+
+<script>
+const nodes = {
+  p1: { type: 'human', title: 'Draft requirement', actor: 'PM / stakeholder, captured by the BA', desc: 'Something is said in a working session, a Slack message, a brief. It gets captured as a draft  -  nothing more. No one should build against this yet.', failures: 'Today, this is often the only version that ever gets written down, and it can leak into a handover unchanged.' },
+  p2: { type: 'human', title: 'Interrogator conversation', actor: 'BA + PM/stakeholder, one good question at a time', desc: "Not a form or checklist  -  a real conversation testing why the requirement exists and what it really means, before it becomes a design decision or a story. Surfaces assumptions and gaps rather than papering over them.", failures: 'Skipping this step is the single biggest source of requirements that look confirmed but were never actually tested.' },
+  p3: { type: 'decision', title: 'Stakeholder agrees?', actor: 'PM/stakeholder', desc: 'A deliberate agreement moment  -  not implied by silence, not inferred from a meeting. If not yet agreed, the requirement stays draft and the loop continues.', failures: 'This is the one human judgement call in the whole pipeline; everything after it is mechanical.' },
+  p4: { type: 'output', title: 'status: confirmed', actor: 'System (register.md)', desc: 'The requirement is marked confirmed in the BA register, dated. This is a separate event from publishing  -  confirmation always happens first, on its own.', failures: 'Publishing never confirms anything as a side effect  -  this prevents drafts sneaking into the shared space via a rushed export.' },
+  p5: { type: 'deterministic', title: 'Render + publish', actor: 'System', desc: "Confirmed content is rendered into EARS 'shall' form and written to the shared repo. Any relevant risk, dependency, or decision is embedded as a summary table (never linked, since the working tracker isn't visible to devs).", failures: 'A requirement that cannot be expressed as a clean, testable "shall" gets flagged back for more interrogation rather than force-published.' },
+  p6: { type: 'output', title: 'Dev picks up', actor: 'Engineering', desc: 'The dev reads a dated, confirmed artefact  -  or an open exchange item if it is a spike/ADR still being worked. No guessing which version is current.', failures: 'If a confirmed artefact later changes, the system flags anything already handed over as potentially stale  -  rather than the dev finding out the hard way.' }
+};
+
+const detail = document.getElementById('detail');
+const hint = document.getElementById('empty-hint');
+
+document.querySelectorAll('.node').forEach(node => {
+  node.addEventListener('click', () => {
+    const id = node.dataset.id;
+    const data = nodes[id];
+    if (!data) return;
+    document.querySelectorAll('.node.active').forEach(n => n.classList.remove('active'));
+    node.classList.add('active');
+    const typeEl = document.getElementById('detail-type');
+    typeEl.textContent = data.type.replace(/^./, c => c.toUpperCase());
+    typeEl.className = 'detail-eyebrow ' + data.type;
+    document.getElementById('detail-title').textContent = data.title;
+    document.getElementById('detail-actor').textContent = data.actor;
+    document.getElementById('detail-desc').textContent = data.desc;
+    document.getElementById('detail-failures').textContent = data.failures;
+    detail.classList.add('open');
+    hint.style.display = 'none';
+  });
+});
+
+document.getElementById('close-btn').addEventListener('click', () => {
+  detail.classList.remove('open');
+  document.querySelectorAll('.node.active').forEach(n => n.classList.remove('active'));
+  hint.style.display = '';
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    detail.classList.remove('open');
+    document.querySelectorAll('.node.active').forEach(n => n.classList.remove('active'));
+    hint.style.display = '';
+  }
+});
+</script>
+</body>
+</html>

@@ -1,7 +1,8 @@
 # BA Assistant for Cursor — Setup Guide
 
+**Version 10** — see [CHANGELOG.md](CHANGELOG.md) and [README.md](README.md).
+
 > Originally designed and built by Jess Gibson, Senior BA (2025–2026).
-> Architecture: 24 active sub-skills, 7 reference standards, hook-based orchestration.
 > Built iteratively across real BA initiatives using agent-assisted development.
 
 ---
@@ -18,11 +19,27 @@
 |-----|---------|
 | Miro MCP | Workshop board creation, DRAID table sync, board analysis |
 | Glean MCP | Internal doc/code search during intake and current state assessment |
-| Snowflake MCP | Quantitative validation and post-launch metrics via ba-data-investigation |
+| Warehouse / SQL MCP | Quantitative validation via ba-data-investigation |
 
 ---
 
-## Installation
+## Already installed? Upgrade to Version 10
+
+Do **not** blindly overwrite `ba-profile.mdc` or `_workstream/`. Use the upgrade script:
+
+```bash
+python tools/upgrade-ba-assistant.py --package /path/to/ba-assistant-cursor-skill          # dry-run
+python tools/upgrade-ba-assistant.py --package /path/to/ba-assistant-cursor-skill --apply  # apply
+```
+
+Windows: `.\tools\upgrade-ba-assistant.ps1 -PackageRoot "C:\path\to\repo" -Apply`  
+macOS/Linux: `./tools/upgrade-ba-assistant.sh /path/to/repo --apply`
+
+This refreshes skills/rules/commands, removes obsolete `ba-workboard`, migrates `personal_tasks[]` → `ba-actions.json` when safe, and leaves personalised profile + workstream data intact.
+
+---
+
+## Installation (new)
 
 ### Step 1 — Install the BA Assistant skill
 
@@ -52,7 +69,7 @@ cp /tmp/ba-cursor-skill/rules/*.mdc ~/.cursor/rules/
 Copy-Item "$env:TEMP\ba-cursor-skill\rules\*.mdc" "$env:USERPROFILE\.cursor\rules\"
 ```
 
-**Important:** Review each rule before copying. If you already have rules with the same names, merge rather than overwrite.
+**Important:** Review each rule before copying. If you already have rules with the same names, merge rather than overwrite. Never overwrite a personalised `ba-profile.mdc` with the template unless you intend to re-run setup.
 
 ### Step 3 — Install the hooks
 
@@ -186,11 +203,12 @@ After installation, your `.cursor` directory should look like:
         ba-change-strategy/
         ba-context-capture/
         ba-data-investigation/
-        ... (24 active skills total)
+        ba-workboard/              (cross-initiative dashboard — /workboard)
+        ... (25 active skills total)
     publish-docs-to-confluence/  (optional)
     miro-board-analysis/         (optional)
   commands/
-    status.md, canvas.md, handover.md, wrap.md, ...
+    status.md, canvas.md, handover.md, wrap.md, workboard.md, todo.md, ...
   rules/
     ba-profile.mdc             (generic — customize with your name or use the setup wizard)
     execution-router.mdc       (always-on router — turn classification + skill routing)
@@ -200,11 +218,15 @@ After installation, your `.cursor` directory should look like:
     agent-behavior-extended.mdc
     ba-delivery-process.mdc
     critical-gates.mdc
+    todo-quick-capture.mdc     (optional — feeds ba-workboard's personal task list)
   hooks/
     session-init.ps1 / .sh
     snapshot-before-compact.ps1 / .sh
     jira-dor-gate.py, shared-repo-guard.py, inject-state-reminder.py (+ .sh/.ps1 twins)
   hooks.json
+  _workstream/                 (created on first /workboard or /todo — cross-initiative data)
+    workboard.json
+    calendar-feed.json          (optional — your own calendar script populates this)
 ```
 
 ---

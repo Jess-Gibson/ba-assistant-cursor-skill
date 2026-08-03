@@ -2,7 +2,7 @@
 
 ## Standards used
 
-- `references/raid-format.md` — all RAID entries, decisions, open questions
+- `references/raid-format.md`  -  all RAID entries, decisions, open questions
 
 If standards conflict with skill-specific guidance below, the standard wins.
 
@@ -12,7 +12,7 @@ The Risk and Tracker Management skill is responsible for maintaining the living 
 
 ## Mandatory hook
 
-**`HK-RT-BDI-evidence`** — before setting a **new** risk's probability/impact level (Task 1, Risks), invoke `ba-data-investigation` to check whether incident history, error rates, volumes, or similar data exists to ground the rating, rather than defaulting to a judgement call. Warn, not block — "proceed on judgement" is always valid, but tag the risk entry's evidence as `qualitative` rather than leaving it unstated. Re-rating an existing risk on new information doesn't require re-running the hook unless the rating itself is being re-derived from scratch.
+**`HK-RT-BDI-evidence`**  -  before setting a **new** risk's probability/impact level (Task 1, Risks), invoke `ba-data-investigation` to check whether incident history, error rates, volumes, or similar data exists to ground the rating, rather than defaulting to a judgement call. Warn, not block  -  "proceed on judgement" is always valid, but tag the risk entry's evidence as `qualitative` rather than leaving it unstated. Re-rating an existing risk on new information doesn't require re-running the hook unless the rating itself is being re-derived from scratch.
 
 ## Tasks
 
@@ -46,9 +46,9 @@ The Risk and Tracker Management skill is responsible for maintaining the living 
    | `targetDate` < today (1–7 days) | `overdue` | Red flag; surface as #1 in `/next`; draft follow-up message |
    | `targetDate` < today (>7 days) | `overdue-escalate` | Red flag; draft escalation to next level (PM, team lead, steering) |
 
-   **Never manually label something as "overdue" unless the target date has actually passed.** If a date is in the future, it is not overdue — it may be "imminent" or "approaching" but calling it overdue is factually incorrect and creates unnecessary alarm.
+   **Never manually label something as "overdue" unless the target date has actually passed.** If a date is in the future, it is not overdue  -  it may be "imminent" or "approaching" but calling it overdue is factually incorrect and creates unnecessary alarm.
 
-   When reading `status-data.json`, compute classifications dynamically. Do not store the classification — always derive it from the date.
+   When reading `status-data.json`, compute classifications dynamically. Do not store the classification  -  always derive it from the date.
 
 7. **Overdue blocker escalation** – When a blocker is classified as `overdue` or `overdue-escalate`:
    - Surface it as the **#1 item** in `/next` output
@@ -72,25 +72,26 @@ The Risk and Tracker Management skill is responsible for maintaining the living 
 10. **Action register management (Wave 3)** – The action register is a first-class collection alongside risks/decisions/OQs. Actions are routed in by `ba-meeting-debrief` (most common source) or added directly by other skills. Every action must have:
     - `description` (specific, not vague)
     - `owner` (named person, not "the team")
-    - `due` (date — if missing, flag and ask)
+    - `due` (date  -  if missing, flag and ask)
     - `status` (open / in-progress / done / dropped)
     - `scope` (initiative / feature / cohort / slice)
-    - `sourceMeeting` (where applicable — for traceability)
+    - `sourceMeeting` (where applicable  -  for traceability)
     - `ageDays` (computed; surfaces stale actions in `/next`)
     Actions stale for >14 days surface in `/next` with a "still owed?" prompt. Actions stale for >30 days auto-escalate to a 🧨 risk.
 
-11. **MoSCoW warn-and-flag (Wave 3)** – When a Jira ticket is observed without a MoSCoW rating for its scope (or with an inconsistent MoSCoW across linked requirements), surface as a warning — NOT a hard block. Each warning:
+11. **MoSCoW warn-and-flag (Wave 3)** – When a Jira ticket is observed without a MoSCoW rating for its scope (or with an inconsistent MoSCoW across linked requirements), surface as a warning  -  NOT a hard block. Each warning:
     - Flagged red in `/status` workstream grid
-    - Surfaced in `/next` (high priority — "PM hasn't rated MoSCoW for these stories")
+    - Surfaced in `/next` (high priority  -  "PM hasn't rated MoSCoW for these stories")
     - Drafted message ready for the PM (via Communication_Drafter)
-    **Register (E-promote):** MoSCoW ratings and overrides read/write the **tracker's MoSCoW register** (`references/raid-format.md § Tracker-owned structured registers`); the status-data mirror follows on canvas refresh. Override mechanism: PM can explicitly proceed without MoSCoW; the decision is logged in the decisions table with rationale.
+    Override mechanism: PM can explicitly proceed without MoSCoW; the decision is logged in the decisions table with rationale.
+    **Register (E-promote):** MoSCoW ratings and overrides read/write the **tracker's MoSCoW register** (`references/raid-format.md § Tracker-owned structured registers`); the status-data mirror follows on canvas refresh.
 
 12. **Mode-related anti-patterns (Wave 3)** – Watch for and flag (alongside `ba-anti-pattern-detector`):
-    - **M4/M5 active without M2 complete for the same scope** — solutioning or building against unfinished discovery for that scope
-    - **M5 active across 3+ scopes simultaneously without resource declaration** — overcommitting delivery without confirming team capacity
-    - **M0 not complete but M1 advancing** — kickoff before intake is closed
-    - **M6 complete without M7 scheduled** — launched without a Solution Evaluation cadence agreed
-    - **M8 Change Strategy not active when M5 Delivery is active for customer-facing scope** — building change-impacting work with no change plan
+    - **M4/M5 active without M2 complete for the same scope**  -  solutioning or building against unfinished discovery for that scope
+    - **M5 active across 3+ scopes simultaneously without resource declaration**  -  overcommitting delivery without confirming team capacity
+    - **M0 not complete but M1 advancing**  -  kickoff before intake is closed
+    - **M6 complete without M7 scheduled**  -  launched without a Solution Evaluation cadence agreed
+    - **M8 Change Strategy not active when M5 Delivery is active for customer-facing scope**  -  building change-impacting work with no change plan
 
 ## Output format
 All RAID, decisions, and open questions conform to `references/raid-format.md`.
@@ -110,7 +111,7 @@ The Risk and Tracker Management skill produces structured logs:
 
 - **Progress dashboard** – A visual surface (invoke Visual_Storytelling) showing:
   - Phase progress with % complete
-  - Confidence scores across the six areas (problem clarity, requirements completeness, dependency awareness, compliance readiness, solution viability, definition of ready) — current vs previous snapshot
+  - Confidence scores across the six areas (problem clarity, requirements completeness, dependency awareness, compliance readiness, solution viability, definition of ready)  -  current vs previous snapshot
   - Requirement interrogation rate
   - Story readiness rate
   - Sign-off rate
@@ -124,7 +125,7 @@ The Risk and Tracker Management skill produces structured logs:
 
 When the initiative uses a Miro board for DRAID tables:
 
-1. **Schema-first:** Before syncing rows to Miro tables via `table_sync_rows`, always call `table_list_rows` first to get the exact column titles (including spacing, slashes, and casing). Miro column titles often have non-obvious formatting — e.g. "Risk / Concern" with spaces around the slash, or "Dependency Workstream" instead of "Workstream".
+1. **Schema-first:** Before syncing rows to Miro tables via `table_sync_rows`, always call `table_list_rows` first to get the exact column titles (including spacing, slashes, and casing). Miro column titles often have non-obvious formatting  -  e.g. "Risk / Concern" with spaces around the slash, or "Dependency Workstream" instead of "Workstream".
 
 2. **Batch updates:** Batch all row updates to end-of-day rather than per-session. This reduces API calls, catches schema issues once, and avoids partial sync states.
 
@@ -132,7 +133,7 @@ When the initiative uses a Miro board for DRAID tables:
 
 4. **Conflict resolution:** Markdown tracker (`initiative-tracker.md`) is the source of truth. If Miro has entries not in the tracker (e.g. someone added directly to the board), pull them into the tracker first, then sync back.
 
-*Source: a Week 1 retro — two failed Miro API calls due to column title mismatches. Batch pattern would have caught the issue once instead of twice.*
+*Source: Sample Initiative Week 1 retro  -  two failed Miro API calls due to column title mismatches. Batch pattern would have caught the issue once instead of twice.*
 
 ## Challenge Rules
 

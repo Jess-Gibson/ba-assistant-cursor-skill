@@ -107,6 +107,35 @@ One-time machine setup — these used to live in always-on rules; they belong he
 
 ---
 
+### Step 2.6 — Workstream seed + calendar (Version 10)
+
+Create the cross-initiative working folder if missing:
+
+1. Ensure `~/.cursor/_workstream/` exists.
+2. If missing, seed empty `workboard.json` (`initiatives: []`, `last_refreshed: null`, no new `personal_tasks` writes).
+3. If missing, seed empty `ba-actions.json` per `references/ba-actions-format.md` (`actions: []`, `schema_version: 1`).
+4. Copy or point to `_workstream/README.md` from the package if available.
+
+**OS detect for calendar sample (optional):**
+
+| OS | Sample | Notes |
+|---|---|---|
+| Windows | `references/sample-scripts/get-calendar.ps1` | Outlook desktop COM |
+| macOS | `references/sample-scripts/get-calendar.mac.sh` | Apple Calendar via `osascript` |
+| Other / skip | none | Workboard works without calendar |
+
+**AskQuestion:**
+> Want a calendar feed for `/workboard`?
+
+Options:
+- `yes_copy` — Yes — copy the OS sample into `~/.cursor/hooks/` and I'll wire sessionStart later (or now if you confirm)
+- `docs_only` — Show me the sample path; I'll set it up myself
+- `skip` — Skip — no calendar for now
+
+Never wire hooks silently. Calendar is optional.
+
+---
+
 ### Step 3 — Jira workspace
 
 **Collect:**

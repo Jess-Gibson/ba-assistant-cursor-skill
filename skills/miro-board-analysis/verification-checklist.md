@@ -6,6 +6,30 @@ This is Pass 6 of the Board Construction Algorithm (`algorithm.md`).
 
 ---
 
+## Step 0: Board neighbour collision check (MANDATORY for new frames)
+
+**What to verify:** The new frame does not overlap any existing board content (frames, tables, panels) outside itself.
+
+**Why this step exists:** Jul 2026 rebuild overlapped a neighbour release-planning frame because frame height ≠ content extent. Internal overlap checks (Step 2) do not catch this.
+
+**How:**
+
+1. Re-run `context_explore` if the board may have changed since the plan was written.
+2. Run `layout_read mode=structured` on every neighbour frame from **`## Board inventory (context_explore)`**.
+3. Compute board-absolute bounds per item: `top = frame_y + item_y - item_h/2` (shapes/tables vary; use layout_read values).
+4. Compute new frame bounds: `[frame_x, frame_x + frame_w]`, `[frame_y, frame_y + frame_h]`.
+5. Also compute **content spill bounds**: max item bottom across all neighbour items (may exceed neighbour frame_h).
+6. Verify:
+   - `new_top >= max(neighbour_content_bottom) + 2000` **OR**
+   - `new_left >= max(neighbour_content_right) + 500`
+7. If neither gap holds, **do not report the board as ready**. Update placement and recreate/move the frame.
+
+**Failure looks like:** New frame sitting on top of existing session content; headers from two frames visible in the same viewport.
+
+**Fix:** Move frame to the right of the cluster (preferred) or below with 2000px+ gap from actual content bottom, not frame bottom.
+
+---
+
 ## Step 1: Read the Created Content
 
 Run `layout_read mode=full` on the new frame immediately after `layout_create` succeeds.
@@ -14,7 +38,7 @@ Run `layout_read mode=full` on the new frame immediately after `layout_create` s
 CallMcpTool → toolName: "layout_read", miro_url: "{frame_url}", mode: "full"
 ```
 
-If `layout_read` is not available (only `user-miro-desktop` server), note this to the user and skip to Step 9 — the verification cannot be automated without `layout_read`.
+If `layout_read` is not available (only `user-miro-desktop` server), note this to the user and skip to Step 9  -  the verification cannot be automated without `layout_read`.
 
 ---
 
@@ -72,7 +96,7 @@ Verify: `text_top > grey_top` AND `text_bottom < grey_bottom`
 
 Verify: `abs(left_margin - right_margin) <= 20px`
 
-**Failure looks like:** Content visibly off-center — more whitespace on one side.
+**Failure looks like:** Content visibly off-center  -  more whitespace on one side.
 
 **Fix:** Shift all elements horizontally by `(right_margin - left_margin) / 2`.
 
@@ -112,7 +136,7 @@ Verify: `abs(left_margin - right_margin) <= 20px`
 
 **How:** Compare the frame `title="..."` with the first header shape's content text.
 
-**Failure looks like:** Two visible title bars at the top — one from the frame name (small label), one from the shape (large header). Both say the same thing.
+**Failure looks like:** Two visible title bars at the top  -  one from the frame name (small label), one from the shape (large header). Both say the same thing.
 
 **Fix:** Frame name = short ID (e.g. "3. Solution Options"). Title shape = descriptive text (e.g. "Solution Options (23 Jun Reframe)").
 
@@ -136,7 +160,7 @@ Verify: `abs(left_margin - right_margin) <= 20px`
 
 **How:** Check each header shape's h and size values. All should be h=82, size=64. Differentiation comes from width (full-width title vs narrower section headers) and color tier (Primary, Secondary, Tertiary, Dark, Black).
 
-**Failure looks like:** Headers at different font sizes (e.g. size=42 for sections) — at wide frame zoom levels, smaller headers become unreadable.
+**Failure looks like:** Headers at different font sizes (e.g. size=42 for sections)  -  at wide frame zoom levels, smaller headers become unreadable.
 
 **Fix:** Set ALL headers to h=82, size=64. Use width and color tier for hierarchy. See `design-system.md` Header Hierarchy.
 

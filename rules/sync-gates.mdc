@@ -5,16 +5,20 @@ alwaysApply: true
 
 # Sync gates (pointer)
 
-State drift is the number one workflow pain. Enforcement is now layered (Wave: always-on restructure):
+State drift is the number one workflow pain. Enforcement is layered:
 
 | Layer | Mechanism | What |
 |---|---|---|
 | Inline capture | `ba-context-capture` (every turn) | New facts/decisions → SESSION-CONTEXT.md, silent |
-| Deterministic breakpoints | `stop` + `preCompact` hooks (`stop-sync-check.sh`, `snapshot-before-compact.sh`) | Unpromoted-item count + staleness computed from files, injected only when real |
+| Deterministic breakpoints | `stop` + `preCompact` hooks | Unpromoted-item count + staleness computed from files, injected only when real |
 | Judgement breakpoints | This pointer | The triggers below — run the procedure from the reference |
 
 **Triggers that MUST run a quick sync check:** after a debrief completes · before switching initiatives · before any Confluence publish · on `/validate-state` (report-only) · on `/wrap` (fix + close).
 
-**Procedures** (check steps, sync card format, auto-promotion rules, action runthrough): load `references/sync-procedures.md` when a trigger fires or a sync command runs. Canonical file hierarchy on conflict: tracker > status-data > SESSION-CONTEXT > everything else (full ownership table: `ba-assistant/SKILL.md → Canonical ownership`).
+**Procedures** (check steps, sync card format, auto-promotion rules, BA-actions runthrough, full `/wrap` closeout): load `ba-assistant/references/sync-procedures.md` when a trigger fires or a sync command runs.
+
+Canonical file hierarchy on conflict: tracker > status-data > SESSION-CONTEXT > everything else (full ownership table: `ba-assistant/SKILL.md`).
+
+`/wrap` must include **sync-ba-actions** (step 6b in sync-procedures) before refreshing the workboard. Print `Gate: ba-actions-sync: PASS/FAIL`.
 
 `/sync-check` is retired — treat as `/validate-state`.

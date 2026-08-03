@@ -1,9 +1,9 @@
 # Intake Form Canvas (Wave 4 variant)
 <!-- Wave 10: moved verbatim from SKILL.md. Load only when offering or building the Phase 0 intake form. -->
 
-## Intake Form Canvas (Wave 4 — NEW)
+## Intake Form Canvas (Wave 4  -  NEW)
 
-Some BAs prefer a **form-style UI** for capturing initiative intake rather than answering questions sequentially in chat. The Intake Form Canvas is a **separate canvas variant** that renders all intake fields as editable inputs in a Cursor Canvas. The BA fills the form, copies the auto-generated JSON output, and pastes it back into chat — the assistant reads the JSON and populates `status-data.json`.
+Some BAs prefer a **form-style UI** for capturing initiative intake rather than answering questions sequentially in chat. The Intake Form Canvas is a **separate canvas variant** that renders all intake fields as editable inputs in a Cursor Canvas. The BA fills the form, copies the auto-generated JSON output, and pastes it back into chat  -  the assistant reads the JSON and populates `status-data.json`.
 
 ### When to generate the intake form canvas
 
@@ -13,9 +13,9 @@ At the very start of Phase 0 (before the chat-style intake conversation), the or
 > Running: Project Canvas → offering intake form canvas option
 
 How would you like to capture intake context?
-[ ] Chat-style — I'll ask you questions one at a time (default, recommended for first-time users)
-[ ] Form canvas — I'll generate an interactive form you can fill in beside the chat (faster if you already have most context handy)
-[ ] Both — generate the form canvas AND start the chat conversation in parallel
+[ ] Chat-style  -  I'll ask you questions one at a time (default, recommended for first-time users)
+[ ] Form canvas  -  I'll generate an interactive form you can fill in beside the chat (faster if you already have most context handy)
+[ ] Both  -  generate the form canvas AND start the chat conversation in parallel
 ```
 
 If the user picks form canvas or both, this skill generates `intake-form.canvas.tsx` and tells the user how to use it.
@@ -32,11 +32,11 @@ E.g. `canvases/sample-initiative-intake-form.canvas.tsx`.
 
 The intake form canvas is a single `.canvas.tsx` file. It MUST follow these rules:
 
-1. **Imports only from `cursor/canvas`** — same as any canvas (no fetch, no network).
+1. **Imports only from `cursor/canvas`**  -  same as any canvas (no fetch, no network).
 2. **Uses `useCanvasState<T>(key, initial)`** for every input field so values persist as the BA edits.
 3. **Renders a "Copy this JSON" panel at the bottom** that shows the current form state formatted as JSON. The BA copies it and pastes back to chat.
 4. **Groups fields into sections** matching the form-style intake screens (Workspace IDs, Templates and context, Problem and metrics, Stakeholders, RAID seed).
-5. **Validation cues** — fields that are required for proceeding to Phase 1 show a small `required` label; the JSON output flags any missing required fields with `"_missing": [...]`.
+5. **Validation cues**  -  fields that are required for proceeding to Phase 1 show a small `required` label; the JSON output flags any missing required fields with `"_missing": [...]`.
 
 ### Sections and fields
 
@@ -83,15 +83,15 @@ At the bottom of the canvas, render a section that shows the form state as JSON,
     "code": "",
     "stage": "M0",
     "complexity": "standard",
-    "pm": "[PM name]",
+    "pm": "Alex",
     "ba": "[BA name]",
     "techLead": "",
     "charterUrl": "https://...",
     "jiraProjectKey": "PROJ",
-    "confluenceSpace": "PROJ",
+    "confluenceSpace": "FSP",
     "allInOneDocUrl": "https://...",
     "slackChannel": "#sample-initiative",
-    "jiraTemplate": { "sourceKey": "PROJ-1001" }
+    "jiraTemplate": { "sourceKey": "PROJ-4099" }
   },
   "problem": "...",
   "metrics": [ "..." ],
@@ -127,7 +127,7 @@ If the BA wants to update intake info later (e.g. complexity changes from `stand
 
 The orchestrator should treat intake form canvas updates as a Phase 0 refresh, not a full re-intake.
 
-### Example canvas (skeleton — generate per-initiative)
+### Example canvas (skeleton  -  generate per-initiative)
 
 ```tsx
 import { Stack, H1, H2, Text, Input, Select, Toggle, Textarea, Code, Divider, useCanvasState } from 'cursor/canvas';
@@ -156,8 +156,8 @@ export default function IntakeForm() {
 
   return (
     <Stack gap={20}>
-      <H1>Intake Form — Sample Initiative</H1>
-      <Text tone="secondary">Fill in what you know. Leave blanks for unknowns — they'll be logged as gaps. When done, copy the JSON at the bottom and paste it into chat.</Text>
+      <H1>Intake Form  -  Sample Initiative</H1>
+      <Text tone="secondary">Fill in what you know. Leave blanks for unknowns  -  they'll be logged as gaps. When done, copy the JSON at the bottom and paste it into chat.</Text>
 
       <Divider />
       <H2>1. Workspace IDs</H2>
@@ -178,11 +178,11 @@ export default function IntakeForm() {
 }
 ```
 
-(Adjust component names to actual `cursor/canvas` exports — verify against the SDK declarations in `~/.cursor/skills-cursor/canvas/sdk/index.d.ts` before generating the real file.)
+(Adjust component names to actual `cursor/canvas` exports  -  verify against the SDK declarations in `~/.cursor/skills-cursor/canvas/sdk/index.d.ts` before generating the real file.)
 
 ### Slop check (per canvas skill rules)
 
-- No emojis as visual labels — use `required` text instead
+- No emojis as visual labels  -  use `required` text instead
 - No gradients, no box shadows
 - One H1 (initiative name + "Intake Form"); H2s per section
 - Group fields with `Stack` and `Divider`, not nested cards

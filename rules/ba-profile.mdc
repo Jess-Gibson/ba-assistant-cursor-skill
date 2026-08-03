@@ -1,5 +1,5 @@
 ---
-description: BA collaboration profile — persona core, sequencing, tracker symbols, priority types, commands, model tiers
+description: BA collaboration profile — persona core, sequencing, tracker symbols, priority types, commands, activities
 alwaysApply: true
 ---
 
@@ -31,7 +31,7 @@ Initiative → Feature slices → Sequencing → Solution shaping → Epics → 
 
 ## Skills
 
-Activities, invocation types, and per-skill model tiers live in **`references/activity-map.md`** (the single source of truth — the old Specialist Skills table is retired). Load skills via `execution-router.mdc` + `skills-routing.mdc`.
+Activities, invocation types, and per-skill activities live in **`references/activity-map.md`** (the single source of truth — the old Specialist Skills table is retired). Load skills via `execution-router.mdc` + `skills-routing.mdc`.
 
 ## Living tracker
 
@@ -56,27 +56,22 @@ A low business priority item may still need early action due to long lead times.
 
 | Command | What it does |
 |---------|-------------|
-| `/next` | Top 3 next actions by urgency and value. Follow with an **AskQuestion** if there's a real choice to make. |
-| `/status` | Full current state (triple-output: chat + canvas + HTML). Follow with an **AskQuestion** if there's a real choice to make. |
+| `/next` | Top 3 next actions by urgency and value. End with an **AskQuestion** when it helps decide or move (forks, runthroughs, re-entry). |
+| `/status` | Full current state (triple-output: chat + canvas + HTML). End with an **AskQuestion** when it helps decide or move (forks, runthroughs, re-entry). |
 | `/report` | Full structured deep-dive. |
 | `/publish-status` | Status page to Confluence per `references/status-page-format.md` — check `confluence-pages.json` first; update existing page, only create if none. |
 | `/canvas` | Generate/refresh the project canvas (invokes `ba-project-canvas`). |
 | `/handover` | Publish confirmed analysis to the delivery repo (invokes `ba-dev-handover`; gated). |
 | `/validate-state` | Read-only drift report across state files. |
 | `/wrap` | End-of-session closeout — validate, promote, refresh workboard, suggest new chat. |
+| `/workboard` | Cross-initiative priorities view: all initiatives, top tasks, today's meetings, sync status (inline procedure). |
+| `/todo` | Quick-capture a personal task into the workboard (via `todo-quick-capture`). |
 | `/metrics` | The 4 BA quality metrics (via `ba-project-canvas`). |
 | `/fast-track` | Condensed phase structure for time-critical initiatives; log activation as a decision. |
-| `/reanchor` | Re-read orchestrator + state. Follow with an **AskQuestion** if there's a real choice to make. |
+| `/reanchor` | Re-read orchestrator + state. End with an **AskQuestion** when it helps decide or move (forks, runthroughs, re-entry). |
 | `/retro` | Retrospective (phase / mid-initiative / closure) via `ba-retrospective-and-learning`. Follow with an **AskQuestion** on which actions to implement. |
 | `/audit-standards` | Conformance check against all reference standards. |
 
-## Model tier nudge (on activity change)
-
-When the active analysis activity changes (per `references/activity-map.md`), print a one-line model note before doing the work. Only on the transition, never repeated, never as an AskQuestion. Advisory — the user switches models in the picker; the assistant cannot change or reliably detect the model, so it recommends the tier for the task.
-
-- Frame / Shape: `> Model note: this is [Frame/Shape], deep reasoning. Worth Opus + thinking for this one.`
-- Discover / Deliver: `> Model note: [activity] is mostly Sonnet-tier work. Opus only if a decision gets genuinely gnarly.`
-- Run: `> Model note: [activity] is mechanical. Auto or Sonnet is plenty here, save the Opus credits.`
 
 ## Communication style
 

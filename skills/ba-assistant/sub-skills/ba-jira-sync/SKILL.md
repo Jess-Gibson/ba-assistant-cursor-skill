@@ -2,7 +2,7 @@
 
 ## Description
 
-Queries Jira for current ticket statuses and updates `status-data.json` before any status output is generated. This ensures that `/status`, `/publish-status`, canvas refreshes, and HTML snapshots reflect real Jira state — not stale assumptions.
+Queries Jira for current ticket statuses and updates `status-data.json` before any status output is generated. This ensures that `/status`, `/publish-status`, canvas refreshes, and HTML snapshots reflect real Jira state  -  not stale assumptions.
 
 ## When to invoke
 
@@ -17,7 +17,7 @@ Queries Jira for current ticket statuses and updates `status-data.json` before a
 
 Read `status-data.json` in the initiative's analysis folder. Extract all `tickets[].key` values.
 
-If `status-data.json` does not exist, read `SESSION-CONTEXT.md` and `confluence-pages.json` to identify known Jira keys (look for `[PROJ-*]` keys or similar patterns from your configured project).
+If `status-data.json` does not exist, read `SESSION-CONTEXT.md` and `confluence-pages.json` to identify known Jira keys (look for `PROJ-*`, `SPD-*`, or similar patterns).
 
 ### 2. Query Jira for each ticket
 
@@ -46,9 +46,9 @@ Set `tickets[].lastJiraSync` to current ISO 8601 timestamp.
 After syncing, produce a short change summary:
 
 ```
-Jira sync complete ([date]):
-- PROJ-001: To Do → In Progress ([Team Member])
-- PROJ-002: Sprint N → Sprint N+1
+Jira sync complete (19 May 2026, 3:05 PM):
+- PROJ-4300: To Do → In Progress ([Team Member])
+- PROJ-4301: Sprint 37 → Sprint 38
 - No other changes
 ```
 
@@ -57,15 +57,15 @@ If any ticket has changed status, flag it so the calling skill (canvas, status p
 ### 5. Handle errors
 
 - If a ticket key returns 404 (deleted or moved), log it as a warning and remove from `tickets[]`
-- If the Jira MCP is unavailable, log the failure and proceed with stale data — but add a warning to the status output: "Jira sync failed — ticket statuses may be stale"
-- Never block status generation on a Jira failure — degrade gracefully
+- If the Jira MCP is unavailable, log the failure and proceed with stale data  -  but add a warning to the status output: "Jira sync failed  -  ticket statuses may be stale"
+- Never block status generation on a Jira failure  -  degrade gracefully
 
 ## Configuration
 
 The skill needs:
-- **Cloud ID or site URL** — stored in `confluence-pages.json` or `SESSION-CONTEXT.md`
-- **Ticket keys** — from `status-data.json` or SESSION-CONTEXT
-- **MCP server** — `user-atlassian-jira-Server`
+- **Cloud ID or site URL**  -  stored in `confluence-pages.json` or `SESSION-CONTEXT.md`
+- **Ticket keys**  -  from `status-data.json` or SESSION-CONTEXT
+- **MCP server**  -  `user-atlassian-jira-Server`
 
 ## Integration
 
@@ -79,4 +79,3 @@ The skill needs:
 ## MCP tool reference
 
 Read the tool schema at `mcps/user-atlassian-jira-Server/tools/getJiraIssue.json` before calling. Required parameters: `cloudId`, `issueIdOrKey`. Optional: `fields`, `expand`.
-

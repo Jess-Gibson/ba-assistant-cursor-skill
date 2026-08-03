@@ -168,6 +168,30 @@ If canvas generation fails, check that the Cursor Canvas skill is installed in y
 
 ---
 
+## 10. Cross-initiative Workboard (inline — Version 10)
+
+Recommended if you run more than one initiative at once. `/workboard` follows `references/workboard-procedure.md` (not a sub-skill). First use creates `_workstream/workboard.json` and pairs with `_workstream/ba-actions.json`.
+
+### Calendar feed (fully optional)
+
+The workboard reads `_workstream/calendar-feed.json` when present:
+
+- **Windows + Outlook:** `skills/ba-assistant/references/sample-scripts/get-calendar.ps1`
+- **macOS + Calendar.app:** `skills/ba-assistant/references/sample-scripts/get-calendar.mac.sh`
+- **Other / none:** skip it; workboard still works
+
+Copy into `~/.cursor/hooks/` and wire `sessionStart` only if you want automation (never silent).
+
+### `/todo` quick capture
+
+`rules/todo-quick-capture.mdc` writes to `ba-actions.json` (not legacy `personal_tasks[]`).
+
+### If you don't use the initiative-blueprint convention
+
+`/workboard` cross-references `blueprints/<slug>/SESSION-CONTEXT.md` when available. If your initiatives don't live in that structure, describe state conversationally and skip file cross-referencing steps.
+
+---
+
 ## What NOT to change
 
 These files contain generic BA methodology and should generally be kept as-is:

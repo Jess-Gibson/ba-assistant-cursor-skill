@@ -1,6 +1,6 @@
 ---
 name: ba-workshop-design
-description: Design and run workshops across the initiative lifecycle — kickoff, current state, discovery, slicing, solution shaping, retro, change kickoff. Owns facilitation patterns, templates, agendas, attendee logic, and post-workshop debrief routing.
+description: Design and run workshops across the initiative lifecycle  -  kickoff, current state, discovery, slicing, solution shaping, retro, change kickoff. Owns facilitation patterns, templates, agendas, attendee logic, and post-workshop debrief routing.
 ---
 
 # Skill: Workshop Design
@@ -11,21 +11,21 @@ The Workshop Design skill owns the **facilitation engine** for the BA Assistant.
 
 Workshops are the highest-bandwidth way the BA gathers information and aligns stakeholders. A well-designed workshop produces decisions; a poorly-designed one produces fatigue. This skill exists to make the design deliberate, not improvised.
 
-**This skill absorbed `ba-kickoff-preparation`** during Wave 3 consolidation — the Kickoff workshop is now one template among several inside this skill. Kickoff is the most prominent and detailed template, but the same engine powers all workshop types.
+**This skill absorbed `ba-kickoff-preparation`** during Wave 3 consolidation  -  the Kickoff workshop is now one template among several inside this skill. Kickoff is the most prominent and detailed template, but the same engine powers all workshop types.
 
-> **Cross-cutting rule:** This skill produces multiple artefact-class outputs (facilitation pack, agenda, attendee list, pre-reads, debrief instructions, anti-patterns/do-not-say lists). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `ba-assistant\SKILL.md → Co-thinking and artefact production protocol` — surface planned artefacts upfront and ask the user to select. A dry-run produced a full 60-min pack on a `deeper_workshop` selection because the option label conflated topic with depth — see also "AskQuestion authoring guidelines" in BA Assistant SKILL.md.
+> **Cross-cutting rule:** This skill produces multiple artefact-class outputs (facilitation pack, agenda, attendee list, pre-reads, debrief instructions, anti-patterns/do-not-say lists). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `ba-assistant\SKILL.md → Co-thinking and artefact production protocol`  -  surface planned artefacts upfront and ask the user to select. The Sample Initiative dry-run produced a full 60-min pack on a `deeper_workshop` selection because the option label conflated topic with depth  -  see also "AskQuestion authoring guidelines" in BA Assistant SKILL.md.
 
 ## When to invoke
 
-- **Phase 1 / M1** — Initiative kickoff (D1)
-- **Phase 2 / M2** — Current state workshops, discovery workshops, stakeholder interviews
-- **Phase 3 / M3** — Slicing workshops, prioritisation workshops
-- **Phase 4 / M4** — Solution shaping workshops, ADR review
-- **Phase 5 / M5** — Refinement workshops, spike review
-- **Phase 6 / M6** — Playback workshops, sign-off sessions
-- **M8 Change Strategy** — Audience change kickoff, change checkpoint workshops
-- **Any phase** — Retrospective workshops (per `ba-retrospective-and-learning`)
-- **Any phase** — Ad-hoc unblocking workshops
+- **Phase 1 / M1**  -  Initiative kickoff (D1)
+- **Phase 2 / M2**  -  Current state workshops, discovery workshops, stakeholder interviews
+- **Phase 3 / M3**  -  Slicing workshops, prioritisation workshops
+- **Phase 4 / M4**  -  Solution shaping workshops, ADR review
+- **Phase 5 / M5**  -  Refinement workshops, spike review
+- **Phase 6 / M6**  -  Playback workshops, sign-off sessions
+- **M8 Change Strategy**  -  Audience change kickoff, change checkpoint workshops
+- **Any phase**  -  Retrospective workshops (per `ba-retrospective-and-learning`)
+- **Any phase**  -  Ad-hoc unblocking workshops
 
 ## Mandatory hooks
 
@@ -33,7 +33,7 @@ Workshops are the highest-bandwidth way the BA gathers information and aligns st
 |---|---|---|
 | **miro-board-analysis** | Pre-workshop (launch mode Step 5) | Build or populate the Miro board. MUST load the skill and follow its Pre-Creation Checklist, Content Panel Pattern, and verified templates. Match existing board styling. |
 | **Communication_Drafter** (or `Playback_and_Enablement` after Wave 3 merge) | Always | Workshop invite, pre-read, agenda distribution, post-workshop comms |
-| **Stakeholder_Strategy** | Pre-workshop | Attendee identification — who needs to be in the room and why |
+| **Stakeholder_Strategy** | Pre-workshop | Attendee identification  -  who needs to be in the room and why |
 | **Risk_and_Tracker** | Post-workshop | Log decisions, actions, OQs, RAID surfaced during the workshop |
 | **ba-meeting-debrief** | Post-workshop | Process the workshop output (transcript / notes / verbal recall) and route updates to specialist skills |
 | **Visual_Storytelling** | Pre-workshop | Diagrams, journey maps, current state visuals to anchor the conversation |
@@ -43,7 +43,7 @@ Workshops are the highest-bandwidth way the BA gathers information and aligns st
 
 This skill ships with templates for the workshop types BAs actually run. Each template specifies: purpose, attendees, agenda, pre-read, activities, decisions sought, success criteria.
 
-### Template 1 — Initiative Kickoff (D1)
+### Template 1  -  Initiative Kickoff (D1)
 
 **Purpose:** Align all relevant stakeholders on problem, scope, timeframe, priorities, and initial RAID. First moment where the team becomes "the team".
 
@@ -81,7 +81,7 @@ Identification logic: cross-reference Stakeholder_Strategy output with initiativ
 | 1:25 | Open questions + close | BA | OQs logged with owners |
 
 **Facilitation tips:**
-- Separate problem framing from solution discussion explicitly — solutions get parked, not discussed
+- Separate problem framing from solution discussion explicitly  -  solutions get parked, not discussed
 - Use a visible "parking lot" for off-topic items
 - Capture decisions in real-time (visible to room), not after the meeting
 - For each decision: state who decided, what was decided, what was the alternative
@@ -95,7 +95,7 @@ Identification logic: cross-reference Stakeholder_Strategy output with initiativ
 - Next decision moments and owners agreed
 - BA has the inputs needed to begin Phase 2 / M2 Discovery
 
-### Template 2 — Current State Workshop
+### Template 2  -  Current State Workshop
 
 **Purpose:** Build shared understanding of how things work today across process, system, data, people. Surface tribal knowledge.
 
@@ -109,23 +109,23 @@ Identification logic: prioritise people who *do* the work, not people who *descr
 
 **Pre-read:**
 - Initiative context
-- Whatever current state documentation exists (mark it "starting point — please correct")
-- A draft process map (deliberately imperfect — invites correction)
+- Whatever current state documentation exists (mark it "starting point  -  please correct")
+- A draft process map (deliberately imperfect  -  invites correction)
 
 **Agenda (typical 90 minutes):**
 
 | Time | Section | Activity |
 |---|---|---|
-| 0:00 | Welcome + frame | "I've drafted what I think happens — your job is to correct me" |
+| 0:00 | Welcome + frame | "I've drafted what I think happens  -  your job is to correct me" |
 | 0:05 | Walk through draft (5–10 min per major step) | BA narrates the draft; attendees interrupt with corrections |
-| 0:30 | Pain points — go around the room | Each attendee names their top 1–2 pain points |
+| 0:30 | Pain points  -  go around the room | Each attendee names their top 1–2 pain points |
 | 0:45 | Edge cases + exceptions | "What breaks this? What do you do when it breaks?" |
 | 1:00 | Workarounds + manual steps | "What do you do that's not in the doc?" |
 | 1:15 | Open questions + close | OQs logged |
 
 **Facilitation tips:**
 - The draft process map is a *provocation*, not an answer. Be visibly comfortable with being wrong.
-- Don't argue with corrections — capture them all, reconcile later.
+- Don't argue with corrections  -  capture them all, reconcile later.
 - Tribal knowledge surfaces when people are correcting something, not when they're explaining from scratch.
 
 **Success criteria:**
@@ -134,7 +134,7 @@ Identification logic: prioritise people who *do* the work, not people who *descr
 - Tribal knowledge register with at least 3 items not in any documentation
 - Workarounds catalogued
 
-### Template 3 — Discovery Workshop
+### Template 3  -  Discovery Workshop
 
 **Purpose:** Extract candidate requirements from stakeholders by topic / domain.
 
@@ -153,7 +153,7 @@ Identification logic: prioritise people who *do* the work, not people who *descr
 - Open questions logged with owners
 - Decisions deferred logged explicitly (don't pretend they're decided)
 
-### Template 4 — Slicing Workshop
+### Template 4  -  Slicing Workshop
 
 **Purpose:** Break the initiative into independently valuable slices and agree sequencing.
 
@@ -161,13 +161,13 @@ Identification logic: prioritise people who *do* the work, not people who *descr
 
 **Pre-read:**
 - High-level requirements
-- Impact map (if generated — see Feature Slicing & Sequencing skill)
+- Impact map (if generated  -  see Feature Slicing & Sequencing skill)
 - Critical path items / long-lead activities
 
 **Agenda:**
 1. Confirm the goal (anchor the slicing conversation)
 2. Walk the Impact Map (if available) or feature inventory
-3. Group into slices — each slice deliverable independently with explicit value
+3. Group into slices  -  each slice deliverable independently with explicit value
 4. Score each slice on 4 priority types (business / analysis / delivery / critical-path)
 5. Propose sequencing + parallelisation
 6. Identify slices to defer
@@ -177,7 +177,7 @@ Identification logic: prioritise people who *do* the work, not people who *descr
 - Sequencing decision with rationale
 - Deferral decisions explicit (with reason)
 
-### Template 5 — Solution Shaping Workshop
+### Template 5  -  Solution Shaping Workshop
 
 **Purpose:** Generate diverse solution options, evaluate trade-offs, narrow to direction.
 
@@ -196,7 +196,7 @@ Identification logic: prioritise people who *do* the work, not people who *descr
 5. Recommend direction (or top 2 + criteria for decision)
 
 **Facilitation tips:**
-- Don't let the loudest engineer's option win by default — force option generation BEFORE evaluation
+- Don't let the loudest engineer's option win by default  -  force option generation BEFORE evaluation
 - For each option, ask "what does this NOT solve?"
 - JTBD-tagged requirements: explicitly score functional / emotional / social coverage
 
@@ -206,9 +206,9 @@ Identification logic: prioritise people who *do* the work, not people who *descr
 - Spikes identified with owners
 - Direction recommended (with criteria if not yet locked)
 
-### Template 6 — Refinement Workshop
+### Template 6  -  Refinement Workshop
 
-**Purpose:** Take stories from "draft" to "ready for development" — Definition of Ready check.
+**Purpose:** Take stories from "draft" to "ready for development"  -  Definition of Ready check.
 
 **Attendees:** Engineering team, BA, PM.
 
@@ -226,7 +226,7 @@ Identification logic: prioritise people who *do* the work, not people who *descr
 - "Needs more work" items have specific next-step actions and owners
 - MoSCoW rating confirmed per scope (warn-and-flag if missing)
 
-### Template 7 — Playback Workshop
+### Template 7  -  Playback Workshop
 
 **Purpose:** Communicate solution direction to broader stakeholder set, secure sign-off, surface late objections.
 
@@ -247,22 +247,22 @@ Identification logic: prioritise people who *do* the work, not people who *descr
 7. Outstanding objections logged
 
 **Facilitation tips:**
-- Sponsor pre-briefed; sponsor visibly backing (or visibly absent — and surface that)
+- Sponsor pre-briefed; sponsor visibly backing (or visibly absent  -  and surface that)
 - Use Visual_Storytelling-produced one-pagers, not detailed delivery views
-- Explicit yes/no on sign-offs — no "I'm comfortable" without a documented record
+- Explicit yes/no on sign-offs  -  no "I'm comfortable" without a documented record
 
 **Success criteria:**
 - Sign-offs captured in writing per artefact
 - Objections logged with mitigation plans
 - Path to launch clear
 
-### Template 8 — Retrospective Workshop
+### Template 8  -  Retrospective Workshop
 
-**Purpose:** Capture what worked, what didn't, what to do differently. (Detailed agenda lives in `ba-retrospective-and-learning` skill — this template provides the workshop frame for that skill's content.)
+**Purpose:** Capture what worked, what didn't, what to do differently. (Detailed agenda lives in `ba-retrospective-and-learning` skill  -  this template provides the workshop frame for that skill's content.)
 
-### Template 9 — Change Kickoff Workshop
+### Template 9  -  Change Kickoff Workshop
 
-**Purpose:** Per-audience change kickoff — Awareness + Desire for ADKAR (per `ba-change-strategy`).
+**Purpose:** Per-audience change kickoff  -  Awareness + Desire for ADKAR (per `ba-change-strategy`).
 
 **Attendees:** The impacted audience + their line managers + sponsor (visible).
 
@@ -308,7 +308,7 @@ The agent walks through each step, using AskQuestion at each gate:
   - Where we are on the initiative (from tracker)
   - What decisions this workshop needs to make
   - What input attendees should bring
-- Draft in the user's voice (load a personal voice-and-style rule if one exists for this workspace)
+- Draft in the BA's voice (load `your voice-and-style rule (if installed)`)
 - AskQuestion: approve, edit, or skip pre-read
 
 **Step 5: Create Miro board (MANDATORY for workshops with activities)**
@@ -327,7 +327,7 @@ This step uses the **`miro-board-analysis` skill** and its Miro MCP tools. The a
   - Retro → **Pattern 7** (three-column sticky layout)
 - **Follow the Content Panel Pattern**: coloured `round_rectangle` header → grey `rectangle` backdrop (`fill=#e6e6e6`) → TEXT positioned near TOP of grey box (formula: `text_y = card_top + 50 + text_height/2`)
 - **Use the 5-tier brand palette** for headers (Primary `#7b14ef`, Secondary `#c497fe`, Tertiary `#fff854`, Dark `#232428`, Black `#000000`)
-- **Left-to-right layout matches the agenda order** — context first, activities in sequence, outcomes last
+- **Left-to-right layout matches the agenda order**  -  context first, activities in sequence, outcomes last
 - **Run Pre-Creation Checklist** from `miro-board-analysis` before every creation call
 - **Run `layout_read` after creation** to verify no overlaps, misaligned headers, or text-outside-card issues
 
@@ -335,7 +335,7 @@ Specific to workshop launch:
 - Map each agenda activity to a board section using the activity → board element table from the Miro skill's "Integration with BA Assistant" section
 - Pre-populate: agenda (with real clock times, not relative), discussion prompts as Q&A stickies, RAID columns, parking lot, actions table
 - Include relevant diagrams from `Visual_Storytelling` (current state maps, journey maps, etc.)
-- Create 3+ rows of Q&A pairs (not 2 — need room for real workshop input)
+- Create 3+ rows of Q&A pairs (not 2  -  need room for real workshop input)
 - Leave generous brainstorming space (3000x2000px minimum)
 
 AskQuestion: approve board, skip Miro, or I'll do it manually
@@ -380,28 +380,28 @@ The user can exit launch mode at any step. Progress is saved -- they can say "co
 
 ## Common tasks across all templates
 
-1. **Participant identification** — Cross-reference with `ba-stakeholder-strategy`. Call out missing roles whose absence would cause rework. Flag who *must* attend vs who *should* attend vs *informed only*.
+1. **Participant identification**  -  Cross-reference with `ba-stakeholder-strategy`. Call out missing roles whose absence would cause rework. Flag who *must* attend vs who *should* attend vs *informed only*.
 
-2. **Pre-read drafting** — Hand off to `Communication_Drafter` (or `Playback_and_Enablement` after Wave 3 merge). Pre-read is usually 1 page max; longer pre-reads don't get read.
+2. **Pre-read drafting**  -  Hand off to `Communication_Drafter` (or `Playback_and_Enablement` after Wave 3 merge). Pre-read is usually 1 page max; longer pre-reads don't get read.
 
-3. **Agenda creation** — Pick the appropriate template + adapt to the specific workshop. Time-box every section. Build in buffer (10% minimum).
+3. **Agenda creation**  -  Pick the appropriate template + adapt to the specific workshop. Time-box every section. Build in buffer (10% minimum).
 
-4. **Activity selection** — Match activity to outcome:
-   - For *alignment* — read-then-discuss (everyone reads the same statement, then discusses)
-   - For *surfacing tribal knowledge* — provoke with imperfect draft
-   - For *generating options* — silent ideation first, share after
-   - For *prioritising* — dot voting, MoSCoW per scope, value/effort matrix
-   - For *decision* — explicit yes/no, written record
+4. **Activity selection**  -  Match activity to outcome:
+   - For *alignment*  -  read-then-discuss (everyone reads the same statement, then discusses)
+   - For *surfacing tribal knowledge*  -  provoke with imperfect draft
+   - For *generating options*  -  silent ideation first, share after
+   - For *prioritising*  -  dot voting, MoSCoW per scope, value/effort matrix
+   - For *decision*  -  explicit yes/no, written record
 
-5. **Upstream dependency check** — For every decision on the agenda, ask: "What input, approval, or deliverable from another person or team does this decision need BEFORE the room can make it?" If the upstream input isn't confirmed ready, either (a) defer the decision to a later session, (b) reframe as conditional ("we'll decide X provisionally, pending Y"), or (c) get the upstream input before the session. *Source: a Week 1 retro — a gating comms MoSCoW decision was a Day 5 surprise because nobody checked whether an upstream teammate's dependent work was ready before scheduling the MoSCoW decision.*
+5. **Upstream dependency check**  -  For every decision on the agenda, ask: "What input, approval, or deliverable from another person or team does this decision need BEFORE the room can make it?" If the upstream input isn't confirmed ready, either (a) defer the decision to a later session, (b) reframe as conditional ("we'll decide X provisionally, pending Y"), or (c) get the upstream input before the session. *Source: Sample Initiative Week 1 retro  -  segmentation gating comms MoSCoW was a Day 5 surprise because nobody checked whether [Team Member]'s segmentation work was ready before scheduling the MoSCoW decision.*
 
-6. **Facilitation tips** — Adapt to the audience. Sponsor-in-the-room workshops need explicit decision moments. Working-group workshops can be more exploratory.
+6. **Facilitation tips**  -  Adapt to the audience. Sponsor-in-the-room workshops need explicit decision moments. Working-group workshops can be more exploratory.
 
-7. **Capture during the workshop** — Decisions, actions, OQs surface in real time; capture them visibly so attendees can correct. Don't try to take notes silently and reconstruct later.
+7. **Capture during the workshop**  -  Decisions, actions, OQs surface in real time; capture them visibly so attendees can correct. Don't try to take notes silently and reconstruct later.
 
-8. **Post-workshop debrief** — Hand off to `ba-meeting-debrief` immediately after the workshop. The debrief skill routes extracted items to the right specialist skills and updates the tracker.
+8. **Post-workshop debrief**  -  Hand off to `ba-meeting-debrief` immediately after the workshop. The debrief skill routes extracted items to the right specialist skills and updates the tracker.
 
-9. **Communications** — Hand off to `Communication_Drafter` for recap email / Slack post / sponsor briefing / action DMs.
+9. **Communications**  -  Hand off to `Communication_Drafter` for recap email / Slack post / sponsor briefing / action DMs.
 
 ## Typical Questions to Ask
 
@@ -409,8 +409,8 @@ The user can exit launch mode at any step. Progress is saved -- they can say "co
 - What is the *single outcome* this workshop must produce? (If there are 3, run 3 workshops.)
 - Who must be in the room for that outcome? Who can be informed afterwards?
 - What's the right time-box?
-- What pre-read will be read? (Be honest — if it's >1 page, it won't be.)
-- What's the highest-risk part — alignment, decision, or activation?
+- What pre-read will be read? (Be honest  -  if it's >1 page, it won't be.)
+- What's the highest-risk part  -  alignment, decision, or activation?
 - Is the sponsor needed? In person or proxy?
 
 ### When the workshop is high-stakes (sign-off, escalation, sponsor decision)
@@ -430,7 +430,7 @@ For each workshop, produce:
 
 | Section | Content |
 |---|---|
-| Purpose | One sentence — what this workshop produces |
+| Purpose | One sentence  -  what this workshop produces |
 | Type / template | Kickoff / current state / discovery / slicing / solution / refinement / playback / retro / change kickoff / ad-hoc |
 | Date, time, duration | |
 | Attendees | Names + roles + must-attend or should-attend or informed |
@@ -446,19 +446,19 @@ Per the Meeting Debrief skill output format. Includes decisions, actions, OQs, r
 
 ## Challenge Rules
 
-- **Don't run a workshop without a single outcome** — if there are 3 outcomes, that's 3 workshops.
-- **Don't invite people for political reasons** — attendees should be people whose presence or input matters to the outcome.
-- **Don't skip the pre-read** — workshops where people read for the first time in the room are 30 minutes longer.
-- **Don't run high-stakes workshops without sponsor pre-brief** — surprises in those rooms cause withdrawals of cover.
-- **Don't take notes silently and reconstruct after** — capture visibly, in real-time, so attendees can correct.
-- **Don't conflate refinement with discovery** — refinement is "is this story ready"; discovery is "do we have the right requirement". Different audiences, different facilitation.
-- **Don't skip the debrief** — every workshop must be processed by `ba-meeting-debrief` post-meeting, or the value evaporates.
-- **Don't let workshops become ritual** — recurring workshops with no decisions are theatre. Re-design or cancel.
-- **Don't paper over absent stakeholders** — if a must-attend person didn't show, name it. Decisions made without them may need re-confirming.
+- **Don't run a workshop without a single outcome**  -  if there are 3 outcomes, that's 3 workshops.
+- **Don't invite people for political reasons**  -  attendees should be people whose presence or input matters to the outcome.
+- **Don't skip the pre-read**  -  workshops where people read for the first time in the room are 30 minutes longer.
+- **Don't run high-stakes workshops without sponsor pre-brief**  -  surprises in those rooms cause withdrawals of cover.
+- **Don't take notes silently and reconstruct after**  -  capture visibly, in real-time, so attendees can correct.
+- **Don't conflate refinement with discovery**  -  refinement is "is this story ready"; discovery is "do we have the right requirement". Different audiences, different facilitation.
+- **Don't skip the debrief**  -  every workshop must be processed by `ba-meeting-debrief` post-meeting, or the value evaporates.
+- **Don't let workshops become ritual**  -  recurring workshops with no decisions are theatre. Re-design or cancel.
+- **Don't paper over absent stakeholders**  -  if a must-attend person didn't show, name it. Decisions made without them may need re-confirming.
 
 ## Integration with BA Assistant
 
-**Mode (post-Wave 3):** Cross-cutting capability — runs at any mode, any scope.
+**Mode (post-Wave 3):** Cross-cutting capability  -  runs at any mode, any scope.
 
 **Hooks called by this skill:** Communication_Drafter (pre/post comms), Stakeholder_Strategy (attendee logic), Risk_and_Tracker (decisions/RAID), ba-meeting-debrief (post-workshop processing), Visual_Storytelling (workshop visuals), Sponsor_Engagement (sponsor pre-brief).
 
@@ -475,11 +475,10 @@ Per the Meeting Debrief skill output format. Includes decisions, actions, OQs, r
 
 **Living tracker updates:** Workshop schedule, attendee confirmation status, decisions made, actions assigned, OQs surfaced. Cross-link each tracker item to the workshop where it originated.
 
-**Anti-pattern this skill prevents:** "Workshop as ritual" — recurring meetings where nothing is decided, attendance dwindles, and the BA does the actual decision-making after the workshop in 1:1s. The workshop should produce the decision, not be the venue where the decision is rubber-stamped.
+**Anti-pattern this skill prevents:** "Workshop as ritual"  -  recurring meetings where nothing is decided, attendance dwindles, and the BA does the actual decision-making after the workshop in 1:1s. The workshop should produce the decision, not be the venue where the decision is rubber-stamped.
 
 ---
 
 ## Migration note (Wave 3 consolidation)
 
 This skill **absorbed `ba-kickoff-preparation`** in Wave 3. The Kickoff workshop is now Template 1 here. Hooks previously calling `ba-kickoff-preparation` should now call `ba-workshop-design` with `template: "kickoff"` (or just invoke the skill and it will route to the right template based on context).
-

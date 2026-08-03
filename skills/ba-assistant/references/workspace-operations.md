@@ -1,57 +1,60 @@
-# Workspace Operations Reference (doc — demoted from always-on rule)
+# Workspace Operations Reference
 
-**Location:** `~/.cursor/skills/ba-assistant/references/workspace-operations.md`
-**Was:** `rules/workspace-operations.mdc` (alwaysApply). Demoted in the always-on restructure (D). The Downloads check is hard-wired into the session-init hook (D5); this reference keeps the full procedure and locations.
-**Last reviewed:** 2026-07-05
+**Location:** `~/.cursor/skills/ba-assistant/references/workspace-operations.md`  
+**Last reviewed:** 2026-08-03 (Version 10 — cross-platform)
 
+Configurable paths (set in **ba-setup** Step 2.5):
 
-# Workspace Operations
+| Variable | Purpose | Typical default |
+|---|---|---|
+| `BA_DOWNLOADS_PATH` | Transcripts / downloads inbox | `~/Downloads` |
+| `BA_INITIATIVES_ROOT` | Initiative blueprints root | `~/.cursor/blueprints` |
+| `BA_SHARED_REPO_ROOT` | Shared delivery repo for `/handover` | (optional) |
 
-## Input File Locations
+---
 
-| Input Type | Where to Put It | Notes |
-|------------|-----------------|-------|
-| **Meeting transcripts (.docx)** | The user's downloads folder (configure via `BA_DOWNLOADS_PATH` environment variable) | **Auto-check on every resume/new task.** See §Downloads Check below. |
-| Meeting audio (.m4a, .mp3) | `tools/whisper/data/input/` | Output in `data/output/` |
-| Handwritten notes (photos) | `tools/notebook-ocr/inbox/` | Auto-processed if watcher running |
-| PowerPoint (.pptx) | Anywhere, reference directly | Auto-converted to `.cursor/converted/` |
-| Data for analysis | `context/data/` | Temporary staging |
-| Screenshots | Attach directly in chat | Or put in project folder |
+## Downloads / transcripts check
 
-## Downloads Check (mandatory)
+On resume, `/reanchor`, `/workboard`, and `/wrap`: list recent files in `BA_DOWNLOADS_PATH` (all types, not only `.docx`). Flag anything unprocessed vs SESSION-CONTEXT / tracker.
 
-**On every session start, resume, or return from a meeting:**
+### Platform commands
 
-1. **Immediately** list `.docx` files in the user's downloads folder (configure via `BA_DOWNLOADS_PATH` environment variable) sorted by `LastWriteTime` descending (top 5).
-2. If any `.docx` files are **newer than the last known session timestamp** (check SESSION-CONTEXT session log), treat them as unprocessed meeting transcripts.
-3. Extract text using `py -c "from docx import Document; ..."` and process as a debrief.
-4. **Do not assume there are no new files.** Always check. The user may download meeting transcripts to their Downloads folder. Check for new .docx files and process them as debriefs.
+| OS | How to list |
+|---|---|
+| **Windows** | Prefer `cmd /c dir "%BA_DOWNLOADS_PATH%" /a-d /o-d`. On some Windows profiles, PowerShell `Get-ChildItem` and .NET directory APIs silently return empty for Downloads. If that happens, use `cmd /c dir` only. |
+| **macOS / Linux** | `ls -lt "$BA_DOWNLOADS_PATH"` or the agent **Glob** tool. Do not use Windows `cmd`. |
+| **Any OS** | Prefer **Glob** / **Read** over Shell when the tool can see the folder. |
 
-This check should happen **before** asking the user what they need.
+### Scoped windows
 
-## Agent temporary / scratch files
+| Flow | Window |
+|---|---|
+| `/debrief` with `@` attachment | Skip Downloads scan |
+| `/debrief` finding newest transcript | ~3 days |
+| Resume / `/workboard` / `/wrap` | ~7 days |
 
-**Do not** write throwaway or intermediate files (MCP JSON payloads, one-line exports, scratch scripts, debug dumps, merge artifacts) under **OneDrive-backed workspace trees** — sync and long paths make that slow and noisy.
+---
 
-**Prefer** the machine local temp area instead, for example:
+## Shell safety (all platforms)
 
-- **PowerShell:** `$env:LOCALAPPDATA\Temp\cursor-agent-scratch\` (create the folder if missing), or `$env:TEMP\` with a clear filename prefix like `cursor-`.
-- **Stable path (this profile):** `$LOCALAPPDATA/Temp/cursor-agent-scratch/` (Windows) or `/tmp/cursor-agent-scratch/` (macOS/Linux)
+1. Prefer **Read / Glob / MCP** over Shell for file inspection.
+2. Avoid nested shells that expand variables before the inner command runs (especially nested `powershell -Command` with `$vars` on Windows).
+3. Throwaway scripts: use the OS temp directory (e.g. `%TEMP%\cursor-agent-scratch` or `$TMPDIR`), never initiative blueprint folders.
+4. Validate JSON with a small Python one-liner or a package script when needed.
 
-Use the repo `tools/` folder only for **intentional** project artifacts the team keeps; not for ephemeral agent output.
+---
 
-## MCP Tools Available
+## Multi-root workspaces
 
-| Tool | Purpose |
-|------|---------|
-| **Jira MCP** | Create, read, update Jira cards |
-| **Confluence MCP** | Search, read, create Confluence pages |
+Multi-root Cursor workspaces are fine. Classify by **user intent**, not which folder is focused. Initiative state lives under `BA_INITIATIVES_ROOT` / `blueprints/{slug}/`. Cross-initiative data lives in `~/.cursor/_workstream/`.
 
-## Claude Code (optional)
+---
 
-To use **Claude Code** inside Cursor (Anthropic's coding assistant with inline diffs, @-mentions, plan review):
+## Calendar feed (optional)
 
-1. **Install the extension** — In Cursor: **Cmd+Shift+X** → search **"Claude Code"** (publisher: Anthropic) → **Install**. Or open: `cursor:extension/anthropic.claude-code` in a browser/link handler that Cursor supports.
-2. **Open Claude Code** — Click **✱ Claude Code** in the status bar (bottom-right) or the **spark icon** in the editor toolbar (top-right when a file is open). Or **Cmd+Shift+P** → "Claude Code: Open in New Tab".
-3. **Sign in** — On first open, sign in with your Claude Pro/Max or Anthropic Console account.
-4. **CLI in terminal** — To use the CLI in Cursor's terminal: ensure `~/.local/bin` is in PATH (see `~/.zshrc`), then run `claude`. Use `/ide` if you started `claude` in an external terminal and want to connect to Cursor.
+Populate `_workstream/calendar-feed.json` via:
+
+- Windows: `references/sample-scripts/get-calendar.ps1` (Outlook COM)
+- macOS: `references/sample-scripts/get-calendar.mac.sh` (Calendar.app)
+
+Not required for `/workboard`.

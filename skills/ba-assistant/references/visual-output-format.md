@@ -103,13 +103,13 @@ Every interactive HTML diagram uses the same design system so they feel like one
 
 ---
 
-## 4. Supported diagram types — and when to use each
+## 4. Supported diagram types  -  and when to use each
 
 Every visual must earn its place: it answers a specific question or anchors a specific decision. If it just duplicates the text, skip it (or replace the text).
 
 | # | Type | When | What it shows | Format | Watch for |
 |---|---|---|---|---|---|
-| 1 | Initiative one-pager | PM/exec needs the initiative in 60 seconds | Problem → stakeholder impact → gap vs future state → solution at a glance → success metrics → key blockers | Interactive HTML (or static SVG for decks) | Density — must read in under 60s |
+| 1 | Initiative one-pager | PM/exec needs the initiative in 60 seconds | Problem → stakeholder impact → gap vs future state → solution at a glance → success metrics → key blockers | Interactive HTML (or static SVG for decks) | Density  -  must read in under 60s |
 | 2 | Current state architecture | Solution shaping, technical discovery, onboarding | Services, data stores, integration points, external dependencies | Mermaid `flowchart` / HTML flowchart template | Only the boxes that matter for THIS initiative |
 | 3 | Future state architecture | Solution shaping, ADRs, playback | Current-state shape with proposed changes highlighted | Mermaid / HTML | Mark new vs unchanged explicitly |
 | 4 | Sequence diagram | A specific cross-service flow where order matters | Actors + messages chronologically | Mermaid `sequenceDiagram` | Don't use when sequence doesn't matter |
@@ -117,12 +117,12 @@ Every visual must earn its place: it answers a specific question or anchors a sp
 | 6 | Stakeholder influence × interest grid | Stakeholder Strategy | 2×2 grid, engagement strategy per quadrant | SVG/HTML (spatial accuracy beats Mermaid) | Anchor placement in evidence, not impressions |
 | 7 | Progress dashboard | Risk & Tracker snapshots | Phase %, confidence deltas, risk trend, sign-off rate, overdue items | HTML widget | Highlight what CHANGED, not everything |
 | 8 | Gantt timeline | Date-sensitive work, critical path | Items on a timeline, dependencies, critical path, slack | Mermaid `gantt` or SVG | Show slack and risk, not just bars |
-| 9 | Side-by-side option comparison | Solution Shaping with 2-3 options | Parallel columns, SAME dimensions per option (pros, cons, effort, risk) | HTML widget | Apples to apples — identical dimensions |
+| 9 | Side-by-side option comparison | Solution Shaping with 2-3 options | Parallel columns, SAME dimensions per option (pros, cons, effort, risk) | HTML widget | Apples to apples  -  identical dimensions |
 | 10 | Decision tree | Non-trivial ADR with branching consequences | Question, options, consequence of each | Mermaid `flowchart` | One decision per tree |
 | 11 | Journey map (current vs future) | UX / service design / operational change | User steps, pain points highlighted, future state side by side | SVG/HTML (see §7) | Map the ACTUAL flow, not the sanitised one |
 | 12 | Risk heatmap | 5+ open risks | Probability × impact plot, mitigation status marked | SVG/HTML | Show what's mitigated vs still open |
 
-### Template file mapping (local — kept from the pre-W10 table)
+### Template file mapping (local  -  kept from the pre-W10 table)
 
 | Type | Template file |
 |---|---|
@@ -154,13 +154,13 @@ Flowchart is the only template fully built. The others are TODO until first real
 ### Required content per node
 
 Every node has, captured in the `nodes` JS object:
-- `type` — one of: deterministic / ai / human / decision / output
-- `title` — short label visible on the node
-- `actor` — who or what performs the step
-- `duration` — typical time
-- `desc` — 1-2 sentence plain-English description of what happens
-- `failures` — known failure modes (1-2 sentences)
-- `tags` — array of related requirement IDs, RAID IDs, ADR IDs
+- `type`  -  one of: deterministic / ai / human / decision / output
+- `title`  -  short label visible on the node
+- `actor`  -  who or what performs the step
+- `duration`  -  typical time
+- `desc`  -  1-2 sentence plain-English description of what happens
+- `failures`  -  known failure modes (1-2 sentences)
+- `tags`  -  array of related requirement IDs, RAID IDs, ADR IDs
 
 ### Required content on edges
 
@@ -230,7 +230,7 @@ Every node has, captured in the `nodes` JS object:
 
 Three patterns depending on environment support.
 
-### Pattern A — Confluence supports native Mermaid
+### Pattern A  -  Confluence supports native Mermaid
 
 Inline the Mermaid block in the Confluence page. Use the same colour taxonomy via `classDef`:
 
@@ -244,14 +244,14 @@ classDef out fill:#ede9fe,stroke:#7c3aed,stroke-width:2px,color:#1c1c1c
 
 Use this when the reader will only consume in Confluence and the diagram has <12 nodes.
 
-### Pattern B — Confluence does NOT support native Mermaid (no Mermaid plugin installed)
+### Pattern B  -  Confluence does NOT support native Mermaid (current [Organisation] state)
 
 1. Generate the interactive HTML standalone file
 2. Attach to the Confluence page (`createConfluenceAttachment` or manual upload)
 3. Take a screenshot of the rendered HTML and embed the image inline as a preview
 4. Add a caption: "Interactive version attached to this page. Click to download for clickable detail."
 
-### Pattern C — Standalone link (Slack, email, ticket)
+### Pattern C  -  Standalone link (Slack, email, ticket)
 
 1. Generate the interactive HTML file in the initiative's `visuals/` folder
 2. Share the file directly or host on internal share
@@ -260,7 +260,7 @@ Use this when the reader will only consume in Confluence and the diagram has <12
 
 The Visual Storytelling skill decides based on context:
 - If output destination is Confluence AND environment has Mermaid plugin → Pattern A
-- If output destination is Confluence AND no plugin → Pattern B (default when no Mermaid plugin)
+- If output destination is Confluence AND no plugin → Pattern B (default for [Organisation])
 - If output destination is non-Confluence (Slack, email, attached file) → Pattern C
 
 When ambiguous, ask the user once via AskQuestion. Don't guess.
@@ -287,12 +287,12 @@ The template HTML files are the source of truth for design system + interaction 
 
 | Watching | Trigger | Anti-pattern flagged |
 |---|---|---|
-| Visual Storytelling | Visual produced as Mermaid AND destination is Confluence Pattern B (no native render) | Mermaid in non-rendering environment — should be interactive HTML |
-| Visual Storytelling | Visual produced AND no colour taxonomy applied (default browser styling) | Off-standard visual — missing design system |
-| Visual Storytelling | Flowchart >12 nodes on one page | Diagram too dense — split into sub-flows |
-| Visual Storytelling | Node lacks `desc` or `failures` content in the data object | Incomplete node detail — fails the standard |
+| Visual Storytelling | Visual produced as Mermaid AND destination is Confluence Pattern B (no native render) | Mermaid in non-rendering environment  -  should be interactive HTML |
+| Visual Storytelling | Visual produced AND no colour taxonomy applied (default browser styling) | Off-standard visual  -  missing design system |
+| Visual Storytelling | Flowchart >12 nodes on one page | Diagram too dense  -  split into sub-flows |
+| Visual Storytelling | Node lacks `desc` or `failures` content in the data object | Incomplete node detail  -  fails the standard |
 | Visual Storytelling | Mixed taxonomy (e.g. node coloured human but described as system action) | Taxonomy mismatch |
-| Project Canvas | Canvas regenerated AND visual outputs not refreshed | Stale linked visuals — canvas update implies visual update |
+| Project Canvas | Canvas regenerated AND visual outputs not refreshed | Stale linked visuals  -  canvas update implies visual update |
 
 ---
 
@@ -318,19 +318,20 @@ ATTACH TO CONFLUENCE: HTML file + PNG preview inline
 MERMAID: only for Confluence pages with working plugin AND <12 nodes
 TEMPLATE LOCATION: references/templates/<type>.html
 ```
+
 ---
 
 ## 13. Storytelling framework (for narrative visuals)
 
 For any narrative-driven visual (one-pagers, playback decks, status comms), structure the story as:
 
-1. **Problem** — what's the situation, who experiences it, why does it matter?
-2. **Evidence** — what do we know, what data backs it, what was investigated?
-3. **Choice** — what are the options, what's recommended, what was rejected?
-4. **Consequence** — what happens if we proceed; what changes, what doesn't?
-5. **Ask** — what decision is needed, from whom, by when?
+1. **Problem**  -  what's the situation, who experiences it, why does it matter?
+2. **Evidence**  -  what do we know, what data backs it, what was investigated?
+3. **Choice**  -  what are the options, what's recommended, what was rejected?
+4. **Consequence**  -  what happens if we proceed; what changes, what doesn't?
+5. **Ask**  -  what decision is needed, from whom, by when?
 
-Not every visual needs all five, but the arc should be visible. For multi-visual outputs (playback deck, sectioned one-pager), sequence the visuals along this arc — each one moves the narrative forward. A visual that is pretty but supports no decision or finding gets redone or cut.
+Not every visual needs all five, but the arc should be visible. For multi-visual outputs (playback deck, sectioned one-pager), sequence the visuals along this arc  -  each one moves the narrative forward. A visual that is pretty but supports no decision or finding gets redone or cut.
 
 ---
 
@@ -343,7 +344,7 @@ Not every visual needs all five, but the arc should be visible. For multi-visual
 
 ### Steps
 
-1. Pick the type from §4. 2. **Anchor in content** — pull actuals from the tracker, register, or solution options; never emit a generic template. 3. Produce per the format decision (§8) and template (§9). 4. Apply §13 if narrative. 5. Self-critique: does it answer the question? readable in 60 seconds? does it earn its place vs the text? 6. Output with the block below and offer iteration.
+1. Pick the type from §4. 2. **Anchor in content**  -  pull actuals from the tracker, register, or solution options; never emit a generic template. 3. Produce per the format decision (§8) and template (§9). 4. Apply §13 if narrative. 5. Self-critique: does it answer the question? readable in 60 seconds? does it earn its place vs the text? 6. Output with the block below and offer iteration.
 
 ### Output block (every visual)
 
@@ -356,12 +357,12 @@ Self-critique: <what would a senior reviewer push back on?>
 
 ### Iteration loop
 
-Visuals rarely land first time. Offer: more/less detail, different format, shifted emphasis. If the user says it isn't hitting the mark, don't regenerate blind — ask what specifically isn't working (usual suspects: wrong detail level, wrong story emphasis, wrong format for destination, generic where it needed to be specific).
+Visuals rarely land first time. Offer: more/less detail, different format, shifted emphasis. If the user says it isn't hitting the mark, don't regenerate blind  -  ask what specifically isn't working (usual suspects: wrong detail level, wrong story emphasis, wrong format for destination, generic where it needed to be specific).
 
 ### Boundaries (unchanged from the skill)
 
 Doesn't write text content (pulls it from other skills' outputs); doesn't pick the recommended option (shows the options); complements narrative, never replaces it; no visuals for their own sake.
 
-### Summoning a visual directly (Wave 10 — discoverability)
+### Summoning a visual directly (Wave 10  -  discoverability)
 
 Users can invoke this standard without naming any skill: "interactive HTML flowchart of X", "clickable flow diagram", "HTML diagram I can send to stakeholders" all route here (see `skills-routing.mdc`). For flowcharts specifically: read §5 + §9, start from `references/templates/flowchart.html` (design system, interaction pattern, and detail panel stay as-is; replace header, stats, nodes, edges, and the `nodes` JS object with real content), save to `<initiative-folder>/visuals/<slug>.html`.

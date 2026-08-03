@@ -1,21 +1,26 @@
 ---
-description: Critical gates registry — WHEN every gate fires and WHERE its logic lives. Compact, always-on. Gate logic stays lazy.
+description: Critical gates registry  -  WHEN every gate fires and WHERE its logic lives. Compact, always-on. Gate logic stays lazy.
 alwaysApply: true
 ---
 
 # Critical gates registry
 
-This registry is the always-on **WHEN**. The **WHAT** (each gate's logic) stays in lazily-loaded skills and references — an unloaded skill must never be an invisible trigger. Hard gates are enforced by lifecycle hooks (deterministic, fire regardless of what's loaded); reasoning gates are soft-but-visible (see agent-behavior → Gate visibility: visible result line + default-deny).
+This registry is the always-on **WHEN**. The **WHAT** (each gate's logic) stays in lazily-loaded skills and references  -  an unloaded skill must never be an invisible trigger. Hard gates are enforced by lifecycle hooks (deterministic, fire regardless of what's loaded); reasoning gates are soft-but-visible (see agent-behavior → Gate visibility: visible result line + default-deny).
 
 | Gate | Fires when | Enforcement | Logic lives in |
 |---|---|---|---|
-| Jira DoR gate | A Story is about to be created in Jira | **HARD** — `beforeMCPExecution` hook (jira-dor-gate) denies without DoR pass evidence | `ba-story-writing` DoR section, `user-story-format.md §6` |
-| Shared-repo leak guard | A file under `BA_SHARED_REPO_ROOT` is edited / committed | **HARD** — `afterFileEdit` warns; `beforeShellExecution` denies git commit/push with leaks | `dev-handover-format.md §1, §7` |
-| Handover readiness + gate | `/handover` before any publish | Reasoning gate — visible result, default-deny | `ba-dev-handover` Tasks 3–4 |
+| Jira DoR gate | A Story is about to be created in Jira | **HARD:** `beforeMCPExecution` hook (jira-dor-gate) denies without DoR pass evidence | `ba-story-writing` DoR section, `user-story-format.md §6` |
+| Shared-repo leak guard | A file under `BA_SHARED_REPO_ROOT` is edited / committed | **HARD:** `afterFileEdit` warns; `beforeShellExecution` denies git commit/push with leaks | `dev-handover-format.md §1, §7` |
+| Miro pre-flight gate | Miro `layout_create` is about to be called | **HARD:** `beforeMCPExecution` hook (gate-miro-preflight) denies without a fresh plan file containing `## Board inventory (context_explore)` + `## Board placement`, or `$env:CURSOR_MIRO_PREFLIGHT_OK=1` override | `miro-board-analysis/algorithm.md` Pass 2b-0/2b, `miro-enforcement.mdc` (hardened Jul 2026 after HLR-08 overlap) |
+| Handover readiness + gate | `/handover` before any publish | Reasoning gate, visible result, default-deny | `ba-dev-handover` Tasks 3–4 |
 | Interrogate before register | A requirement is about to enter the register | Reasoning gate | `ba-requirements-interrogator` (HK-DISC-INT-pre-register) |
 | Ground before scoring | A confidence score / priority / risk rating is about to be locked in | Reasoning gate | `ba-data-investigation` (HK-*-BDI-* hooks) |
 | Pre-publish state validation | Before `/publish-status` or any Confluence publish | Reasoning gate | `ba-state-validator`, `references/sync-procedures.md` |
 | Phase/workstream exit gates | A workstream is about to be marked complete for a scope | Reasoning gate | `ba-assistant/SKILL.md → Gates` |
-| Unpromoted-state breakpoints | End of agent response / pre-compaction | **HARD** — `stop` + `preCompact` hooks compute drift from files | `stop-sync-check.sh`, `references/sync-procedures.md` |
+| Unpromoted-state breakpoints | End of agent response / pre-compaction | **HARD:** `stop` + `preCompact` hooks compute drift from files | `stop-sync-check.sh`, `references/sync-procedures.md` |
+| Em dash guard | Agent writes or edits a text file, or ends a chat turn | **HARD:** `postToolUse`/`afterFileEdit` hook (`em-dash-guard.py`) warns on U+2014 in files; `afterAgentResponse` prompt forces chat scan | `no-em-dashes.mdc` |
+| Nested PowerShell hang guard | Agent Shell tool runs nested `powershell -Command` with unescaped `$variables` | **HARD:** `beforeShellExecution` hook (`gate-powershell-nested.py`) denies before spawn | `powershell-shell-safe.mdc` |
+| Register scope format | Agent writes Scope In/Out on `requirements-register.md` | Reasoning gate | `requirements-register-unified-template.md` §2a (5–7 short bullets; detail in children) |
+| Register edit on interrogated/confirmed | Agent edits a register section where parent `status` is `interrogated` or `confirmed` | Reasoning gate, default-deny | `requirements-register-unified-template.md` §2b, `ba-requirements-interrogator` Step 4 |
 
-Rules: a hook denial is never argued with — fix the cause. A reasoning gate that can't confirm it ran = the gated output does not ship. This table changes only with a matching update to `hook-contracts.md`.
+Rules: a hook denial is never argued with  -  fix the cause. A reasoning gate that can't confirm it ran = the gated output does not ship. This table changes only with a matching update to `hook-contracts.md`.

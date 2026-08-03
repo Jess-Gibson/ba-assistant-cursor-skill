@@ -1,6 +1,6 @@
 # Template: Workshop / Facilitation Board
 
-Patterns for building workshop boards — kickoffs, discovery sessions, retrospectives, and general facilitation. All dimensional values and colours reference `design-system.md`.
+Patterns for building workshop boards  -  kickoffs, discovery sessions, retrospectives, and general facilitation. All dimensional values and colours reference `design-system.md`.
 
 For verified kickoff-specific DSL patterns, see `kickoff-board-template.md`.
 For spike card DSL, see `spike-card-template.md`.
@@ -13,7 +13,7 @@ Build a complete kickoff workshop board as a single wide frame. One horizontal f
 
 **Approach:**
 1. Call `layout_get_dsl` once to get the DSL spec
-2. Plan the full layout — calculate frame sizes and positions
+2. Plan the full layout  -  calculate frame sizes and positions
 3. Build all content in a single `layout_create` call (or split into logical batches if content exceeds 50,000 chars)
 
 **Verified kickoff board structure (horizontal, ~27500 x 2540):**
@@ -41,7 +41,7 @@ Build a complete kickoff workshop board as a single wide frame. One horizontal f
 Each section uses the Content Panel Pattern from `design-system.md`:
 1. Coloured header shape (round_rectangle, one of the 5 tiers, h=82 standard)
 2. Grey backdrop box below the header (`fill=#e6e6e6 type=rectangle`, sized to fit actual content)
-3. Text element positioned **inside** the grey box — text y near the TOP (NOT vertically centered)
+3. Text element positioned **inside** the grey box  -  text y near the TOP (NOT vertically centered)
 4. Other content (stickies, tables, cards) positioned as needed within or around the grey zone
 
 ---
@@ -54,7 +54,7 @@ Create an open area for participants to add stickies. The facilitator provides t
 - A **frame** sized generously (e.g., 3000 x 2000)
 - A **title shape** (Secondary tier: `fill=#c497fe color=#7b14ef`) at the top with the brainstorm prompt
 - **Seed stickies** (2-3 examples using `light_yellow` to prime thinking)
-- Leave the rest of the frame empty — participants add their own stickies during the session
+- Leave the rest of the frame empty  -  participants add their own stickies during the session
 
 **Color convention for brainstorming:**
 
@@ -70,7 +70,7 @@ Create an open area for participants to add stickies. The facilitator provides t
 
 ## Pattern 2b: Q&A Sticky Grid
 
-Structured question-and-answer pairs — a grid of alternating coloured stickies.
+Structured question-and-answer pairs  -  a grid of alternating coloured stickies.
 
 **Build with `layout_create`:**
 - A **background shape** (`fill=#f5f5f5`, `type=rectangle` for the content area, or `type=round_rectangle` for bounded zones)
@@ -80,7 +80,7 @@ Structured question-and-answer pairs — a grid of alternating coloured stickies
   - `light_yellow` sticky (below, +180 y offset, same width) = space for the response
 - Multiple columns side by side (x spacing ~453px per column, center-to-center)
 - Multiple rows of pairs (y spacing ~470px per pair group)
-- Grid fits inside the background shape — typically 5-6 columns across `w=2397`
+- Grid fits inside the background shape  -  typically 5-6 columns across `w=2397`
 
 **DSL example (single Q&A pair):**
 ```
@@ -94,10 +94,10 @@ STICKY parent={frameUrl} x=4352 y=652 w=365 color=light_yellow shape=rectangle a
 
 ## Pattern 3: Sticky Stack (Structured Input)
 
-Participants respond to a specific question — a vertical column of stickies.
+Participants respond to a specific question  -  a vertical column of stickies.
 
 **Build with `layout_create`:**
-- A **frame** (600 x 2000 — narrow and tall)
+- A **frame** (600 x 2000  -  narrow and tall)
 - A **question text** or shape at the top
 - Pre-placed **numbered stickies** as slots (e.g., "1. [Your idea]", "2. [Your idea]") OR leave empty for free-form contribution
 
@@ -124,7 +124,7 @@ After discussion, capture decisions, owners, and actions.
 
 ### Pattern 4b: Actions List with Text (Long Format)
 
-For detailed action lists captured during workshops — see DSL snippet in `design-system.md` under "Dark Header" and "Content Panel" templates.
+For detailed action lists captured during workshops  -  see DSL snippet in `design-system.md` under "Dark Header" and "Content Panel" templates.
 
 ---
 
@@ -155,7 +155,7 @@ Structured space for dot-voting or priority ranking.
 
 ## Pattern 7: Retrospective Board
 
-Classic retro format with columns — uses the same visual system as RAID columns.
+Classic retro format with columns  -  uses the same visual system as RAID columns.
 
 **Build with `layout_create`:**
 - Wide frame (4000 x 2000)
@@ -178,13 +178,13 @@ Classic retro format with columns — uses the same visual system as RAID column
 
 ## Pattern 7b: RAID Board
 
-Dedicated RAID capture area — matches the verified board structure.
+Dedicated RAID capture area  -  matches the verified board structure.
 
 **Build with `layout_create`:**
-- Section header: Secondary tier shape, `fill=#c497fe fill_opacity=0.7 color=#394666` size 64, wide (`w=3147 h=119`) — titled "RAID"
+- Section header: Secondary tier shape, `fill=#c497fe fill_opacity=0.7 color=#394666` size 64, wide (`w=3147 h=119`)  -  titled "RAID"
 - Four columns, each:
   - Column container: `type=round_rectangle fill=#ffffff fill_opacity=0.0 border_color=#abacf1 border_style=normal border_width=8.0 border_opacity=1.0 w=756 h=1675`
-  - Title text: `color=#7b14ef size=80` — "Risks", "Assumptions", "Issues", "Dependencies"
+  - Title text: `color=#7b14ef size=80`  -  "Risks", "Assumptions", "Issues", "Dependencies"
   - Description text: `color=#8241aa size=24`
   - Spacing: ~800px apart center-to-center
 - Stickies inside columns follow Pattern C (see `design-system.md` Sticky Note Colours):
@@ -220,14 +220,14 @@ Display team members grouped by organisation or function using coloured cards.
 **Build with `layout_create` or `card_create`:**
 - Tertiary header shape (`fill=#fff854 color=#394666` size 64) titled "Stakeholders"
 - Content panel (standard grey pattern)
-- Team labels as text items: `color=#7b14ef size=39` for internal (e.g., "Internal Team"), `color=#2d9bf0 size=39` underlined for external (e.g., "Partner A", "Partner B")
+- Team labels as text items: `color=#7b14ef size=39` for internal (e.g., "[Organisation]"), `color=#2d9bf0 size=39` underlined for external (e.g., "CXNPL", "GSB")
 - Cards for each stakeholder, themed by role type (see Pattern D in `design-system.md`):
-  - `#af7e04` (amber) — BA / PM leads
-  - `#fe02a7` (magenta) — PM / Commercial
-  - `#659df2` (blue) — Design
-  - `#ffdc4a` (gold) — Tech team
-  - `#067429` (dark green) — Specialist tech
-  - `#2dc75c` (green) — PMM / Marketing
+  - `#af7e04` (amber)  -  BA / PM leads
+  - `#fe02a7` (magenta)  -  PM / Commercial
+  - `#659df2` (blue)  -  Design
+  - `#ffdc4a` (gold)  -  Tech team
+  - `#067429` (dark green)  -  Specialist tech
+  - `#2dc75c` (green)  -  PMM / Marketing
 - Each card shows: Name, Role
 - Grouped by function or team under the relevant label
 
@@ -307,11 +307,11 @@ Use Miro tables for structured plans with select-type columns.
 
 ## Facilitation Best Practices
 
-1. **Leave space for humans** — don't fill every pixel; workshops need room for participant contribution
-2. **Seed, don't solve** — provide 2-3 example stickies to prime thinking, not a complete answer
-3. **Structure enables contribution** — clear prompts and labeled areas reduce confusion
-4. **Q&A pairs for structured questions** — `black` prompt on top, `violet` space below for answers (standard pattern)
-5. **RAID stickies are rectangles** — `w=154` for items, `w=212` for items needing more text, all `shape=rectangle`
-6. **Open canvas for divergent thinking** — when brainstorming, give maximum space with minimal structure
-7. **Use real clock times** — agenda timings must use actual meeting times (e.g. "11:00–11:15 AEST"), not relative offsets
-8. **Actionable facilitation instructions** — never use vague labels like "DOT VOTE HERE". Always include clear participant instructions: what to do, how many, and the outcome
+1. **Leave space for humans**  -  don't fill every pixel; workshops need room for participant contribution
+2. **Seed, don't solve**  -  provide 2-3 example stickies to prime thinking, not a complete answer
+3. **Structure enables contribution**  -  clear prompts and labeled areas reduce confusion
+4. **Q&A pairs for structured questions**  -  `black` prompt on top, `violet` space below for answers (standard pattern)
+5. **RAID stickies are rectangles**  -  `w=154` for items, `w=212` for items needing more text, all `shape=rectangle`
+6. **Open canvas for divergent thinking**  -  when brainstorming, give maximum space with minimal structure
+7. **Use real clock times**  -  agenda timings must use actual meeting times (e.g. "11:00–11:15 AEST"), not relative offsets
+8. **Actionable facilitation instructions**  -  never use vague labels like "DOT VOTE HERE". Always include clear participant instructions: what to do, how many, and the outcome

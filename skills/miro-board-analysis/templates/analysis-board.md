@@ -1,6 +1,6 @@
 # Template: Analysis / Status Board
 
-A horizontal board for initiative analysis, status updates, or solution comparison. Use for boards like "ACMA SMS — Payments Analysis" or any initiative overview that combines problem context, analysis findings, solution options, RAID, and actions.
+A horizontal board for initiative analysis, status updates, or solution comparison. Use for boards like "ACMA SMS  -  Payments Analysis" or any initiative overview that combines problem context, analysis findings, solution options, RAID, and actions.
 
 ---
 
@@ -25,7 +25,7 @@ All section headers use `h=82, size=64`. Differentiate via color tier, not font 
 
 **Typical total frame width:** 200 + 874 + 100 + 874 + 200 + 2162 + 200 + 2712 + 200 + 3174 + 200 + 1821 + 200 = ~12917px (adjust per actual content)
 
-**Frame height:** Varies by content density. Simple analysis boards: 2200-3000px. Comprehensive boards (problem + options + full RAID + actions + timeline): may exceed 5000px tall. Always content-fitted — never pad height for visual uniformity.
+**Frame height:** Varies by content density. Simple analysis boards: 2200-3000px. Comprehensive boards (problem + options + full RAID + actions + timeline): may exceed 5000px tall. Always content-fitted  -  never pad height for visual uniformity.
 
 ---
 
@@ -41,7 +41,7 @@ Row 1: [Problem + Where We Are] [Key People + Scope] [Options or wider content c
 
 Row 2: [Full-width RAID bar]
         [Risks] [Assumptions] [Dependencies] [Unknowns]
-        4 columns OK — RAID is a recognized 4-column pattern
+        4 columns OK  -  RAID is a recognized 4-column pattern
 
 Row 3: [Full-width Actions bar]
         [Decisions] [Comms] [Actions] [Timeline + Confidence]
@@ -50,7 +50,7 @@ Row 3: [Full-width Actions bar]
 
 Use full-width banner bars (Dark tier, `fill=#232428`) between major rows to create clear visual breaks.
 
-**Grey box heights within each row are independently content-fitted** — NEVER normalised to the tallest. Uneven bottom edges are correct.
+**Grey box heights within each row are independently content-fitted**  -  NEVER normalised to the tallest. Uneven bottom edges are correct.
 
 ---
 
@@ -76,10 +76,10 @@ Each option gets its own column within the wider section:
 
 ## Content Completeness Checklist (MANDATORY for analysis boards)
 
-Before building, **read ALL source documents** — do not summarise from memory:
+Before building, **read ALL source documents**  -  do not summarise from memory:
 
-- [ ] `initiative-tracker.md` — decisions, RAID, requirements, knowns, unknowns
-- [ ] `SESSION-CONTEXT.md` — recent session decisions, blockers, open questions
+- [ ] `initiative-tracker.md`  -  decisions, RAID, requirements, knowns, unknowns
+- [ ] `SESSION-CONTEXT.md`  -  recent session decisions, blockers, open questions
 - [ ] Solution option outputs (e.g. `solution-options-*.md`)
 - [ ] Meeting debriefs (all relevant `debriefs/*.md`)
 - [ ] Confluence pages (if referenced in the tracker)
@@ -87,18 +87,18 @@ Before building, **read ALL source documents** — do not summarise from memory:
 ### Content rules
 
 - [ ] ALL RAID items (risks, assumptions, issues, dependencies) from the tracker must appear on the board
-- [ ] ALL decisions from the tracker must appear — with ID, date, owner, status
+- [ ] ALL decisions from the tracker must appear  -  with ID, date, owner, status
 - [ ] No sections omitted as "minor" (Decisions Deferred, Knowns, Attendance, etc.)
-- [ ] All text from the source is included — not summarised or truncated
-- [ ] **Decision-aware filtering** — if a decision has been made (e.g. "going with Option A"), filter content accordingly. Don't include architecture decisions or details that only apply to rejected/parked options.
-- [ ] **Cross-reference multiple sources** — solution options, debriefs, and tracker may have different information. Include all relevant items from each.
+- [ ] All text from the source is included  -  not summarised or truncated
+- [ ] **Decision-aware filtering**  -  if a decision has been made (e.g. "going with Option A"), filter content accordingly. Don't include architecture decisions or details that only apply to rejected/parked options.
+- [ ] **Cross-reference multiple sources**  -  solution options, debriefs, and tracker may have different information. Include all relevant items from each.
 
 ---
 
 ## Building This Board Type
 
 1. Follow the 6-pass Board Construction Algorithm (`algorithm.md`)
-2. In Pass 1, cross-check against the section list above — flag any missing sections
+2. In Pass 1, cross-check against the section list above  -  flag any missing sections
 3. In Pass 2, assign widths from the table above
 4. In Pass 3, read ALL source documents and measure actual content
 5. After Pass 4, output the plan for review

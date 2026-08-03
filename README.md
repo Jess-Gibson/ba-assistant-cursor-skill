@@ -1,5 +1,7 @@
 # BA Assistant for Cursor
 
+**Version 10** — see [CHANGELOG.md](CHANGELOG.md).
+
 A comprehensive Business Analysis assistant built as a Cursor skill. Designed to support BAs through the full initiative lifecycle — from intake and discovery through delivery, playback, and retrospective.
 
 > Originally designed and built by Jess Gibson, Senior BA (2025–2026).
@@ -12,36 +14,38 @@ A comprehensive Business Analysis assistant built as a Cursor skill. Designed to
 The BA Assistant is an AI-powered BA thinking partner that runs inside [Cursor](https://cursor.com). It provides:
 
 - **Guided intake** — structured Phase 0 intake with multi-source context gathering (Confluence, Jira, Glean, web)
-- **Living tracker** — automatic RAID (Risks, Assumptions, Issues, Dependencies, Decisions) tracking across all phases
-- **Feature slicing before stories** — enforced sequencing: problem understanding, current state, requirements, slicing, then delivery definition
+- **Living tracker** — automatic RAID tracking across workstreams
+- **Feature slicing before stories** — enforced sequencing before delivery definition
 - **Interactive project canvas** — 8-tab dashboard with workstream grid, RAID, metrics, and timeline
-- **Meeting debrief** — process transcripts into decisions, actions, risks, and requirement changes
-- **Workshop design** — 9 facilitation templates from kickoff through change management
-- **Anti-pattern detection** — passive monitoring for premature solutioning, scope creep, and missing analysis
-- **Data investigation and evidence pairing** — grounds confidence scores, priorities, and risk ratings in cross-validated data instead of judgement alone, before they get locked in
-- **Retrospectives** — structured learning capture that feeds back into future initiatives
-- **Confluence/Jira integration** — status page publishing, ticket creation, and live sync via MCP
+- **Cross-initiative workboard** — inline `/workboard` procedure (not a sub-skill): phase, blockers, next actions, **BA actions**, today's meetings. Pairs with `/todo` to `ba-actions.json`
+- **Meeting debrief** — transcripts into decisions, actions, risks, and requirement changes
+- **Workshop design** — facilitation templates from kickoff through change management
+- **Anti-pattern detection** — premature solutioning, scope creep, missing analysis
+- **Data investigation** — evidence before confidence scores / priorities / risk ratings
+- **Dev handover** — gated publish of confirmed analysis to the delivery repo
+- **Retrospectives** — structured learning capture
+- **Confluence/Jira integration** — status publishing and ticket sync via MCP
 
-### 24 active sub-skills
+### Sub-skills (orchestrated)
 
 | Phase | Skills |
 |-------|--------|
 | Intake | Intake Reviewer, Setup (first-run wizard) |
 | Kickoff | Workshop Design |
-| Discovery | Current State Assessment, Discovery & Requirements, Requirements Interrogator |
+| Discovery | Current State Assessment, Discovery & Requirements, Requirements Interrogator (incl. Mode 4 HLR review) |
 | Slicing | Feature Slicing & Sequencing |
 | Solution | Solution Shaping |
-| Delivery | Story Writing, Jira Sync |
+| Delivery | Story Writing, Jira Sync, Dev Handover |
 | Playback | Playback & Enablement |
 | Evaluation | Solution Evaluation, Retrospective & Learning |
 | Change | Change Strategy |
-| Cross-cutting | Risk & Tracker, Stakeholder Strategy, Sponsor Engagement, Anti-Pattern Detector, Context Capture, Meeting Debrief, Project Canvas, State Validator, **Data Investigation** |
+| Cross-cutting | Risk & Tracker, Stakeholder Strategy, Sponsor Engagement, Anti-Pattern Detector, Context Capture, Meeting Debrief, Project Canvas, State Validator, Data Investigation |
 
-**Data Investigation** is the canonical data-pairing skill — before a confidence score, priority, risk rating, or solution comparison gets locked in on judgement alone, it's invoked to cross-validate against real data (source ranking, dedup/null/sentinel-date forensics, annotated SQL, a persistent Blocking Questions Log). Called via hooks from Intake, Current State Assessment, Discovery, Solution Shaping, Slicing, Risk & Tracker, and Solution Evaluation.
+**Workboard** is an **inline Run procedure** (`references/workboard-procedure.md`), not a sub-skill folder.
 
 ### Optional companion skill: Miro board analysis
 
-`skills/miro-board-analysis/` is a separate, optional top-level skill (not a `ba-assistant` sub-skill) for building and analysing Miro boards — workshop boards, kickoff templates, debrief boards, spike cards, and a verified design system for consistent widget styling. Install it alongside `ba-assistant` only if you use Miro for workshop facilitation; it requires its own Miro MCP connection.
+`skills/miro-board-analysis/` — workshop boards, kickoff templates, debrief boards, spike cards, Pass 2b placement rules. Optional Miro MCP.
 
 ### Key commands
 
@@ -52,72 +56,76 @@ The BA Assistant is an AI-powered BA thinking partner that runs inside [Cursor](
 | `/canvas` | Generate/refresh the interactive project dashboard |
 | `/report` | Full structured deep-dive report |
 | `/validate-state` | Mid-session drift check (read-only) |
-| `/wrap` | End-of-session closeout — promotes items, refreshes workboard |
-| `/fast-track` | Enable condensed BA flow for time-critical initiatives |
-| `/metrics` | Show BA quality metrics for the initiative |
-| `/retro` | Trigger a retrospective |
+| `/wrap` | End-of-session closeout — promote, sync BA actions, refresh workboard |
+| `/workboard` | Cross-initiative dashboard |
+| `/todo` | Quick-capture into `ba-actions.json` |
+| `/fast-track` | Condensed BA flow for time-critical initiatives |
+| `/metrics` | BA quality metrics |
+| `/retro` | Retrospective |
 | `/reanchor` | Re-read state files when the assistant drifts |
+| `/handover` | Publish confirmed analysis to the delivery repo |
 
 ---
 
-## Quick start
+## Quick start (new install)
+
+See [SETUP.md](SETUP.md) for full steps (skills + rules + hooks + commands).
 
 ```bash
-# Clone the repo, then copy the skill into your Cursor skills directory
-
 # macOS / Linux
 git clone https://github.com/Jess-Gibson/ba-assistant-cursor-skill.git /tmp/ba-cursor-skill
 cp -r /tmp/ba-cursor-skill/skills/ba-assistant ~/.cursor/skills/ba-assistant
 cp /tmp/ba-cursor-skill/rules/*.mdc ~/.cursor/rules/
-# Optional — only if you use Miro for workshop facilitation:
-cp -r /tmp/ba-cursor-skill/skills/miro-board-analysis ~/.cursor/skills/miro-board-analysis
 
 # Windows (PowerShell)
 git clone https://github.com/Jess-Gibson/ba-assistant-cursor-skill.git "$env:TEMP\ba-cursor-skill"
 Copy-Item "$env:TEMP\ba-cursor-skill\skills\ba-assistant" "$env:USERPROFILE\.cursor\skills\ba-assistant" -Recurse
 Copy-Item "$env:TEMP\ba-cursor-skill\rules\*.mdc" "$env:USERPROFILE\.cursor\rules\"
-# Optional — only if you use Miro for workshop facilitation:
-Copy-Item "$env:TEMP\ba-cursor-skill\skills\miro-board-analysis" "$env:USERPROFILE\.cursor\skills\miro-board-analysis" -Recurse
 ```
 
-Then follow the full setup guide in [SETUP.md](SETUP.md).
+First chat runs **ba-setup** (seeds `_workstream/`, optional OS calendar sample).
 
 ---
 
-## Requirements
+## Upgrade from an older install (Version 10)
 
-- **Cursor IDE** with Canvas support
-- **Jira MCP** and **Confluence MCP** servers configured (recommended)
-- Optional: Miro, Glean, Snowflake MCPs
+Preserves personalised `ba-profile.mdc` and `_workstream` data. Migrates legacy `personal_tasks[]` into `ba-actions.json` when safe.
 
-See [SETUP.md](SETUP.md) for detailed installation steps and [CUSTOMIZATION.md](CUSTOMIZATION.md) for personalization options.
+```bash
+# Dry-run first
+python tools/upgrade-ba-assistant.py --package /path/to/ba-assistant-cursor-skill
 
----
-
-## Architecture
-
-```
-skills/ba-assistant/
-  SKILL.md                    # Orchestrator — bootstrap, welcome panel, workstream model
-  instructions.md             # Operating principles, phases, commands, tone
-  hook-contracts.md           # Inter-skill API registry
-  learnings.md                # Cross-initiative patterns (grows over time)
-  references/                 # 7 artefact format standards
-  sub-skills/                 # 24 active skills
-skills/miro-board-analysis/   # Optional companion skill — Miro board building & analysis
-rules/                        # 10 Cursor rules for routing, behaviour, and session management
-hooks/                        # Cross-platform session hooks (PowerShell + Bash)
-blueprints/                   # Starter project folder convention
+# Apply
+python tools/upgrade-ba-assistant.py --package /path/to/ba-assistant-cursor-skill --apply
 ```
 
----
-
-## License
-
-This project is shared for use by Business Analysts. Attribution to the original author is appreciated.
+Windows: `.\tools\upgrade-ba-assistant.ps1 -PackageRoot "C:\path\to\ba-assistant-cursor-skill" -Apply`  
+macOS/Linux: `./tools/upgrade-ba-assistant.sh /path/to/ba-assistant-cursor-skill --apply`
 
 ---
 
-## Contributing
+## Calendar (optional)
 
-Found something that could be better? PRs welcome. The BA methodology in the sub-skills is based on BABOK, ADKAR, and real-world initiative experience — if you have patterns to contribute, the `/retro` flow is designed to capture exactly that.
+| OS | Sample |
+|---|---|
+| Windows + Outlook | `skills/ba-assistant/references/sample-scripts/get-calendar.ps1` |
+| macOS + Calendar.app | `skills/ba-assistant/references/sample-scripts/get-calendar.mac.sh` |
+
+Both write `_workstream/calendar-feed.json`. `/workboard` works without a calendar.
+
+---
+
+## Repo layout
+
+```
+skills/ba-assistant/          # Orchestrator + sub-skills + references
+skills/miro-board-analysis/   # Optional Miro companion
+rules/                        # Always-on routing, sync gates, todo capture
+commands/                     # Slash command stubs
+tools/upgrade-ba-assistant.*  # Safe upgrade to Version 10
+VERSION                       # 10
+CHANGELOG.md
+SETUP.md
+```
+
+`_workstream/` is created under `~/.cursor/` on first use (not committed).

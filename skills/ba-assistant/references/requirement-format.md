@@ -2,7 +2,7 @@
 
 **Location:** `~/.cursor/skills/ba-assistant/references/requirement-format.md`
 **Owner:** ba-discovery-and-requirements (workflow), this standard (format)
-**Last reviewed:** 2026-05-30
+**Last reviewed:** 2026-07-14
 
 This file is the canonical source for requirement structure, requirements register schema, MoSCoW matrix layout, and JTBD format. Any sub-skill writing requirements MUST conform to this standard. Pulls from `references/raid-format.md` for any assumptions or risks raised during discovery.
 
@@ -12,14 +12,16 @@ This file is the canonical source for requirement structure, requirements regist
 
 | Location | What | Canonical for |
 |---|---|---|
-| `<initiative>/requirements/register.md` | Narrative requirement entries | Requirement content, evidence, history |
+| `<initiative>/outputs/requirements-register.md` (or `requirements/register.md`) | **Unified register**  -  high-level + detailed + interrogation in one file | Requirement content, lifecycle, handover evidence |
 | `<initiative>/requirements/moscow-matrix.md` | Per-scope MoSCoW classification | Prioritisation per scope |
 | `status-data.json → stories[].linkedRequirements` | Story-to-requirement traceability | Forward linkage |
-| Confluence requirements page | Published view for stakeholders | Sharing only — derived |
+| Confluence requirements page | Published view for stakeholders | Sharing only  -  derived |
 
-The register.md file is the source of truth. The MoSCoW matrix and Confluence views are derived.
+**Unified layout (v2):** See `references/requirements-register-unified-template.md`. High-level IDs = `HLR-01`…`HLR-99` (integer). Detailed = `HLR-08.1`, `HLR-08.2` under parent. Interrogation history lives on the parent section; no parallel `interrogations/kickoff-*.md` for new work.
 
-Confirmed requirements are the handover-eligible set — see `references/dev-handover-format.md`.
+The register file is the source of truth. The MoSCoW matrix, kickoff summary, backbone, and Confluence views are **derived**.
+
+Confirmed requirements are the handover-eligible set  -  see `references/dev-handover-format.md`.
 
 ---
 
@@ -40,12 +42,17 @@ ID numbering is unique within each type. BR-001 and FR-001 can coexist. Within a
 
 ## 3. Requirement entry structure
 
-Each requirement in `register.md`:
+**Entry rule:** a requirement enters `register.md` the moment it's captured, at `status: proposed`, from any intake (transcript, Confluence, verbal, Jira, workshop). Interrogation is not a gate on entry  -  it's what moves a requirement forward from `proposed`. Logging something you haven't interrogated yet is the point: it makes the backlog of un-interrogated items visible instead of losing them in a transcript.
+
+**Write-up effort scales with status** (see §3a below)  -  don't write the full block for something that might get rejected on first interrogation pass.
+
+Each requirement in `register.md`, once at `interrogated` or later:
 
 ```markdown
 ### BR-005 · Merchant identity must be verified to NZ AML/CFT Act standard
 **Type:** Business requirement (compliance-driven)
 **Status:** Confirmed
+**Blocked on:** none
 **Priority (initiative-level):** Must
 **Owner:** [Compliance lead] + [BA]
 **Source:** Compliance interview 18 Apr 2026; AML/CFT Act 2009 reference
@@ -57,7 +64,7 @@ Each requirement in `register.md`:
 The system must verify merchant identity (individual or business) to a standard that satisfies the NZ AML/CFT Act 2009 customer due diligence requirements, including standard CDD for low-risk merchants and enhanced CDD for high-risk merchants.
 
 **Rationale:**
-Regulatory obligation. Failure to meet this standard exposes the organisation to civil penalties and operational restrictions. Risk-rated approach is permitted under the Act.
+Regulatory obligation. Failure to meet this standard exposes [Organisation] to civil penalties and operational restrictions. Risk-rated approach is permitted under the Act.
 
 **Acceptance for "met":**
 - Standard CDD performed for all merchants in low-risk category
@@ -68,7 +75,9 @@ Regulatory obligation. Failure to meet this standard exposes the organisation to
 **Linked elements:**
 - Decisions: D-04 (vendor X selection)
 - Risks: R-12 (vendor capacity)
-- Stories: PROJ-001, PROJ-002, PROJ-003
+- Spikes: (none for this requirement)
+- Open questions: (none for this requirement)
+- Stories: PROJ-4280, PROJ-4281, PROJ-4287
 - Slices: SL-02, SL-07
 - Out-of-scope items: (none for this requirement)
 
@@ -86,32 +95,64 @@ Regulatory obligation. Failure to meet this standard exposes the organisation to
 | `id` | string | Type prefix + number |
 | `title` | string | One sentence, "must" / "should" wording |
 | `type` | enum | business / functional / non-functional / compliance / constraint |
-| `status` | enum | `draft` / `confirmed` / `superseded` / `descoped` / `deferred` |
+| `status` | enum | `proposed` / `interrogated` / `confirmed` / `in-flight` / `delivered` / `evaluated` / `deferred` / `rejected` / `descoped` / `superseded`  -  single canonical lifecycle field (see §3b). No separate "accepted" status; `confirmed` is the sign-off state. |
+| `blockedOn` | enum | `none` / `spike` / `open-question` / `design` / `compliance` / `decision`  -  only meaningful while `status: interrogated`; explains why it hasn't reached `confirmed` yet (see §3c) |
 | `priorityInitiative` | enum | must / should / could / wont (MoSCoW at initiative level) |
 | `owner` | string | Named individual or pair |
 | `source` | string | Where this came from (specific) |
 | `createdAt` | date | |
 | `interrogatorOutput` | string | Path to interrogator artefact; required for `status: confirmed` |
-| `statement` | string | The requirement itself, in clear language |
-| `rationale` | string | Why this matters |
-| `acceptanceForMet` | list | How we'll know the requirement is satisfied |
-| `linkedElements` | object | Decisions, risks, stories, slices, OOS |
+| `statement` | string | The requirement itself, in clear language (built once status reaches `interrogated`  -  see §3a) |
+| `rationale` | string | Why this matters (built once status reaches `interrogated`) |
+| `acceptanceForMet` | list | How we'll know the requirement is satisfied (built once status reaches `interrogated`) |
+| `linkedElements` | object | Decisions, risks, spikes, open questions, stories, slices, OOS |
 
 Optional fields:
 
 | Field | Type | Allowed values |
 |---|---|---|
-| `evidence` | object (optional) | `{ type: "data" \| "qualitative" \| "not-yet-assessed", source: string \| null }` — grounding state for requirements that assert facts about real systems. Written by ba-data-investigation hooks (Wave 8); read by ba-dev-handover gates (Wave 9). Absent = not-yet-assessed. |
+| `evidence` | object (optional) | `{ type: "data" \| "qualitative" \| "not-yet-assessed", source: string \| null }`  -  grounding state for requirements that assert facts about real systems. Written by ba-data-investigation hooks (Wave 8); read by ba-dev-handover gates (Wave 9). Absent = not-yet-assessed. |
 
-### Status transitions
+### 3a. Write-up effort by status
+
+| Status | What gets written |
+|---|---|
+| `proposed` | One line only: what was said/captured + source. No statement/rationale/acceptance block yet. |
+| `interrogated` or later | Full entry structure above: statement, rationale, acceptance-for-met, linked elements, history. |
+
+Don't build the full block at `proposed`  -  it's wasted effort if the requirement is rejected or merged into another one during interrogation. See §3c for the intake register shape used for `proposed`-only items.
+
+### 3b. Status transitions (single lifecycle field)
 
 ```
-draft → confirmed (interrogator pass complete; stakeholder agreement)
-draft → descoped (decided not to pursue)
+proposed → interrogated (Requirements Interrogator has produced a provisional statement)
+interrogated → confirmed (stakeholder has explicitly signed off the provisional statement)
+interrogated → deferred (acknowledged, not progressing this cycle)
+interrogated → rejected (determined not to be a real requirement)
+confirmed → in-flight (first linked story moves to In Progress)
+in-flight → delivered (all linked stories Done + deployed)
+delivered → evaluated (Solution Evaluation has measured outcome vs target)
+confirmed → descoped (decided not to pursue; a business call, distinct from rejected)
 confirmed → superseded (replaced by new requirement; supersededBy link required)
-confirmed → deferred (deferred to future initiative; reason logged)
-superseded / descoped / deferred → confirmed (rare; with explicit re-confirmation)
+superseded / descoped / deferred / rejected → interrogated (re-opened; re-interrogation required before re-confirming)
 ```
+
+`rejected` and `descoped` are both terminal but mean different things: `rejected` = analysis found it isn't a real requirement; `descoped` = it's real, but a deliberate choice was made not to build it this cycle. Don't merge them.
+
+### 3c. `blockedOn`  -  why an interrogated requirement isn't confirmed yet
+
+A requirement can be fully interrogated (we understand what it means) without being ready to confirm (something external still has to land first). Use `blockedOn` to carry that reason without inventing new top-level statuses:
+
+| `blockedOn` value | Meaning | Cleared when |
+|---|---|---|
+| `none` | No blocker; ready to move to `confirmed` on stakeholder sign-off |  -  |
+| `spike` | Needs engineering sizing/feasibility before it can be confirmed | Linked spike (in `linkedElements.spikes`) resolves |
+| `open-question` | Needs an answer to a named open question before it can be confirmed | Linked open question (in `linkedElements.openQuestions`) resolves |
+| `design` | Needs design/UX before scope can be confirmed | Design lands |
+| `compliance` | Needs legal/compliance input before it can be confirmed | Compliance sign-off received |
+| `decision` | Needs a named decision to be made first | Decision logged in tracker |
+
+`blockedOn` is only meaningful while `status: interrogated`. Set it back to `none` (or leave unset) once the requirement moves to `confirmed`. A requirement with `blockedOn` set to anything other than `none` should never be promoted straight to `confirmed`  -  that's an anti-pattern (see §11).
 
 ---
 
@@ -120,22 +161,29 @@ superseded / descoped / deferred → confirmed (rare; with explicit re-confirmat
 `register.md` is organised by **type**, then **scope**. Each requirement appears under its primary scope. Cross-scope requirements appear under "Initiative-wide".
 
 ```markdown
-# Requirements register — <Initiative name>
+# Requirements register  -  <Initiative name>
 
 ## Summary
 - Total requirements: N (BR: x, FR: y, NFR: z, COMP: a, CON: b)
-- Confirmed: N · Draft: N · Other: N
-- Interrogator coverage: N% (target: ≥95% for confirmed)
+- By status: Proposed: N · Interrogated: N (of which Blocked: N) · Confirmed: N · In-flight: N · Delivered: N · Deferred/Rejected/Descoped: N
+- Interrogator coverage: N% of confirmed (target: ≥95%)
+
+## Intake  -  not yet interrogated
+One line per `proposed` item: what was captured + source. No full write-up yet (see §3a). Triaged into the sections below once interrogated.
+
+| ID | Captured statement | Source | Captured on |
+|---|---|---|---|
+| BR-011 | Merchants want to see a savings estimate before opting in | Workshop 12 Jul 2026 | 2026-07-12 |
 
 ## Initiative-wide
 ### BR-001 · ...
 ### COMP-21 · ...
 
-## Cohort A — High-risk merchants
+## Cohort A  -  High-risk merchants
 ### BR-005 · ...
 ### FR-014 · ...
 
-## Cohort B — Standard merchants
+## Cohort B  -  Standard merchants
 ### BR-006 · ...
 
 ## Quick T2P pilot
@@ -147,6 +195,8 @@ superseded / descoped / deferred → confirmed (rare; with explicit re-confirmat
 **Decision link:** D-08
 ```
 
+Once a proposed item is interrogated, it moves out of the Intake table and into its scope section as a full entry (§3), carrying its original `Captured on` date forward into `History`.
+
 ---
 
 ## 5. MoSCoW matrix
@@ -157,17 +207,17 @@ MoSCoW is **per scope**, not just initiative-wide. A requirement can be a `Must`
 
 | Requirement | Initiative | Cohort A | Cohort B | Quick T2P |
 |---|---|---|---|---|
-| BR-005 — AML/CFT identity verification | M | M | M | M |
-| BR-013 — Customer-facing decline messaging | S | M | S | C |
-| FR-014 — High-risk routing logic | M | M | — | — |
-| NFR-04 — <500ms verification latency at p95 | S | S | S | M |
+| BR-005  -  AML/CFT identity verification | M | M | M | M |
+| BR-013  -  Customer-facing decline messaging | S | M | S | C |
+| FR-014  -  High-risk routing logic | M | M |  -  |  -  |
+| NFR-04  -  <500ms verification latency at p95 | S | S | S | M |
 
 Cell values:
-- `M` — Must
-- `S` — Should
-- `C` — Could
-- `W` — Won't (for this scope)
-- `—` — Not applicable to this scope
+- `M`  -  Must
+- `S`  -  Should
+- `C`  -  Could
+- `W`  -  Won't (for this scope)
+- ` - `  -  Not applicable to this scope
 
 ### Override rule
 
@@ -175,7 +225,7 @@ If the initiative-level priority is `Must`, no scope can have it as `C` or `W` w
 
 ### Re-prioritisation
 
-MoSCoW values are reviewed at each phase gate. Changes are logged in the requirement's `History` section. Repeated changes (>2 per requirement per month) trigger a flag — sign of unstable scope.
+MoSCoW values are reviewed at each phase gate. Changes are logged in the requirement's `History` section. Repeated changes (>2 per requirement per month) trigger a flag  -  sign of unstable scope.
 
 ---
 
@@ -188,7 +238,7 @@ Format:
 ```markdown
 ### JTBD-01 · When a merchant applies to accept payments, they want to know quickly whether they're approved, so they can plan opening their business
 
-**Situation:** Merchant has decided to use [Your Organisation] for payment processing and submitted application
+**Situation:** Merchant has decided to use [Organisation] for payment processing and submitted application
 **Motivation:** Wants to plan their first trading day with confidence
 **Expected outcome:** Decision (approval / decline / more info needed) within hours, not days
 
@@ -220,7 +270,7 @@ This is the requirement equivalent of acceptance criteria. Specific, observable,
 **Bad:**
 - "System is secure" (untestable)
 - "Process is efficient" (no threshold)
-- "Compliance is met" (recursive — that's literally the requirement)
+- "Compliance is met" (recursive  -  that's literally the requirement)
 - "Works well for users" (no measure)
 
 If the requirement can't be written with specific acceptance, that's a signal it needs interrogation first. Don't confirm a requirement that can't be tested.
@@ -239,6 +289,8 @@ Re-interrogation happens when:
 - A requirement's statement changes after confirmation
 - A linked decision is reversed
 - A new dependency is identified that materially affects the requirement
+
+A requirement sitting at `interrogated` with `blockedOn` set is not a gap in interrogation  -  it means interrogation is done and the requirement is understood, but something named (a spike, an open question, a design, a compliance input, a decision) has to land before stakeholder sign-off can happen. Don't confuse `blockedOn` with "not yet interrogated."
 
 ---
 
@@ -287,15 +339,19 @@ Published page is regenerated from register.md, not edited directly in Confluenc
 | Discovery and Requirements | MoSCoW values for one requirement changed >2 times in 30 days | Unstable scope |
 | Discovery and Requirements | OOS entry created without decision link | Out-of-scope without decision audit trail |
 | Discovery and Requirements | Compliance requirement (COMP-) priority set to anything other than `Must` | Compliance optionalisation |
+| Discovery and Requirements | Requirement moved straight from `proposed` to `confirmed` (skipping `interrogated`) | Requirement confirmed without interrogator pass |
+| Discovery and Requirements | Requirement at `status: confirmed` with `blockedOn` set to anything other than `none` | Confirmed while still blocked |
+| Discovery and Requirements | `blockedOn: spike` or `blockedOn: open-question` set with no corresponding entry in `linkedElements.spikes` / `linkedElements.openQuestions` | Untraceable blocker |
 
 ---
 
-## 12. Worked example — minimal requirement entry
+## 12. Worked example  -  minimal requirement entry
 
 ```markdown
 ### NFR-04 · Verification latency must be <500ms at p95 under sustained load
 **Type:** Non-functional
 **Status:** Confirmed
+**Blocked on:** none
 **Priority (initiative-level):** Must
 **Owner:** [Tech Lead]
 **Source:** Architecture review 5 May 2026
@@ -316,7 +372,7 @@ Verification latency directly affects merchant onboarding completion time. Inter
 **Linked elements:**
 - Decisions: D-04 (vendor X)
 - Risks: R-12 (vendor capacity at launch)
-- Stories: PROJ-010 (load test setup)
+- Stories: PROJ-4290 (load test setup)
 - Slices: SL-02 (verification pipeline)
 
 **History:**
@@ -331,3 +387,10 @@ Verification latency directly affects merchant onboarding completion time. Inter
 
 v1.0 (2026-05-30). Changes to required fields, new requirement type, or MoSCoW rule changes require version bump.
 
+v2.0 (2026-07-14)  -  Sample Initiative kickoff pipeline reconciliation:
+- **Single `status` field** replaces the old two-vocabulary split (`draft/confirmed/superseded/descoped/deferred` vs the discovery skill's separate `proposed/interrogated/accepted/in-flight/delivered/evaluated/deferred/rejected`). Canonical lifecycle now: `proposed → interrogated → confirmed → in-flight → delivered → evaluated`, with `deferred`/`rejected` off `interrogated` and `descoped`/`superseded` off `confirmed`. `accepted` is retired  -  `confirmed` is the sign-off state everything downstream (dev-handover, anti-pattern detector) already checks.
+- **Register entry rule changed**: requirements now enter `register.md` immediately at `proposed` on capture. Interrogation is no longer a gate on entry  -  it's what advances a requirement past `proposed`. (Previously `ba-discovery-and-requirements.md` Task 6 said only PROCEED-verdict requirements could enter the register; that line is now corrected there too.)
+- **New `blockedOn` field** (`none / spike / open-question / design / compliance / decision`) captures why an `interrogated` requirement isn't `confirmed` yet, without needing new top-level lifecycle states.
+- **`linkedElements` extended** with `spikes` and `openQuestions` slots so a `blockedOn` value is always traceable to a real linked item.
+- **Write-up effort now scales with status** (§3a): `proposed` = one-line intake row only; full entry structure (statement/rationale/acceptance/linked elements/history) built from `interrogated` onward.
+- Corresponding update made to `ba-discovery-and-requirements/SKILL.md` Task 6 and Task 12 (lifecycle table) in the same pass  -  the two files must not drift back out of sync.

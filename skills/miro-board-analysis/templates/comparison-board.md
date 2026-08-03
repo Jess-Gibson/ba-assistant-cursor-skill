@@ -35,8 +35,8 @@ A board layout for comparing 2-4 solution options side by side, with evaluation 
 Each option gets its own column:
 - **Column header:** Primary tier, `w=874 h=82 size=64` with option name (e.g. "Option A: Direct Integration")
 - **Body text:** `size=30`, option description in grey box (sized to actual content using algorithm Pass 3)
-- **Pro stickies:** `color=light_green shape=rectangle w=365` — placed below the grey box
-- **Con stickies:** `color=light_pink shape=rectangle w=365` — placed below the pros
+- **Pro stickies:** `color=light_green shape=rectangle w=365`  -  placed below the grey box
+- **Con stickies:** `color=light_pink shape=rectangle w=365`  -  placed below the pros
 - Stickies placed below the grey box, not inside it
 - Sticky vertical spacing: ~260px between centres
 
@@ -75,6 +75,6 @@ If the board includes an actions section, use urgency-tiered headers:
 
 1. Follow the 6-pass Board Construction Algorithm (`algorithm.md`)
 2. In Pass 1, determine option count and whether the board needs evaluation criteria / feedback sections
-3. In Pass 2, assign widths from the table above — total frame width scales with option count
+3. In Pass 2, assign widths from the table above  -  total frame width scales with option count
 4. After Pass 4, output the plan for review
 5. After Pass 5, run `verification-checklist.md`

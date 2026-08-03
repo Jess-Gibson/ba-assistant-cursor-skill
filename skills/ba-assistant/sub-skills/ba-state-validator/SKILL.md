@@ -29,11 +29,11 @@ never auto-edits without explicit per-divergence approval.
 ## When to invoke
 
 - **`/validate-state`** on demand
-- **Step 1 of Session Resume** — catch drift before the user resumes work (silent unless divergences found)
-- **Before `/publish-status`** — prevent publishing stale derivatives to Confluence
-- **At session end** — offer to validate before wrapping, especially if status-data.json or tracker was modified this session
-- **After any requirement change** — when a requirement changes mid-flight, dates and dependencies often need to propagate; this skill catches the cases where they didn't
-- **When the user says "is everything up to date" or "did that propagate"** — natural language trigger
+- **Step 1 of Session Resume**  -  catch drift before the user resumes work (silent unless divergences found)
+- **Before `/publish-status`**  -  prevent publishing stale derivatives to Confluence
+- **At session end**  -  offer to validate before wrapping, especially if status-data.json or tracker was modified this session
+- **After any requirement change**  -  when a requirement changes mid-flight, dates and dependencies often need to propagate; this skill catches the cases where they didn't
+- **When the user says "is everything up to date" or "did that propagate"**  -  natural language trigger
 
 ## Canonical ownership reference
 
@@ -60,7 +60,7 @@ Canonical ownership`. Quick reference:
 | Hook | When | Why |
 |---|---|---|
 | **ba-jira-sync** | Before validation | Refresh ticket statuses so Jira-derived facts in status-data.json are current before comparison |
-| **ba-project-canvas (Data Model section — status-page-and-data.md)** | Before validation | Refresh status-data.json from tracker so structured view matches narrative source |
+| **ba-project-canvas (Data Model section  -  status-page-and-data.md)** | Before validation | Refresh status-data.json from tracker so structured view matches narrative source |
 | **Anti-Pattern Detector** | After validation | Log every divergence type observed so patterns can promote to the watchlist |
 | **Communication_Drafter** (in Playback) | If divergences include Confluence pages that need superseding | Draft the supersede banner content |
 
@@ -73,14 +73,14 @@ Read the project's analysis folder and identify every live artefact. Default set
 - `initiative-tracker.md`
 - `status-data.json`
 - `SESSION-CONTEXT.md`
-- `SESSION-CONTEXT.team.md` (if it exists — team-facing extract)
+- `SESSION-CONTEXT.team.md` (if it exists  -  team-facing extract)
 - `Project-hub.md`
 - `confluence-pages.json` (page registry)
 - `superseded-pages.json` (if it exists)
-- `<initiative-slug>.canvas.tsx` — see **Canvas discovery** below
+- `<initiative-slug>.canvas.tsx`  -  see **Canvas discovery** below
 - `status-snapshot.html`
-- `learnings.md` (read-only — never propagate INTO learnings, only ever read FROM)
-- `<shared-repo>/analysis/<slug>/confirmed/**` and `/exchanges/**` — published dev handovers (read-only comparison against the confirmed register they derived from)
+- `learnings.md` (read-only  -  never propagate INTO learnings, only ever read FROM)
+- `<shared-repo>/analysis/<slug>/confirmed/**` and `/exchanges/**`  -  published dev handovers (read-only comparison against the confirmed register they derived from)
 
 Plus, for each entry in `confluence-pages.json` flagged as live (not superseded):
 
@@ -97,21 +97,21 @@ Canvas files may live **outside** the blueprint analysis folder. Common location
 3. In a workspace-level canvases folder
 
 Use `Glob` for `**/*.canvas.tsx` scoped to the workspace to find all canvases. Match by
-initiative name, slug, or related keywords (e.g. `analysis-sprint-plan`, `[initiative-slug]-*`).
+initiative name, slug, or related keywords (e.g. `analysis-sprint-plan`, `rba-*`, `np-*`).
 All matching canvases are downstream artefacts for validation.
 
 #### Team-facing extracts
 
 If `SESSION-CONTEXT.team.md` exists alongside `SESSION-CONTEXT.md`, include it as a downstream
-artefact. It mirrors a subset of decisions, knowns, and questions from the tracker — and drifts
+artefact. It mirrors a subset of decisions, knowns, and questions from the tracker  -  and drifts
 when the tracker updates but the team file doesn't.
 
 ### 2. Refresh upstream sources first
 
 Before comparing, refresh the structured layer from the narrative layer:
 
-1. **Run ba-jira-sync** — pull current ticket statuses into status-data.json
-2. **Re-derive status-data.json from initiative-tracker.md** — for any decision / RAID item / OQ
+1. **Run ba-jira-sync**  -  pull current ticket statuses into status-data.json
+2. **Re-derive status-data.json from initiative-tracker.md**  -  for any decision / RAID item / OQ
    present in the tracker but absent or stale in status-data.json, update status-data.json
 3. **Log every refresh action** so the user can see what changed before validation runs
 
@@ -137,15 +137,15 @@ Fact types to check:
 | Days to deadline | Computed from today's date vs hardcoded values in canvas / HTML / hub |
 | Decision dates and owners | "Decided 18 May 2026, owner: [Team Member]" |
 | Decision register completeness | Tracker has D-001 to D-103; downstream only shows up to D-088 |
-| Knowns / questions register completeness | Same pattern — count and last ID |
-| Ticket statuses | PROJ-001: In Progress |
+| Knowns / questions register completeness | Same pattern  -  count and last ID |
+| Ticket statuses | PROJ-4287: In Progress |
 | Session completion status | Session shown as "🟡 today" or "M (must attend)" when it's actually "✅ done" |
 | Sponsor / PM / Tech Lead names | Anywhere these names appear |
 | pmApproval state | pending / approved / TBC |
 | Confidence scores | Each of the 6 |
 | Workstream states per scope | Discovery active for Stale Drafts, Delivery active for Quick T2P, etc. |
 | Workspace context | Jira project key, Confluence space, parent page ID |
-| Version strings | Canvas footer, HTML title, hub "last updated" — must reflect current sprint day |
+| Version strings | Canvas footer, HTML title, hub "last updated"  -  must reflect current sprint day |
 
 ### 4. Scan downstream artefacts for each fact
 
@@ -158,7 +158,7 @@ flexibly (date formats vary: "6 Jun 2026", "6-Jun-2026", "2026-06-06"). Record:
 
 #### Canvas-specific scanning
 
-Canvas files (`.canvas.tsx`) contain **hardcoded data** — they are not data-driven from
+Canvas files (`.canvas.tsx`) contain **hardcoded data**  -  they are not data-driven from
 `status-data.json`. This means every fact that changes in canonical sources must be manually
 propagated to matching canvas constants. Key locations to scan:
 
@@ -193,7 +193,7 @@ Group results by fact. Only include facts where ≥1 downstream artefact has a v
 from canonical. Format:
 
 ```
-State validation — <Initiative Name> — <timestamp>
+State validation  -  <Initiative Name>  -  <timestamp>
 
 Canonical sources refreshed: <list>
 Artefacts scanned: <count local files> + <count Confluence pages>
@@ -203,13 +203,13 @@ Divergences found: <count>
 |---|---|---|---|---|---|---|
 | 1 | Legal sign-off date | 6 Jun 2026 (tracker) | status-snapshot.html | 30 May 2026 | 23 May, 2:10pm | Regenerate canvas + HTML |
 | 2 | Legal sign-off date | 6 Jun 2026 (tracker) | Confluence page 1238472 (Status as at 23 May) | 30 May 2026 | 23 May | Mark page superseded; publish new status page |
-| 3 | PROJ-001 status | In Progress (status-data.json, synced from Jira) | SESSION-CONTEXT.md | To Do | 18 May | Update SESSION-CONTEXT.md |
+| 3 | PROJ-4287 status | In Progress (status-data.json, synced from Jira) | SESSION-CONTEXT.md | To Do | 18 May | Update SESSION-CONTEXT.md |
 ```
 
 If no divergences, output:
 
 ```
-State validation — <Initiative Name> — <timestamp>
+State validation  -  <Initiative Name>  -  <timestamp>
 ✓ All artefacts aligned with canonical state. Nothing to propagate.
 ```
 
@@ -219,31 +219,31 @@ End the validation report with an AskQuestion that lets the user pick per-diverg
 
 ```
 Selection per divergence:
-[Propagate from canonical] [Update canonical instead — the downstream value is correct] [Mark
-superseded — for historical artefacts] [Skip this one] [Discuss first]
+[Propagate from canonical] [Update canonical instead  -  the downstream value is correct] [Mark
+superseded  -  for historical artefacts] [Skip this one] [Discuss first]
 
-Or for bulk: [Propagate all from canonical] [Review each one] [Skip all — just report]
+Or for bulk: [Propagate all from canonical] [Review each one] [Skip all  -  just report]
 ```
 
 ### 7. Propagate (only after user confirmation)
 
 For each divergence the user approved for propagation:
 
-- **Local files (tracker, status-data.json, SESSION-CONTEXT.md, project-hub)** — edit in place
+- **Local files (tracker, status-data.json, SESSION-CONTEXT.md, project-hub)**  -  edit in place
   using str_replace or equivalent, log the change
-- **Canvas (.canvas.tsx)** — canvas files contain hardcoded data, not data bindings. For canvases
+- **Canvas (.canvas.tsx)**  -  canvas files contain hardcoded data, not data bindings. For canvases
   driven by `status-data.json` (e.g. a status canvas), invoke ba-project-canvas to regenerate.
   For sprint-plan or other standalone canvases, edit the specific constants and data arrays
   in place (e.g. `SPRINT_DAY`, `CRITICAL_PATH`, attendance arrays, stat values, callout text).
-  Use Grep within the canvas file to find all occurrences of the stale value before editing —
+  Use Grep within the canvas file to find all occurrences of the stale value before editing  - 
   the same fact often appears in multiple locations.
-- **HTML snapshot** — regenerate from refreshed status-data.json via ba-project-canvas, or
+- **HTML snapshot**  -  regenerate from refreshed status-data.json via ba-project-canvas, or
   rebuild manually if the HTML is not canvas-derived
-- **Confluence pages** — for "Status as at X" pages, either:
+- **Confluence pages**  -  for "Status as at X" pages, either:
   - Update the existing page (if it's the current status page) using `updateConfluencePage`
   - Mark superseded by adding a banner at the top via `updateConfluencePage` AND adding the page to
     `superseded-pages.json` so future context gathering skips it
-- **Jira tickets** — never auto-edit Jira from the validator. If a Jira ticket field disagrees
+- **Jira tickets**  -  never auto-edit Jira from the validator. If a Jira ticket field disagrees
   with canonical, the validator reports it but the user resolves it manually in Jira
 
 After propagation, run a second-pass scan to confirm all approved divergences are now resolved.
@@ -272,32 +272,32 @@ pages when collecting context.
 
 If validation runs find the same fact diverging across multiple sessions (e.g. "Legal sign-off date
 has drifted 3 times in this initiative"), log to learnings.md as a watchlist item: "<fact> drifts
-repeatedly — auto-propagate without confirmation, or add a stronger update gate."
+repeatedly  -  auto-propagate without confirmation, or add a stronger update gate."
 
 Do not log every individual divergence. Only patterns.
 
-### 10. Fire APD hook — log divergence types for pattern detection
+### 10. Fire APD hook  -  log divergence types for pattern detection
 
 After validation completes (whether or not propagation was requested), pass the divergence list
 to the Anti-Pattern Detector for pattern analysis:
 
 1. **Classify each divergence** into a divergence type:
-   - `day-boundary-staleness` — sprint day, days-to-deadline, stage label not updated across files
-   - `register-incompleteness` — decisions/knowns/questions added to tracker but not propagated
-   - `session-status-drift` — session shown as planned/in-progress when it's actually completed
-   - `milestone-date-drift` — a key date changed in one place but not others
-   - `structural-absence` — a required file (status-data.json, confluence-pages.json) doesn't exist
-   - `name-or-role-drift` — person names or roles changed in one file but not others
-   - `confidence-score-drift` — scores updated in one source but stale elsewhere
+   - `day-boundary-staleness`  -  sprint day, days-to-deadline, stage label not updated across files
+   - `register-incompleteness`  -  decisions/knowns/questions added to tracker but not propagated
+   - `session-status-drift`  -  session shown as planned/in-progress when it's actually completed
+   - `milestone-date-drift`  -  a key date changed in one place but not others
+   - `structural-absence`  -  a required file (status-data.json, confluence-pages.json) doesn't exist
+   - `name-or-role-drift`  -  person names or roles changed in one file but not others
+   - `confidence-score-drift`  -  scores updated in one source but stale elsewhere
 
 2. **Check if any type has appeared in 3+ validation runs** for this initiative. If so, it's a
-   pattern — log to `learnings.md` per Task 9.
+   pattern  -  log to `learnings.md` per Task 9.
 
 3. **Pass the type counts to the APD** so it can update its initiative-specific watchlist. The APD
    uses this to calibrate which triggers to watch more aggressively during normal operation.
 
 If this is the first validation run for the initiative, note the divergence types observed but
-don't promote to patterns yet — a single run doesn't establish a pattern.
+don't promote to patterns yet  -  a single run doesn't establish a pattern.
 
 ## Outputs
 
@@ -316,26 +316,26 @@ don't promote to patterns yet — a single run doesn't establish a pattern.
 | Jira MCP unavailable during pre-refresh | Skip Jira sync; note in validation report that ticket statuses may be stale |
 | Confluence MCP unavailable | Skip Confluence pages; validation covers local artefacts only; flag at top of report |
 | Tracker and status-data.json disagree on a fact and neither is obviously canonical | Report both with last-modified dates; ask user to pick |
-| A fact appears in only one artefact (no comparison possible) | Skip — nothing to validate |
+| A fact appears in only one artefact (no comparison possible) | Skip  -  nothing to validate |
 | Validation finds >20 divergences in a single run | Surface as "significant drift" warning; recommend full audit pass before propagating |
 | Canvas file not found in analysis folder | Run Glob for `**/*.canvas.tsx` across workspace; if found elsewhere, note the path in the report and scan it |
 | Canvas has hardcoded data that doesn't map to any status-data.json field | Canvas was built before status-data.json existed or independently; compare against initiative-tracker.md directly |
-| SESSION-CONTEXT.team.md exists but isn't in the default artefact list | Include it — it drifts when the tracker updates but the team extract doesn't |
+| SESSION-CONTEXT.team.md exists but isn't in the default artefact list | Include it  -  it drifts when the tracker updates but the team extract doesn't |
 
 ## Output anti-patterns to prevent
 
-- **Auto-propagating without user confirmation** — even for trivial-looking divergences, never write without explicit per-divergence approval
-- **Treating SESSION-CONTEXT.md as canonical** — facts in SESSION-CONTEXT.md are session-scoped working memory; if a fact there disagrees with the tracker, the tracker wins (unless the user explicitly tells the validator that SESSION-CONTEXT.md has the latest update — they then promote it to the tracker)
-- **Validating against stale upstream** — always run the Step 2 refresh before comparing, or the validator will report drift that's actually correct
-- **Treating Confluence pages older than the current status page as live** — pages flagged as superseded in superseded-pages.json are ignored
-- **Editing Jira from the validator** — Jira is upstream of status-data.json (via Jira Sync). The validator reports Jira divergences but never writes back to Jira
+- **Auto-propagating without user confirmation**  -  even for trivial-looking divergences, never write without explicit per-divergence approval
+- **Treating SESSION-CONTEXT.md as canonical**  -  facts in SESSION-CONTEXT.md are session-scoped working memory; if a fact there disagrees with the tracker, the tracker wins (unless the user explicitly tells the validator that SESSION-CONTEXT.md has the latest update  -  they then promote it to the tracker)
+- **Validating against stale upstream**  -  always run the Step 2 refresh before comparing, or the validator will report drift that's actually correct
+- **Treating Confluence pages older than the current status page as live**  -  pages flagged as superseded in superseded-pages.json are ignored
+- **Editing Jira from the validator**  -  Jira is upstream of status-data.json (via Jira Sync). The validator reports Jira divergences but never writes back to Jira
 
 ## Integration with other skills
 
 | Caller | Why |
 |---|---|
-| Session resume flow (Step 2.75 in SKILL.md) | Step 1 of resume — catch drift before resuming work |
-| `/publish-status` command | Pre-publish gate — never publish stale derivatives |
+| Session resume flow (Step 2.75 in SKILL.md) | Step 1 of resume  -  catch drift before resuming work |
+| `/publish-status` command | Pre-publish gate  -  never publish stale derivatives |
 | End-of-session checkpoint | Offered when the session modified canonical state |
 | Requirements Interrogator (In-flight mode) | When a requirement changes, run the validator to catch downstream artefacts that need updating |
 | Intake Reviewer (Hook 2) | Run after Confluence/Jira context gathering if a previous status page is found, to confirm it's current before relying on it |
@@ -355,9 +355,9 @@ Example output entry:
 
 | # | Fact | Canonical | Found in | Found value | Action |
 |---|---|---|---|---|---|
-| 5 | Story acceptance criteria format | references/user-story-format.md (Given/When/Then or table) | PROJ-001 (Jira) | Plain bullet list | Reformat to conform |
+| 5 | Story acceptance criteria format | references/user-story-format.md (Given/When/Then or table) | PROJ-4287 (Jira) | Plain bullet list | Reformat to conform |
 
-This check is **non-blocking** — conformance is a quality measure, not a gate.
+This check is **non-blocking**  -  conformance is a quality measure, not a gate.
 The user can defer fixes. But it surfaces drift before it accumulates.
 
 ### Standard conformance map (Wave 7 complete)
@@ -365,7 +365,7 @@ The user can defer fixes. But it surfaces drift before it accumulates.
 | Artefact type | Reference standard | Conformance check |
 |---|---|---|
 | Story / spike / bug / enabler ticket | `references/user-story-format.md` | Sections present, INVEST passes, DoR checklist present, scope linked |
-| Story in Jira | + `references/jira-ticket-format.md`, + your project-specific `jira-templates` skill | ADF format used, canonical example mirrored, custom fields populated |
+| Story in Jira | + `references/jira-ticket-format.md`, + `jira-templates` | ADF format used, canonical example mirrored, custom fields populated |
 | RAID entry (R / A / I / DEP / D / OQ) | `references/raid-format.md` | Required fields present, status in valid set, age-based flags |
 | Requirement entry | `references/requirement-format.md` | Required fields present, interrogator output linked for confirmed, acceptance for met present |
 | MoSCoW matrix | `references/requirement-format.md` | Per-scope coverage, override decisions linked |
@@ -374,7 +374,7 @@ The user can defer fixes. But it surfaces drift before it accumulates.
 | status-data.json | `references/canvas-data-model.md` | Schema match, required fields, valid state values |
 | Dev handover (requirements pack / spike / ADR / story pack) | `references/dev-handover-format.md` + `references/ears-translation.md` | No working-file links (workspace content embedded only); requirements all confirmed; published value matches current register (freshness); handover note present |
 
-Each check is non-blocking — surfaces in the divergence table with action "Update to conform". The user can defer fixes.
+Each check is non-blocking  -  surfaces in the divergence table with action "Update to conform". The user can defer fixes.
 
 ## Hook contract
 
@@ -382,8 +382,7 @@ Add to `hook-contracts.md`:
 
 | Hook ID | Callee | Trigger | Inputs | Outputs | Failure mode | Status |
 |---|---|---|---|---|---|---|
-| HK-SV-JS-presync | Jira_Sync | Always before validation | Ticket list from status-data.json | Refreshed ticket statuses | Warn — proceed with stale; flag in report | 🟣 W5 |
-| HK-SV-CANV-refresh | Project_Canvas (Data Model section) | Always before validation | Tracker content | Refreshed status-data.json | Block — can't validate against stale derived state | 🟣 W5 |
+| HK-SV-JS-presync | Jira_Sync | Always before validation | Ticket list from status-data.json | Refreshed ticket statuses | Warn  -  proceed with stale; flag in report | 🟣 W5 |
+| HK-SV-CANV-refresh | Project_Canvas (Data Model section) | Always before validation | Tracker content | Refreshed status-data.json | Block  -  can't validate against stale derived state | 🟣 W5 |
 | HK-SV-APD-patterns | Anti_Pattern_Detector | After validation | Divergence list | Updated watchlist entries (only if patterns) | Warn | 🟣 W5 |
-| HK-SV-COMD-supersede | Communication_Drafter | When pages need superseding | Page list | Supersede banner content | Warn — manual fallback | 🟣 W5 |
-
+| HK-SV-COMD-supersede | Communication_Drafter | When pages need superseding | Page list | Supersede banner content | Warn  -  manual fallback | 🟣 W5 |

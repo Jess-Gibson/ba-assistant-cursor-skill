@@ -18,7 +18,7 @@ Two kinds of thing, kept physically apart.
 | Changes | Constantly | Only on a deliberate confirmation / publish event |
 | Who reads | You | You, the devs, the delivery agents |
 
-The BA workspace already git-ignores its state files (`.gitignore`: SESSION-CONTEXT.md, initiative-tracker.md, status-data.json, etc.). The shared repo is a **separate** repo (the devs' repo). Nothing from the working set is ever written to it, and nothing in it may ever **link** to a working file — a link to a git-ignored file points at nothing the devs can see. Where a handover needs working-side content (RAID entries, tracker decisions), that content is **embedded** as a summary, with its tracker ID preserved for BA-side traceability.
+The BA workspace already git-ignores its state files (`.gitignore`: SESSION-CONTEXT.md, initiative-tracker.md, status-data.json, etc.). The shared repo is a **separate** repo (the devs' repo). Nothing from the working set is ever written to it, and nothing in it may ever **link** to a working file  -  a link to a git-ignored file points at nothing the devs can see. Where a handover needs working-side content (RAID entries, tracker decisions), that content is **embedded** as a summary, with its tracker ID preserved for BA-side traceability.
 
 **Confirmation and publication are two separate events.** Confirmation = the requirement reaches `status: confirmed` in `register.md` (Interrogator pass + stakeholder agreement, in the workspace). Publication = the confirmed content is rendered and written to the shared repo. Confirmation always happens first, as its own event; publishing never confirms anything as a side effect.
 
@@ -32,7 +32,7 @@ Root is `BA_SHARED_REPO_ROOT` (env var) or the path recorded in `confluence-page
 <shared-repo>/
   analysis/
     <initiative-slug>/
-      README.md                    # slim published index — status map, one row per artefact
+      README.md                    # slim published index  -  status map, one row per artefact
       confirmed/
         requirements.md            # EARS render of confirmed register entries, by scope
         current-state.md           # confirmed current-state summary (derived)
@@ -56,14 +56,14 @@ Scope folders are optional under `confirmed/` for multi-scope initiatives (e.g. 
 One table, kept current on every publish. Shows mixed maturity, which is the point.
 
 ```markdown
-# <Initiative name> — analysis index
+# <Initiative name>  -  analysis index
 
 | Artefact | Status | Last published | Link |
 |---|---|---|---|
 | Requirements (High-risk merchants) | CONFIRMED | 2026-07-04 | confirmed/high-risk-merchants/requirements.md |
 | SPK-001 vendor accuracy | OPEN | 2026-07-02 | exchanges/SPK-001-request.md |
 | ADR-001 verification service split | REQUESTED | 2026-07-04 | exchanges/ADR-001-request.md |
-| Story pack 01 | BLOCKED on ADR-001 | — | — |
+| Story pack 01 | BLOCKED on ADR-001 |  -  |  -  |
 ```
 
 ---
@@ -82,7 +82,7 @@ Every published artefact gets a note. It is thin: it links to shared-repo artefa
 [One or two sentences. What's being handed over and why now.]
 
 ## Confirmed (safe to build on)
-- [Link to confirmed/requirements.md] — requirements as of <date>
+- [Link to confirmed/requirements.md]  -  requirements as of <date>
 - [Link to confirmed/current-state.md]
 [Links only, and only to files inside this shared repo's confirmed store.]
 
@@ -90,10 +90,10 @@ Every published artefact gets a note. It is thin: it links to shared-repo artefa
 | ID | Type | Item | Status |
 |---|---|---|---|
 | DEP-04 | Dependency | Vendor sandbox access (owner: <name>) | Pending |
-[Embedded summary, not a link — the tracker is a working file the devs can't see.
+[Embedded summary, not a link  -  the tracker is a working file the devs can't see.
 Omit this section if the handover references no RAID.]
 
-## Provisional (NOT confirmed — do not build on this yet)
+## Provisional (NOT confirmed  -  do not build on this yet)
 - [Anything still in flight that the dev needs to be aware of, flagged explicitly.
   Omit this section entirely if nothing is provisional.]
 
@@ -105,7 +105,7 @@ Omit this section if the handover references no RAID.]
 [Link to README.md index]
 ```
 
-Rule: if the "Confirmed" section is empty, the handover isn't ready. If a link would point at a working file, stop — embed a summary instead or remove the reference.
+Rule: if the "Confirmed" section is empty, the handover isn't ready. If a link would point at a working file, stop  -  embed a summary instead or remove the reference.
 
 ---
 

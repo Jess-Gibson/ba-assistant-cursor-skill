@@ -26,7 +26,7 @@ The register's `Statement` + `Acceptance for met` already carry testable intent 
 | Unwanted behaviour | If `<condition>`, then the `<system>` shall `<response>` | Error / guard / negative case |
 | Optional | Where `<feature>`, the `<system>` shall `<response>` | Behaviour applies only when a feature is present |
 
-`<system>` is the real named service where known (from Data Investigation grounding), not "the system" generically. If the service isn't known, that's a grounding gap — flag it, don't paper over it with "the system."
+`<system>` is the real named service where known (from Data Investigation grounding), not "the system" generically. If the service isn't known, that's a grounding gap  -  flag it, don't paper over it with "the system."
 
 ---
 
@@ -68,7 +68,7 @@ without revealing which specific check failed.
 ### EARS render at export (generated, in the requirements pack)
 
 ```
-BR-013 — Verification decline messaging  [Business]
+BR-013  -  Verification decline messaging  [Business]
 
 When a merchant application is declined at the verification stage,
 the Onboarding Notification service shall send a decline message containing
@@ -95,7 +95,7 @@ If a confirmed requirement can't be expressed as a testable "shall" (the respons
 
 ## 6. What EARS does NOT replace
 
-- The register's rationale, history, linked elements, MoSCoW — none of that goes into the EARS statement. The EARS render is the behavioural core the agent implements against. The handover note links back to the full register entry for context.
+- The register's rationale, history, linked elements, MoSCoW  -  none of that goes into the EARS statement. The EARS render is the behavioural core the agent implements against. The handover note links back to the full register entry for context.
 - Acceptance-for-met stays the human-readable testability record in the register. EARS is its export-time structured twin, not a replacement.
 
 ---

@@ -6,7 +6,7 @@
 
 This file is the canonical source for ticket structure. Any sub-skill producing a Jira ticket, a story draft, a spike ticket, a bug, or an enabler MUST conform to this standard. Anti-Pattern Detector flags non-conformant output.
 
-For Jira-specific formatting (panels, custom fields, emoji conventions, FCM template structure), see also `references/jira-ticket-format.md` (the standard for how a story is *rendered in Jira specifically*, vs how its content is structured here).
+For Jira-specific formatting (panels, custom fields, emoji conventions, PROJ template structure), see also `references/jira-ticket-format.md` (the standard for how a story is *rendered in Jira specifically*, vs how its content is structured here).
 
 ---
 
@@ -34,7 +34,7 @@ Format: `As a [persona], I want [capability], so that [outcome]`
 
 Or the more concise form when persona is unambiguous: `[Capability] so [outcome]`
 
-**Good:** "As a merchant in onboarding, I want to upload my certificate of incorporation, so that KYB verification can complete."
+**Good:** "As a merchant in onboarding, I want to upload my certificate of incorporation, so that Business Verification verification can complete."
 **Bad:** "Upload certificate" (no outcome, no persona, no capability frame)
 
 ### Required sections
@@ -63,19 +63,19 @@ And [additional behaviour, if needed]
 [SL-XX identifier from feature slicing. Required for any story past Phase 3.]
 
 ## DoR checklist
-[Definition of Ready criteria — see Section 6]
+[Definition of Ready criteria  -  see Section 6]
 
 ## Definition of Done
-[Specific to this story. What does "done" actually mean — tested, deployed, monitored, documented?]
+[Specific to this story. What does "done" actually mean  -  tested, deployed, monitored, documented?]
 ```
 
 ### Optional sections
 
-- `## Technical notes` — for technical context the dev team needs but isn't business-facing
-- `## Mockups / visuals` — link to or embed visuals
-- `## Out of scope` — explicit exclusions (different from Negative case; out-of-scope is "we considered this and won't do it here")
-- `## Dependencies` — other tickets that must complete first
-- `## Risks` — story-specific risks (not initiative-level)
+- `## Technical notes`  -  for technical context the dev team needs but isn't business-facing
+- `## Mockups / visuals`  -  link to or embed visuals
+- `## Out of scope`  -  explicit exclusions (different from Negative case; out-of-scope is "we considered this and won't do it here")
+- `## Dependencies`  -  other tickets that must complete first
+- `## Risks`  -  story-specific risks (not initiative-level)
 
 ### INVEST conformance
 
@@ -148,7 +148,7 @@ Format: `Spike: investigate [question or uncertainty]`
 
 Format: `Bug: [system] [unintended behaviour] [trigger condition]`
 
-**Good:** "Bug: KYC verification returns 500 when merchant uploads PDF certificate with >5MB file size"
+**Good:** "Bug: Data Collection verification returns 500 when merchant uploads PDF certificate with >5MB file size"
 **Bad:** "Bug: upload broken" (no trigger, no behaviour, no system)
 
 ### Required sections
@@ -169,13 +169,13 @@ Format: `Bug: [system] [unintended behaviour] [trigger condition]`
 [Where was this observed? Prod, staging, specific cohort, specific browser?]
 
 ## Severity
-[critical | high | medium | low — see Severity rubric in your project-specific jira-templates skill]
+[critical | high | medium | low  -  see Severity rubric in jira-templates]
 
 ## Impact
 [Who is affected and how. Number of customers, business impact, compliance impact.]
 
 ## Root cause hypothesis
-[If known. If not, leave blank — engineering will investigate.]
+[If known. If not, leave blank  -  engineering will investigate.]
 
 ## Linked story / requirement
 [What was the bug masking? Which story or requirement does the bug violate?]
@@ -204,13 +204,13 @@ Format: `Enabler: [technical change] so [downstream capability]`
 [Specific technical change]
 
 ## Why this matters
-[What downstream capability this enables. Be specific — vague "improves maintainability" claims fail this section.]
+[What downstream capability this enables. Be specific  -  vague "improves maintainability" claims fail this section.]
 
 ## Without this enabler, what breaks or doesn't happen
 [The case for prioritising. If nothing concrete breaks, the enabler is probably not justified now.]
 
 ## Acceptance criteria
-[Observable system change — even if not user-facing. "X service publishes to queue Y" is observable. "Code is cleaner" is not.]
+[Observable system change  -  even if not user-facing. "X service publishes to queue Y" is observable. "Code is cleaner" is not.]
 
 ## Risk of doing this
 [Technical risk of the change itself]
@@ -282,7 +282,7 @@ Every story has a Negative case section explicitly stating what should NOT happe
 
 | Watching | Trigger | Anti-pattern |
 |---|---|---|
-| Any skill producing a ticket | Story has no Negative case section | Happy-path only — missing negative case |
+| Any skill producing a ticket | Story has no Negative case section | Happy-path only  -  missing negative case |
 | Any skill producing a ticket | Story lacks linked requirement | Untraceable story |
 | Any skill producing a ticket | Story past Phase 3 lacks linked slice | Slice not assigned |
 | Any skill producing a ticket | Acceptance criteria contain vague terms ("performant", "user-friendly", "robust") without measurable definition | Non-testable AC |
@@ -370,4 +370,3 @@ feature_cohort_a
 ## 10. Versioning
 
 This standard is v1.0 (2026-05-30). Significant changes (new ticket type, new mandatory section, INVEST refinement) increment the version. Sub-skills referencing this file should not hard-code section names; if a section gets renamed, the reference still resolves.
-

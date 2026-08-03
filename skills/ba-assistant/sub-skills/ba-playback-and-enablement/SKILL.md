@@ -9,7 +9,7 @@ description: Playback materials, sign-offs, enablement. Use for playback phase i
 
 The Playback and Enablement skill ensures that the initiative is communicated clearly to stakeholders, that sign‑offs are secured at appropriate stages, and that operational teams and customers are prepared for the changes.  It helps create materials for solution playbacks, stakeholder reviews, executive updates, and training sessions.  It tracks sign‑offs and prepares documentation for deployment, training, and communications.
 
-> **Cross-cutting rule:** This skill produces multiple artefact-class outputs (playback decks, sign-off log, comms artefacts, enablement plan, training materials, change comms drafts). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `ba-assistant\SKILL.md → Co-thinking and artefact production protocol` — surface planned artefacts upfront and ask the user to select. The Communication Drafter section in this skill is invokable cross-cutting and is also prone to over-production.
+> **Cross-cutting rule:** This skill produces multiple artefact-class outputs (playback decks, sign-off log, comms artefacts, enablement plan, training materials, change comms drafts). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `ba-assistant\SKILL.md → Co-thinking and artefact production protocol`  -  surface planned artefacts upfront and ask the user to select. The Communication Drafter section in this skill is invokable cross-cutting and is also prone to over-production.
 
 ## Tasks
 
@@ -51,11 +51,11 @@ The Playback and Enablement skill should ensure smooth stakeholder engagement an
 
 ---
 
-## Communication Drafter (Wave 3 — merged from ba-communication-drafter)
+## Communication Drafter (Wave 3  -  merged from ba-communication-drafter)
 
-This section absorbs the former `ba-communication-drafter` skill. Communication Drafter produces actual human-facing communications — not plans for them, not templates, but ready-to-send drafts: emails, Slack messages, meeting invites, status updates, escalations, change notices, sign-off requests, retrospective summaries.
+This section absorbs the former `ba-communication-drafter` skill. Communication Drafter produces actual human-facing communications  -  not plans for them, not templates, but ready-to-send drafts: emails, Slack messages, meeting invites, status updates, escalations, change notices, sign-off requests, retrospective summaries.
 
-> **Architectural note (Wave 3):** Communication Drafter is genuinely cross-cutting — it's invoked by 12+ skills (Discovery, Workshop Design, Risk & Tracker, Stakeholder Strategy, Requirements Interrogator in-flight, Retro, Meeting Debrief, Solution Evaluation, Sponsor Engagement, Change Strategy, DoR/Delivery Definition for MoSCoW messages, and Playback). It lives here because Playback is the highest-volume consumer of polished comms and because keeping it as a peer-level skill with so many callers was creating hook noise. **Any skill can still invoke `Communication_Drafter` as a hook** — internally, that hook now reads this section.
+> **Architectural note (Wave 3):** Communication Drafter is genuinely cross-cutting  -  it's invoked by 12+ skills (Discovery, Workshop Design, Risk & Tracker, Stakeholder Strategy, Requirements Interrogator in-flight, Retro, Meeting Debrief, Solution Evaluation, Sponsor Engagement, Change Strategy, DoR/Delivery Definition for MoSCoW messages, and Playback). It lives here because Playback is the highest-volume consumer of polished comms and because keeping it as a peer-level skill with so many callers was creating hook noise. **Any skill can still invoke `Communication_Drafter` as a hook**  -  internally, that hook now reads this section.
 
 ### Core principle
 
@@ -78,8 +78,8 @@ Before drafting, the skill needs five things. Ask if unclear.
 | Audience | Tone, length, jargon level, decision authority |
 | Purpose | Inform / request / escalate / celebrate / apologise / decide |
 | Channel | Email (long-form, formal), Slack (short, casual), Teams (medium), in-person (talking points) |
-| Urgency | FYI / soon / immediate — affects subject line, opening, ask |
-| Relationship | Peer / manager / junior / external / first-contact — affects formality |
+| Urgency | FYI / soon / immediate  -  affects subject line, opening, ask |
+| Relationship | Peer / manager / junior / external / first-contact  -  affects formality |
 
 If the user provides only "draft a status update", ask for audience and channel before drafting.
 
@@ -99,7 +99,7 @@ If the user provides only "draft a status update", ask for audience and channel 
 
 **Meeting invite:**
 ```
-Subject: [Initiative] — [Purpose] — [Date]
+Subject: [Initiative]  -  [Purpose]  -  [Date]
 
 [1 sentence: what this meeting is]
 
@@ -128,24 +128,24 @@ Full doc: [link]
 
 **Post-meeting summary:**
 ```
-[Meeting name] — summary and actions
+[Meeting name]  -  summary and actions
 
 What we decided:
 - [Decision 1]
 - [Decision 2]
 
 Open questions to resolve:
-- [Question — owner — by when]
+- [Question  -  owner  -  by when]
 
 Next steps:
-- [Action — owner — by when]
+- [Action  -  owner  -  by when]
 
 Next meeting: [date or "TBD"]
 ```
 
-**Stakeholder status update** — tailor format to audience tone above. Common structure:
+**Stakeholder status update**  -  tailor format to audience tone above. Common structure:
 ```
-[Initiative] — [Date] status
+[Initiative]  -  [Date] status
 
 Where we are: [phase / progress signal]
 What's changed since last update:
@@ -153,14 +153,14 @@ What's changed since last update:
 - [Change 2]
 
 What's blocking us:
-- [Blocker — owner]
+- [Blocker  -  owner]
 
 What we need from you: [specific or "nothing right now"]
 ```
 
-**Escalation for overdue sign-off** — firm but professional. Lead with impact, not blame:
+**Escalation for overdue sign-off**  -  firm but professional. Lead with impact, not blame:
 ```
-Subject: [Initiative] — [Item] sign-off needed by [date]
+Subject: [Initiative]  -  [Item] sign-off needed by [date]
 
 Hi [Name],
 
@@ -168,24 +168,24 @@ Hi [Name],
 - [Specific impact 1]
 - [Specific impact 2]
 
-To unblock: [specific ask — review / decide / delegate]
+To unblock: [specific ask  -  review / decide / delegate]
 
-Happy to walk through it — [proposed time].
+Happy to walk through it  -  [proposed time].
 ```
 
 **Change communication (in-flight requirement change):**
 ```
-Subject: [Initiative] — change to [requirement / story]
+Subject: [Initiative]  -  change to [requirement / story]
 
 [1 sentence: what changed and why]
 
 What was agreed: [original]
 What we're now proposing: [new]
-Why: [reason — new info, scope clarification, user feedback]
+Why: [reason  -  new info, scope clarification, user feedback]
 
 Impact:
-- [Affected story / ticket — action needed]
-- [Affected design doc — update]
+- [Affected story / ticket  -  action needed]
+- [Affected design doc  -  update]
 
 What I need: [confirmation / re-sign-off / discussion]
 By: [date]
@@ -193,7 +193,7 @@ By: [date]
 
 **Sign-off request:**
 ```
-Subject: [Initiative] — sign-off needed: [Item]
+Subject: [Initiative]  -  sign-off needed: [Item]
 
 Hi [Name],
 
@@ -209,7 +209,7 @@ Please review and confirm by [date]. Happy to walk through if useful.
 
 **Risk flag:**
 ```
-Subject: [Initiative] — risk: [short description]
+Subject: [Initiative]  -  risk: [short description]
 
 Risk: [1 sentence]
 Probability / impact: [H/M/L × H/M/L]
@@ -220,7 +220,7 @@ What we need: [decision / resources / acceptance / nothing yet]
 
 **Retro summary:**
 ```
-[Initiative or phase] — retrospective summary
+[Initiative or phase]  -  retrospective summary
 
 What worked:
 - [Item]
@@ -229,7 +229,7 @@ What didn't:
 - [Item]
 
 What we'll do differently next time:
-- [Action — owner]
+- [Action  -  owner]
 
 Patterns for the next initiative:
 - [Watchlist item]
@@ -237,13 +237,13 @@ Patterns for the next initiative:
 
 **MoSCoW gap message (Wave 3):**
 ```
-Subject: [Initiative] — MoSCoW rating needed for [stories]
+Subject: [Initiative]  -  MoSCoW rating needed for [stories]
 
 Hi [PM name],
 
 [N] stories for [scope: cohort / feature / slice] are moving into delivery but don't have a MoSCoW rating yet:
-- [PROJ-XXXX — story name]
-- [PROJ-YYYY — story name]
+- [PROJ-XXXX  -  story name]
+- [PROJ-YYYY  -  story name]
 
 For each, can you confirm: Must / Should / Could / Won't for [scope]?
 
@@ -261,19 +261,19 @@ By: [date]
 
 ### Drafting tasks
 
-1. **Confirm inputs** — if audience/purpose/channel/urgency/relationship aren't clear, ask before drafting.
-2. **Choose structure** — match the message type to the structures above.
-3. **Calibrate tone** — apply the tone table for the audience.
-4. **Pull content** — use actual content from the initiative tracker, not placeholders.
-5. **Draft** — produce the full message, ready to send.
-6. **Self-critique** — would this land? Is it the right length? Is the ask clear?
-7. **Output** — produce the draft along with the subject line, channel recommendation, and an offer to adjust tone/length.
+1. **Confirm inputs**  -  if audience/purpose/channel/urgency/relationship aren't clear, ask before drafting.
+2. **Choose structure**  -  match the message type to the structures above.
+3. **Calibrate tone**  -  apply the tone table for the audience.
+4. **Pull content**  -  use actual content from the initiative tracker, not placeholders.
+5. **Draft**  -  produce the full message, ready to send.
+6. **Self-critique**  -  would this land? Is it the right length? Is the ask clear?
+7. **Output**  -  produce the draft along with the subject line, channel recommendation, and an offer to adjust tone/length.
 
 ### Self-critique checklist (run before output)
 
 - [ ] Is the ask clear and specific?
 - [ ] Is the length right for the audience and channel?
-- [ ] Is the tone right — not too formal, not too casual?
+- [ ] Is the tone right  -  not too formal, not too casual?
 - [ ] Are there any generic phrases that should be replaced with specifics?
 - [ ] Does the subject line communicate what this is about?
 - [ ] Is there a clear next step?
@@ -283,17 +283,17 @@ If any check fails, revise before outputting.
 
 ### Two modes
 
-**Quick mode** — short message, clear context, audience known. Draft and output.
+**Quick mode**  -  short message, clear context, audience known. Draft and output.
 
-**Considered mode** — high-stakes message (exec update, change communication, escalation, customer-facing). Draft, self-critique, offer variants, let the user pick.
+**Considered mode**  -  high-stakes message (exec update, change communication, escalation, customer-facing). Draft, self-critique, offer variants, let the user pick.
 
 ### Variants
 
 When the user is uncertain about tone or approach, offer two variants:
-- **Direct vs diplomatic** — same message, different forcefulness
-- **Short vs detailed** — same message, different length
-- **Formal vs casual** — same message, different register
-- **Action vs FYI** — same message, different framing
+- **Direct vs diplomatic**  -  same message, different forcefulness
+- **Short vs detailed**  -  same message, different length
+- **Formal vs casual**  -  same message, different register
+- **Action vs FYI**  -  same message, different framing
 
 Present variants side by side, let the user pick. Don't impose a tone if the user hasn't indicated preference.
 
@@ -301,16 +301,16 @@ Present variants side by side, let the user pick. Don't impose a tone if the use
 
 If a first message didn't get a response and the user asks for a follow-up:
 
-1. **Wait time check** — has it been long enough? (3+ business days for email, 1 day for Slack)
-2. **Escalate or remind?** — has the urgency changed?
-3. **Tone shift** — second message is slightly more direct but never blames the recipient ("circling back" is fine; "you didn't reply" is not)
-4. **Add value** — a follow-up should add something (new context, deadline pressure, alternative option), not just repeat
+1. **Wait time check**  -  has it been long enough? (3+ business days for email, 1 day for Slack)
+2. **Escalate or remind?**  -  has the urgency changed?
+3. **Tone shift**  -  second message is slightly more direct but never blames the recipient ("circling back" is fine; "you didn't reply" is not)
+4. **Add value**  -  a follow-up should add something (new context, deadline pressure, alternative option), not just repeat
 
-**Gentle nudge:** `Hi [Name], following up on this — is [date] still realistic for [item]? Happy to discuss if anything's blocking it.`
+**Gentle nudge:** `Hi [Name], following up on this  -  is [date] still realistic for [item]? Happy to discuss if anything's blocking it.`
 
 **Escalation-with-deadline:** `Hi [Name], [item] sign-off is now [N] days overdue. I'll need to flag this to [next-level person] by [date] if we can't get unblocked. Can we do [specific time]?`
 
-**Re-route:** `Hi [Name], I haven't heard back on [item] — should I be looping in [alternative person]? Don't want to bypass you, just want to keep this moving.`
+**Re-route:** `Hi [Name], I haven't heard back on [item]  -  should I be looping in [alternative person]? Don't want to bypass you, just want to keep this moving.`
 
 ### Output format
 
@@ -331,20 +331,20 @@ For multi-stakeholder communications (same news, different audiences), produce t
 
 ### Comms-specific challenge rules
 
-- **Specific over generic** — no "I hope this finds you well", no "just wanted to circle back", no "I wanted to touch base"
-- **Lead with the ask** — for exec audiences, the ask is the first sentence
-- **Cut hedging** — "I think maybe we should consider possibly..." → "We should..."
-- **Don't over-apologise** — one sober acknowledgement of an issue is enough
-- **Right length** — most messages are shorter than people draft. Default to brief.
-- **Honest about uncertainty** — when you're unsure, say so. Don't pretend confidence that isn't there.
-- **Subject lines do work** — a vague subject line means the email won't be opened
+- **Specific over generic**  -  no "I hope this finds you well", no "just wanted to circle back", no "I wanted to touch base"
+- **Lead with the ask**  -  for exec audiences, the ask is the first sentence
+- **Cut hedging**  -  "I think maybe we should consider possibly..." → "We should..."
+- **Don't over-apologise**  -  one sober acknowledgement of an issue is enough
+- **Right length**  -  most messages are shorter than people draft. Default to brief.
+- **Honest about uncertainty**  -  when you're unsure, say so. Don't pretend confidence that isn't there.
+- **Subject lines do work**  -  a vague subject line means the email won't be opened
 
 ### What this section does NOT do
 
-- Does not send messages — only drafts
+- Does not send messages  -  only drafts
 - Does not negotiate on the user's behalf
-- Does not invent context — pulls from the tracker, requirements, decisions
-- Does not produce generic templates — every draft is initiative-specific
+- Does not invent context  -  pulls from the tracker, requirements, decisions
+- Does not produce generic templates  -  every draft is initiative-specific
 
 ### When to invoke the Comms Drafter (restored from pre-Wave 1)
 
@@ -363,10 +363,10 @@ For multi-stakeholder communications (same news, different audiences), produce t
 ### Typical questions to ask before drafting (restored from pre-Wave 1)
 
 - Who is this going to specifically?
-- What is the primary purpose — informing them, asking them for something, flagging a risk?
+- What is the primary purpose  -  informing them, asking them for something, flagging a risk?
 - How urgent is this?
-- What's the relationship — peer, manager, external?
-- What channel — email, Slack, Teams?
+- What's the relationship  -  peer, manager, external?
+- What channel  -  email, Slack, Teams?
 - Is there a deadline or specific date to reference?
 - Should I keep it short or include more context?
 
@@ -401,5 +401,4 @@ For multi-stakeholder communications (same news, different audiences), produce t
 ### Migration note (Wave 3)
 
 This content was previously the `ba-communication-drafter` skill. The standalone skill is now a SUPERSEDED marker; comms drafting runs as a utility section within Playback and Enablement but is invokable by any other skill via the `Communication_Drafter` hook name.
-
 

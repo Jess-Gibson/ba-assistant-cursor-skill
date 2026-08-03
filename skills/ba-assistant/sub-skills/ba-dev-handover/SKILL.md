@@ -25,18 +25,18 @@ It exists because a bad handover fails downstream. A spike request with no decis
 
 **Two distinct events, never conflated:**
 
-1. **Confirmation** — a requirement is promoted to `status: confirmed` in `register.md`. Happens in the BA workspace, via the Interrogator conversation and stakeholder agreement. This skill never performs confirmation.
-2. **Publication** — already-confirmed content is rendered and written to the shared repo. This is the only event this skill owns.
+1. **Confirmation**  -  a requirement is promoted to `status: confirmed` in `register.md`. Happens in the BA workspace, via the Interrogator conversation and stakeholder agreement. This skill never performs confirmation.
+2. **Publication**  -  already-confirmed content is rendered and written to the shared repo. This is the only event this skill owns.
 
 If a handover needs something that isn't confirmed yet, the handover stops and event 1 happens first, separately (see the Interrogator hook below). Publishing does not confirm, and confirming does not publish.
 
 ## Standards used
 
-- `references/dev-handover-format.md` — the four handover artefact shapes, the handover note wrapper, the shared-repo folder convention, the confirmed-vs-working boundary
-- `references/ears-translation.md` — how a confirmed register requirement is rendered into EARS form for the export (source register stays as-is)
-- `references/user-story-format.md` — spike structure (§3) and DoR checklist (§6); the spike request and story pack reuse these, they don't reinvent them
-- `references/requirement-format.md` — the confirmed requirement fields that get pulled
-- `references/raid-format.md` — the RAID entry shape used when embedding RAID summaries into a handover
+- `references/dev-handover-format.md`  -  the four handover artefact shapes, the handover note wrapper, the shared-repo folder convention, the confirmed-vs-working boundary
+- `references/ears-translation.md`  -  how a confirmed register requirement is rendered into EARS form for the export (source register stays as-is)
+- `references/user-story-format.md`  -  spike structure (§3) and DoR checklist (§6); the spike request and story pack reuse these, they don't reinvent them
+- `references/requirement-format.md`  -  the confirmed requirement fields that get pulled
+- `references/raid-format.md`  -  the RAID entry shape used when embedding RAID summaries into a handover
 
 ## Cross-cutting rules
 
@@ -66,21 +66,21 @@ Each maps to the SDD canonical set (requirements → design → tasks) plus the 
 
 Every published artefact is wrapped in a **handover note** (see `dev-handover-format.md`): what this is, what's confirmed (links to the confirmed store in the shared repo), what's still provisional (flagged inline), the initiative index link, and what's needed back.
 
-**RAID is embedded, never linked.** The tracker is a working, git-ignored file — a link to it from the shared repo would point at nothing the devs can see. Any dependency, decision, or constraint a handover relies on is copied in as a short summary table (per `raid-format.md` shape), with its tracker ID preserved for traceability on the BA side. Links inside a handover may only ever point at other files inside the shared repo's confirmed store.
+**RAID is embedded, never linked.** The tracker is a working, git-ignored file  -  a link to it from the shared repo would point at nothing the devs can see. Any dependency, decision, or constraint a handover relies on is copied in as a short summary table (per `raid-format.md` shape), with its tracker ID preserved for traceability on the BA side. Links inside a handover may only ever point at other files inside the shared repo's confirmed store.
 
 ## Mandatory hooks
 
 Fire these as part of the readiness check, before publishing. Print the status header for each.
 
-1. **Requirements Interrogator** (`HK-DH-INT-confirm`) — **handoff-and-halt, not a sub-call.** The Interrogator runs as a conversation (one good question at a time, per its own skill); it cannot be invoked synchronously inside a publish flow and "return" a confirmed requirement. If a handover needs a requirement that is `draft` rather than `confirmed`: **halt the handover**, tell the user which requirements aren't ready, and offer to hand off to the Interrogator conversation now. Confirmation then happens in the register as its own event (with stakeholder agreement, per requirement-format status transitions). The user re-runs `/handover` afterwards. Block for the requirements pack and story pack; for spike/ADR requests a draft may instead be flagged provisional in the note (warn).
+1. **Requirements Interrogator** (`HK-DH-INT-confirm`)  -  **handoff-and-halt, not a sub-call.** The Interrogator runs as a conversation (one good question at a time, per its own skill); it cannot be invoked synchronously inside a publish flow and "return" a confirmed requirement. If a handover needs a requirement that is `draft` rather than `confirmed`: **halt the handover**, tell the user which requirements aren't ready, and offer to hand off to the Interrogator conversation now. Confirmation then happens in the register as its own event (with stakeholder agreement, per requirement-format status transitions). The user re-runs `/handover` afterwards. Block for the requirements pack and story pack; for spike/ADR requests a draft may instead be flagged provisional in the note (warn).
 
-2. **Data Investigation** (`HK-DH-BDI-ground`) — if a requirement being handed over touches a real system (endpoint, field, state, schema) and its grounding evidence is qualitative or absent (the register's `evidence` field where present, else the absence of a linked Data Investigation output), fire the standard data-pairing prompt before publishing: pull data now / user shares data / proceed and tag `evidence: qualitative` (explicit) / not needed. Warn, not block. Ungrounded system facts are the anti-hallucination gap the devs' agents fall into.
+2. **Data Investigation** (`HK-DH-BDI-ground`)  -  if a requirement being handed over touches a real system (endpoint, field, state, schema) and its grounding evidence is qualitative or absent (the register's `evidence` field where present, else the absence of a linked Data Investigation output), fire the standard data-pairing prompt before publishing: pull data now / user shares data / proceed and tag `evidence: qualitative` (explicit) / not needed. Warn, not block. Ungrounded system facts are the anti-hallucination gap the devs' agents fall into.
 
-3. **Risk & Tracker** (`HK-DH-RT-raid`) — pull the confirmed RAID items a handover references (dependencies, decisions, compliance constraints) from the tracker and **embed them as a summary table in the published artefact** (the tracker itself never leaves the workspace). Block if a handover asserts a dependency or constraint with no tracker entry (untraceable).
+3. **Risk & Tracker** (`HK-DH-RT-raid`)  -  pull the confirmed RAID items a handover references (dependencies, decisions, compliance constraints) from the tracker and **embed them as a summary table in the published artefact** (the tracker itself never leaves the workspace). Block if a handover asserts a dependency or constraint with no tracker entry (untraceable).
 
-4. **Jira** (`HK-DH-JIRA-ticket`) — for spike requests, ADR requests, and story packs, after the markdown is published and the gate passes, offer to create/update the matching Jira ticket using the project-specific Jira skill (`jira-templates` in this workspace's convention — in the public repo this is a create-your-own skill per CUSTOMIZATION.md) and `references/jira-ticket-format.md`. The markdown is the source; the Jira ticket is the actioned view. Warn if the Jira MCP is unavailable; the markdown still publishes.
+4. **Jira** (`HK-DH-JIRA-ticket`)  -  for spike requests, ADR requests, and story packs, after the markdown is published and the gate passes, offer to create/update the matching Jira ticket using the project-specific Jira skill (`jira-templates` in this workspace's convention  -  in the public repo this is a create-your-own skill per CUSTOMIZATION.md) and `references/jira-ticket-format.md`. The markdown is the source; the Jira ticket is the actioned view. Warn if the Jira MCP is unavailable; the markdown still publishes.
 
-5. **State Validator** (`HK-DH-SV-register`) — after publishing, register the handover's dependencies so the validator can flag it if a confirmed artefact it derived from later changes (making the published handover stale). Warn on failure.
+5. **State Validator** (`HK-DH-SV-register`)  -  after publishing, register the handover's dependencies so the validator can flag it if a confirmed artefact it derived from later changes (making the published handover stale). Warn on failure.
 
 ## Tasks
 
@@ -112,7 +112,7 @@ Produce the artefact per `dev-handover-format.md`. For the requirements pack, re
 
 ### 6. Publish
 
-Write the artefact and handover note to the shared-repo paths. Do not write anything from the BA working set (SESSION-CONTEXT, debriefs, the tracker file itself) to the shared repo — embedded RAID summaries derived from the tracker are the only tracker content that crosses, and only via `HK-DH-RT-raid`.
+Write the artefact and handover note to the shared-repo paths. Do not write anything from the BA working set (SESSION-CONTEXT, debriefs, the tracker file itself) to the shared repo  -  embedded RAID summaries derived from the tracker are the only tracker content that crosses, and only via `HK-DH-RT-raid`.
 
 ### 7. Feed Jira
 
@@ -146,14 +146,14 @@ Per `instructions.md → Self-Critique`, before presenting: what am I assuming t
 
 ### Story pack (hard block on any Hard item)
 - **Hard:** every story passes the DoR checklist (`user-story-format.md §6`).
-- **Hard:** traceability present — requirement → AC → story, and each story links a slice.
+- **Hard:** traceability present  -  requirement → AC → story, and each story links a slice.
 - **Hard:** Negative case present on every story.
 - **Hard:** grounded system facts included where the story touches real systems.
 - **Warn hard:** NFR/compliance noted; MoSCoW set per scope.
 
 ## Metrics
 
-- `handoverBounceRate` — of handovers published, how many came back for rework (the user marks a handover "bounced" when it does). The whole point of the gate is to drive this down. Derivable, honest n/a until there's data.
+- `handoverBounceRate`  -  of handovers published, how many came back for rework (the user marks a handover "bounced" when it does). The whole point of the gate is to drive this down. Derivable, honest n/a until there's data.
 - Log every publish and every acknowledged soft-fail override to `metrics-cache.json → handovers` so a retro can see whether the gate is too loose (bounces despite passing) or too tight (overrides that never bounce).
 
 ## Outputs
@@ -175,7 +175,7 @@ Per `instructions.md → Self-Critique`, before presenting: what am I assuming t
 | A required requirement isn't confirmed | Halt and hand off to the Interrogator conversation (requirements/story pack) or flag provisional (spike/ADR); never silently publish a draft |
 | User insists on publishing a soft-fail | Allow after explicit acknowledgement; log the override to metrics-cache |
 | User asks to publish working docs | Refuse; offer to confirm the relevant entries first |
-| EARS render fails for a requirement | The requirement can't be expressed as a testable "shall" — flag it back for interrogation, don't force a mangled render |
+| EARS render fails for a requirement | The requirement can't be expressed as a testable "shall"  -  flag it back for interrogation, don't force a mangled render |
 | No `evidence` field in the local register format | Fall back to checking for a linked Data Investigation output; suggest adding the optional `evidence` field per the Wave 9 requirement-format patch |
 
 ## Anti-patterns (add to Anti-Pattern Detector)
@@ -195,7 +195,7 @@ Per `instructions.md → Self-Critique`, before presenting: what am I assuming t
 |---|---|
 | Solution Shaping | Produces the spike and ADR lists this skill turns into requests |
 | Story Writing | Produces the DoR-passed stories this skill packs |
-| Requirements Interrogator | Matures drafts to confirmable — via handoff-and-halt, before a handover can pull them |
+| Requirements Interrogator | Matures drafts to confirmable  -  via handoff-and-halt, before a handover can pull them |
 | Data Investigation | Grounds system facts before they're handed over |
 | Risk & Tracker | Source of the confirmed RAID a handover embeds |
 | State Validator | Registers handover dependencies; flags stale handovers on confirmed-artefact change |
@@ -208,7 +208,7 @@ Add to `hook-contracts.md`:
 | Hook ID | Callee | Trigger | Inputs | Outputs | Failure mode | Status |
 |---|---|---|---|---|---|---|
 | HK-DH-INT-confirm | Requirements_Interrogator | Handover needs a requirement not yet confirmed | Requirement, source | Handoff-and-halt: Interrogator conversation runs; requirement confirmed in register as a separate event; user re-runs /handover | Block (reqs/story pack); warn+flag provisional (spike/ADR) | 🟠 W9 |
-| HK-DH-BDI-ground | ba-data-investigation | Requirement touches a real system with qualitative/absent grounding | Requirement, candidate sources | Grounded facts or qualitative tag | Warn — publish as qualitative after acknowledgement | 🟠 W9 |
-| HK-DH-RT-raid | Risk_and_Tracker | Handover references a dependency/decision/constraint | RAID reference | RAID summary table embedded in the artefact (tracker IDs preserved) | Block — untraceable handover | 🟠 W9 |
-| HK-DH-JIRA-ticket | Project Jira skill (jira-templates convention) | Spike/ADR/story published, gate passed | Published markdown | Jira ticket created/updated | Warn — markdown stands; ticket pending | 🟠 W9 |
-| HK-DH-SV-register | ba-state-validator | After publish | Handover + source artefact IDs | Dependency registered for drift watch | Warn — manual re-check fallback | 🟠 W9 |
+| HK-DH-BDI-ground | ba-data-investigation | Requirement touches a real system with qualitative/absent grounding | Requirement, candidate sources | Grounded facts or qualitative tag | Warn  -  publish as qualitative after acknowledgement | 🟠 W9 |
+| HK-DH-RT-raid | Risk_and_Tracker | Handover references a dependency/decision/constraint | RAID reference | RAID summary table embedded in the artefact (tracker IDs preserved) | Block  -  untraceable handover | 🟠 W9 |
+| HK-DH-JIRA-ticket | Project Jira skill (jira-templates convention) | Spike/ADR/story published, gate passed | Published markdown | Jira ticket created/updated | Warn  -  markdown stands; ticket pending | 🟠 W9 |
+| HK-DH-SV-register | ba-state-validator | After publish | Handover + source artefact IDs | Dependency registered for drift watch | Warn  -  manual re-check fallback | 🟠 W9 |

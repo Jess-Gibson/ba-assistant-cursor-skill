@@ -72,9 +72,9 @@ Stakeholders are not always initiative-wide. A compliance reviewer may matter fo
 
 ### Why scope matters here
 
-- **RACI accuracy** — A stakeholder may be Accountable for one feature and only Informed for another. A single flat RACI hides this.
-- **Engagement plan filtering** — `/status` and the canvas filter by scope. Stakeholders should appear in the scope they actually engage with, not as initiative-level noise.
-- **Anti-pattern detection** — `ba-anti-pattern-detector` watches for "scope without an accountable stakeholder". Without a `scope` field on stakeholder entries, this rule can't fire.
+- **RACI accuracy**  -  A stakeholder may be Accountable for one feature and only Informed for another. A single flat RACI hides this.
+- **Engagement plan filtering**  -  `/status` and the canvas filter by scope. Stakeholders should appear in the scope they actually engage with, not as initiative-level noise.
+- **Anti-pattern detection**  -  `ba-anti-pattern-detector` watches for "scope without an accountable stakeholder". Without a `scope` field on stakeholder entries, this rule can't fire.
 
 ### How to apply
 

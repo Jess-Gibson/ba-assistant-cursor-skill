@@ -15,7 +15,7 @@ Re-run setup with `/setup` or "reconfigure BA assistant" to regenerate from scra
 name: "[Your Name]"
 role: "[BA | PM | PO | Other]"
 team: "[Your Team or Organisation]"
-domain: "[payments | platform | customer | data | compliance | other]"
+domain: "[payments | platform | customer | data | compliance | product | other]"
 ```
 
 ---

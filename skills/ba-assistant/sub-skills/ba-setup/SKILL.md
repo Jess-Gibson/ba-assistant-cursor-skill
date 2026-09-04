@@ -2,7 +2,7 @@
 name: ba-setup
 description: >
   First-run personalisation wizard for BA Assistant. Runs after files are installed.
-  Short AskQuestion flow: name/role, path confirm, Runlayer connectors, hub URL,
+  AskQuestion flow: name/role, domain, paths, Jira, Confluence, Runlayer connectors,
   then pull-in starting work for the workboard. Writes ba-assistant-config.mdc.
   Run /setup to reconfigure.
 disable-model-invocation: true
@@ -63,10 +63,11 @@ AskQuestion is available.
 
 ---
 
-## Wizard flow (keep it short)
+## Wizard flow
 
-Maximum AskQuestion rounds before write: about **6**. Prefer one panel with
-2 questions when the UI allows.
+Prefer one panel with 2 related questions when the UI allows. Expected AskQuestion
+rounds for a full path: about **8–10** (fewer if they skip Jira/Confluence).
+Do not drop domain, Jira, or Confluence to hit a lower count.
 
 ### Step 0 — Welcome (short)
 

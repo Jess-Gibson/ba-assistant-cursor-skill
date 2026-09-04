@@ -32,9 +32,9 @@ If the user is only browsing, AskQuestion once:
 
 - **Install is file copy**, not profile chat. Missing skills/rules/commands = not installed.
 - **Default initiatives root** is `~/.cursor/initiatives` (not `blueprints`).
-- **Free-text** (name, URLs, keys) is collected in chat. Never put "enter my name" as an AskQuestion chip.
+- **Name / URLs / keys:** use AskQuestion free-text fields (type below). Never invent chips like "Enter my name (Recommended)" that capture nothing.
 - **Do not overwrite** a personalised install without confirmation.
-- Prefer installed skills under `~/.cursor/skills/ba-assistant/`, not stale `.claude/skills/` copies.
+- Read skills **only** from `~/.cursor/skills/ba-assistant/`. Do not search other skill folders on the machine.
 
 ## MCP / Runlayer
 

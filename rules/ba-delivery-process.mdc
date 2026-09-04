@@ -16,7 +16,7 @@ When a task is **BA-heavy** (discovery, requirements, Confluence/Jira, analysis,
 
 ## Guiding principles (from E2E process)
 
-1. **Context first** — Prefer project `AGENTS.md` / `!CLAUDE.md` and linked knowledge; keep them updated when decisions land.  
+1. **Context first** — Prefer project `AGENTS.md` and linked knowledge; keep them updated when decisions land.  
 2. **Declarative work** — State goals, inputs, and outputs; avoid prescribing implementation before requirements are clear.  
 3. **Stop for human approval** — After discovery summaries, problem definitions, **implementation plans**, prototype reviews, and before destructive or high-risk actions: pause for explicit confirmation (aligns with existing guardrails).  
 4. **Plan then execute** — For multi-step or structural work, produce and get agreement on a plan before large edits (see [writing-plans](.cursor/skills/writing-plans/SKILL.md) as needed).  
@@ -46,7 +46,7 @@ When a task is **BA-heavy** (discovery, requirements, Confluence/Jira, analysis,
 
 ## Workspace skill mapping (use when names differ from runbook)
 
-The runbook names `.claude` agents and generic skills. In **this** workspace, route using [.cursor/rules/skills-routing.mdc](skills-routing.mdc) and `.cursor/skills/`, for example:
+The runbook may name agents and generic skills differently. In **this** workspace, route using [.cursor/rules/skills-routing.mdc](skills-routing.mdc) and `.cursor/skills/`, for example:
 
 - Requirement / AC / discovery → `requirement-gatherer`  
 - Diagrams / flows → `pm-diagram-generator`  

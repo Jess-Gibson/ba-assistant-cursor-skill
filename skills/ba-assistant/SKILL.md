@@ -91,8 +91,9 @@ Before rendering the welcome panel:
    still contains a placeholder such as `[Your Name]`.
    Do **not** treat the always-on persona file `rules/ba-profile.mdc` as the
    wizard config target.
-3. Read setup/install skills from the **installed** tree under
-   `~/.cursor/skills/ba-assistant/`, not a stale `.claude/skills/` copy.
+3. Read setup/install skills **only** from
+   `~/.cursor/skills/ba-assistant/`. Do not search other skill folders on the
+   machine.
 
 The wizard is optional once configured. Re-run with `/setup`.
 

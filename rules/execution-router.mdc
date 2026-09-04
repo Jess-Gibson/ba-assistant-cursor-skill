@@ -1,11 +1,11 @@
 ---
-description: Turn classification, default-agent behaviour, and skill routing for BA workspaces  -  the single always-on router (absorbs ba-assistant-default, session-start-protocol, read-claude-first)
+description: Turn classification, default-agent behaviour, and skill routing for BA workspaces  -  the single always-on router (absorbs ba-assistant-default, session-start-protocol, and legacy project-context twins)
 alwaysApply: true
 ---
 
 # Execution router
 
-The one rule that decides **what to load and whether to act**. Runs before responding to the first user message in any conversation, including resumes. (Wave: always-on restructure  -  this file absorbed `session-start-protocol.mdc`; the repo twins `ba-assistant-default.mdc` and `read-claude-first.mdc` are also folded in.)
+The one rule that decides **what to load and whether to act**. Runs before responding to the first user message in any conversation, including resumes. (Wave: always-on restructure  -  this file absorbed `session-start-protocol.mdc`; the repo twins `ba-assistant-default.mdc` and older project-context rules are also folded in.)
 
 ## 0. Workspace detection and default agent
 
@@ -13,7 +13,9 @@ The BA Assistant orchestrator is the **default agent** in any workspace containi
 
 ## 1. Project context (first chat in a workspace)
 
-If the open workspace root has `AGENTS.md` or `!CLAUDE.md`, read it as primary context; else `README.md`. (The sessionStart hook also injects this instruction  -  belt and braces.) Do not assume a specific product; infer from the open project.
+If the open workspace root has `AGENTS.md`, read it as primary context; else `README.md`. If another project agent guide exists at the root, honour it too. (The sessionStart hook also injects this instruction  -  belt and braces.) Do not assume a specific product; infer from the open project.
+
+Load BA skills **only** from `~/.cursor/skills/ba-assistant/` (or this package's `skills/ba-assistant/` when installing). Do not search other skill folders on the machine.
 
 ## 2. Classify the turn (first action, silent)
 

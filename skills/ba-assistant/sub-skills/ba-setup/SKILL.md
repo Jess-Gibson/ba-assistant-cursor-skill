@@ -25,8 +25,8 @@ If **missing**:
 2. Load and run `sub-skills/ba-install/SKILL.md` (or ask for the public repo URL).
 3. Only continue this wizard after install verification passes.
 
-Also prefer reading **this** installed skill file under `~/.cursor/skills/ba-assistant/`,
-not a stale copy under `.claude/skills/`.
+Also read skills **only** from the installed tree:
+`~/.cursor/skills/ba-assistant/`. Do not search other skill folders on the machine.
 
 ---
 
@@ -40,22 +40,27 @@ not a stale copy under `.claude/skills/`.
 
 ## AskQuestion design rules (mandatory)
 
-**Closed choices only** go in AskQuestion chips (role, domain, yes/no, depth, next task).
+Use **AskQuestion** for setup questions. Prefer one panel with clear prompts.
 
-**Free-text never goes in AskQuestion.** For name, URLs, project keys, space keys,
-custom paths, and document links:
+**How free-text works in AskQuestion:**
+- Cursor's AskQuestion panel includes a free-text field (often labelled like
+  "Other" or shown under the options).
+- For open answers (name, URL, project key, custom path), tell the BA to type
+  in that free-text field. Do **not** invent chips such as
+  "Enter my name (Recommended)" that look like answers but capture nothing.
+- For closed lists (role, domain, yes/no, depth), use real option chips, plus
+  an `Other` chip when needed.
 
-1. Ask in normal chat prose: "Reply with your name as you want it on artefacts."
-2. Wait for the user's next message.
-3. Do **not** invent options like "Enter my name (Recommended)" or "Other — enter the URL".
-
-If you already broke this rule, apologise once and ask them to type the value in chat.
+**Anti-patterns (never do these):**
+- A recommended chip that says "Enter my name" / "Enter the URL" with no typed value
+- Asking the BA to abandon AskQuestion and "reply in chat" when AskQuestion is available
+- Mentioning or searching other AI tool skill directories on disk
 
 ---
 
 ## Wizard flow
 
-Work through steps **sequentially**. Group only related closed choices in one AskQuestion panel.
+Work through steps **sequentially**. Group related questions in one AskQuestion panel when it helps.
 
 ### Step 0 — Welcome
 
@@ -78,22 +83,33 @@ Then Step 1.
 
 ### Step 1 — Who are you?
 
-**Name (free-text in chat):**
+Present **one AskQuestion panel** with two questions.
 
-> What name should appear on initiative artefacts and Confluence pages?
-> Reply with the name in your next message.
+**Question A — Name (free-text is the answer):**
 
-**Role (AskQuestion only):**
+> What name would you like to go by?
+
+Prefer freeform / custom text if AskQuestion supports it (no chips needed).
+If the tool requires at least one option, use **exactly one**:
+- `name` — Type your name in the free-text field (then submit)
+
+Rules:
+- The typed string is `profile.name`. Selecting a chip with an empty free-text
+  field is not an answer; ask once more.
+- Never invent name chips ("Jess", "Enter my name", etc.).
+
+**Question B — Role (chips + Other free-text):**
 
 > What is your primary role?
 
 Options:
-- `BA` — Business Analyst
-- `PM` — Product Manager
-- `PO` — Product Owner
-- `Other` — I will type my role in chat
+- `ba` — Business Analyst
+- `pm` — Product Manager
+- `po` — Product Owner
+- `pa` — Product Analyst
+- `other` — Other (type your role in the free-text field)
 
-Capture: `profile.name`, `profile.role`.
+Capture: `profile.name` from free-text; `profile.role` from the chip or Other text.
 
 ---
 
@@ -176,7 +192,9 @@ Options:
 - `yes_server` — Yes — Jira Server / Data Center
 - `no` — No / Not yet
 
-If yes: ask in **chat** for instance URL and project key (free-text). Do not put URLs in AskQuestion options.
+If yes: ask in the **same or next AskQuestion** for instance URL and project key,
+using free-text fields (options like "Type the URL below" / "Type the project key below").
+Do not use fake chips that claim to be the URL.
 
 **MCP check:** Look for Jira/Atlassian MCP tools. If missing, show:
 
@@ -195,7 +213,8 @@ Capture: `workspace.jira.instanceUrl`, `workspace.jira.projectKey`.
 
 **AskQuestion:** yes / no.
 
-If yes: ask space key and optional parent page URL in **chat** (free-text).
+If yes: ask space key and optional parent page URL via AskQuestion free-text fields
+(type below). Do not invent placeholder URL chips.
 
 MCP check same as Jira (Confluence / Atlassian / Runlayer).
 

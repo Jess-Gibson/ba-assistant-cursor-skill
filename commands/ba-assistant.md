@@ -18,5 +18,5 @@ description: Start BA Assistant. Install package files if missing, run personali
    - start a new initiative
    - MCP / Runlayer help
 
-Prefer the installed skill tree under `~/.cursor/skills/ba-assistant/`, not a
-stale `.claude` copy.
+Read skills **only** from `~/.cursor/skills/ba-assistant/`. Do not search other
+skill folders on the machine.

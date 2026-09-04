@@ -113,9 +113,9 @@ Optional: run `python tools/conformance-check.py --root <cursor-home>`.
 ### Step 5 — Hand off to personalisation
 
 1. Tell the BA: "Files are installed. Next is a short personalisation wizard."
-2. Read and follow `sub-skills/ba-setup/SKILL.md` **in the installed tree**
-   (`~/.cursor/skills/ba-assistant/sub-skills/ba-setup/SKILL.md`), not a stale
-   `.claude` copy.
+2. Read and follow `sub-skills/ba-setup/SKILL.md` **only** from the installed tree:
+   `~/.cursor/skills/ba-assistant/sub-skills/ba-setup/SKILL.md`.
+   Do not load setup skills from any other folder on the machine.
 3. After ba-setup finishes, the guided first tasks include workboard, debrief,
    initiative, and MCP help.
 

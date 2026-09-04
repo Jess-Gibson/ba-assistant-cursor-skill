@@ -40,7 +40,7 @@ MUST READ (in priority order  -  start with richest sources):
 **Do NOT skip files.** Every `.md` file in the project folder contributes context. The more files you read, the more accurate and complete the canvas will be. If a file is large, still read it  -  truncate only if it exceeds your context window, and note what you skipped.
 
 **Also search up one directory level**  -  check the parent `docs/` or `blueprints/` folder for:
-- `README.md`, `AGENTS.md`, `!CLAUDE.md`  -  project-level config
+- `README.md`, `AGENTS.md`  -  project-level config
 - Additional `*.md` files not in the analysis subfolder
 
 ### Phase 2: Gather live data from external sources

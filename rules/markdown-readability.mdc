@@ -1,0 +1,42 @@
+---
+description: >-
+  Markdown layout for stakeholder-facing docs (enablement, comms, debriefs, outputs).
+  Dark-mode safe. Load when writing or editing .md for Support/Ops/GTM handovers.
+globs: "**/{comms,debriefs,outputs}/**/*.md"
+alwaysApply: false
+---
+
+# Markdown readability (stakeholder docs)
+
+Full reference: `skills/ba-assistant/references/markdown-readability.md`.
+
+Applies to enablement handovers, comms packs, debrief summaries, Confluence draft mirrors, and any `.md` a non-BA will read in Cursor (including **dark mode**).
+
+## Must
+
+1. **Lead with the reader's job** (e.g. Support quick answer, call script) before background.
+2. **Separate major blocks** with `---` and a clear `### LABEL` (TODAY, WHO, WHAT CHANGES, WHY, KEY DATES). Do not stack same-level headings with uniform spacing only.
+3. **Use tables** for compare/contrast (today vs change, cohort A vs cohort B, FAQ). One row per idea.
+4. **Short summary bullets** in top sections. Point to detail below ("see table below"), not "see section 2".
+5. **Blockquotes** for short narrative or scripts (theme-aware in dark mode).
+
+## Must not
+
+1. **No HTML colour boxes** (`<div style="background:...">`). Light backgrounds fail in dark mode.
+2. **No `<br>`** for spacing. Use blank lines and horizontal rules.
+3. **No walls of same-weight prose** under adjacent `###` headings without a visual break.
+4. **No nested process detail** in the summary layer. Move ops notes to a later section.
+
+## Enablement / Support docs
+
+Include where relevant:
+
+- **Today (current state)** vs **from [date] (what changes)**
+- **Who is in / out of scope**
+- **Why** (one short block, plain language)
+- **What Support should say** (opening line + numbered script)
+- **If they ask...** table for edge cases
+
+## Before handoff
+
+Scan: Can someone on a call find the answer in **30 seconds** from the top? Does every section look visually distinct in **dark mode preview**?

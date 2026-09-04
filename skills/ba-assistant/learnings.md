@@ -51,6 +51,9 @@ The format is deliberately simple: patterns, watchlist items, and skill refineme
 | **Implementation-level stories mask gap visibility** - prefer business-outcome stories so missing paths are obvious | P004 | mid-initiative retro | | candidate | Implementation detail in AC | |
 | **Soft Miro pre-flight insufficient after recurrence** - mandatory Pass 2b inventory/placement + HARD gate before `layout_create` | P003 | recurring | | established | Miro board creation without pre-flight compliance | |
 | **Promotion cascade must reach personal BA-actions store** - debrief/tracker capture team actions but BA-owned rows do not auto-upsert; user discovers gaps later | P003 | mid-initiative retro | | candidate | Debrief or wrap without ba-actions-sync gate | |
+| **Complexity asked before sources reviewed** - user picked complexity blind, before seeing what existed in Confluence/Jira/Glean/Web | P003 | mid-initiative retro | | candidate | Silent source skip - skipped-source check not run | |
+| **Incomplete AI brief requires lock block** - thin prompts on source of truth, mutate/freeze, job verb, gold bar, or ship shape led to wrong artefact; assistant must AskQuestion before drafting | P003 | in-session correction | | candidate | Thin brief lock block skipped | |
+| **Remediation / bulk ops ticket without downstream outcome ACs** - re-run or reassessment fixes data but republishes downstream notifications or reopens tickets | P004 | mid-initiative retro | | candidate | Remediation without downstream outcome ACs | |
 
 ---
 
@@ -68,6 +71,9 @@ The format is deliberately simple: patterns, watchlist items, and skill refineme
 | Refinement | Reason | Date added |
 |---|---|---|
 | Trigger: debrief or `/wrap` without `Gate: ba-actions-sync: PASS` | Personal working list went stale after tracker promotion | Version 10 |
+| Trigger: thin brief lock block in `agent-behavior.mdc` | Wrong artefact from assumed scope or source of truth | Version 11 |
+| Trigger: remediation without downstream outcome ACs | Bulk ops tickets miss integration side effects | Version 11 |
+| Reference: `markdown-readability.md` + rule | Stakeholder `.md` readable in dark mode | Version 11 |
 
 ### Requirements / register
 
@@ -80,4 +86,4 @@ The format is deliberately simple: patterns, watchlist items, and skill refineme
 
 ## Version
 
-Version 10 (2026-08-03). Selective genericized patterns from prior initiative retros. Add new rows via `/retro`; do not paste personal initiative dumps.
+Version 11 (2026-09-04). Selective genericized patterns from prior initiative retros. Add new rows via `/retro`; do not paste personal initiative dumps.

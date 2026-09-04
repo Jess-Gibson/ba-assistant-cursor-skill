@@ -1,5 +1,48 @@
 # Changelog
 
+## Version 11 - 2026-09-04
+
+### One-shot install for non-developer BAs
+
+- Added `ba-install` skill plus `tools/install-ba-assistant.py` (.ps1 / .sh wrappers).
+- Added `/install-ba-assistant` and a paste-this prompt in README, SETUP, and AGENTS.
+- Install copies skills, rules, hooks, and commands, seeds `_workstream`, and creates
+  `~/.cursor/initiatives` before personalisation.
+- Personalisation writes `ba-assistant-config.mdc` and no longer overwrites the
+  always-on persona `ba-profile.mdc`.
+- Default `BA_INITIATIVES_ROOT` is now `~/.cursor/initiatives` (not `blueprints`).
+- Free-text fields (name, URLs, keys) must be collected in chat, not fake AskQuestion chips.
+- Setup Step 8 offers workboard, debrief, initiative, MCP/Runlayer help, or explore.
+- Orchestrator Step 1.5 runs install preflight, then setup, before the welcome panel.
+
+### First-run and beginner onboarding
+
+- First-run profile detection now invokes the BA Setup wizard before the
+  welcome panel.
+- Added `/ba-assistant` as the discoverable slash-command entry point.
+- Added `/setup` to run or re-run the first-run wizard.
+- Setup now offers guided first tasks: debrief a permitted Teams transcript,
+  create a workboard, or start an initiative.
+- Added slash-command stubs for `/next`, `/report`, `/fast-track`,
+  `/publish-status`, `/snapshot`, and `/audit-standards`.
+- Added generic MCP setup guidance and updated the installation verification
+  checklist.
+
+### Quality and guardrails (from local product improvements)
+
+- Added `markdown-readability.md` reference and matching rule for dark-mode-safe
+  stakeholder Markdown.
+- Added thin-brief lock block to `agent-behavior.mdc` (source of truth, mutate/
+  freeze, job verb, gold bar, ship shape).
+- Extended `/todo` quick capture with optional `remind_on` and `reminder` fields
+  (schema already supported in `ba-actions-format.md`).
+- Added anti-pattern triggers for thin-brief lock block skip and remediation
+  without downstream outcome ACs.
+- Added anonymised learnings rows for complexity-before-sources and incomplete
+  brief handling.
+
+---
+
 ## Version 10 — 2026-08-03
 
 Public package release. Going forward, releases are numbered **Version N** only (next: Version 11).

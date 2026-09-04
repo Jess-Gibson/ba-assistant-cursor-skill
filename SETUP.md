@@ -1,268 +1,200 @@
 # BA Assistant for Cursor — Setup Guide
 
-**Version 10** — see [CHANGELOG.md](CHANGELOG.md) and [README.md](README.md).
+**Version 11** - see [CHANGELOG.md](CHANGELOG.md) and [README.md](README.md).
 
 > Originally designed and built by Jess Gibson, Senior BA (2025–2026).
 > Built iteratively across real BA initiatives using agent-assisted development.
 
 ---
 
-## Prerequisites
+## Fastest path for BAs (recommended)
 
-1. **Cursor IDE** — with Canvas support enabled (for the Project Canvas dashboard)
-2. **MCP servers** — at minimum, Jira and Confluence MCPs pointing to your org's Atlassian instance
-3. **A workspace** — any Cursor workspace where you do BA work
+You do **not** need to be a developer. Open Cursor, start a new chat, and paste:
 
-### Optional MCPs (BA Assistant degrades gracefully without these)
+```text
+Install BA Assistant from https://github.com/Jess-Gibson/ba-assistant-cursor-skill
+into my Cursor home. Copy skills, rules, hooks, and commands, verify the install,
+then run the personalisation wizard. Default my initiatives folder to
+~/.cursor/initiatives. When setup finishes, help me with MCP / Runlayer
+connections and offer to set up my workboard or start my first initiative.
+```
 
-| MCP | Enables |
-|-----|---------|
-| Miro MCP | Workshop board creation, DRAID table sync, board analysis |
-| Glean MCP | Internal doc/code search during intake and current state assessment |
-| Warehouse / SQL MCP | Quantitative validation via ba-data-investigation |
+Cursor should:
+
+1. Clone or open the package
+2. Copy skills, rules, hooks, and commands into your Cursor home (`~/.cursor`)
+3. Create `~/.cursor/initiatives` and seed `_workstream`
+4. Run the personalisation wizard (name, role, Jira/Confluence, output depth)
+5. Offer first tasks: workboard, meeting debrief, first initiative, or MCP help
+
+If Cursor asks to run terminal commands or the install script, approve them.
+If slash commands are missing afterwards, restart Cursor once.
+
+### Alternative: open this repo first
+
+1. Clone or download this repository
+2. Open the folder in Cursor
+3. Paste: `I'm brand new — install BA Assistant and walk me through setup`
+4. Follow the assistant (it reads `AGENTS.md` + `ba-install` + `ba-setup`)
 
 ---
 
-## Already installed? Upgrade to Version 10
+## What "installed" means
 
-Do **not** blindly overwrite `ba-profile.mdc` or `_workstream/`. Use the upgrade script:
+After a successful install you must have:
 
-```bash
-python tools/upgrade-ba-assistant.py --package /path/to/ba-assistant-cursor-skill          # dry-run
-python tools/upgrade-ba-assistant.py --package /path/to/ba-assistant-cursor-skill --apply  # apply
-```
+| Path | Purpose |
+|------|---------|
+| `~/.cursor/skills/ba-assistant/SKILL.md` | Main skill |
+| `~/.cursor/rules/execution-router.mdc` | Routing |
+| `~/.cursor/commands/ba-assistant.md` | Slash entry |
+| `~/.cursor/hooks.json` | Hooks |
+| `~/.cursor/_workstream/` | Workboard + BA actions |
+| `~/.cursor/initiatives/` | Default initiative folders |
+| `~/.cursor/rules/ba-assistant-config.mdc` | Your personalisation (after wizard) |
 
-Windows: `.\tools\upgrade-ba-assistant.ps1 -PackageRoot "C:\path\to\repo" -Apply`  
-macOS/Linux: `./tools/upgrade-ba-assistant.sh /path/to/repo --apply`
-
-This refreshes skills/rules/commands, removes obsolete `ba-workboard`, migrates `personal_tasks[]` → `ba-actions.json` when safe, and leaves personalised profile + workstream data intact.
+A lone `ba-profile.mdc` from a chat wizard is **not** a full install.
 
 ---
 
-## Installation (new)
+## Manual install (if you prefer scripts)
 
-### Step 1 — Install the BA Assistant skill
+### Prerequisites
 
-Clone this repo and copy the skill into your Cursor skills directory:
+1. **Cursor IDE**
+2. Optional later: Jira / Confluence MCP (or Runlayer connectors)
+3. A workspace where you do BA work (not required for install itself)
 
-```bash
-# macOS / Linux
-git clone https://github.com/Jess-Gibson/ba-assistant-cursor-skill.git /tmp/ba-cursor-skill
-cp -r /tmp/ba-cursor-skill/skills/ba-assistant ~/.cursor/skills/ba-assistant
+### One-command installer
 
-# Windows (PowerShell)
-git clone https://github.com/Jess-Gibson/ba-assistant-cursor-skill.git "$env:TEMP\ba-cursor-skill"
-Copy-Item "$env:TEMP\ba-cursor-skill\skills\ba-assistant" "$env:USERPROFILE\.cursor\skills\ba-assistant" -Recurse
-```
-
-This creates `~/.cursor/skills/ba-assistant/` with the full skill tree.
-
-### Step 2 — Install the rules
-
-Copy the rules from the repo into your Cursor rules directory:
+From this repo:
 
 ```bash
-# macOS / Linux — copy from the cloned temp location
-cp /tmp/ba-cursor-skill/rules/*.mdc ~/.cursor/rules/
+# Dry-run
+python tools/install-ba-assistant.py --dry-run
 
-# Windows (PowerShell)
-Copy-Item "$env:TEMP\ba-cursor-skill\rules\*.mdc" "$env:USERPROFILE\.cursor\rules\"
+# Apply
+python tools/install-ba-assistant.py --apply
 ```
 
-**Important:** Review each rule before copying. If you already have rules with the same names, merge rather than overwrite. Never overwrite a personalised `ba-profile.mdc` with the template unless you intend to re-run setup.
+Windows:
 
-### Step 3 — Install the hooks
+```powershell
+.\tools\install-ba-assistant.ps1
+.\tools\install-ba-assistant.ps1 -Apply
+```
 
-Copy the hooks configuration and scripts:
+macOS / Linux:
 
 ```bash
-# macOS / Linux
-cp /tmp/ba-cursor-skill/hooks/hooks.json ~/.cursor/hooks.json
-mkdir -p ~/.cursor/hooks
-cp /tmp/ba-cursor-skill/hooks/*.{sh,py} ~/.cursor/hooks/
-chmod +x ~/.cursor/hooks/*.sh
-
-# Windows (PowerShell)
-Copy-Item "$env:TEMP\ba-cursor-skill\hooks\hooks.json" "$env:USERPROFILE\.cursor\hooks.json"
-New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.cursor\hooks"
-Copy-Item "$env:TEMP\ba-cursor-skill\hooks\*.ps1" "$env:USERPROFILE\.cursor\hooks\"
-Copy-Item "$env:TEMP\ba-cursor-skill\hooks\*.py" "$env:USERPROFILE\.cursor\hooks\"
+./tools/install-ba-assistant.sh --apply
 ```
 
-**Important:** If you already have a `hooks.json`, merge the entries rather than replacing the file.
+Then in a new Cursor chat: `/setup` (or `/ba-assistant`).
 
-**Windows Python:** The hook scripts call `python`. If `python` is not on your PATH, either add it or edit `hooks.json` to use `py` instead (the Windows Python launcher).
-
-### Step 3b — Install slash commands
+### Already installed? Upgrade
 
 ```bash
-# macOS / Linux
-mkdir -p ~/.cursor/commands
-cp /tmp/ba-cursor-skill/commands/*.md ~/.cursor/commands/
-
-# Windows (PowerShell)
-New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.cursor\commands"
-Copy-Item "$env:TEMP\ba-cursor-skill\commands\*.md" "$env:USERPROFILE\.cursor\commands\"
+python tools/upgrade-ba-assistant.py --package /path/to/ba-assistant-cursor-skill
+python tools/upgrade-ba-assistant.py --package /path/to/ba-assistant-cursor-skill --apply
 ```
 
-### Step 4 — Configure your environment
+---
 
-1. **Set your downloads path** (for meeting transcript auto-processing):
-   - Set the environment variable `BA_DOWNLOADS_PATH` to your downloads folder
-   - macOS/Linux: `export BA_DOWNLOADS_PATH="$HOME/Downloads"`
-   - Windows: `$env:BA_DOWNLOADS_PATH = "$env:USERPROFILE\Downloads"`
+## Configuring MCP integrations
 
-2. **Set your initiative folder root** (where project folders are created):
-   - Set `BA_INITIATIVES_ROOT` to your preferred path
-   - Example: `export BA_INITIATIVES_ROOT="$HOME/ba-initiatives"`
-   - If not set, the BA Assistant will search for `blueprints/Project*/`, `Initiatives/`, or `projects/` patterns
+Jira and Confluence are optional. BA Assistant works without them, but cannot
+search or publish until MCP (or your org's Runlayer connectors) are available.
 
-### Step 5 — Run the first-time setup wizard
+1. Open **Cursor Settings → Tools & MCP**
+2. Enable the Jira and Confluence servers your organisation approves
+3. If your organisation uses **Runlayer**, add the connectors your admin named
+4. Complete sign-in prompts
+5. Start a new chat and run `/setup` if you want the wizard to re-check
 
-The BA Assistant includes an interactive setup wizard that handles personalization for you.
-
-Start a new Cursor chat and type: `run BA assistant`
-
-If `ba-profile.mdc` still contains placeholder values (`[Your Name]`, `[your-instance]`), the assistant will automatically launch the **ba-setup wizard** which will:
-- Ask for your name and role
-- Configure your Jira instance and project key
-- Configure your Confluence space
-- Check your MCP connections
-- Write a personalized `ba-profile.mdc` to your `~/.cursor/rules/` directory
-
-You can also run the wizard manually by typing: `run the BA setup wizard`
-
-See `CUSTOMIZATION.md` for manual overrides if you prefer to configure by hand.
-
-### Step 6 — Install companion skills (optional)
-
-The BA Assistant can invoke these optional companion skills if they are installed:
-
-| Skill | Purpose | Install from |
-|-------|---------|-------------|
-| `publish-docs-to-confluence` | Publish status pages and documents to Confluence | See `skills/publish-docs-to-confluence/README.md` for setup |
-| `miro-board-analysis` | Workshop board creation and analysis | See `skills/miro-board-analysis/README.md` for setup |
+Do not paste API tokens into chat. Do not store secrets in initiative files.
 
 ---
 
 ## Verify Installation
 
-### Structural check (run first)
-
-From the cloned repo:
+### Structural check
 
 ```bash
 python3 tools/conformance-check.py --root ~/.cursor
 # Windows: py tools\conformance-check.py --root $env:USERPROFILE\.cursor
 ```
 
-Expect **0 FAIL, 0 WARN, 6 PASS**.
+Also confirm `~/.cursor/skills/ba-assistant/SKILL.md` exists.
 
-### Behavioural check (fresh Cursor chat, model = Auto)
+### Behavioural check (new chat)
 
-1. **Welcome panel** — type `run BA assistant` → grouped panel (6-2-12-3-1), 24 skills, draft-depth question
-2. **AskQuestion judgement** — ask for a requirement verbatim → text only, no trailing AskQuestion; at a real fork → clickable options
-3. **Slash menu** — type `/` → status, canvas, handover, wrap, validate-state, retro, metrics, reanchor appear
-4. **`/status`** — triple-output flow runs (grid + tracker + canvas refresh)
-5. **`/reanchor`** — re-reads SKILL + state files, ends with AskQuestion
-6. **`/metrics`** — loads `metrics.md` + `canvas-data-model` only (not the full canvas generation spec)
-
-If the welcome panel does not appear, check:
-- `~/.cursor/skills/ba-assistant/SKILL.md` exists
-- `~/.cursor/rules/execution-router.mdc` exists (the always-on router — it replaced the old `ba-assistant-default` and `session-start-protocol` rules)
-- Restart Cursor if rules were just added
+1. `/ba-assistant` → install preflight if needed → setup if needed → guided first tasks
+2. Slash menu includes `ba-assistant`, `setup`, `install-ba-assistant`, `debrief`, `workboard`
+3. `/workboard` runs without error (empty is fine)
+4. Name capture asks you to **type** your name in chat (not a fake "Enter name" chip)
 
 ---
 
-## Folder Structure
+## Defaults
 
-After installation, your `.cursor` directory should look like:
+| Setting | Default |
+|---------|---------|
+| Initiatives root | `~/.cursor/initiatives` (`BA_INITIATIVES_ROOT`) |
+| Downloads | `~/Downloads` (`BA_DOWNLOADS_PATH`) |
+| Personalisation file | `~/.cursor/rules/ba-assistant-config.mdc` |
+| Persona rule | `~/.cursor/rules/ba-profile.mdc` (package; not overwritten by wizard) |
 
-```
-~/.cursor/
-  skills/
-    ba-assistant/
-      SKILL.md
-      instructions.md
-      hook-contracts.md
-      slash-commands-ux.md
-      learnings.md              (starts empty — grows with your initiatives)
-      BA_Assistant_User_Guide.md
-      references/
-        canvas-data-model.md
-        raid-format.md
-        requirement-format.md
-        status-page-format.md
-        user-story-format.md
-        visual-output-format.md
-        jira-ticket-format.md
-        templates/
-          flowchart.html
-      sub-skills/
-        ba-anti-pattern-detector/
-        ba-change-strategy/
-        ba-context-capture/
-        ba-data-investigation/
-        ba-workboard/              (cross-initiative dashboard — /workboard)
-        ... (25 active skills total)
-    publish-docs-to-confluence/  (optional)
-    miro-board-analysis/         (optional)
-  commands/
-    status.md, canvas.md, handover.md, wrap.md, workboard.md, todo.md, ...
-  rules/
-    ba-profile.mdc             (generic — customize with your name or use the setup wizard)
-    execution-router.mdc       (always-on router — turn classification + skill routing)
-    skills-routing.mdc
-    sync-gates.mdc
-    agent-behavior.mdc
-    agent-behavior-extended.mdc
-    ba-delivery-process.mdc
-    critical-gates.mdc
-    todo-quick-capture.mdc     (optional — feeds ba-workboard's personal task list)
-  hooks/
-    session-init.ps1 / .sh
-    snapshot-before-compact.ps1 / .sh
-    jira-dor-gate.py, shared-repo-guard.py, inject-state-reminder.py (+ .sh/.ps1 twins)
-  hooks.json
-  _workstream/                 (created on first /workboard or /todo — cross-initiative data)
-    workboard.json
-    calendar-feed.json          (optional — your own calendar script populates this)
-```
+Legacy `blueprints/` folders still work if you point `BA_INITIATIVES_ROOT` there.
 
 ---
 
-## Quick Start
+## Quick Start after setup
 
-1. Open a Cursor workspace
-2. Start a new chat
-3. Say: "Start a new initiative called [Your Initiative Name]"
-4. The BA Assistant will scaffold a project folder and begin Phase 0 intake
-5. Follow the guided intake conversation — the assistant will ask you questions, not the other way around
+1. Open a BA workspace
+2. `/workboard` or "Start a new initiative called [Name]"
+3. Or attach a permitted Teams transcript and run `/debrief`
 
 ### Key commands
 
 | Command | What it does |
 |---------|-------------|
-| `/next` | Top 3 next actions by urgency |
-| `/status` | Full current state with canvas and HTML snapshot |
-| `/canvas` | Generate/refresh the interactive project dashboard |
-| `/report` | Full structured deep-dive report |
-| `/validate-state` | Mid-session drift check (read-only) |
-| `/wrap` | End-of-session closeout — promotes items, refreshes workboard |
-| `/fast-track` | Enable condensed BA flow for time-critical initiatives |
-| `/metrics` | Show BA quality metrics for the initiative |
-| `/retro` | Trigger a retrospective |
-| `/reanchor` | Re-read state files when the assistant drifts in long threads |
+| `/install-ba-assistant` | Install or repair package files |
+| `/ba-assistant` | Start BA Assistant |
+| `/setup` | Personalisation wizard |
+| `/workboard` | Cross-initiative priorities |
+| `/debrief` | Meeting transcript → tracker updates |
+| `/next` | Top 3 next actions |
+| `/status` | Full current state |
+| `/wrap` | End-of-session closeout |
+
+---
+
+## Folder Structure (after install)
+
+```
+~/.cursor/
+  skills/ba-assistant/
+  skills/miro-board-analysis/   (optional)
+  commands/
+  rules/
+    ba-profile.mdc              (persona)
+    ba-assistant-config.mdc     (your wizard output)
+    execution-router.mdc
+    ...
+  hooks/ + hooks.json
+  _workstream/
+  initiatives/                  (default initiative root)
+  .ba-assistant-installed.json
+```
 
 ---
 
 ## Updating
 
-Pull the latest version:
+Prefer `tools/upgrade-ba-assistant.py --apply`, or ask Cursor:
 
-```bash
-cd ~/.cursor/skills/ba-assistant
-git pull
+```text
+Upgrade my BA Assistant install from https://github.com/Jess-Gibson/ba-assistant-cursor-skill
+without overwriting my ba-assistant-config.mdc
 ```
-
-Check `CUSTOMIZATION.md` for any new customization points in the update.

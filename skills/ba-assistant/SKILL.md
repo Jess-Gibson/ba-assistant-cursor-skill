@@ -9,13 +9,13 @@ description: >
   (5) Work involves creating Miro frames for workshops or sessions.
   (6) Work involves stakeholder strategy, RAID, decision capture, or delivery definition.
   (7) The execution-router rule determined this is BA-heavy work.
-  Loads BA Initiative Assistant: instructions.md + hook-contracts.md upfront; sub-skills on demand (not all 24 at bootstrap).
+  Loads BA Initiative Assistant: instructions.md + hook-contracts.md upfront; sub-skills on demand (not all 25 at bootstrap).
   Activates the orchestrator persona. On new initiative: welcome panel + Phase 0 intake. On resume: Step 2.75 (read state files, act).
   Use in any project  -  no uploads or setup required.
 ---
 
 <!-- BA Assistant orchestrator
-     Architecture: 24 active sub-skills, 10 reference standards, hook-based orchestration
+     Architecture: 25 active sub-skills, 10 reference standards, hook-based orchestration
      Built iteratively across real BA initiatives using agent-assisted development -->
 
 # BA Assistant
@@ -26,9 +26,10 @@ description: >
 2. Read `hook-contracts.md` (Wave 3  -  the registry of every inter-skill call). Use this as the API contract when changing any hub skill.
 3. (Reference only  -  read on demand) `slash-commands-ux.md` documents how Cursor slash commands, `AskQuestion` chips, and in-session verbs work for this assistant. Consult when designing new user-facing verbs.
 4. **Sub-skills: load on demand**  -  read a sub-skill's `SKILL.md` only when that skill is invoked for the current task. Do not read all 24 files at bootstrap (see `execution-router.mdc`). When a SUPERSEDED marker is encountered, follow its redirect.
-5. Output the welcome UI panel (new initiative only  -  skip on resume)
-6. Activate the BA Initiative Assistant orchestrator persona
-7. Begin Phase 0 intake (new) OR Step 2.75 session resume (continue/resume threads)
+5. Run Step 1.5 first-run detection before showing the welcome panel.
+6. Output the welcome UI panel (new initiative only  -  skip on resume)
+7. Activate the BA Initiative Assistant orchestrator persona
+8. Begin Phase 0 intake (new) OR Step 2.75 session resume (continue/resume threads)
 
 ---
 
@@ -73,6 +74,33 @@ not at the start of the conversation. This keeps the initial context lean.
 
 Sub-skills should declare which references they use in a "Standards used"
 section near the top of their SKILL.md.
+
+---
+
+## Step 1.5  -  Install preflight and first-run setup
+
+Before rendering the welcome panel:
+
+1. **Install preflight.** If `~/.cursor/skills/ba-assistant/SKILL.md` is missing,
+   stop and run **BA Install** (`sub-skills/ba-install/SKILL.md`). Do not pretend
+   the assistant is ready. Prefer the public package URL
+   `https://github.com/Jess-Gibson/ba-assistant-cursor-skill` when the user has
+   no local package open.
+2. **Personalisation.** Check `~/.cursor/rules/ba-assistant-config.mdc`.
+   Run **BA Setup** (`sub-skills/ba-setup/SKILL.md`) if that file is missing or
+   still contains a placeholder such as `[Your Name]`.
+   Do **not** treat the always-on persona file `rules/ba-profile.mdc` as the
+   wizard config target.
+3. Read setup/install skills from the **installed** tree under
+   `~/.cursor/skills/ba-assistant/`, not a stale `.claude/skills/` copy.
+
+The wizard is optional once configured. Re-run with `/setup`.
+
+When setup completes, continue with the welcome panel and guided first-task
+choices (workboard, debrief, initiative, MCP help). Do not start Phase 0 until
+the user selects their next activity.
+
+Default initiatives root: `~/.cursor/initiatives` (`BA_INITIATIVES_ROOT`).
 
 ---
 
@@ -241,7 +269,7 @@ widget. Show the project name if available from context.
 The panel must include:
 
 - Assistant title and status (active)
-- 24 active sub-skills, grouped by invocation: 6 you call, 2 on cadence, 12 auto-loaded, 3 background monitors, 1 first-run wizard (the 7 SUPERSEDED markers are loaded silently for redirect compatibility but not shown in the welcome panel)
+- 25 active sub-skills, grouped by invocation: 6 you call, 2 on cadence, 12 auto-loaded, 3 background monitors, 1 first-run wizard (the 7 SUPERSEDED markers are loaded silently for redirect compatibility but not shown in the welcome panel)
 - Available commands
 - Confidence score dashboard (all starting at Low/Unknown)
 - Current phase indicator (Phase 0: Intake)

@@ -142,8 +142,9 @@ Also confirm `~/.cursor/skills/ba-assistant/SKILL.md` exists.
 1. `/ba-assistant` → install preflight if needed → setup if needed → guided first tasks
 2. Slash menu includes `ba-assistant`, `setup`, `install-ba-assistant`, `debrief`, `workboard`
 3. `/workboard` runs without error (after Context Bootstrap it should show real actions/initiatives when the BA opted in)
-4. Name capture uses AskQuestion free-text (not a fake "Enter name" chip)
-5. Setup offers Runlayer connector help and Context Bootstrap
+4. Name/role use AskQuestion (free-text name; role chips). Paths default without CLI tokens.
+5. Setup offers Runlayer connector help, then “pull in starting work” for the workboard.
+6. No calendar-hook script question; no Claude extension upsell.
 
 ---
 

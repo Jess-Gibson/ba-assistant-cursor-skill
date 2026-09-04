@@ -64,18 +64,19 @@ Never ask the BA to paste API tokens into chat.
 
 ## 3. AskQuestion: what to set up
 
-Present **one panel** (multi-select if the UI allows; otherwise sequential):
+Use **plain language**. Avoid stacking product names in one breath if a shorter
+prompt works.
 
-> BA Assistant is much stronger with these connected. Which should we set up now?
+> To pull email actions, calendar, Jira, and Confluence into BA Assistant, connect
+> them through Runlayer. What do you want to do?
 
 Options:
-- `glean` — Glean via Runlayer (search + often mail/meetings)
-- `outlook_mail` — Outlook mail
-- `outlook_cal` — Outlook calendar
-- `jira` — Jira
-- `confluence` — Confluence
-- `all_recommended` — All of the above (Recommended for first-time BAs)
-- `skip_connectors` — Skip connectors for now (manual paste-in only)
+- `recommended` — Connect the recommended set (Glean, calendar, Jira, Confluence)
+- `pick` — Let me choose which ones
+- `glean` — Company search (Glean) only
+- `outlook` — Email and/or calendar
+- `jira_conf` — Jira and Confluence
+- `later` — Skip for now
 
 For each Missing selection: walk the Runlayer steps above for that server only.
 Then re-check capabilities.
@@ -86,14 +87,14 @@ Then re-check capabilities.
 
 **AskQuestion:**
 
-> Ready to pull starting context into Cursor?
+> Ready to pull starting work into Cursor?
 
 Options:
-- `full` — Full bootstrap (Recommended): smart mail + calendar + hub/Jira if connected
-- `mail_only` — Mail actions only
-- `hub_jira` — Hub URL + Jira + Confluence only
-- `manual` — I will paste initiatives / attach transcripts only
-- `skip` — Skip; show empty workboard guidance
+- `full` — Yes — email actions, calendar, hub/Jira if connected (Recommended)
+- `mail_only` — Email actions only
+- `hub_jira` — Hub link + Jira + Confluence only
+- `manual` — I will name initiatives / attach transcripts only
+- `skip` — Skip for now
 
 ### 4a. Smart mail scan (only if mail capability exists)
 

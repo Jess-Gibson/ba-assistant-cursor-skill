@@ -120,7 +120,7 @@ Slash commands trigger orchestrator-driven flows. Type the slash in chat; if Cur
 | `/wrap` | End-of-session closeout. Runs `/validate-state` first, then promotes unpromoted items to tracker, refreshes workboard, suggests starting a new chat |
 | `/workboard` | Cross-initiative priorities view. Shows all initiatives, top tasks, today's meetings, sync status |
 
-**Note on Cursor slash menus:** Cursor doesn't currently offer Claude-style button prompts. The assistant uses `AskQuestion` with clickable options for every decision point, which is the closest equivalent. Slash commands may or may not appear in the autocomplete menu  -  typing the command word in chat always works because the orchestrator honours them. See `slash-commands-ux.md` for documented patterns.
+**Note on Cursor slash menus:** Cursor uses `AskQuestion` with clickable options for decision points (not a separate persistent chip row above the input). Slash commands may or may not appear in the autocomplete menu  -  typing the command word in chat always works because the orchestrator honours them. See `slash-commands-ux.md` for documented patterns.
 
 ---
 

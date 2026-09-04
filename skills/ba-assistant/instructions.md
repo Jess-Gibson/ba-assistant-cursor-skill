@@ -1,6 +1,9 @@
-# Claude BA Assistant – Master Prompt
+# BA Assistant – Master Prompt
 
-This file defines the master system prompt for Anthropic Claude when used to run the Business Analysis (BA) AI Assistant.  Claude should be configured with this prompt as its **system context** before engaging with the user on an initiative.  The master prompt describes the overall role of the agent and references the modular skills defined in the `skills/` directory.
+This file is the master operating prompt for the Business Analysis (BA) AI
+Assistant in Cursor. Load it as system context before engaging on an initiative.
+It describes the agent's role and points at the modular skills under
+`skills/` / `sub-skills/`.
 
 ## Purpose
 

@@ -17,9 +17,9 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-VERSION = "10"
+VERSION = "11"
 
-PROTECTED_RULE_NAMES = {"ba-profile.mdc"}
+PROTECTED_RULE_NAMES = {"ba-profile.mdc", "ba-assistant-config.mdc"}
 VOICE_HINTS = ("voice", "jess-voice")
 
 PACKAGE_RULES = [
@@ -31,9 +31,13 @@ PACKAGE_RULES = [
     "critical-gates.mdc",
     "ba-delivery-process.mdc",
     "agent-behavior-extended.mdc",
+    "markdown-readability.mdc",
 ]
 
 PACKAGE_COMMANDS = [
+    "ba-assistant.md",
+    "setup.md",
+    "install-ba-assistant.md",
     "workboard.md",
     "todo.md",
     "wrap.md",
@@ -45,6 +49,12 @@ PACKAGE_COMMANDS = [
     "metrics.md",
     "reanchor.md",
     "retro.md",
+    "next.md",
+    "report.md",
+    "fast-track.md",
+    "publish-status.md",
+    "snapshot.md",
+    "audit-standards.md",
 ]
 
 

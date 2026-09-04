@@ -6,7 +6,7 @@
 #   - Honours BA_INITIATIVES_ROOT and BA_DOWNLOADS_PATH env vars (set by ba-setup wizard) with
 #     the existing personal paths as fallbacks.
 #   - Adds CURSOR_NEW_TRANSCRIPT_COUNT to the env output (execution-router re-entry card reads it).
-#   - Injects workspace agent-file guidance (absorbs read-claude-first, D6).
+#   - Injects workspace agent-file guidance (AGENTS.md / README.md, D6).
 # Kept from v1: last-session timestamp file, recordings-folder + .vtt support,
 # workboard block, calendar refresh via get-calendar.ps1.
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
@@ -59,7 +59,7 @@ if ($null -ne $latest) {
     $contextBlock = @"
 ACTIVE INITIATIVE CONTEXT (auto-injected from $($latest.FullName), modified $($latestTime.ToString('yyyy-MM-dd HH:mm')):
 On BA-resume threads, READ the full file before acting. Do not rely on this snippet alone.
-If the open workspace has AGENTS.md or !CLAUDE.md at its root, read it as primary project context (else README.md).
+If the open workspace has AGENTS.md at its root, read it as primary project context (else README.md). Load BA skills only from ~/.cursor/skills/ba-assistant/.
 
 --- SESSION-CONTEXT tail ---
 $snippet

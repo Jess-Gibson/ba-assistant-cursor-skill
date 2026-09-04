@@ -5,7 +5,7 @@
 #     this env var since Wave 7, but v1 never set it — that was a bug).
 #   - Lists .docx files in BA_DOWNLOADS_PATH newer than the SESSION-CONTEXT file (the
 #     "unprocessed transcript" heuristic from workspace-operations.mdc, now hard-wired).
-#   - Injects workspace agent-file guidance (absorbs read-claude-first.mdc, D6).
+#   - Injects workspace agent-file guidance (AGENTS.md / README.md, D6).
 set -euo pipefail
 
 echo "session-init v2 running — $(date '+%H:%M:%S')" >&2
@@ -84,7 +84,7 @@ if [[ -n "$latest" ]]; then
   context_block=$(cat <<EOF
 ACTIVE INITIATIVE CONTEXT (auto-injected from ${latest}, modified ${modified}):
 On BA-resume threads, READ the full file before acting. Do not rely on this snippet alone.
-If the open workspace has AGENTS.md or !CLAUDE.md at its root, read it as primary project context (else README.md).
+If the open workspace has AGENTS.md at its root, read it as primary project context (else README.md). Load BA skills only from ~/.cursor/skills/ba-assistant/.
 
 ${transcript_block}
 

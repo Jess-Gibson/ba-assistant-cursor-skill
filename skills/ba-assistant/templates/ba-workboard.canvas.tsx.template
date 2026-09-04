@@ -1,0 +1,276 @@
+import {
+  Button,
+  Callout,
+  Card,
+  CardBody,
+  Checkbox,
+  Divider,
+  Grid,
+  H1,
+  H2,
+  Pill,
+  Row,
+  Spacer,
+  Stat,
+  Stack,
+  Text,
+  TextInput,
+  useCanvasAction,
+  useCanvasState,
+  useEffect,
+  useHostTheme,
+  useRef,
+  useState,
+} from "cursor/canvas";
+
+type ActionStatus = "open" | "in_progress" | "done" | "cancelled" | "blocked";
+type Draft = { status?: ActionStatus; due?: string; notes?: string };
+
+const DATA = /* WORKBOARD_DATA */;
+
+const STATUS: { value: ActionStatus; label: string }[] = [
+  { value: "open", label: "Open" },
+  { value: "in_progress", label: "In progress" },
+  { value: "blocked", label: "Blocked" },
+  { value: "done", label: "Done" },
+  { value: "cancelled", label: "Cancelled" },
+];
+
+function dateText(value?: string | null) {
+  if (!value) return "Set date";
+  const date = new Date(`${value.slice(0, 10)}T12:00:00`);
+  return new Intl.DateTimeFormat(undefined, { weekday: "short", day: "numeric", month: "short" }).format(date);
+}
+
+function dueText(value?: string | null, status?: string) {
+  if (!value) return "No due date";
+  if (status === "done") return "Done";
+  if (status === "cancelled") return "Cancelled";
+  const today = new Date(`${DATA.today}T12:00:00`);
+  const due = new Date(`${value.slice(0, 10)}T12:00:00`);
+  const days = Math.round((due.getTime() - today.getTime()) / 86400000);
+  if (days < 0) return `${Math.abs(days)}d overdue`;
+  if (days === 0) return "Due today";
+  if (days === 1) return "Due tomorrow";
+  if (days <= 7) return `Due in ${days} days`;
+  return `Due ${dateText(value)}`;
+}
+
+function isUrgent(value?: string | null, status?: string) {
+  if (!value || status === "done" || status === "cancelled") return false;
+  const today = new Date(`${DATA.today}T12:00:00`);
+  const due = new Date(`${value.slice(0, 10)}T12:00:00`);
+  return due.getTime() - today.getTime() <= 86400000;
+}
+
+function StatusPicker({ value, onChange }: { value: ActionStatus; onChange: (value: ActionStatus) => void }) {
+  const theme = useHostTheme();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+  const label = STATUS.find((item) => item.value === value)?.label ?? value;
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (event: MouseEvent) => {
+      if (ref.current && event.target instanceof Node && !ref.current.contains(event.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [open]);
+
+  return (
+    <div ref={ref} style={{ position: "relative", display: "inline-block" }}>
+      <Button variant="secondary" onClick={() => setOpen((current) => !current)}>{label} ▾</Button>
+      {open ? (
+        <div style={{ position: "absolute", top: "100%", left: 0, zIndex: 40, minWidth: 150, marginTop: 4, padding: 6, border: `1px solid ${theme.stroke.primary}`, borderRadius: 6, background: theme.bg.elevated }}>
+          <Stack gap={4}>
+            {STATUS.map((option) => (
+              <div key={option.value}>
+                <Button variant={option.value === value ? "primary" : "secondary"} onClick={() => { onChange(option.value); setOpen(false); }}>
+                  {option.label}
+                </Button>
+              </div>
+            ))}
+          </Stack>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function DatePicker({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const theme = useHostTheme();
+  const ref = useRef<HTMLInputElement | null>(null);
+  const [hover, setHover] = useState(false);
+  const open = () => {
+    const input = ref.current;
+    if (!input) return;
+    input.focus();
+    if (typeof input.showPicker === "function") input.showPicker();
+  };
+  return (
+    <div onClick={open} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} style={{ position: "relative", display: "inline-flex", alignItems: "center", height: 28, padding: "0 10px", cursor: "pointer", borderRadius: 4, border: `1px solid ${hover ? theme.stroke.primary : theme.stroke.secondary}`, background: hover ? theme.fill.secondary : theme.fill.tertiary }}>
+      <Text size="small">{dateText(value)}</Text>
+      <input ref={ref} type="date" value={value} tabIndex={-1} onChange={(event: { target: { value: string } }) => onChange(event.target.value)} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, pointerEvents: "none" }} />
+    </div>
+  );
+}
+
+function statusPresentation(status: string, theme: ReturnType<typeof useHostTheme>) {
+  const labels: Record<string, string> = {
+    new: "New",
+    "on-track": "On track",
+    "at-risk": "At risk",
+    critical: "Critical",
+    monitoring: "Monitoring",
+    closed: "Closed",
+  };
+  const color =
+    status === "critical" ? theme.category.red :
+    status === "at-risk" ? theme.category.orange :
+    status === "on-track" || status === "monitoring" ? theme.category.green :
+    status === "closed" ? theme.text.tertiary : theme.accent.primary;
+  return { label: labels[status] ?? status, color };
+}
+
+function StatusDot({ status }: { status: string }) {
+  const theme = useHostTheme();
+  const { label, color } = statusPresentation(status, theme);
+  return <Row align="center" gap={6}><span style={{ width: 8, height: 8, borderRadius: 8, background: color, flexShrink: 0 }} /><Text size="small" weight="semibold" style={{ color }}>{label}</Text></Row>;
+}
+
+function PriorityRow({ item, index }: { item: any; index: number }) {
+  const theme = useHostTheme();
+  const tone = item.kind === "action" && String(item.reason).includes("overdue") ? theme.category.red : item.kind === "meeting" ? theme.accent.primary : theme.category.orange;
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "28px 1fr", gap: 10, padding: "10px 12px", borderBottom: `1px solid ${theme.stroke.tertiary}`, borderLeft: `3px solid ${tone}` }}>
+      <Text size="small" weight="semibold" style={{ color: tone }}>{index + 1}</Text>
+      <Stack gap={3}>
+        <Text weight="semibold">{item.title}</Text>
+        <Row gap={8} wrap>
+          {item.initiative ? <Text size="small" tone="tertiary">{item.initiative}</Text> : null}
+          <Text size="small" weight="semibold" style={{ color: tone }}>{item.reason}</Text>
+        </Row>
+        <Text size="small" tone="secondary">{item.instruction}</Text>
+      </Stack>
+    </div>
+  );
+}
+
+function InitiativeCard({ initiative }: { initiative: any }) {
+  const theme = useHostTheme();
+  const upcoming = (initiative.key_dates ?? []).filter((item: any) => !item.done && item.note !== "DONE").slice(0, 2);
+  return (
+    <Card>
+      <CardBody>
+        <Stack gap={12}>
+          <Row align="start" gap={12} wrap>
+            <Text weight="semibold" style={{ fontSize: 18, lineHeight: "24px", flex: "1 1 280px" }}>{initiative.name}</Text>
+            <StatusDot status={initiative.status} />
+          </Row>
+          <Text size="small" tone="secondary">{initiative.phase}</Text>
+          {initiative.next_milestone ? <div style={{ padding: "8px 10px", border: `1px solid ${theme.stroke.secondary}`, borderRadius: 4, background: theme.fill.tertiary }}><Text size="small" weight="semibold">Next milestone</Text><Text size="small">{initiative.next_milestone.what} · {dateText(initiative.next_milestone.date)} ({initiative.next_milestone.days_out}d)</Text></div> : null}
+          {initiative.top_blocker ? <div style={{ padding: "8px 10px", border: `1px solid ${theme.stroke.secondary}`, borderLeft: `3px solid ${theme.category.orange}`, borderRadius: 4 }}><Text size="small" weight="semibold">Blocker</Text><Text size="small">{initiative.top_blocker}</Text></div> : null}
+          {initiative.top_risk ? <Text size="small" tone="secondary"><Text as="span" size="small" weight="semibold">Risk: </Text>{initiative.top_risk}</Text> : null}
+          <Text size="small"><Text as="span" size="small" weight="semibold">Next: </Text>{initiative.next_action}</Text>
+          {upcoming.length ? <Stack gap={3}><Text size="small" tone="tertiary" weight="semibold">Upcoming dates</Text>{upcoming.map((item: any) => <Text key={`${item.date}-${item.what}`} size="small" tone="secondary">{dateText(item.date)} — {item.what}</Text>)}</Stack> : null}
+        </Stack>
+      </CardBody>
+    </Card>
+  );
+}
+
+function ActionCard({ action, draft, update }: { action: any; draft: Draft; update: (value: Draft) => void }) {
+  const theme = useHostTheme();
+  const [beforeDone, setBeforeDone] = useState<ActionStatus | null>(null);
+  const status = draft.status ?? action.status;
+  const due = draft.due ?? action.due ?? "";
+  const overdue = due && new Date(`${due}T12:00:00`) < new Date(`${DATA.today}T12:00:00`);
+  const urgent = isUrgent(due, status);
+  const edge = overdue ? theme.category.red : urgent ? theme.category.orange : theme.stroke.tertiary;
+
+  return (
+    <div style={{ padding: "12px 14px", border: `1px solid ${theme.stroke.secondary}`, borderLeft: `3px solid ${edge}`, borderRadius: 4 }}>
+      <Stack gap={8}>
+        <Row align="start" gap={12} wrap>
+          <Stack gap={2} style={{ flex: "1 1 280px" }}>
+            <Text weight="semibold">{action.task}</Text>
+            <Row gap={8} align="center" wrap>
+              <Text size="small" tone="tertiary">{action.initiativeName ?? action.initiative ?? "No initiative"}</Text>
+              <Text size="small" tone="tertiary">{action.id}</Text>
+              <Text size="small" weight="semibold" style={{ color: action.priority === "high" ? theme.category.red : theme.text.tertiary }}>{action.priority.toUpperCase()}</Text>
+              <Text size="small" weight="semibold" style={{ color: overdue ? theme.category.red : urgent ? theme.category.orange : theme.text.tertiary }}>{dueText(due, status)}</Text>
+            </Row>
+          </Stack>
+          <Checkbox checked={status === "done"} label="Mark done" onChange={(checked) => {
+            if (checked) {
+              if (status !== "done") setBeforeDone(status);
+              update({ status: "done" });
+            } else {
+              update({ status: beforeDone ?? (action.status === "done" ? "open" : action.status) });
+            }
+          }} />
+        </Row>
+        <Row align="center" gap={10} wrap>
+          <Text size="small" tone="tertiary" weight="semibold">Status</Text>
+          <StatusPicker value={status} onChange={(next) => update({ status: next })} />
+          <Text size="small" tone="tertiary" weight="semibold">Due</Text>
+          <DatePicker value={due} onChange={(next) => update({ due: next })} />
+        </Row>
+        <Stack gap={3}>
+          <Text size="small" tone="tertiary" weight="semibold">Notes</Text>
+          <TextInput value={draft.notes ?? action.notes ?? ""} onChange={(notes) => update({ notes })} placeholder="Optional — draft only" />
+        </Stack>
+      </Stack>
+    </div>
+  );
+}
+
+export default function BaWorkboard() {
+  const [tab, setTab] = useCanvasState<"today" | "initiatives" | "actions">("active-tab", "today");
+  const [drafts, setDrafts] = useCanvasState<Record<string, Draft>>("draft-actions", {});
+  const dispatch = useCanvasAction();
+  const actions = DATA.actions.filter((action: any) => action.status !== "done" && action.status !== "cancelled");
+  const changes = Object.keys(drafts).filter((id) => JSON.stringify(drafts[id]) !== "{}").length;
+  const applyPrompt = `Apply the workboard action drafts below. Validate IDs and allowed statuses/dates in _workstream/ba-actions.json, write only valid changes, regenerate ba-actions.md with py _workstream/regenerate-ba-actions-md.py, then refresh the workboard canvas.\n\n${JSON.stringify(drafts, null, 2)}`;
+
+  return (
+    <Stack gap={0} style={{ padding: "24px 28px" }}>
+      <Row align="center" gap={12} wrap>
+        <H1>BA Workboard</H1><Spacer />
+        {changes ? <Button variant="primary" onClick={() => dispatch({ type: "newComposerChat", userPrompt: applyPrompt })}>Apply action updates ({changes})</Button> : null}
+        <Button variant="primary" onClick={() => dispatch({ type: "newComposerChat", userPrompt: "/workboard — refresh my workboard from canonical initiative, action, calendar, Downloads, and available Jira data. Regenerate this canvas." })}>Update</Button>
+        <Button variant="secondary" onClick={() => dispatch({ type: "newComposerChat", userPrompt: "/wrap — run end-of-day closeout: reconcile meetings, action runthrough, state sync, workboard refresh, and next-day handoff." })}>End of Day</Button>
+      </Row>
+      <Text size="small" tone="secondary">Refreshed {DATA.refreshed}</Text>
+      <Text size="small" tone="tertiary" style={{ marginTop: 4 }}>Start on Today. Update refreshes the board. End of Day starts the closeout conversation — it is not a tab.</Text>
+      <Row gap={8} style={{ marginTop: 20, marginBottom: 20 }}>
+        <Pill active={tab === "today"} onClick={() => setTab("today")}>Today</Pill>
+        <Pill active={tab === "initiatives"} onClick={() => setTab("initiatives")}>Initiatives</Pill>
+        <Pill active={tab === "actions"} onClick={() => setTab("actions")}>Open actions</Pill>
+      </Row>
+      <Divider style={{ marginBottom: 20 }} />
+      {tab === "today" ? (
+        <Stack gap={20}>
+          <Callout tone={DATA.atRiskCount ? "warning" : "info"} title="Today — run your day from this queue">{DATA.priorityBanner}</Callout>
+          <Grid columns={4} gap={12}>
+            <Stat value={String(DATA.priorityQueue.length)} label="Priority steps" tone="info" />
+            <Stat value={String(DATA.atRiskCount)} label="At risk" tone={DATA.atRiskCount ? "warning" : "success"} />
+            <Stat value={String(DATA.actionSummary?.overdue ?? 0)} label="Overdue actions" tone={DATA.actionSummary?.overdue ? "danger" : "success"} />
+            <Stat value={String(DATA.meetings.filter((meeting: any) => !meeting.done && !meeting.canceled).length)} label="Meetings today" />
+          </Grid>
+          <Stack gap={6}>
+            <H2>Priority order</H2>
+            <Text size="small" tone="tertiary">Read-only daily run sheet. Update action status, dates and notes only in Open actions.</Text>
+            {DATA.priorityQueue.map((item: any, index: number) => <PriorityRow key={`${item.kind}-${item.actionId ?? item.title}`} item={item} index={index} />)}
+          </Stack>
+          {DATA.meetings.length ? <Stack gap={6}><H2>Today&apos;s calendar</H2>{DATA.meetings.filter((meeting: any) => !meeting.canceled).map((meeting: any) => <div key={`${meeting.time ?? meeting.start}-${meeting.subject ?? meeting.label}`} style={{ padding: "8px 10px" }}><Text weight={meeting.highlight || meeting.alert ? "semibold" : "normal"}>{meeting.time ?? String(meeting.start).slice(11, 16)} — {meeting.subject ?? meeting.label}</Text><Text size="small" tone="tertiary">{meeting.organizer ?? meeting.sub ?? ""}{meeting.duration_min ? ` · ${meeting.duration_min}m` : ""}</Text></div>)}</Stack> : null}
+          {DATA.downloads.length ? <Stack gap={4}><H2>Review / triage</H2>{DATA.downloads.slice(0, 5).map((item: string) => <Text key={item} size="small" tone="secondary">• {item}</Text>)}</Stack> : null}
+          {Object.keys(DATA.syncStatus ?? {}).length ? <Text size="small" tone="tertiary">Refresh first to check Jira and source-of-truth deltas before relying on this snapshot.</Text> : null}
+        </Stack>
+      ) : null}
+      {tab === "initiatives" ? <Stack gap={12}><H2>Active initiatives</H2>{DATA.initiatives.filter((initiative: any) => initiative.status !== "closed").map((initiative: any) => <InitiativeCard key={initiative.slug} initiative={initiative} />)}{DATA.initiatives.some((initiative: any) => initiative.status === "closed") ? <><H2>Closed initiatives</H2>{DATA.initiatives.filter((initiative: any) => initiative.status === "closed").map((initiative: any) => <InitiativeCard key={initiative.slug} initiative={initiative} />)}</> : null}</Stack> : null}
+      {tab === "actions" ? <Stack gap={14}><Callout tone="info" title="Draft action edits">Red edge = overdue; orange = due today or tomorrow. Draft edits are saved only to this canvas until you apply them.</Callout>{actions.map((action: any) => <div key={action.id}><ActionCard action={action} draft={drafts[action.id] ?? {}} update={(patch) => setDrafts((old) => ({ ...old, [action.id]: { ...old[action.id], ...patch } }))} /></div>)}</Stack> : null}
+    </Stack>
+  );
+}

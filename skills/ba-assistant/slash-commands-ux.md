@@ -2,7 +2,7 @@
 
 *Wave 4 exploration  -  May 2026. Based on Cursor 2.4 documentation, the skill system, and how our BA Assistant is actually wired.*
 
-This document answers the question: **"Slash commands aren't always working  -  is there a better way? Claude has button prompts."**
+This document answers the question: **"Slash commands aren't always working  -  is there a better guided UX?"**
 
 Short answer: Cursor in May 2026 does **not** have user-side button prompts (clickable predefined-prompt chips above the input). The closest things are (a) the slash-menu picker for skills and commands, and (b) the assistant-side `AskQuestion` tool that renders clickable options inline. The BA Assistant is built around `AskQuestion` because that's the best available UX for a guided, low-typing experience.
 
@@ -20,7 +20,7 @@ Short answer: Cursor in May 2026 does **not** have user-side button prompts (cli
 
 **Notable absences (May 2026):**
 
-- No user-initiated button prompts (like Claude's persistent suggestion chips above the input).
+- No user-initiated button prompts (persistent suggestion chips above the input that the BA clicks without the agent asking first).
 - No `commands.json` registry.
 - No skill-frontmatter-defined sub-commands (you can't put `/next` in a skill's frontmatter and have it become a slash entry).
 - No guarantee that custom verbs like `/status` will show in the slash menu  -  they only do if they're defined as their own skill or command file.
@@ -71,13 +71,13 @@ The BA Assistant is designed to minimise the need to remember slash commands. Th
 
 **What we promise:** entry slash works, `AskQuestion` chips at decision points, optional intake canvas, visible status headers, scope-filterable canvas, natural-language intent routing.
 
-**What we do NOT promise:** Claude-style persistent button chips above the input, guaranteed slash autocomplete for every in-session verb, magic button-driven UI.
+**What we do NOT promise:** persistent button chips above the input, guaranteed slash autocomplete for every in-session verb, magic button-driven UI.
 
 ---
 
 ## 4. What we'd need from Cursor to do better
 
-For a fully button-driven non-coder UX (Claude-style), Cursor would need:
+For a fully button-driven non-coder UX, Cursor would need:
 
 - **User-initiated quick-prompt buttons**  -  a way for a skill to register persistent clickable buttons that appear above the input and inject a predefined prompt when clicked.
 - **Skill sub-command registration**  -  let a skill register multiple slash entries (e.g. `ba-assistant` skill registers `/status`, `/next`, `/canvas` as menu items).

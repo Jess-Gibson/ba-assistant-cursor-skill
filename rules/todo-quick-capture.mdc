@@ -18,12 +18,14 @@ Extract from the user's message:
 - **Initiative tag** — explicit `#slug` matching one of your active initiatives, or inferred from context. If ambiguous, use `null` (general task).
 - **Priority** — explicit `!high`, `!medium`, `!low`. Default: `medium`.
 - **Due date** — explicit date or relative ("tomorrow", "Friday", "next week"). Default: `null`.
+- **Remind on** — "remind me today/tomorrow/Friday", "after the kickoff", etc. Sets `remind_on` (ISO date) separate from `due`. Default: `null`.
+- **Reminder text** — short nudge for what to do on `remind_on` (e.g. "Prep this afternoon", "Raise at messaging alignment"). Default: first clause of the task or user wording.
 
 Multiple tasks in one message are fine — process each.
 
 ### 2. Write to ba-actions.json
 
-Read `_workstream/ba-actions.json` (create from the schema in `ba-actions-format.md` if missing). Allocate the next `BA-NNN` (or continue the store's `next_id` / id scheme). Upsert each new action with status `open`.
+Read `_workstream/ba-actions.json` (create from the schema in `ba-actions-format.md` if missing). Allocate the next `BA-NNN` (or continue the store's `next_id` / id scheme). Upsert each new action with status `open`. When the user says "remind me ...", set `remind_on` and `reminder` (not only `notes`). During action status updates, same rule.
 
 **Do not** append to legacy `workboard.json → personal_tasks[]`.
 

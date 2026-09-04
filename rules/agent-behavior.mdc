@@ -21,6 +21,20 @@ The test: would the options help the user decide and keep momentum, or is it a r
 
 Ambiguous PRD language ("should", "might"); missing acceptance criteria or edge cases; multiple valid technical approaches; design/API misalignment; priority conflicts or unclear scope boundaries; undefined technology choices.
 
+### Lock block when the brief is thin
+
+When the user's ask could produce a wrong artefact if assumptions fill the gaps, **stop and AskQuestion before drafting, rewriting, publishing, or bulk-acting**. Applies to data/file work and also BA artefacts, tickets, comms, Miro, sync, code/scripts, and multi-step plans. Do not invent source of truth, scope, audience, or mutate reviewed material.
+
+Ask (batch in one panel) for whatever is missing from this set:
+
+1. **Source of truth** - which file, page, decision, or prior artefact wins
+2. **Mutate / freeze** - what must stay untouched vs what may change (append, new draft, overwrite)
+3. **Job verb** - one primary outcome (e.g. draft, check, split, tidy, enrich, sync, ticket, playback)
+4. **Gold / must-not-touch** - examples of correct outcome and things that must not regress
+5. **Review / ship shape** - additive review copy, draft-for-BA, stakeholder-ready, or publish now
+
+If the user already answered these in-thread, do not re-ask. Prefer asking over "helpful" progress on the wrong job.
+
 ## Critical context ([BA name])
 
 - **Not a developer**  -  can understand concepts but lacks instincts for spotting risky commands or anti-patterns

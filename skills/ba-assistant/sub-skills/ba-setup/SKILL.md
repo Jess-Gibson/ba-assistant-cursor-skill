@@ -1,288 +1,329 @@
 ---
 name: ba-setup
 description: >
-  First-run setup wizard for BA Assistant. Triggered automatically on first install when ba-profile.mdc
-  contains placeholder values. Guides the user through: name, role, Jira/Confluence workspace,
-  MCP availability check, domain knowledge docs, output preferences. Writes personalised ba-profile.mdc.
-  Run manually any time to reconfigure.
+  First-run personalisation wizard for BA Assistant. Runs after files are installed.
+  AskQuestion flow: name/role, domain, paths, Jira, Confluence, Runlayer connectors,
+  then pull-in starting work for the workboard. Writes ba-assistant-config.mdc.
+  Run /setup to reconfigure.
+disable-model-invocation: true
 ---
 
-# BA Setup — First-Run Wizard
+# BA Setup — Personalisation Wizard
 
-This skill runs **automatically on first install** and any time you need to reconfigure your BA Assistant environment. It writes a personalised `ba-profile.mdc` rule file that the orchestrator reads on every session.
+This skill **personalises** an already-installed BA Assistant. It does **not**
+copy skills/rules/commands. If install is missing, stop and run `ba-install` first.
+
+**Audience:** non-developer BAs. Keep questions human. No CLI tokens, no hook
+scripts, no extension upsells, no other AI-tool skill folders.
+
+---
+
+## Pre-flight (mandatory before Step 0)
+
+Check that `~/.cursor/skills/ba-assistant/SKILL.md` exists.
+
+If **missing**:
+
+1. Tell the BA: "BA Assistant files are not installed yet. I need to install the package first."
+2. Load and run `sub-skills/ba-install/SKILL.md` (or ask for the public repo URL).
+3. Only continue this wizard after install verification passes.
+
+Read skills **only** from `~/.cursor/skills/ba-assistant/`.
 
 ---
 
 ## When this skill runs
 
-The orchestrator (SKILL.md Step 1.5) detects first-run by checking:
-- Does `~/.cursor/rules/ba-profile.mdc` exist?
-- If it exists, does it contain `[Your Name]`?
+- After `ba-install` completes
+- Orchestrator Step 1.5: `ba-assistant-config.mdc` missing or still has `[Your Name]`
+- User runs `/setup` or says "reconfigure BA assistant"
 
-If either is true, this wizard runs before the welcome panel.
+---
+
+## AskQuestion design rules (mandatory)
+
+**Always use AskQuestion** for setup. Never say “reply in chat with …” when
+AskQuestion is available.
+
+**Free-text:**
+- Use the panel’s free-text field for name, URLs, keys, custom paths.
+- Do **not** invent chips like “Enter my name (Recommended)” that capture nothing.
+- If a chip is required for the name question, use exactly one:
+  `Type your name in the free-text field` — the typed value is the answer.
+
+**Closed choices:** real chips (role, yes/no). Add `Other` when needed.
+
+**Hard bans:**
+- Never mention or search other AI tool skill folders on disk
+- Never ask about Claude Code or similar extensions
+- Never ask the BA to copy calendar scripts into `hooks/`
+- Never show `setx`, env-var jargon, or `default, downloads_default` reply tokens
+- Never recommend a wrong initiatives path (`blueprints` is legacy; default is
+  `~/.cursor/initiatives`)
 
 ---
 
 ## Wizard flow
 
-Work through these steps **sequentially using AskQuestion at each step**. Do not batch all questions into one screen — users need to absorb and respond to each topic. However, group closely related micro-questions (e.g. Jira key + instance URL) into a single AskQuestion panel.
+Prefer one panel with 2 related questions when the UI allows. Expected AskQuestion
+rounds for a full path: about **8–10** (fewer if they skip Jira/Confluence).
+Do not drop domain, Jira, or Confluence to hit a lower count.
 
-### Step 0 — Welcome
-
-Display a friendly introduction before asking anything:
+### Step 0 — Welcome (short)
 
 ```
-👋 Welcome to BA Assistant!
-
-This is a 2-minute setup that personalises the assistant for your workspace.
-It configures:
-  • Who you are and your role
-  • Your Jira and Confluence workspace
-  • Which MCP integrations are available
-  • Your preferred output depth
-
-After setup, the assistant is ready to run your first initiative. Let's go.
+Welcome to BA Assistant setup. A few quick questions (who you are, your domain,
+Jira and Confluence), then we connect tools and fill your workboard.
 ```
 
-Then immediately present Step 1 via AskQuestion.
+Then Step 1. Do not list every internal step.
 
 ---
 
 ### Step 1 — Who are you?
 
-**Collect:**
-- Your name (free-text — this will appear in artefacts and Confluence pages)
-- Your role
+**One AskQuestion panel**, two questions.
 
-**AskQuestion:**
-> What's your name and role? (These appear in initiative artefacts.)
+**A — Name**
 
-Options:
-- `BA` — Business Analyst
-- `PM` — Product Manager  
-- `PO` — Product Owner
-- `Other` — (free-text)
+> What name would you like to go by?
 
-Capture: `profile.name` (free-text from user), `profile.role`.
+Prefer freeform only. If one option is required:
+- `name` — Type your name in the free-text field
+
+Empty free-text is not an answer; ask once more. Never invent name chips.
+
+**B — Role**
+
+> What is your primary role?
+
+- `ba` — Business Analyst
+- `pm` — Product Manager
+- `po` — Product Owner
+- `pa` — Product Analyst
+- `other` — Other (type in the free-text field)
+
+Capture: `profile.name`, `profile.role`.
 
 ---
 
-### Step 2 — Your organisation context
+### Step 2 — Domain (keep this — personalises later questions)
 
-**Collect:**
-- Team or organisation name (used in artefact headers; optional — skip if solo)
-- Domain focus (optional — helps surface relevant learnings)
+Domain context helps the assistant ask thoughtful, relevant questions later.
+Do **not** skip this silently.
 
 **AskQuestion:**
-> What team or domain do you work in? (Optional — helps the assistant tailor outputs.)
 
-Options:
+> What domain or area do you mainly work in?
+
+Options (none pre-marked as the only “right” answer):
 - `payments` — Payments / Fintech
 - `platform` — Platform / Infrastructure
 - `customer` — Customer Experience / CX
 - `data` — Data / Analytics
 - `compliance` — Compliance / Regulatory
-- `other` — Other / I'll skip this
-- Free-text: enter your team name
+- `product` — Product / Features
+- `other` — Other (type your domain or team name in the free-text field)
 
-Capture: `profile.team`, `profile.domain`.
-
----
-
-### Step 2.5 — Machine paths (environment variables)
-
-One-time machine setup — these used to live in always-on rules; they belong here now (always-on restructure).
-
-**Collect and persist as user environment variables** (Windows: `setx`; macOS/Linux: shell profile export):
-
-| Variable | What | Default offered |
-|---|---|---|
-| `BA_INITIATIVES_ROOT` | Root folder containing initiative folders (SESSION-CONTEXT.md etc.) | `~/.cursor/blueprints` |
-| `BA_DOWNLOADS_PATH` | Where meeting transcripts and downloads land | `~/Downloads` |
-| `BA_SHARED_REPO_ROOT` | Devs' shared delivery repo (only if using `/handover` — skip otherwise) | (none — ask when first handover runs) |
-
-**AskQuestion:** confirm each default or supply a path. After capture, verify each path exists (`Test-Path` / `[ -d ]`) and warn on misses. The session-init hook and `ba-dev-handover` read these.
-
-**Optional:** offer the Claude Code install (extension `anthropic.claude-code` — steps in SETUP.md) as a one-time extra. Skip freely.
+Capture: `profile.domain` (and `profile.team` if they typed a team name under Other).
 
 ---
 
-### Step 2.6 — Workstream seed + calendar (Version 10)
+### Step 3 — Folders (confirm defaults, do not over-ask)
 
-Create the cross-initiative working folder if missing:
+Silently create `~/.cursor/initiatives` if missing. Seed `_workstream/` with empty
+`workboard.json` and `ba-actions.json` if missing. **Do not** ask about calendar
+scripts or hooks.
 
-1. Ensure `~/.cursor/_workstream/` exists.
-2. If missing, seed empty `workboard.json` (`initiatives: []`, `last_refreshed: null`, no new `personal_tasks` writes).
-3. If missing, seed empty `ba-actions.json` per `references/ba-actions-format.md` (`actions: []`, `schema_version: 1`).
-4. Copy or point to `_workstream/README.md` from the package if available.
-
-**OS detect for calendar sample (optional):**
-
-| OS | Sample | Notes |
-|---|---|---|
-| Windows | `references/sample-scripts/get-calendar.ps1` | Outlook desktop COM |
-| macOS | `references/sample-scripts/get-calendar.mac.sh` | Apple Calendar via `osascript` |
-| Other / skip | none | Workboard works without calendar |
+The first `/workboard` must generate the portable interactive canvas with
+`_workstream/generate-workboard-canvas.py` into the active Cursor project's
+`canvases/` folder. It uses the BA's own initiative and action data; never copy
+another BA's canvas sidecar or embedded records.
 
 **AskQuestion:**
-> Want a calendar feed for `/workboard`?
 
-Options:
-- `yes_copy` — Yes — copy the OS sample into `~/.cursor/hooks/` and I'll wire sessionStart later (or now if you confirm)
-- `docs_only` — Show me the sample path; I'll set it up myself
-- `skip` — Skip — no calendar for now
+> I will store your initiatives under `~/.cursor/initiatives` and look for
+> meeting files in your Downloads folder. Does that look right?
 
-Never wire hooks silently. Calendar is optional.
+- `yes` — Yes, use those defaults (Recommended)
+- `change_init` — Change where initiatives are stored (type path in free-text)
+- `change_dl` — Change the Downloads folder (type path in free-text)
+
+If they change a path, confirm it once. Store in config YAML. Prefer writing
+config over lecturing about environment variables. Do not mention `BA_SHARED_REPO_ROOT`
+until `/handover`.
+
+Capture: `paths.initiativesRoot`, `paths.downloadsPath`.
 
 ---
 
-### Step 3 — Jira workspace
+### Step 4 — Jira (keep this — key for workboard and tickets)
 
-**Collect:**
-- Jira instance URL (`[org].atlassian.net` or self-hosted)
-- Primary project key (e.g. `PROJ`, `TEAM`)
+Knowing their Jira site and project is central to a useful setup. Ask clearly;
+use free-text for URL and key. Do **not** ask Cloud vs Server.
 
-**AskQuestion:**
-> Do you use Jira?
+**AskQuestion panel 1:**
 
-Options:
-- `yes_cloud` — Yes — Jira Cloud (`[org].atlassian.net`)
-- `yes_server` — Yes — Jira Server / Data Center
-- `no` — No / Not yet — I'll configure later
+> Do you use Jira for delivery tracking?
 
-If `yes_cloud` or `yes_server`, prompt for:
-- Instance URL (free-text)
-- Primary project key (free-text, e.g. `PROJ`)
+- `yes` — Yes
+- `later` — Not yet / configure later
+
+If `yes`, **same or next AskQuestion panel** (free-text is the answer):
+
+> What is your Jira site URL? (e.g. https://your-org.atlassian.net)
+
+- `url` — Type the URL in the free-text field
+- `skip_url` — Skip URL for now
+
+> What is your main Jira project key? (e.g. FCM or TEAM)
+
+- `key` — Type the project key in the free-text field
+- `skip_key` — Skip project key for now
+
+Never use chips like “Enter the URL (Recommended)” with no typed value.
+
+If Jira tools are missing in this chat, note briefly that Step 6 will help them
+connect via Runlayer. Do not block setup.
 
 Capture: `workspace.jira.instanceUrl`, `workspace.jira.projectKey`.
 
-**MCP check:** After collecting details, check if Jira MCP tools are available in the current session (look for `mcp__jira_*` or `mcp__atlassian_*` tools). If **not** available, show inline setup hint:
-
-```
-⚠️ Jira MCP not detected. To enable Jira read/write from the assistant:
-   See SETUP.md → "Configuring MCP integrations" for Atlassian setup instructions.
-   You can skip this for now and configure it later.
-```
-
 ---
 
-### Step 4 — Confluence workspace
+### Step 5 — Confluence space (keep this — key for docs and hub)
 
-**Collect:**
-- Confluence space key (e.g. `TEAM`, `ENG`)
-- Parent page URL for new pages (optional)
+**AskQuestion panel 1:**
 
-**AskQuestion:**
 > Do you use Confluence for documentation?
 
-Options:
 - `yes` — Yes
-- `no` — No / Not yet
+- `later` — Not yet / configure later
 
-If `yes`, prompt for:
-- Space key (free-text)
-- Parent page URL (free-text, optional — press enter to skip)
+If `yes`, **same or next AskQuestion panel**:
 
-Capture: `workspace.confluence.spaceKey`, `workspace.confluence.parentPageUrl`.
+> What is your main Confluence space key? (e.g. FSP or TEAM)
 
-**MCP check:** Same as Jira — look for `mcp__confluence_*` tools. If not available, show the same setup hint pointing to SETUP.md.
+- `space` — Type the space key in the free-text field
+- `skip_space` — Skip space key for now
 
----
+> Optional: paste a team hub or parent page URL to use as a starting point
 
-### Step 5 — Domain knowledge docs
+- `hub` — Type the URL in the free-text field
+- `skip_hub` — Skip hub link for now
 
-**Purpose:** Give the assistant context about your product domain so it can ask smarter questions and avoid generic guidance.
+Explain briefly: if they give a hub/space, pull-in can summarise recent pages
+there later (with their OK). Do not invent placeholder URL chips.
 
-**AskQuestion:**
-> Do you have any existing documents, Confluence pages, or URLs the assistant should know about for domain context?
+If Confluence tools are missing, note Step 6 will help connect via Runlayer.
 
-Options:
-- `yes_confluence` — Yes — I'll paste a Confluence page URL
-- `yes_doc` — Yes — I'll paste a URL or file path
-- `no` — No / Skip for now
-
-If user provides a URL or path: save to `profile.domainDocs[]` as a list. The Intake Reviewer will consult these at Phase 0.
+Capture: `workspace.confluence.spaceKey`, `workspace.confluence.parentPageUrl`
+(and hub URL if different).
 
 ---
 
-### Step 6 — Output preferences
+### Step 6 — Connect work tools (Runlayer)
+
+Probe this chat for Glean, Outlook, Jira, Confluence, Runlayer. Show a simple
+checklist in plain language:
+
+| Tool | Status |
+|------|--------|
+| Company search (Glean) | Connected / Not connected |
+| Email / calendar | Connected / Not connected |
+| Jira | Connected / Not connected |
+| Confluence | Connected / Not connected |
 
 **AskQuestion:**
-> What output depth do you prefer by default?
 
-Options:
-- `minimal` — Minimal — sketches, outlines. I'll ask before full artefacts.
-- `standard` — Standard *(recommended)* — reasonable artefacts at each step, declared upfront.
-- `comprehensive` — Comprehensive — full artefacts at every step.
+> To use email, calendar, Jira, and Confluence from Cursor, connect them through
+> Runlayer. What do you want to do?
 
-Capture: `profile.defaultDraftDepth`.
+- `recommended` — Connect the recommended set (Glean, calendar, Jira, Confluence)
+- `pick` — Let me choose which ones
+- `later` — Skip for now
+
+If they need to connect anything **Missing**:
+
+1. Open **[Runlayer servers](https://myob.runlayer.com/servers)** (SSO).
+2. Search for the name (e.g. `Glean`, `Microsoft Outlook Calendar`,
+   `Atlassian - Jira`, `Atlassian - Confluence`).
+3. **Add to client** → Cursor → Authenticate in Cursor Settings → Tools & MCP.
+4. Start a **new chat** and say “continue setup” or rerun `/setup`.
+
+Plain language only. Prefer Glean **via Runlayer** (not a standalone Glean install).
+Never ask for API tokens.
 
 ---
 
-### Step 7 — Write ba-profile.mdc
+### Step 7 — Save config
 
-Using all captured values, write a personalised `ba-profile.mdc` to `~/.cursor/rules/ba-profile.mdc`.
+Default draft depth: **standard** (do not ask unless they ask to change it).
 
-**Template:** Use `skills/ba-assistant/ba-profile.template.mdc` as the base. Replace all `[Placeholder]` values with captured values.
+Write `~/.cursor/rules/ba-assistant-config.mdc` from
+`skills/ba-assistant/ba-profile.template.mdc`.
 
-Show the user a preview of what will be written:
+**Do not overwrite** always-on `ba-profile.mdc` (persona).
 
-```
-Here's your ba-profile.mdc:
+Show a **short** preview (name, role, domain, paths, Jira, Confluence). **AskQuestion:**
 
-Name: [captured name]
-Role: [captured role]
-Team: [captured team]
-Jira: [instance URL] / Project: [project key]
-Confluence: [space key]
-Default depth: [minimal/standard/comprehensive]
+> Save this setup?
 
-Write this to ~/.cursor/rules/ba-profile.mdc?
-```
-
-**AskQuestion:**
-- `write` — Yes, write it
-- `edit` — Let me change something
-- `skip` — Skip for now
-
-If `write`: write the file. Confirm with: "✓ ba-profile.mdc written. BA Assistant is now configured for [name]."
+- `write` — Yes, save (Recommended)
+- `edit` — Change something
+- `skip` — Skip saving for now
 
 ---
 
-### Step 8 — Offer to start first initiative
+### Step 8 — Pull in starting work
+
+**Read:** `references/context-bootstrap.md` (follow harvest rules; keep BA-facing
+wording plain). Use domain + Jira project + Confluence space from earlier steps
+to personalise what you look for and how you phrase questions.
 
 **AskQuestion:**
-> Setup complete! What would you like to do next?
 
-Options:
-- `start_initiative` — Start my first initiative — run BA Assistant intake now
-- `explore` — Show me the commands and skills first
-- `later` — I'll come back when I'm ready
+> Setup is saved. Next I can pull starting work into Cursor so your workboard
+> is useful today. What should we do?
 
-If `start_initiative`: exit wizard and return to SKILL.md Step 2 (welcome panel). The orchestrator then proceeds to Phase 0 intake.
+- `pull_in` — Pull in starting work now (Recommended)
+  (smart email actions if connected, calendar, hub/Jira if connected, then you pick what to keep)
+- `connectors` — Help me finish connecting tools first
+- `manual` — I will name my initiatives / attach a transcript myself
+- `later` — I will come back later
+
+| Choice | Action |
+|--------|--------|
+| `pull_in` | Consent → smart mail (if available) → calendar → hub/Jira → ask transcripts + initiative names → **review** → seed `ba-actions` + stubs → refresh workboard |
+| `connectors` | Return to Step 6 |
+| `manual` | Ask initiative names (free-text) and optional `@` transcript; seed workboard |
+| `later` | One-screen return note: `/setup`, `/workboard` |
+
+#### Smart mail (when available)
+
+Consent first. ~30 days, capped. Prefer actions **for them** (To: them, name
+called out, please/can you, unread/high importance, unreplied when detectable).
+BA selects → write only selected items to `ba-actions`. No raw mail dumps.
+
+#### Always ask during pull-in
+
+1. Any meeting transcript to debrief now?
+2. Any initiative names to create?
+3. Hub/space if Step 5 was skipped?
+
+End with **one** clear next action. Never say “empty workboard is fine” after
+a successful pull-in.
 
 ---
 
 ## Re-run / reconfigure
 
-The user can re-run setup at any time by typing `/setup` or saying "reconfigure BA assistant". The wizard runs again and overwrites `ba-profile.mdc`. Existing initiative files (blueprints, trackers) are not affected.
+`/setup` runs this wizard again and updates `ba-assistant-config.mdc`.
+Initiative folders are not deleted.
 
 ---
 
 ## Error handling
 
-- If the user skips all optional fields: write a minimal `ba-profile.mdc` with the name and role only. All other fields default to `[Configure later]`.
-- If file write fails: surface the error, show the content that would have been written, and ask the user to create the file manually with the shown content.
-- If MCP check is inconclusive: proceed without blocking — note "MCP status: unconfirmed" in the profile.
-
----
-
-## What ba-profile.mdc enables
-
-Once written, `ba-profile.mdc` enables:
-
-- **Personalised artefacts** — name appears in Confluence pages, initiative trackers, status pages
-- **Pre-filled workspace context** — Intake Reviewer skips "what's your Jira project?" — it already knows
-- **Smarter MCP routing** — Jira Sync and Confluence Publish use configured instance URL / space key
-- **Domain-aware intake** — Intake Reviewer reads domain docs to ask smarter questions
-- **Session default** — draft depth preference loaded at every session start
+- Skipped optionals → write name + role; others `[Configure later]`
+- Write failure → show file contents for manual create
+- Connectors unclear → “Not confirmed in this chat” and continue

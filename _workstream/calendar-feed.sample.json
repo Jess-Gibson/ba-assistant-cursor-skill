@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "last_refreshed": null,
+  "timezone": "Pacific/Auckland",
+  "days": [
+    {
+      "date": "2026-09-04",
+      "label": "Today — Friday 4 Sep",
+      "meetings": [
+        {
+          "time": "11:00",
+          "label": "Example standup",
+          "sub": "team",
+          "duration": "30m",
+          "highlight": false,
+          "alert": false,
+          "done": false
+        }
+      ]
+    }
+  ]
+}

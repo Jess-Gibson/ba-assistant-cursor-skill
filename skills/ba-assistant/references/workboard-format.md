@@ -2,7 +2,7 @@
 
 **Location:** `~/.cursor/skills/ba-assistant/references/workboard-format.md`
 **Owner:** `/workboard` procedure (`skills-routing.mdc`), this standard (format)
-**Last reviewed:** 2026-07-08
+**Last reviewed:** 2026-09-04 (Workboard Control Centre)
 
 Canonical source for cross-initiative workboard status scoring, `workboard.json` initiative fields, and canvas display rules. Any `/workboard` refresh or `/wrap` workboard update MUST apply this standard. Do not default every initiative to `on-track`.
 
@@ -79,7 +79,7 @@ Each entry in `initiatives[]`:
 
 | Field | Purpose | Notes |
 |-------|---------|-------|
-| `slug` | Registry key | Matches `blueprints/{slug}/` |
+| `slug` | Registry key | Matches initiative folder slug (`initiatives/{slug}/` on this machine; `blueprints/{slug}/` in packaged workspaces) |
 | `name` | Display name | Full product/initiative name |
 | `phase` | One-line where we are | Phase label + most recent significant event |
 | `status` | Initiative health | One of the six enum values above |
@@ -94,16 +94,48 @@ Each entry in `initiatives[]`:
 
 **`sync_status.{slug}`** (sibling object): tracks drift vs tracker, Confluence staleness, `jira_last_synced`, and refresh notes. Not the same as initiative `status`.
 
+### Optional top-level fields (derived on refresh)
+
+| Field | Purpose |
+|-------|---------|
+| `meetings_today` | Today's meetings for canvas Today tab and EOD reconciliation (`time`, `label`, `sub`, `duration`, `highlight`, `alert`, `done`) |
+| `meetings_tomorrow` | Tomorrow's meetings for next-working-day prep |
+| `meetings_date` | ISO date the meeting arrays apply to |
+| `ba_actions_summary` | `{ open, blocked, overdue, high_due_soon }` counts from `ba-actions.json` |
+| `review_queue` | Cross-initiative artefact triage rows (`path`, `priority`, `note`, optional `initiative`) |
+| `unprocessed_downloads` | Downloads flagged since last refresh |
+
+Populate from `_workstream/calendar-feed.json` when present; otherwise leave arrays empty and let the canvas show a neutral no-feed callout.
+
 ---
 
 ## 5. Canvas display rules
 
 File: `canvases/ba-workboard.canvas.tsx`
 
-- **StatusDot** must support all six enum values: `new`, `on-track`, `at-risk`, `critical`, `monitoring`, `closed`.
-- Header stat row: count initiatives by status (At Risk, Monitoring, Closed, High tasks  -  adjust counts on refresh; do not show "4 On Track" when none qualify).
+### Tab contract (mandatory)
+
+| Tab | Purpose |
+|-----|---------|
+| **Today** | Priority banner, at-risk/urgent callouts, stats, today's meetings, do-first actions, unprocessed downloads |
+| **Initiatives** | One full-width card per initiative (single column) with status, phase, milestone, blocker, risk, next action |
+| **Open actions** | Editable draft controls per open action (status dropdown, due date, notes) + filters |
+
+**End of Day is a header button, not a tab.** It starts `/wrap`. Do not add an End of day tab — that duplicated the button and confused users.
+
+### Visual rules
+
+- **StatusDot / badge** must support all six enum values: `new`, `on-track`, `at-risk`, `critical`, `monitoring`, `closed`.
+- **Colour escalation:** `critical` and overdue/urgent actions → red (`theme.category.red`). `at-risk` initiatives → orange (`theme.category.orange`). Do not use amber/brown for in-progress delivery.
+- Header stat row: count initiatives by status honestly (do not show "4 On Track" when none qualify).
 - **Callouts** should reflect status honestly (e.g. multiple at-risk initiatives get a combined warning callout, not only success tones).
-- **Update** and **End of Day** button prompts must reference this file, `skills-routing.mdc`, `references/sync-procedures.md`, and **`_workstream/ba-actions.md`** (EOD critical scan + morning prep scan). Keep all four in sync when the procedure changes.
+- **Update**, **End of Day**, and **Apply action updates** (when draft changes exist) button prompts must reference this file, `workboard-procedure.md`, `references/sync-procedures.md`, and **`_workstream/ba-actions.md`**. Keep all four in sync when the procedure changes.
+
+### Draft overlay (canvas interactivity)
+
+- Canvas edits to actions are **draft-only** in `ba-workboard.canvas.data.json` (`draft-actions` key).
+- **Apply action updates** opens a Composer chat with the draft JSON and instructions to validate + write `_workstream/ba-actions.json`, then run `py _workstream/regenerate-ba-actions-md.py`.
+- Never treat canvas sidecar state as canonical. Clear drafts on the next canvas regeneration after a successful apply.
 
 ---
 
@@ -155,4 +187,4 @@ BA-owned tasks are **not** stored in `workboard.json` initiative fields or legac
 
 Sync procedure: `references/ba-actions-format.md` §3 (`sync-ba-actions`). Triggers: debrief complete, `/todo`, `/wrap` step 6b.
 
-Canvas **Open tasks** table: display subset only (high priority + due within 3 working days, max 15 rows). Full list always in `ba-actions.md`.
+Canvas **Open actions** tab: show open actions with draft controls; curated Today subset = high priority + due within 3 working days (max 15 rows). Full list always in `ba-actions.md`.

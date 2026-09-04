@@ -8,7 +8,7 @@ Configurable paths (set in **ba-setup** Step 2.5):
 | Variable | Purpose | Typical default |
 |---|---|---|
 | `BA_DOWNLOADS_PATH` | Transcripts / downloads inbox | `~/Downloads` |
-| `BA_INITIATIVES_ROOT` | Initiative blueprints root | `~/.cursor/blueprints` |
+| `BA_INITIATIVES_ROOT` | Initiative folders root | `~/.cursor/initiatives` |
 | `BA_SHARED_REPO_ROOT` | Shared delivery repo for `/handover` | (optional) |
 
 ---
@@ -46,7 +46,7 @@ On resume, `/reanchor`, `/workboard`, and `/wrap`: list recent files in `BA_DOWN
 
 ## Multi-root workspaces
 
-Multi-root Cursor workspaces are fine. Classify by **user intent**, not which folder is focused. Initiative state lives under `BA_INITIATIVES_ROOT` / `blueprints/{slug}/`. Cross-initiative data lives in `~/.cursor/_workstream/`.
+Multi-root Cursor workspaces are fine. Classify by **user intent**, not which folder is focused. Initiative state lives under `BA_INITIATIVES_ROOT` / `initiatives/{slug}/` (legacy `blueprints/{slug}/` still works if configured). Cross-initiative data lives in `~/.cursor/_workstream/`.
 
 ---
 

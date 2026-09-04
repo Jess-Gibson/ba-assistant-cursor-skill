@@ -71,8 +71,8 @@ Maximum AskQuestion rounds before write: about **6**. Prefer one panel with
 ### Step 0 — Welcome (short)
 
 ```
-Welcome to BA Assistant setup. A few quick questions, then we will connect
-your work tools and fill your workboard so it is useful on day one.
+Welcome to BA Assistant setup. A few quick questions (who you are, your domain,
+Jira and Confluence), then we connect tools and fill your workboard.
 ```
 
 Then Step 1. Do not list every internal step.
@@ -106,19 +106,25 @@ Capture: `profile.name`, `profile.role`.
 
 ---
 
-### Step 2 — Team (optional, one question)
+### Step 2 — Domain (keep this — personalises later questions)
+
+Domain context helps the assistant ask thoughtful, relevant questions later.
+Do **not** skip this silently.
 
 **AskQuestion:**
 
-> What team or area do you work in? (Optional)
+> What domain or area do you mainly work in?
 
-- `skip` — Skip for now (Recommended)
-- `type` — Type the team or area in the free-text field
+Options (none pre-marked as the only “right” answer):
+- `payments` — Payments / Fintech
+- `platform` — Platform / Infrastructure
+- `customer` — Customer Experience / CX
+- `data` — Data / Analytics
+- `compliance` — Compliance / Regulatory
+- `product` — Product / Features
+- `other` — Other (type your domain or team name in the free-text field)
 
-Do **not** force a Payments / Platform / CX picklist. Those chips feel random
-to many BAs. Free-text or skip only.
-
-Capture: `profile.team` (or leave blank).
+Capture: `profile.domain` (and `profile.team` if they typed a team name under Other).
 
 ---
 
@@ -145,7 +151,71 @@ Capture: `paths.initiativesRoot`, `paths.downloadsPath`.
 
 ---
 
-### Step 4 — Connect work tools (Runlayer)
+### Step 4 — Jira (keep this — key for workboard and tickets)
+
+Knowing their Jira site and project is central to a useful setup. Ask clearly;
+use free-text for URL and key. Do **not** ask Cloud vs Server.
+
+**AskQuestion panel 1:**
+
+> Do you use Jira for delivery tracking?
+
+- `yes` — Yes
+- `later` — Not yet / configure later
+
+If `yes`, **same or next AskQuestion panel** (free-text is the answer):
+
+> What is your Jira site URL? (e.g. https://your-org.atlassian.net)
+
+- `url` — Type the URL in the free-text field
+- `skip_url` — Skip URL for now
+
+> What is your main Jira project key? (e.g. FCM or TEAM)
+
+- `key` — Type the project key in the free-text field
+- `skip_key` — Skip project key for now
+
+Never use chips like “Enter the URL (Recommended)” with no typed value.
+
+If Jira tools are missing in this chat, note briefly that Step 6 will help them
+connect via Runlayer. Do not block setup.
+
+Capture: `workspace.jira.instanceUrl`, `workspace.jira.projectKey`.
+
+---
+
+### Step 5 — Confluence space (keep this — key for docs and hub)
+
+**AskQuestion panel 1:**
+
+> Do you use Confluence for documentation?
+
+- `yes` — Yes
+- `later` — Not yet / configure later
+
+If `yes`, **same or next AskQuestion panel**:
+
+> What is your main Confluence space key? (e.g. FSP or TEAM)
+
+- `space` — Type the space key in the free-text field
+- `skip_space` — Skip space key for now
+
+> Optional: paste a team hub or parent page URL to use as a starting point
+
+- `hub` — Type the URL in the free-text field
+- `skip_hub` — Skip hub link for now
+
+Explain briefly: if they give a hub/space, pull-in can summarise recent pages
+there later (with their OK). Do not invent placeholder URL chips.
+
+If Confluence tools are missing, note Step 6 will help connect via Runlayer.
+
+Capture: `workspace.confluence.spaceKey`, `workspace.confluence.parentPageUrl`
+(and hub URL if different).
+
+---
+
+### Step 6 — Connect work tools (Runlayer)
 
 Probe this chat for Glean, Outlook, Jira, Confluence, Runlayer. Show a simple
 checklist in plain language:
@@ -159,8 +229,8 @@ checklist in plain language:
 
 **AskQuestion:**
 
-> To pull email actions, calendar, Jira, and Confluence into BA Assistant, connect
-> them through Runlayer. What do you want to do?
+> To use email, calendar, Jira, and Confluence from Cursor, connect them through
+> Runlayer. What do you want to do?
 
 - `recommended` — Connect the recommended set (Glean, calendar, Jira, Confluence)
 - `pick` — Let me choose which ones
@@ -177,35 +247,9 @@ If they need to connect anything **Missing**:
 Plain language only. Prefer Glean **via Runlayer** (not a standalone Glean install).
 Never ask for API tokens.
 
-**Optional follow-up (only if Jira or Confluence will be used and values are unknown):**
-
-One AskQuestion panel, free-text fields (no “Enter the URL (Recommended)” chips):
-
-> If you already know them, add your main Jira site URL and project key, and/or
-> Confluence space key. Otherwise skip.
-
-- `type` — Type what you know in the free-text field
-- `skip` — Skip — we can set this later
-
-Do **not** ask Cloud vs Server. Do **not** run a separate long Jira then Confluence quiz.
-
 ---
 
-### Step 5 — Team hub link (optional)
-
-**AskQuestion:**
-
-> Do you have a Confluence space or team hub link I should use as a starting point?
-
-- `yes` — Yes — paste the link in the free-text field
-- `skip` — Skip for now
-
-Capture for bootstrap / config. Do not say “scan for context” without explaining:
-if they paste a link, you will summarise recent pages there later (with their OK).
-
----
-
-### Step 6 — Save config
+### Step 7 — Save config
 
 Default draft depth: **standard** (do not ask unless they ask to change it).
 
@@ -214,7 +258,7 @@ Write `~/.cursor/rules/ba-assistant-config.mdc` from
 
 **Do not overwrite** always-on `ba-profile.mdc` (persona).
 
-Show a **short** preview (name, role, paths, jira/confluence if set). **AskQuestion:**
+Show a **short** preview (name, role, domain, paths, Jira, Confluence). **AskQuestion:**
 
 > Save this setup?
 
@@ -224,10 +268,11 @@ Show a **short** preview (name, role, paths, jira/confluence if set). **AskQuest
 
 ---
 
-### Step 7 — Pull in starting work (was “Context Bootstrap”)
+### Step 8 — Pull in starting work
 
 **Read:** `references/context-bootstrap.md` (follow harvest rules; keep BA-facing
-wording plain).
+wording plain). Use domain + Jira project + Confluence space from earlier steps
+to personalise what you look for and how you phrase questions.
 
 **AskQuestion:**
 
@@ -243,7 +288,7 @@ wording plain).
 | Choice | Action |
 |--------|--------|
 | `pull_in` | Consent → smart mail (if available) → calendar → hub/Jira → ask transcripts + initiative names → **review** → seed `ba-actions` + stubs → refresh workboard |
-| `connectors` | Return to Step 4 |
+| `connectors` | Return to Step 6 |
 | `manual` | Ask initiative names (free-text) and optional `@` transcript; seed workboard |
 | `later` | One-screen return note: `/setup`, `/workboard` |
 
@@ -257,7 +302,7 @@ BA selects → write only selected items to `ba-actions`. No raw mail dumps.
 
 1. Any meeting transcript to debrief now?
 2. Any initiative names to create?
-3. Hub link if Step 5 was skipped?
+3. Hub/space if Step 5 was skipped?
 
 End with **one** clear next action. Never say “empty workboard is fine” after
 a successful pull-in.

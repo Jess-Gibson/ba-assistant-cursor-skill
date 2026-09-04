@@ -13,9 +13,10 @@
 - Default `BA_INITIATIVES_ROOT` is now `~/.cursor/initiatives` (not `blueprints`).
 - Free-text fields (name, URLs, keys) use AskQuestion free-text / Other; never fake chips like "Enter my name".
 - Package docs no longer mention other AI tool skill folders; skills load only from `~/.cursor/skills/ba-assistant/`.
-- Setup wizard slimmed: AskQuestion only (no “reply in chat”), auto path defaults,
-  no calendar-hook script question, no Jira Cloud/Server quiz, no output-depth quiz,
-  no domain picklist; Runlayer + pull-in starting work in plain language.
+- Setup wizard: AskQuestion only; path defaults; domain (for personalisation);
+  dedicated Jira site/project + Confluence space/hub (no Cloud/Server quiz);
+  Runlayer connectors; pull-in starting work. No calendar-hook script, no
+  output-depth quiz, no Claude upsell.
 - **Context Bootstrap:** setup checks connectors, guides Runlayer servers
   (Glean, Outlook, Jira, Confluence via https://myob.runlayer.com/servers),
   then opt-in smart mail / calendar / hub / Jira harvest with review before

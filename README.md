@@ -1,6 +1,6 @@
 # BA Assistant for Cursor
 
-**Version 11** - see [CHANGELOG.md](CHANGELOG.md).
+**Version 12** - see [CHANGELOG.md](CHANGELOG.md).
 
 A comprehensive Business Analysis assistant built as a Cursor skill. Designed to support BAs through the full initiative lifecycle — from intake and discovery through delivery, playback, and retrospective.
 
@@ -17,7 +17,7 @@ The BA Assistant is an AI-powered BA thinking partner that runs inside [Cursor](
 - **Living tracker** — automatic RAID tracking across workstreams
 - **Feature slicing before stories** — enforced sequencing before delivery definition
 - **Interactive project canvas** — 8-tab dashboard with workstream grid, RAID, metrics, and timeline
-- **Cross-initiative workboard** — inline `/workboard` procedure (not a sub-skill): phase, blockers, next actions, **BA actions**, today's meetings. Pairs with `/todo` to `ba-actions.json`
+- **Cross-initiative workboard** — portable interactive `/workboard` canvas generated from each BA's own phase, blockers, next actions, **BA actions**, and today's meetings. Pairs with `/todo` to `ba-actions.json`
 - **Meeting debrief** — transcripts into decisions, actions, risks, and requirement changes
 - **Workshop design** — facilitation templates from kickoff through change management
 - **Anti-pattern detection** — premature solutioning, scope creep, missing analysis

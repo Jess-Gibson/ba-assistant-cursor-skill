@@ -1,5 +1,19 @@
 # Changelog
 
+## Version 12 - 2026-09-04
+
+### Workboard Control Centre
+
+- Rebuilt portable workboard canvas contract: **Today / Initiatives / Open actions** tabs; **End of Day** starts `/wrap`, not a duplicate tab.
+- Added a reusable canvas template plus `generate-workboard-canvas.py`, which embeds each BA's own canonical workboard, action, and optional calendar data.
+- Initiative cards with status colour escalation (orange at-risk, red critical/overdue).
+- Open actions tab supports **draft edits** in canvas sidecar; **Apply action updates** routes to agent for canonical `ba-actions.json` writes.
+- Added `_workstream/regenerate-ba-actions-md.py` (was documented but missing).
+- Expanded `workboard.json` optional fields: `meetings_today`, `meetings_tomorrow`, `ba_actions_summary`, `review_queue`.
+- `workboard-procedure.md`: initiative path resolution (`initiatives/` → `-- analysis --/` → `blueprints/`), optional email scan, canvas draft apply procedure.
+- `workboard-format.md`: tab contract, draft overlay rules, optional top-level JSON fields.
+- `calendar-feed.sample.json` added for optional meeting feed setup.
+
 ## Version 11 - 2026-09-04
 
 ### One-shot install for non-developer BAs

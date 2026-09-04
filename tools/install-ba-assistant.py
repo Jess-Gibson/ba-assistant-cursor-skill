@@ -20,7 +20,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-VERSION = "11"
+VERSION = "12"
 
 PACKAGE_RULES = [
     "skills-routing.mdc",
@@ -156,6 +156,9 @@ def seed_workstream(cursor_home: Path, package: Path, dry_run: bool) -> None:
     readme_src = package / "_workstream" / "README.md"
     if readme_src.exists():
         copy_file(readme_src, ws / "README.md", dry_run)
+    generator_src = package / "tools" / "generate-workboard-canvas.py"
+    if generator_src.exists():
+        copy_file(generator_src, ws / "generate-workboard-canvas.py", dry_run)
 
 
 def seed_initiatives(cursor_home: Path, dry_run: bool) -> Path:

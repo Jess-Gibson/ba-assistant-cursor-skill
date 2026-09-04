@@ -135,6 +135,11 @@ Silently create `~/.cursor/initiatives` if missing. Seed `_workstream/` with emp
 `workboard.json` and `ba-actions.json` if missing. **Do not** ask about calendar
 scripts or hooks.
 
+The first `/workboard` must generate the portable interactive canvas with
+`_workstream/generate-workboard-canvas.py` into the active Cursor project's
+`canvases/` folder. It uses the BA's own initiative and action data; never copy
+another BA's canvas sidecar or embedded records.
+
 **AskQuestion:**
 
 > I will store your initiatives under `~/.cursor/initiatives` and look for

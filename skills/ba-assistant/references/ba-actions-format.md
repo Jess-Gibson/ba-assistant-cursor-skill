@@ -156,7 +156,9 @@ Use plain language in the MD body (no bare `BA-*` in task rows; IDs OK in a narr
 
 ### 3.4 Workboard canvas hook
 
-After sync, refresh canvas `OPEN_TASKS` from open actions where `priority === high` OR due within 3 working days (cap at 15 rows). Update callout to point at `_workstream/ba-actions.md`.
+After sync, refresh canvas embedded open actions from `ba-actions.json` where `priority === high` OR due within 3 working days (cap at 15 rows for Today tab subset). Update callout to point at `_workstream/ba-actions.md`.
+
+**Draft overlay:** The Open actions tab may hold unsynced edits in `ba-workboard.canvas.data.json`. On **Apply action updates**, follow `workboard-procedure.md → Canvas draft apply procedure`. Never write canonical JSON from canvas code directly.
 
 ### 3.5 Validation line (visible)
 
@@ -177,6 +179,7 @@ After sync, print: `Gate: ba-actions-sync: PASS (N open, M added, K updated)` or
 | `/todo list` | List from ba-actions.json, not personal_tasks |
 | Canvas **Update** button | Same morning-prep scan when refresh runs start-of-day |
 | Canvas **End of Day** button | Full `/wrap` including ba-actions EOD critical scan + runthrough |
+| Canvas **Apply action updates** | Validates draft patches from canvas sidecar → writes JSON → `py _workstream/regenerate-ba-actions-md.py` |
 
 ---
 

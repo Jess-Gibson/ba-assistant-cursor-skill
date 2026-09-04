@@ -101,18 +101,28 @@ python tools/upgrade-ba-assistant.py --package /path/to/ba-assistant-cursor-skil
 
 ---
 
-## Configuring MCP integrations
+## Configuring MCP / Runlayer integrations
 
-Jira and Confluence are optional. BA Assistant works without them, but cannot
-search or publish until MCP (or your org's Runlayer connectors) are available.
+BA Assistant works without connectors, but mail actions, calendar, Jira,
+Confluence, and company search need them. Prefer **Runlayer-governed** servers.
 
-1. Open **Cursor Settings → Tools & MCP**
-2. Enable the Jira and Confluence servers your organisation approves
-3. If your organisation uses **Runlayer**, add the connectors your admin named
-4. Complete sign-in prompts
-5. Start a new chat and run `/setup` if you want the wizard to re-check
+### MYOB (recommended)
+
+1. Open **[Runlayer servers](https://myob.runlayer.com/servers)** and sign in with SSO
+2. Search for what you need, for example:
+   - `Glean` (company search; often mail/meetings too)
+   - `Microsoft Outlook` / `Microsoft Outlook Calendar`
+   - `Atlassian - Jira` / `Atlassian - Confluence`
+3. Open the server → **Add to client** → Cursor
+4. In Cursor: **Settings → Tools & MCP** → Authenticate / enable
+5. **Start a new chat**, then run `/setup` and choose Context Bootstrap
+
+Prefer **Glean via Runlayer**. Do not install a standalone unmanaged Glean MCP
+(older Security notes about “Glean MCP not approved” refer to that unmanaged path).
 
 Do not paste API tokens into chat. Do not store secrets in initiative files.
+
+Full cold-start procedure: `skills/ba-assistant/references/context-bootstrap.md`.
 
 ---
 
@@ -131,8 +141,9 @@ Also confirm `~/.cursor/skills/ba-assistant/SKILL.md` exists.
 
 1. `/ba-assistant` → install preflight if needed → setup if needed → guided first tasks
 2. Slash menu includes `ba-assistant`, `setup`, `install-ba-assistant`, `debrief`, `workboard`
-3. `/workboard` runs without error (empty is fine)
-4. Name capture asks you to **type** your name in chat (not a fake "Enter name" chip)
+3. `/workboard` runs without error (after Context Bootstrap it should show real actions/initiatives when the BA opted in)
+4. Name capture uses AskQuestion free-text (not a fake "Enter name" chip)
+5. Setup offers Runlayer connector help and Context Bootstrap
 
 ---
 

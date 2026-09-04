@@ -13,7 +13,11 @@
 - Default `BA_INITIATIVES_ROOT` is now `~/.cursor/initiatives` (not `blueprints`).
 - Free-text fields (name, URLs, keys) use AskQuestion free-text / Other; never fake chips like "Enter my name".
 - Package docs no longer mention other AI tool skill folders; skills load only from `~/.cursor/skills/ba-assistant/`.
-- Setup Step 8 offers workboard, debrief, initiative, MCP/Runlayer help, or explore.
+- **Context Bootstrap:** setup checks connectors, guides Runlayer servers
+  (Glean, Outlook, Jira, Confluence via https://myob.runlayer.com/servers),
+  then opt-in smart mail / calendar / hub / Jira harvest with review before
+  seeding `ba-actions` and the workboard. See `references/context-bootstrap.md`.
+- Setup Step 8 runs Context Bootstrap (or manual initiative/transcript seed), not "empty is fine".
 - Orchestrator Step 1.5 runs install preflight, then setup, before the welcome panel.
 
 ### First-run and beginner onboarding

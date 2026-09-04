@@ -2,9 +2,9 @@
 name: ba-setup
 description: >
   First-run personalisation wizard for BA Assistant. Runs after files are installed.
-  Guides name, role, paths (~/.cursor/initiatives), Jira/Confluence, MCP/Runlayer help,
-  output depth. Writes ba-assistant-config.mdc. Then offers guided first tasks.
-  Run manually any time to reconfigure.
+  Guides name, role, paths (~/.cursor/initiatives), Jira/Confluence, Runlayer connectors
+  (Glean, Outlook, Jira, Confluence), output depth, then Context Bootstrap so the
+  workboard is usable on day one. Writes ba-assistant-config.mdc. Run /setup to reconfigure.
 disable-model-invocation: true
 ---
 
@@ -71,10 +71,11 @@ This short wizard personalises the assistant for you:
   - Your name and role
   - Where initiative folders live
   - Jira / Confluence (optional)
-  - MCP connections (optional)
+  - Runlayer connectors (Glean, Outlook, Jira, Confluence)
   - How much detail to draft by default
+  - Context bootstrap so your workboard is not empty
 
-Files are already installed. After this, I will help you try your first task.
+Files are already installed. After this, I will help you connect tools and pull in starting work.
 ```
 
 Then Step 1.
@@ -220,38 +221,57 @@ MCP check same as Jira (Confluence / Atlassian / Runlayer).
 
 ---
 
-### Step 4.5 — MCP and Runlayer help
+### Step 4.5 — Connectors (Runlayer) + capability check
 
-After Jira/Confluence answers, give a short plain-language block:
+BA Assistant works without connectors, but it is far less useful. Mail actions,
+calendar, Jira, Confluence, and company search need governed connectors.
 
-```
-Integrations (optional, you can do this later):
-1. Open Cursor Settings → Tools & MCP
-2. Enable the Jira and Confluence servers your organisation approves
-3. If your organisation uses Runlayer, add the Runlayer connectors your admin named
-4. Complete any sign-in prompts
-5. Start a new chat and rerun /setup if you want me to re-check
+**Read and follow:** `references/context-bootstrap.md` sections 1–3.
 
-I will not ask you to paste API tokens into chat.
-```
+1. **Probe this chat** for Glean, Outlook mail/calendar, Jira, Confluence, Runlayer.
+2. Show a Connected / Missing / Unknown checklist.
+3. **AskQuestion** (multi-select if available):
 
-**AskQuestion:**
-
-> Do you want step-by-step MCP / Runlayer help now?
+> Would you like to install connectors via Runlayer so BA Assistant can use
+> Glean, Outlook mail/calendar, Jira, and Confluence?
 
 Options:
-- `guide_now` — Yes — walk me through it
-- `later` — Later — continue setup
+- `all_recommended` — Yes — set up the recommended set (Glean, Outlook calendar, Jira, Confluence)
+- `pick` — Let me choose which ones
+- `glean` — Glean via Runlayer only
+- `outlook` — Outlook mail and/or calendar
+- `jira_conf` — Jira and Confluence
+- `later` — Later — continue without connectors
 
-If `guide_now`: open SETTINGS guidance from `SETUP.md` → Configuring MCP integrations, check which MCP namespaces exist in this session, and tick what is connected vs missing. Do not invent credentials.
+If they pick any connectors that are **Missing**:
+
+1. Point them to **[Runlayer servers](https://myob.runlayer.com/servers)**
+   (or their org’s equivalent).
+2. Tell them to **search** for the server name (e.g. `Glean`, `Microsoft Outlook`,
+   `Microsoft Outlook Calendar`, `Atlassian - Jira`, `Atlassian - Confluence`).
+3. Use **Add to client** → Cursor, then Authenticate under Cursor Settings → Tools & MCP.
+4. Ask them to **start a new chat** and say “re-check connectors” or rerun `/setup`.
+
+**Important:** Prefer **Glean via Runlayer**. Do not instruct BAs to install a
+standalone unmanaged Glean MCP. Older “Glean MCP not approved” notes refer to that
+unmanaged path, not Runlayer’s Glean server.
+
+Never ask for API tokens in chat. If Runlayer SSO fails, explain pilot/group access
+may be required and continue with manual paste-in options.
 
 ---
 
-### Step 5 — Domain knowledge docs
+### Step 5 — Hub / space URL (domain anchor)
 
-**AskQuestion:** yes Confluence URL / yes other URL or path / skip.
+**AskQuestion:**
 
-If yes: wait for typed URL/path in chat.
+> Do you have a Confluence space, team hub, or folder URL I should scan for context?
+
+Options:
+- `yes` — Yes — I will type the URL in the free-text field
+- `skip` — Skip for now
+
+If yes: capture URL into config / bootstrap notes. Full scan happens in Step 8.
 
 ---
 
@@ -290,34 +310,53 @@ assistant can read them even before a Cursor restart.
 
 ---
 
-### Step 8 — Guided first tasks (mandatory help)
+### Step 8 — Context bootstrap + first useful workboard (mandatory)
 
-Do **not** jump straight into Phase 0 without offering choices.
+Do **not** jump straight into Phase 0. Do **not** treat an empty workboard as success
+unless the BA explicitly skipped bootstrap.
+
+**Read and follow:** `references/context-bootstrap.md` sections 4–6.
 
 **AskQuestion:**
 
-> Setup complete. What should we do next?
+> Personalisation is done. Next we fill Cursor with your real work so `/workboard` is useful.
 
 Options:
-- `set_up_workboard` — Set up my workboard now (`/workboard`)
-- `debrief_meeting` — Try meeting debrief — attach a permitted transcript, then `/debrief`
-- `start_initiative` — Start my first initiative — Phase 0 intake
-- `mcp_help` — Help me finish MCP / Runlayer connections
-- `explore` — Show commands and skills first
-- `later` — I will come back later
-
-Behaviour:
+- `full_bootstrap` — Run Context Bootstrap now (Recommended)
+- `connectors_first` — Finish missing Runlayer connectors first, then bootstrap
+- `manual_only` — I will name initiatives / attach transcripts only
+- `debrief_meeting` — Debrief a transcript now
+- `explore` — Show commands first
+- `later` — Come back later
 
 | Choice | Action |
 |--------|--------|
-| `set_up_workboard` | Run `/workboard` procedure; explain empty start is normal |
-| `debrief_meeting` | Tell them to export a permitted Teams transcript, `@` attach it, run `/debrief` |
-| `start_initiative` | Welcome panel → Phase 0 intake |
-| `mcp_help` | Repeat Step 4.5 guide and re-check tools |
-| `explore` | Show command table + User Guide path + suggest `/workboard` or start initiative next |
-| `later` | Leave a one-screen "how to come back" note: `/ba-assistant`, `/setup`, `/workboard` |
+| `full_bootstrap` | Run harvest: smart mail (if connected) → calendar → hub/Confluence → Jira → ask for transcripts + initiative names → **review** → seed `ba-actions` + initiative stubs → `/workboard` refresh |
+| `connectors_first` | Return to Step 4.5; after re-check, offer bootstrap again |
+| `manual_only` | Ask for initiative names (free-text) and any transcript `@` attaches; seed workboard; skip mail |
+| `debrief_meeting` | Guide `@` attach + `/debrief`, then offer bootstrap or workboard |
+| `explore` | Command table + User Guide; still recommend bootstrap before deep work |
+| `later` | One-screen return note: `/setup`, “run context bootstrap”, `/workboard` |
 
-Always end Step 8 with at least one clear next action the BA can take without being a developer.
+#### Smart mail rules (when mail capability exists)
+
+Consent first. Last ~30 days, capped results. Prefer emails that look like **actions for them**:
+
+- Primarily To: them (not only large CC), when detectable
+- Their name called out with a request (“can you”, “please”, “action”, “need you to”)
+- Unread / high importance
+- No clear reply from them / looks incomplete, when detectable
+
+Show candidates → BA selects → write only selected items to `ba-actions`.
+Never auto-dump raw mail into the workboard.
+
+#### Always ask during bootstrap
+
+1. Any transcripts to debrief now?
+2. Any initiative names to create under `BA_INITIATIVES_ROOT`?
+3. Hub/space URL if Step 5 was skipped?
+
+End Step 8 with **one** clear next action (usually the top open BA action or first initiative).
 
 ---
 

@@ -43,7 +43,7 @@ Distinct from `ba-project-canvas` (deep single-initiative dashboard).
 
 ## First use (empty workboard)
 
-If `_workstream/` or `workboard.json` is missing, create them (see `ba-setup` and `_workstream/README.md`). If `initiatives[]` is empty, AskQuestion: discover blueprint folders / add initiatives manually / skip. Then run the refresh.
+If `_workstream/` or `workboard.json` is missing, create them (see `ba-setup` and `_workstream/README.md`). If `initiatives[]` is empty, prefer **Context Bootstrap** (`references/context-bootstrap.md`) before treating empty as OK. AskQuestion: run bootstrap / discover folders / add initiatives manually / skip. Then run the refresh.
 
 ---
 

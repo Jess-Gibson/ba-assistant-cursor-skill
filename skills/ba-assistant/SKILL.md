@@ -97,9 +97,10 @@ Before rendering the welcome panel:
 
 The wizard is optional once configured. Re-run with `/setup`.
 
-When setup completes, continue with the welcome panel and guided first-task
-choices (workboard, debrief, initiative, MCP help). Do not start Phase 0 until
-the user selects their next activity.
+When setup completes, continue with Context Bootstrap (or guided first tasks:
+connectors, workboard seed, debrief, initiative, MCP help). Do not start Phase 0
+until the user selects their next activity. Prefer a useful workboard over an
+empty one.
 
 Default initiatives root: `~/.cursor/initiatives` (`BA_INITIATIVES_ROOT`).
 

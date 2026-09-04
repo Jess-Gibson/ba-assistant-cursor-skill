@@ -21,7 +21,8 @@ connections and offer to set up my workboard or start my first initiative.
 3. Verify `~/.cursor/skills/ba-assistant/SKILL.md` exists.
 4. Immediately run `skills/ba-assistant/sub-skills/ba-setup/SKILL.md`
    (from the **installed** tree after copy).
-5. Offer guided next tasks: workboard, debrief, first initiative, MCP help.
+5. Offer Context Bootstrap (Runlayer connectors + smart mail/hub/Jira harvest),
+   then workboard / debrief / first initiative.
 
 If the user is only browsing, AskQuestion once:
 - "I'm brand new — install and set me up"
@@ -38,9 +39,12 @@ If the user is only browsing, AskQuestion once:
 
 ## MCP / Runlayer
 
-After personalisation, help the BA open **Cursor Settings → Tools & MCP** and
-enable organisation-approved Jira, Confluence, and optional Runlayer connectors.
-Never ask them to paste API tokens into chat.
+After personalisation, check which connectors are available in the chat, then
+guide missing ones via **[Runlayer servers](https://myob.runlayer.com/servers)**
+(search → Add to client → Cursor → authenticate → new chat). Prefer Glean,
+Outlook calendar, Jira, and Confluence via Runlayer. Then offer Context Bootstrap
+so the workboard is not empty. Never ask them to paste API tokens into chat.
+See `skills/ba-assistant/references/context-bootstrap.md`.
 
 ## After install
 

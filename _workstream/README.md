@@ -17,7 +17,12 @@ This folder lives in your Cursor **user profile** — `~/.cursor/_workstream/` �
 First-run **ba-setup** (or the upgrade script) seeds empty `workboard.json` and `ba-actions.json` if missing.
 
 The workboard canvas is generated inside the active Cursor workspace's
-`projects/<workspace>/canvases/` folder. It is never copied with Jess's
+`projects/<workspace>/canvases/` folder. It is never copied with another BA's
 initiatives or action data.
+
+**Workboard overlay upgrade:** `tools/upgrade-workboard.py` (or the zip in
+`dist/ba-workboard-overlay/`) refreshes template, procedure, format, generator,
+and `/workboard` command only. It does not overwrite `workboard.json`,
+`ba-actions.json`, `calendar-feed.json`, or profile rules.
 
 **Deprecated:** writing new rows to `workboard.json → personal_tasks[]`. Use `ba-actions.json`.

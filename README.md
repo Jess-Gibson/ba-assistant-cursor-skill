@@ -124,6 +124,21 @@ Both write `_workstream/calendar-feed.json`. `/workboard` works without a calend
 
 ---
 
+## Workboard overlay (upgrade without wiping personal data)
+
+For BAs who already installed and customised BA Assistant: share `dist/ba-workboard-overlay.zip`.
+It upgrades canvas template, generator, and procedure/format. It does **not** overwrite actions JSON, profile, live canvas, or (by default) `/workboard`. Apply writes a preview canvas first.
+
+```powershell
+py tools\upgrade-workboard.py --package .          # dry-run
+py tools\upgrade-workboard.py --package . --apply  # preview canvas, keep live board
+```
+
+See `tools/workboard-overlay-docs/INSTALL-WORKBOARD.md` and `CURSOR-INSTALL-PROMPT.md`.
+Rebuild the zip after capability changes: `py tools/build-workboard-overlay-zip.py`.
+
+---
+
 ## Repo layout
 
 ```
@@ -131,7 +146,9 @@ skills/ba-assistant/          # Orchestrator + sub-skills + references
 skills/miro-board-analysis/   # Optional Miro companion
 rules/                        # Always-on routing, sync gates, todo capture
 commands/                     # Slash command stubs
-tools/upgrade-ba-assistant.*  # Safe upgrade to Version 10
+tools/upgrade-ba-assistant.*  # Safe full upgrade
+tools/upgrade-workboard.*     # Workboard capability overlay only
+dist/ba-workboard-overlay.zip # Friend handoff package
 VERSION                       # 10
 CHANGELOG.md
 SETUP.md

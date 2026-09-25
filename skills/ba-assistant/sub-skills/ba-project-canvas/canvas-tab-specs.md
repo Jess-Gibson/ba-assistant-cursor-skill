@@ -587,7 +587,7 @@ This HTML snapshot serves as a portable, shareable status page that can be opene
 ## Reference implementation
 
 The canonical reference for both outputs is the **Sample Initiative demo**:
-- Canvas: `~/.cursor/projects/c-Users-[BA name]-Gibson-cursor/canvases/sample-initiative-demo.canvas.tsx`
-- HTML: `~/.cursor/projects/c-Users-[BA name]-Gibson-cursor/canvases/sample-initiative-demo.html`
+- Canvas: `~/.cursor/projects/<workspace>/canvases/sample-initiative-demo.canvas.tsx`
+- HTML: `~/.cursor/projects/<workspace>/canvases/sample-initiative-demo.html`
 
 When in doubt about pattern, dimensions, naming, or filter behaviour, read those two files. The pre-delivery self-check above was distilled from real regressions caught during demo-iteration feedback (May 2026).

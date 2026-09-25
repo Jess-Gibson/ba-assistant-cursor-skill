@@ -55,14 +55,13 @@ Tell the BA (non-dev friendly):
 Pick the first that works:
 
 1. **This workspace is already the package** — `SETUP.md` and `skills/ba-assistant/SKILL.md` exist at the workspace root. Use that path as `--package`.
-2. **User gave a git URL** — clone to a temp folder.
+2. **User gave a git URL** — clone the default branch to a temp folder (note the temp path — it gets cleaned up in Step 4a below).
    - Repo root: `https://github.com/Jess-Gibson/ba-assistant-cursor-skill.git`
-   - Branch page: `https://github.com/Jess-Gibson/ba-assistant-cursor-skill/tree/<branch>`
-     → clone with `git clone --branch <branch> --single-branch https://github.com/Jess-Gibson/ba-assistant-cursor-skill.git <temp>`
    - Windows example:
-     `git clone --branch v11-first-run-install --single-branch https://github.com/Jess-Gibson/ba-assistant-cursor-skill.git "$env:TEMP\ba-cursor-skill"`
+     `git clone https://github.com/Jess-Gibson/ba-assistant-cursor-skill.git "$env:TEMP\ba-cursor-skill"`
    - macOS/Linux example:
-     `git clone --branch v11-first-run-install --single-branch https://github.com/Jess-Gibson/ba-assistant-cursor-skill.git /tmp/ba-cursor-skill`
+     `git clone https://github.com/Jess-Gibson/ba-assistant-cursor-skill.git /tmp/ba-cursor-skill`
+   - Only pin a specific branch or tag if the user asked for a specific historical release — check the repo's `CHANGELOG.md` / `VERSION` for the release they mean rather than assuming a branch name, since branch names from past releases don't stay current.
 3. **Neither** — AskQuestion: open the GitHub repo in browser / paste URL / point me at a local clone.
 
 ### Step 2 — Pre-flight existing install
@@ -103,12 +102,26 @@ Confirm these exist after apply:
 | `~/.cursor/commands/setup.md` | Yes |
 | `~/.cursor/hooks.json` | Yes |
 | `~/.cursor/_workstream/ba-actions.json` | Yes |
+| `~/.cursor/_workstream/learnings.md` | Yes |
 | `~/.cursor/initiatives/` | Yes |
 | `~/.cursor/.ba-assistant-installed.json` | Yes |
 
 If any required path is missing: stop and fix. Do not pretend setup succeeded.
 
 Optional: run `python tools/conformance-check.py --root <cursor-home>`.
+
+### Step 4a — Clean up the temp clone (only if Step 1 used a git clone)
+
+If Step 1 cloned the repo into a temp folder (`$env:TEMP\ba-cursor-skill`, `/tmp/ba-cursor-skill`, or similar), that clone is no longer needed once Step 4 verification passes — everything required now lives under the user's Cursor home.
+
+**AskQuestion:**
+
+> Setup copied everything it needs into your Cursor folder. Want me to delete the temporary download folder (`<temp path>`) now that it's no longer needed?
+
+- `yes` — Yes, delete it (Recommended)
+- `no` — Leave it, I'll clean it up myself
+
+Only delete the exact temp path this run created — never delete `<package-root>` if Step 1 resolved to option 1 (workspace is already the package), and never touch anything under the user's Cursor home. Skip this step entirely if Step 1 used option 1 or 3 (no clone was made).
 
 ### Step 5 — Hand off to personalisation
 
@@ -128,7 +141,7 @@ If slash commands do not appear yet:
 
 ---
 
-## Paste-this prompt (for README / Jess to share)
+## Paste-this prompt (for README / share with new BAs)
 
 Agents may show this to the BA if they arrived without context:
 

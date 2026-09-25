@@ -125,8 +125,9 @@ Run through before any `layout_create`, `table_create`, or content creation call
 ### 3. Shape type rules
 
 - [ ] **Headers** (coloured) → `type=round_rectangle`
-- [ ] **Grey backdrop boxes** (`fill=#e6e6e6`) → `type=rectangle` (user manually adjusts radius)
-- [ ] **NEVER** use `round_rectangle` for grey backdrops  -  default 50px radius looks wrong
+- [ ] **Accent Card grey** (Pattern A, narrative) → `type=round_rectangle fill=#e6e6e6` + purple left rail `w=40 fill=#7b14ef`
+- [ ] **Legacy grey backdrops** under headers / for tables (Pattern B) → `type=rectangle fill=#e6e6e6`
+- [ ] Do **not** ban `round_rectangle` on Accent Cards  -  that rule is Pattern B only
 
 ### 4. Text positioning
 
@@ -263,7 +264,7 @@ When `ba-workshop-design` produces an agenda, translate each activity into a boa
 
 | Activity type | Board element |
 |---|---|
-| Presentation / context setting | Content panel (header + grey box + text) |
+| Presentation / context setting | Accent Card (Pattern A: purple rail + grey round card + title/body TEXT) |
 | Brainstorm | Large frame with prompt sticky + empty space |
 | Affinity grouping | Pre-labeled column frames with header stickies |
 | Dot voting | Options as shapes with empty vote areas below |

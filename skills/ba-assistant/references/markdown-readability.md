@@ -4,7 +4,7 @@
 **Trigger:** Enablement handovers, comms, debrief exports, Confluence draft mirrors, playback packs, any `.md` read by Support, Ops, GTM, or stakeholders in Cursor.
 
 **Rule stub (auto-loads on matching paths):** `rules/markdown-readability.mdc`  
-**Pairs with:** `no-em-dashes.mdc` (voice and punctuation), stakeholder voice rules if installed
+**Pairs with:** the no-em-dashes guidance in `rules/agent-behavior.mdc` (voice and punctuation), stakeholder voice rules if installed
 
 ---
 
@@ -148,5 +148,5 @@ Technical registers, tracker rows, and `SESSION-CONTEXT.md` captures are exempt 
 - [ ] Major blocks separated by `---`
 - [ ] No HTML colour backgrounds or `<br>`
 - [ ] Previewed mentally in dark mode
-- [ ] No em dashes (`no-em-dashes.mdc`)
+- [ ] No em dashes (see `rules/agent-behavior.mdc`)
 - [ ] Support script present if audience includes Ops/Support

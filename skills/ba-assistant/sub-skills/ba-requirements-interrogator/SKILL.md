@@ -18,6 +18,13 @@ description: >
 
 # Requirements Interrogator
 
+## Standards used
+
+- `references/requirements-register-unified-template.md`: canonical requirement write-up shape this skill's output feeds into
+- `references/requirement-format.md`: MoSCoW and JTBD structure for interrogated requirements
+
+If standards conflict with skill-specific guidance below, the standard wins.
+
 Challenges and interrogates requirements through conversation. The goal is to
 reach a shared, verified understanding of *why* a requirement exists and *what
 it really means*  -  before it is written up, before it is ticketed, and before

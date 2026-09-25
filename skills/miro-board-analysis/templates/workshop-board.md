@@ -38,7 +38,15 @@ Build a complete kickoff workshop board as a single wide frame. One horizontal f
 └──────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-Each section uses the Content Panel Pattern from `design-system.md`:
+Each section uses a content panel from `design-system.md`:
+
+**Narrative panels (Purpose, asks, briefs, summaries):** Accent Card (Pattern A)
+1. Purple left rail (`round_rectangle`, `fill=#7b14ef`, `w=40`, same `h`/`y` as grey)
+2. Grey card (`round_rectangle`, `fill=#e6e6e6`)
+3. Title TEXT inside (`color=#7b14ef`, `size=48`)
+4. Body TEXT inside (`color=#1a1a1a`, `size=20–30`)
+
+**Activity / table sections:** Header + Grey (Pattern B)
 1. Coloured header shape (round_rectangle, one of the 5 tiers, h=82 standard)
 2. Grey backdrop box below the header (`fill=#e6e6e6 type=rectangle`, sized to fit actual content)
 3. Text element positioned **inside** the grey box  -  text y near the TOP (NOT vertically centered)

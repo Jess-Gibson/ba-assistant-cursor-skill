@@ -21,15 +21,16 @@ Determine what the board needs before thinking about coordinates.
 
 1. **Board type:** workshop / analysis / debrief / status / retrospective / comparison / spike
 2. **List all sections** in logical reading order (left to right):
-   - For each section: what element types does it contain? (header + text, header + grey box + text, header + stickies, header + table, header + diagram, RAID columns, comparison columns)
+   - For each section: what element types does it contain? (accent_card, header + grey box + text, header + stickies, header + table, header + diagram, RAID columns, comparison columns)
 3. **Cross-check for missing sections** against the active template's standard structure
 4. **Determine reading order:** context/problem first → analysis/findings → options/solutions → RAID/risks → actions/next steps
+5. **Panel pattern choice:** narrative prose → Accent Card (Pattern A); activity / stickies / tables → Header+Grey (Pattern B). See `design-system.md`.
 
 Output: An ordered list like:
 ```
-Section 1: "Problem & Scope"  -  header + grey_box + text (problem statement), header + grey_box + text (scope)
-Section 2: "Key People & Dates"  -  header + grey_box + text, header + grey_box + text
-Section 3: "Analysis Findings"  -  header + grey_box + text (3 sub-sections stacked)
+Section 1: "Problem & Scope"  -  accent_card (problem), accent_card (scope)
+Section 2: "Key People & Dates"  -  accent_card, accent_card
+Section 3: "Analysis Findings"  -  accent_card (3 sub-sections stacked) OR header + grey if paired with stickies
 Section 4: "Solution Options"  -  3x side-by-side comparison columns with headers + stickies
 Section 5: "RAID"  -  4x bordered columns with stickies
 Section 6: "Actions"  -  header + urgency-tiered stickies + header + text
@@ -214,9 +215,29 @@ grey_box_h = (estimated_text_height × 1.15) + 65  (15px top padding + 50px bott
 
 **NEVER normalise grey box heights across a row.** Each grey box is independently sized to its content via this formula. If two columns in the same row have different content lengths, their grey boxes will be different heights  -  uneven bottom edges are correct and expected. Normalising to the tallest box creates massive empty grey space (confirmed: Frame 8 V3 had 656-1184px of wasted grey in shorter sections).
 
+### Step 3c-accent: Accent Card width + height (Pattern A)
+
+When the section is an Accent Card, **do not** use Step 3c / 3d header+grey formulas. Run the Accent Card sizing algorithm in `design-system.md` (§ Accent Card sizing algorithm):
+
+1. **Width first** (`card_w` from column slot; wrap `text_w = card_w - 128`; title/body insets 23/36 from grey left)
+2. **Title height** (size=48, line_h=56, wrap if needed)
+3. **Body height** using Accent cpl (`text_w/11` at size=30), empty `<p>` = +8, then `× 1.05`
+4. **Card height:** `card_h = 70 + title_h + 120 + body_h + 70`
+5. **Place:** `title_y = card_top + 70`, `body_y = title_y + title_h + 120`
+6. Create via **canvas SVG** with `rx="20"` (not layout `round_rectangle`)
+
+If `card_h > 900`, widen `card_w` once and recompute (wider → fewer wraps → shorter).
+
+Gold reference for tuning: [BA name] clone `3458764680341236141` on board `uXjVHz3VP9I=`.
+
 ### Step 3d: Calculate section total height
 ```
 section_h = header_h(82) + header_to_greybox_gap(15) + grey_box_h
+```
+
+For Accent Cards (no separate header):
+```
+section_h = card_h
 ```
 
 If a section has multiple stacked sub-sections (e.g. problem statement above scope):

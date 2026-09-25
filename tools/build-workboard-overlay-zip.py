@@ -15,6 +15,7 @@ COPY_PATHS = [
     "tools/upgrade-workboard.ps1",
     "tools/upgrade-workboard.sh",
     "tools/generate-workboard-canvas.py",
+    "tools/roll-calendar-eod.py",
     "commands/workboard.md",
     "skills/ba-assistant/templates/ba-workboard.canvas.tsx.template",
     "skills/ba-assistant/references/workboard-procedure.md",

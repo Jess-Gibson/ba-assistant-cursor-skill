@@ -24,17 +24,17 @@ Inspect tools available **in this chat**. Tick what you can see:
 
 Show the BA a plain checklist: Connected / Missing / Unknown.
 
-**Do not** tell them to install a standalone Glean MCP. At MYOB, Glean is
-available as a **Runlayer server**. Older Confluence notes that mark “Glean MCP
-not approved” refer to the unmanaged vendor MCP, not the Runlayer-governed path.
+**Do not** tell them to install a standalone Glean MCP. At many organisations that
+run Runlayer, Glean is available as a **Runlayer server** instead. Older internal
+notes that mark “Glean MCP not approved” usually refer to the unmanaged vendor
+MCP, not the Runlayer-governed path — check with your Runlayer admin if unsure.
 
 ---
 
 ## 2. Runlayer connector setup (when something is Missing)
 
-### MYOB (default for this package’s enablement)
-
-1. Open **[Runlayer servers](https://myob.runlayer.com/servers)** (SSO).
+1. Open your organisation's Runlayer servers page (SSO) — ask your admin for the
+   URL if you don't have it (typically `https://<your-org>.runlayer.com/servers`).
 2. Search for the server name the BA chose (examples below).
 3. Open it → **Add to client** / connect for **Cursor**.
 4. In Cursor: **Settings → Tools & MCP** → Authenticate / enable the new server.
@@ -49,14 +49,10 @@ not approved” refer to the unmanaged vendor MCP, not the Runlayer-governed pat
 | Jira | `Atlassian - Jira` | Tickets, JQL |
 | Confluence | `Atlassian - Confluence` | Pages, spaces |
 
-Also useful: [Runlayer plugins](https://myob.runlayer.com/plugins) for account
-connections. Pilot access is Entra group-scoped; if login fails, they need the
-Runlayer pilot group (see org onboarding), not a BA Assistant bug.
-
-### Other organisations
-
-Same pattern: open your org’s Runlayer servers URL, search, Add to client,
-authenticate in Cursor, new chat, re-check.
+Also useful: your org's Runlayer plugins page, for account connections. Pilot
+or gated access is often group-scoped in identity providers like Entra; if
+login fails, that's usually an access-group issue to raise with org onboarding,
+not a BA Assistant bug.
 
 Never ask the BA to paste API tokens into chat.
 

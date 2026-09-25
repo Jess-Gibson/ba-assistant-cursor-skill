@@ -22,6 +22,8 @@ This skill detects divergences across canonical state files and downstream artef
 in a single table, and propagates updates on user confirmation. It is **read-mostly** by default,
 never auto-edits without explicit per-divergence approval.
 
+**Exception (standing, 27 Aug 2026):** `/validate-state` **always** updates `/todo` via `sync-ba-actions` (`references/ba-actions-format.md` §3). That write is limited to `_workstream/ba-actions.json` + regenerate `_workstream/ba-actions.md`. Do not wait for artefact-propagation approval.
+
 > **Cross-cutting rule:** Before producing a propagation plan, apply the **"What I'll produce next"
 > declaration** rule from `ba-assistant/SKILL.md`. Validation is read-only; propagation is the
 > artefact-producing step that needs the user to confirm scope.
@@ -37,8 +39,7 @@ never auto-edits without explicit per-divergence approval.
 
 ## Canonical ownership reference
 
-This skill enforces the canonical ownership policy documented in `ba-assistant/SKILL.md →
-Canonical ownership`. Quick reference:
+This skill enforces `references/canonical-ownership.md`. Quick reference:
 
 | Fact type | Canonical source |
 |---|---|
@@ -54,6 +55,7 @@ Canonical ownership`. Quick reference:
 | Sign-offs | `initiative-tracker.md` Sign-offs register (E-promote; `signOffs` mirror is derived) |
 | Sprint context (day number, dates, days to deadline) | `status-data.json → sprintContext` (derived from calendar + tracker metadata) |
 | Session-scoped working memory | `SESSION-CONTEXT.md` (never canonical for facts that outlive the session) |
+| README.md status line + outcome summary | `workboard.json → initiatives[].status` + closure retro output (README.md is never a second source of truth for either) |
 
 ## Mandatory hooks
 
@@ -70,6 +72,7 @@ Canonical ownership`. Quick reference:
 
 Read the project's analysis folder and identify every live artefact. Default set:
 
+- `README.md` (if it exists  -  older initiatives predating this file won't have one; note the gap rather than failing)
 - `initiative-tracker.md`
 - `status-data.json`
 - `SESSION-CONTEXT.md`
@@ -79,7 +82,7 @@ Read the project's analysis folder and identify every live artefact. Default set
 - `superseded-pages.json` (if it exists)
 - `<initiative-slug>.canvas.tsx`  -  see **Canvas discovery** below
 - `status-snapshot.html`
-- `learnings.md` (read-only  -  never propagate INTO learnings, only ever read FROM)
+- `_workstream/learnings.md` (read-only  -  never propagate INTO learnings, only ever read FROM)
 - `<shared-repo>/analysis/<slug>/confirmed/**` and `/exchanges/**`  -  published dev handovers (read-only comparison against the confirmed register they derived from)
 
 Plus, for each entry in `confluence-pages.json` flagged as live (not superseded):
@@ -97,7 +100,7 @@ Canvas files may live **outside** the blueprint analysis folder. Common location
 3. In a workspace-level canvases folder
 
 Use `Glob` for `**/*.canvas.tsx` scoped to the workspace to find all canvases. Match by
-initiative name, slug, or related keywords (e.g. `analysis-sprint-plan`, `rba-*`, `np-*`).
+initiative name, slug, or related keywords (e.g. `analysis-sprint-plan`, `sample-initiative-*`).
 All matching canvases are downstream artefacts for validation.
 
 #### Team-facing extracts
@@ -146,6 +149,8 @@ Fact types to check:
 | Workstream states per scope | Discovery active for Stale Drafts, Delivery active for Quick T2P, etc. |
 | Workspace context | Jira project key, Confluence space, parent page ID |
 | Version strings | Canvas footer, HTML title, hub "last updated"  -  must reflect current sprint day |
+| README.md status line vs `workboard.json` status | README.md says "Active" while `workboard.json` has the initiative at `closed` or `archived` |
+| README.md people/links vs `status-data.json` / `confluence-pages.json` | PM changed in status-data.json, README.md still names the old one |
 
 ### 4. Scan downstream artefacts for each fact
 
@@ -271,7 +276,7 @@ pages when collecting context.
 ### 9. Log to learnings.md (only if a divergence pattern is observed)
 
 If validation runs find the same fact diverging across multiple sessions (e.g. "Legal sign-off date
-has drifted 3 times in this initiative"), log to learnings.md as a watchlist item: "<fact> drifts
+has drifted 3 times in this initiative"), log to `_workstream/learnings.md` as a watchlist item: "<fact> drifts
 repeatedly  -  auto-propagate without confirmation, or add a stronger update gate."
 
 Do not log every individual divergence. Only patterns.
@@ -291,7 +296,7 @@ to the Anti-Pattern Detector for pattern analysis:
    - `confidence-score-drift`  -  scores updated in one source but stale elsewhere
 
 2. **Check if any type has appeared in 3+ validation runs** for this initiative. If so, it's a
-   pattern  -  log to `learnings.md` per Task 9.
+   pattern  -  log to `_workstream/learnings.md` per Task 9.
 
 3. **Pass the type counts to the APD** so it can update its initiative-specific watchlist. The APD
    uses this to calibrate which triggers to watch more aggressively during normal operation.
@@ -304,10 +309,11 @@ don't promote to patterns yet  -  a single run doesn't establish a pattern.
 | Output | Format | Where it goes |
 |---|---|---|
 | Validation report | Markdown table in chat | Chat |
+| BA actions sync (`/todo`) | Upsert + MD regenerate | `_workstream/ba-actions.json` / `.md` (always on `/validate-state`) |
 | Propagation actions | Edits to local files + Confluence pages | The files themselves |
 | Updated confluence-pages.json | JSON | Project analysis folder |
 | Updated superseded-pages.json | JSON | Project analysis folder |
-| Pattern entries | Markdown rows | learnings.md (only if patterns detected) |
+| Pattern entries | Markdown rows | `_workstream/learnings.md` (only if patterns detected) |
 
 ## Failure modes
 
@@ -324,7 +330,7 @@ don't promote to patterns yet  -  a single run doesn't establish a pattern.
 
 ## Output anti-patterns to prevent
 
-- **Auto-propagating without user confirmation**  -  even for trivial-looking divergences, never write without explicit per-divergence approval
+- **Auto-propagating initiative artefacts without user confirmation**  -  even for trivial-looking divergences, never write tracker / status-data / hub / HTML / Confluence without explicit per-divergence approval. **Exception:** always sync ba-actions (`/todo`) on `/validate-state`
 - **Treating SESSION-CONTEXT.md as canonical**  -  facts in SESSION-CONTEXT.md are session-scoped working memory; if a fact there disagrees with the tracker, the tracker wins (unless the user explicitly tells the validator that SESSION-CONTEXT.md has the latest update  -  they then promote it to the tracker)
 - **Validating against stale upstream**  -  always run the Step 2 refresh before comparing, or the validator will report drift that's actually correct
 - **Treating Confluence pages older than the current status page as live**  -  pages flagged as superseded in superseded-pages.json are ignored

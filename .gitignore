@@ -7,6 +7,10 @@ desktop.ini
 .vscode/
 .idea/
 
+# Python
+__pycache__/
+*.pyc
+
 # Per-initiative state files (created at runtime, not part of the package)
 SESSION-CONTEXT.md
 initiative-tracker.md
@@ -20,3 +24,7 @@ status-snapshot.html
 
 # Temp/scratch
 cursor-agent-scratch/
+
+# Unzipped build output of build-workboard-overlay-zip.py (the .zip is the
+# tracked deliverable; this folder is regenerated from source on demand)
+dist/ba-workboard-overlay/

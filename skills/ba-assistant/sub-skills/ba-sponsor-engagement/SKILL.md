@@ -13,7 +13,7 @@ This skill is **distinct from Stakeholder Strategy**. Stakeholder Strategy is br
 
 This skill exists because BAs and PMs reliably under-invest in sponsor engagement when they're busy. The result: sponsor finds out late, makes uninformed decisions, withdraws political cover at the wrong moment, or kills the initiative when a quick conversation would have saved it.
 
-> **Cross-cutting rule:** This skill produces multiple artefact-class outputs (sponsor profile, pre-brief, status updates, escalation drafts, engagement plan, decision-trees). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `ba-assistant\SKILL.md → Co-thinking and artefact production protocol`  -  surface planned artefacts upfront and ask the user to select. The Sample Initiative dry-run produced a full sponsor profile on a single user-yes  -  this rule prevents that.
+> **Cross-cutting rule:** This skill produces multiple artefact-class outputs (sponsor profile, pre-brief, status updates, escalation drafts, engagement plan, decision-trees). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `references/co-thinking-protocol.md`  -  surface planned artefacts upfront and ask the user to select. The Sample Initiative dry-run produced a full sponsor profile on a single user-yes  -  this rule prevents that.
 
 ## Mandatory hooks
 

@@ -141,9 +141,192 @@ id SHAPE parent=frameRef x=center_x y=146 w=874 h=82 type=round_rectangle fill=#
 
 ---
 
-## Content Panel Pattern (Card Structure)  -  CORRECTED May 2026
+## Content Panel Patterns  -  UPDATED Aug 2026
 
-Every section follows the same visual structure  -  a header shape with a grey backdrop box behind body text:
+Two patterns. **Default for narrative panels (Purpose, asks, summaries, briefs): Accent Card.** Use the legacy Header+Grey stack when the section needs a coloured bar above stickies, tables, or multi-widget activity zones.
+
+### Pattern A: Accent Card (DEFAULT for narrative  -  Aug 2026)
+
+[BA name] gold-standard reference: board `uXjVHz3VP9I=`, widget `3458764680340520413` ("What we need from you").
+
+```
+┌──────────────────────────────────────┐
+│█│  Title (purple, size=48)           │  ← Purple left rail (#7b14ef, w=40)
+│█│  Body text (dark, size=20–30)      │  ← Grey card (round_rectangle, #e6e6e6)
+│█│  …                                 │     Title + body are TEXT overlays inside
+└──────────────────────────────────────┘
+```
+
+**Structure (4 items, no separate header bar):**
+1. **Purple rail**  -  canvas SVG `rect` with `rx="20"` (not layout `round_rectangle`; that ignores custom radius). `w=40`, same `h`/`y` as the grey card.
+2. **Grey card**  -  canvas SVG `rect` `fill=#e6e6e6` with `rx="20"`. Content stays empty (text is overlaid).
+3. **Title TEXT**  -  `fill=#7b14ef` / `font-size=48`, left-aligned.
+4. **Body TEXT**  -  `fill=#1a1a1a` / `font-size=20–30`, left-aligned.
+
+**Vertical placement (Accent Card  -  Aug 2026):**
+- Miro TEXT has no `valign`; it is always top-edge anchored. Do **not** leave a tall empty card with text stuck at the top.
+- **Content-fit `card_h`** using the **Accent Card sizing algorithm** below (width first, then height from text). Do not use a fixed tall card.
+- Quick form (after `text_w` is known):
+```
+title_h ≈ 56
+body_h  = Accent A5 estimate × 1.05   # cpl = text_w/11 at size=30; empty <p> = +8
+gap     = 120
+pad_v   = 70
+card_h  = title_h + gap + body_h + (pad_v × 2)
+title_y = card_top + pad_v
+body_y  = title_y + title_h + gap
+title_x = card_left + 23
+body_x  = card_left + 36
+```
+- Pattern B (Header+Grey) still uses top-align + 15px (`text_y = grey_top + 15`) for narrative under headers. Accent Card uses `pad_v=70` + `gap=120` + content-fit height instead.
+
+**Coordinate formulas (Accent Card):**
+```
+card_w = column_w                    # e.g. 874 or 1004
+rail_w = 40
+card_left = card_x - card_w/2
+rail_x = card_left + rail_w/2
+text_w  = card_w - rail_w - 88
+text_x  = card_left + rail_w + 44 + text_w/2
+# card_h / title_y / body_y  -  see Vertical placement above
+# Always create via canvas_create_from_svg with rx="20"
+```
+
+**Complete Accent Card canvas SVG template:**
+```xml
+<rect x="{rail_left}" y="{card_top}" width="40" height="{card_h}" rx="20" fill="#7b14ef" stroke="#7b14ef" />
+<rect x="{card_left}" y="{card_top}" width="{card_w}" height="{card_h}" rx="20" fill="#e6e6e6" stroke="#ffffff" />
+<text x="{text_left}" y="{title_y}" data-width="{text_w}" font-size="48" font-family="opensans" fill="#7b14ef" text-anchor="start">Title</text>
+<text x="{text_left}" y="{body_y}" data-width="{text_w}" font-size="30" font-family="opensans" fill="#1a1a1a" text-anchor="start">Body HTML</text>
+```
+
+**Do not** create Accent Cards with layout DSL `type=round_rectangle` (default radius looks like a pill). Use canvas SVG `rx="20"`.
+
+### Accent Card sizing algorithm (width + height from text)
+
+**Gold calibration (10 Aug 2026):** [BA name]-fixed clone [`3458764680341236141`](https://miro.com/app/board/uXjVHz3VP9I=/?moveToWidget=3458764680341236141) vs agent card `3458764680341042233`. Prefer [BA name] geometry when they diverge.
+
+**Order matters:** pick width first (wrap depends on it), then height from rendered text. Never pick a fixed tall card and hope.
+
+```
+┌─ A0 inputs ─────────────────────────────────────────────┐
+│ title_text, body_html, body_size (20|28|30), column_w? │
+└───────────────┬─────────────────────────────────────────┘
+                ▼
+┌─ A1 card width ─────────────────────────────────────────┐
+│ If column slot known → card_w = column_w (874|1004…)    │
+│ Else derive from readable line length (see A1 table)    │
+│ Clamp: min 560, max 1200 for single narrative cards     │
+└───────────────┬─────────────────────────────────────────┘
+                ▼
+┌─ A2 text width + horizontal inset ──────────────────────┐
+│ rail_w = 40                                             │
+│ rail overhangs grey left by 10px (rail_x = card_left-10)│
+│ title_inset = 23   # from grey left (near rail edge)    │
+│ body_inset  = 36   # body slightly more indented        │
+│ text_w = card_w - 128   # wrap width (keep generous)    │
+│ title_x = card_left + title_inset                       │
+│ body_x  = card_left + body_inset                        │
+└───────────────┬─────────────────────────────────────────┘
+                ▼
+┌─ A3 chars per rendered line (Accent Card  -  calibrated) ─┐
+│ Pass 3b's 42@786 (~18.7px/char) OVER-wraps Accent Cards │
+│ Use ~11px/char at size=30:                              │
+│   cpl_body  = floor(text_w / 11)   # 876 → ~79          │
+│   cpl_title = floor(text_w / 16)   # size=48            │
+│   size=20 → floor(text_w / 8)                           │
+└───────────────┬─────────────────────────────────────────┘
+                ▼
+┌─ A4 title height ───────────────────────────────────────┐
+│ title_size = 48; title_line_h = 56                      │
+│ title_lines = max(1, ceil(plain_char_count / cpl_title))│
+│ title_h = title_lines × title_line_h                    │
+└───────────────┬─────────────────────────────────────────┘
+                ▼
+┌─ A5 body height ────────────────────────────────────────┐
+│ For each content <p> / <li> (not empty spacers):        │
+│   lines = max(1, ceil(visible_chars / cpl_body))        │
+│   add lines × line_h                                    │
+│ Empty <p></p> spacer → +8 (NOT +38  -  that blew height)  │
+│ <br/> → +16                                             │
+│ line_h: size=30 → 46; size=28 → 44; size=20 → 32        │
+│ body_h = sum(...) × 1.05          # light safety only   │
+└───────────────┬─────────────────────────────────────────┘
+                ▼
+┌─ A6 card height ────────────────────────────────────────┐
+│ gap_title_body = 120   # breathing room ([BA name] ~135)     │
+│ pad_v = 70             # equal top + bottom ([BA name] ~74)  │
+│ card_h = pad_v + title_h + gap_title_body + body_h      │
+│          + pad_v                                        │
+│ Clamp: min 180; max 900                                 │
+│ If card_h > 900 → widen card_w once and re-run A2–A6    │
+└───────────────┬─────────────────────────────────────────┘
+                ▼
+┌─ A7 place text (canvas coords) ─────────────────────────┐
+│ title_y = card_top + pad_v                              │
+│ body_y  = title_y + title_h + gap_title_body            │
+│ rail: x=card_left-10, same card_top/card_h, w=40, rx=20 │
+│ grey: card_left, card_top, card_w, card_h, rx=20        │
+└───────────────┬─────────────────────────────────────────┘
+                ▼
+┌─ A8 verify after create ────────────────────────────────┐
+│ Re-read SVG. Fail if:                                   │
+│  - body text bottom > card_bottom - 50                  │
+│  - empty grey below body > 100px (card too tall)        │
+│  - title_x much larger than body_x (should be tighter)  │
+│ On fail: adjust card_h or cpl and update                │
+└─────────────────────────────────────────────────────────┘
+```
+
+#### Calibration snapshot (Purpose, size=30, card_w=1004)
+
+| Metric | Agent (before) | [BA name] fixed | Delta |
+|---|---|---|---|
+| card_h | 614 | **540** | −74 (wrap overestimate) |
+| pad top | 40 | **74** | +34 |
+| title → body (from title top) | 76 | **191** | need ~120 gap after title_h |
+| title x (from grey left) | 84 | **23** | sit near rail |
+| body x (from grey left) | 84 | **36** | slight extra indent |
+| rx | 20 | 20 | match |
+
+Recomputed with calibrated A3–A6: `body_h ≈ 210`, `card_h ≈ 70+56+120+210+70 = 526` (within ~15px of [BA name] 540).
+
+#### A1  -  Width defaults
+
+| Situation | `card_w` | Typical `text_w` |
+|---|---|---|
+| Standard workshop column | 1004 | 876 |
+| Compact / secondary column | 874 | 746 |
+| Gold list card (Frame 1) | ~769 grey | ~600 |
+| Free placement (no column) | `card_w = (target_cpl × 11) + 128` | target 55–80 chars |
+
+Prefer **narrower + wrap** over wide short lines (Width Discipline). Do not jump past 1200 unless the content is a table or diagram.
+
+#### A5  -  `visible_chars` counting
+
+- Strip HTML tags; count letters/spaces/punctuation only
+- Treat `&amp;` / `&#39;` / `&gt;` as 1 char each
+- Bold (`<strong>`): **+5% chars** for wrap (not +10%  -  was too aggressive)
+
+#### Anti-patterns
+
+| Wrong | Why | Right |
+|---|---|---|
+| Fixed `card_h=420` / `614` for every card | Empty grey or overflow | Always run A4–A6 |
+| Height before width | Wrap unknown | A1 → A2 → A5 |
+| `pad_v=40` + `gap=20` | Looks cramped / top-stuck vs [BA name] | `pad_v=70`, `gap_title_body=120` |
+| cpl from Pass 3b (42@786) | 2× too many wraps → card too tall | Accent cpl = `text_w/11` |
+| empty `<p>` = +38 | Inflates height | +8 |
+| title/body x = grey_left+84 | Text floats away from rail | title +23, body +36 |
+| layout `round_rectangle` | Default radius ~pill | canvas `rx="20"` |
+
+**When to use Accent Card:** Purpose, "What we need from you", briefs, asks, summaries, out-of-scope narrative, any self-contained prose panel.
+
+**When NOT to use:** Section labels above sticky grids, MoSCoW columns, tables, brainstorm prompts that need a coloured header bar for scanning at zoom-out. Those stay on Pattern B.
+
+### Pattern B: Header+Grey (legacy  -  activity / tables / stickies)
+
+Coloured header shape with a grey backdrop box behind body text or as a container for tables/stickies:
 
 ```
 ┌─────────────────────────────┐  ← Header shape (coloured, round_rectangle, h=82)
@@ -185,25 +368,29 @@ The 15px offset is empirically calibrated  -  it gives a clean top margin withou
 
 ### Grey Box Properties
 
-- `type=rectangle fill=#e6e6e6 fill_opacity=1.0`  -  always use `rectangle` for grey backdrop boxes. Miro's DSL cannot set a custom corner radius; `round_rectangle` defaults to ~50px which looks too round. Use `rectangle` (0px) and the user will manually adjust to 20px radius if desired.
+- **Accent Card (Pattern A):** `type=round_rectangle fill=#e6e6e6` plus purple rail. Rounded corners are intentional.
+- **Legacy Header+Grey (Pattern B):** `type=rectangle fill=#e6e6e6`  -  Miro DSL cannot set a custom corner radius; `round_rectangle` defaults to ~50px which looks too round for large backdrops under headers. [BA name] may manually adjust to ~20px after creation.
 - `border_color=#ffffff border_style=normal border_width=1.0`
 - Omit `font=`  -  grey boxes have no visible text (content is always `""`)
 - Content always empty string `""`
-- Width: same as the header above it (typically 874 for standard columns)
+- Width: Accent Card = full column width; Pattern B = same as the header above it (typically 874)
 - **Grey boxes must NEVER overlap**  -  verify `y_range = [y - h/2, y + h/2]` for all boxes in the same x-column do not intersect
-- **Grey box heights are ALWAYS content-fitted.** NEVER normalise grey boxes to a uniform height across a row. If sections in the same row have different content lengths, their grey boxes will be different heights. Uneven bottom edges are correct and expected. Normalisation creates the "too much grey space" problem  -  confirmed empirically in Frame 8 V3 where 656-1184px of empty grey appeared in shorter sections.
+- **Grey box heights are ALWAYS content-fitted.** NEVER normalise grey boxes to a uniform height across a row. Uneven bottom edges are correct and expected.
 
-**Grey Box DSL Template:**
+**Grey Box DSL Template (Pattern B legacy):**
 ```
 id SHAPE parent=frameRef x=center_x y=grey_box_y w=874 h=calculated type=rectangle fill=#e6e6e6 fill_opacity=1.0 color=#1a1a1a size=25 align=center valign=middle border_color=#ffffff border_style=normal border_width=1.0 border_opacity=1.0 ""
 ```
 
-### Grey Card Shape Type  -  CRITICAL (updated May 2026)
+### Grey Card Shape Type  -  CRITICAL (updated Aug 2026)
 
-- **Always use `type=rectangle` for grey backdrop boxes.** The Miro DSL cannot set a custom corner radius. `round_rectangle` uses Miro's default radius (~50px) which looks too round. `rectangle` (0px radius) is the better default  -  [BA name] will manually adjust to 20px radius after creation.
-- This applies to ALL grey backdrop shapes (`fill=#e6e6e6`), not just debrief content.
-- For **header shapes** (coloured, like Primary/Secondary/Tertiary/Dark): continue using `round_rectangle`  -  the default radius looks acceptable on smaller header shapes and matches the established board style.
-- **Summary:** Headers = `round_rectangle`. Grey backdrops = `rectangle`.
+| Pattern | Grey shape type | Why |
+|---|---|---|
+| **A Accent Card** | `round_rectangle` | Matches [BA name]'s Aug 2026 standard; purple rail + rounded card read as one unit |
+| **B Header+Grey** | `rectangle` | Large backdrops under headers look too pill-like at default ~50px radius |
+| Coloured headers / rails | `round_rectangle` | Established board style |
+
+Do **not** apply the May 2026 "never round_rectangle for grey" rule to Accent Cards.
 
 ### TEXT Positioning Inside Grey Cards (CRITICAL  -  #1 recurring issue)
 
@@ -243,6 +430,9 @@ text_w = column_w - 88                          -- 44px padding each side
 
 ### Complete Content Panel DSL Template (standard column)
 
+**Prefer Accent Card (Pattern A) for narrative.** Template above under Pattern A.
+
+**Pattern B (legacy Header+Grey)  -  for activity/table sections only:**
 ```
 # Header (Primary tier)
 h1 SHAPE parent=frameRef x=637 y=146 w=874 h=82 type=round_rectangle fill=#7b14ef fill_opacity=1.0 color=#ffffff size=64 align=center valign=middle border_color=#ffffff border_style=normal border_width=1.0 border_opacity=1.0 "Section Title"
@@ -584,13 +774,25 @@ SHAPE parent={frameUrl} x=500 y=130 w=874 h=112 type=round_rectangle fill=#fff85
 SHAPE parent={frameUrl} x=500 y=1270 w=874 h=126 type=round_rectangle fill=#232428 fill_opacity=1.0 color=#ffffff font=unknown size=64 align=center valign=middle border_color=#ffffff border_style=normal border_width=1.0 border_opacity=1.0 "<p><span style=\"color:rgb(255,255,255)\">Docs & references</span></p>"
 ```
 
-### Content Panel (small grey zone)
+### Content Panel (Accent Card grey  -  Pattern A)
+
+```
+SHAPE parent={frameUrl} x=500 y=505 w=874 h=420 type=round_rectangle fill=#e6e6e6 fill_opacity=1.0 color=#1a1a1a font=open_sans size=25 align=left valign=top border_color=#ffffff border_style=normal border_width=1.0 border_opacity=1.0 ""
+```
+
+### Content Panel rail (Accent Card  -  Pattern A)
+
+```
+SHAPE parent={frameUrl} x=293 y=505 w=40 h=420 type=round_rectangle fill=#7b14ef fill_opacity=1.0 color=#ffffff font=unknown size=25 align=center valign=middle border_color=#7b14ef border_style=normal border_width=1.0 border_opacity=1.0 ""
+```
+
+### Content Panel (legacy grey zone  -  Pattern B)
 
 ```
 SHAPE parent={frameUrl} x=500 y=295 w=874 h=175 type=rectangle fill=#e6e6e6 fill_opacity=1.0 color=#1a1a1a font=open_sans size=25 align=left valign=top border_color=#ffffff border_style=normal border_width=1.0 border_opacity=1.0 ""
 ```
 
-### Content Panel (large grey zone)
+### Content Panel (legacy large grey zone  -  Pattern B)
 
 ```
 SHAPE parent={frameUrl} x=500 y=505 w=874 h=508 type=rectangle fill=#e6e6e6 fill_opacity=1.0 color=#1a1a1a font=open_sans size=25 align=left valign=top border_color=#ffffff border_style=normal border_width=1.0 border_opacity=1.0 ""

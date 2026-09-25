@@ -40,7 +40,7 @@ If the user is only browsing, AskQuestion once:
 ## MCP / Runlayer
 
 After personalisation, check which connectors are available in the chat, then
-guide missing ones via **[Runlayer servers](https://myob.runlayer.com/servers)**
+guide missing ones via your organisation's Runlayer servers page
 (search → Add to client → Cursor → authenticate → new chat). Prefer Glean,
 Outlook calendar, Jira, and Confluence via Runlayer. Then offer Context Bootstrap
 so the workboard is not empty. Never ask them to paste API tokens into chat.

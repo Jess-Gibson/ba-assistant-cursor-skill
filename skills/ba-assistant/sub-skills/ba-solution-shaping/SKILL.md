@@ -4,7 +4,7 @@
 
 The Solution Shaping skill helps transition from understanding the problem and requirements to exploring possible solution paths.  It encourages blue‑sky thinking before committing to a technical implementation and aligns the future state with the earlier feature slices.  The skill enumerates solution options, compares their trade‑offs, identifies required spikes and ADRs, and ensures compliance, legal, design, and operations considerations are factored in.  The aim is to select or narrow down to a preferred solution direction, not to produce detailed architecture or code.
 
-> **Cross-cutting rule:** This skill produces multiple artefact-class outputs (options docs, ADRs, spike tickets, recommendation document). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `ba-assistant\SKILL.md → Co-thinking and artefact production protocol`  -  surface planned artefacts upfront and ask the user to select. Pair with the co-thinking journey when shaping each option (recommendation + reasoning + trade-off before drafting).
+> **Cross-cutting rule:** This skill produces multiple artefact-class outputs (options docs, ADRs, spike tickets, recommendation document). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `references/co-thinking-protocol.md`  -  surface planned artefacts upfront and ask the user to select. Pair with the co-thinking journey when shaping each option (recommendation + reasoning + trade-off before drafting).
 
 ## Mandatory hooks
 

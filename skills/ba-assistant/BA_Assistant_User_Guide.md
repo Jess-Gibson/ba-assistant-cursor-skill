@@ -128,22 +128,9 @@ Slash commands trigger orchestrator-driven flows. Type the slash in chat; if Cur
 
 Instead of a strict 0 → 6 phase sequence, the Assistant treats each phase as an **active workstream** that can run for any scope (initiative, feature, cohort, slice). The concept has had three names  -  "Phases" originally, "Modes" in Wave 3, **"Workstreams"** now. All three are the same thing; the user-facing UI uses the friendly workstream name, and internal data models keep the `M0`–`M8` codes as precise cross-references.
 
-| Workstream (what you'll see) | Internal code | Scope | What it does |
-|---|---|---|---|
-| **Intake** | M0 | Initiative | PM brief, complexity signal, workspace setup, initial RAID, canvas init |
-| **Kickoff** | M1 | Initiative or feature | Workshop design, D1 kickoff, sponsor alignment |
-| **Discovery** | M2 | Initiative / feature / cohort | Current state, requirements (MoSCoW per scope), experiments, validation |
-| (within Discovery) Current State Assessment | M2a | Feature / cohort | Evidence-based "as-is"  -  diagrams, code dives, source vetting, workshops |
-| **Slicing & Sequencing** | M3 | Initiative | Slice into independently valuable pieces; critical path; impact mapping |
-| **Solution** | M4 | Feature / cohort | Future state, options, ADRs, schema-field validation, JTBD lens |
-| **Delivery** | M5 | Feature / cohort / slice | Epics, stories, spikes, DoR, **MoSCoW warn-and-flag gate** |
-| **Playback** | M6 | Initiative or feature | Sign-offs, training, comms drafting, change strategy execution |
-| **Eval & Retro** | M7 + retro | Feature / scope-aware | Post-launch evaluation + workstream-completion / mid-initiative / closure retros |
-| **Change** | M8 | Initiative (sustained) | Change strategy execution across the org |
+**The full M0–M8 list, what each workstream does, its scope, and workstream states are canonical in `skills/ba-assistant/references/workstreams.md`.** That file also documents the M2a Current State Assessment sub-workstream inside Discovery, which this guide used to describe separately.
 
-Workstream states: **🟢 Done** / **🔵 Active** / **⏸ Paused** / **○ Not started** / **· N/A**. In-progress is always shown in **blue** (never amber or brown).
-
-**Backwards compatible:** if your initiative is single-scope and linear (one feature, one cohort), workstreams run in the old sequential order. You won't notice the change. Dual-track teams (e.g. Data Collection Uplift Project 002) benefit from running Discovery on Feature B while Delivery is active on Feature A.
+**Backwards compatible:** if your initiative is single-scope and linear (one feature, one cohort), workstreams run in the old sequential order. You won't notice the change. Dual-track teams benefit from running Discovery on one feature while Delivery is active on another.
 
 **Workstream-aware anti-patterns:** the Anti-Pattern Detector watches for things like Solution active without Discovery complete for the same scope, Delivery active across 3+ scopes without resource declaration, customer change with no change plan, and late discovery.
 
@@ -177,10 +164,9 @@ The canvas gathers context from your project's blueprint folder (`SESSION-CONTEX
 ### When it generates
 
 - When you run `/canvas` (explicit)
-- When you run `/status` or `/publish-status` (canvas refreshes alongside)
-- After Phase 0 intake (auto-generated, sparse at this stage  -  that's expected)
-- After any workstream completion gate (auto-refresh)
-- When you first use the BA Assistant on an existing project
+- When you run `/status` (canvas refreshes alongside the chat status and HTML snapshot)
+
+Canvas is on demand only. It is not auto-generated at Phase 0, workstream gates, or when a decision is logged.
 
 ### Self-bootstrapping
 
@@ -270,7 +256,7 @@ You don't need to invoke skills by name  -  the orchestrator calls them as neede
 | `Delivery_Definition` | Delivery (M5) | Epics, stories, spikes, AC, **(merged in: Definition of Ready)**, **MoSCoW warn-and-flag gate** |
 | `Playback_and_Enablement` | Playback (M6) | Sign-offs, training, **(merged in: Communication Drafter)** |
 | `Solution_Evaluation` *(NEW Wave 1)* | Eval & Retro (M7) | Post-launch  -  measure actual vs expected outcomes; continue/adjust/sunset |
-| `Retrospective_and_Learning` | Eval & Retro (retro half) | Workstream-completion / mid-initiative / closure retros; updates `learnings.md` |
+| `Retrospective_and_Learning` | Eval & Retro (retro half) | Workstream-completion / mid-initiative / closure retros; updates `_workstream/learnings.md` |
 
 ### Sustained-relationship skills (NEW Wave 1)
 
@@ -335,20 +321,6 @@ This is **warn-and-flag, not hard block**  -  it doesn't stop rolling cohorts or
 
 ---
 
-## Draft depth preference (Wave 4)
-
-At the start of every session, the assistant asks how much output you want by default:
-
-| Level | What you get | Best for |
-|---|---|---|
-| **Minimal** | Sketches, outlines, candidate options. The assistant asks before producing any full artefact. | Early-stage thinking, brainstorming, co-shaping |
-| **Standard** *(default)* | Reasonable artefacts at each step, declared upfront with selection before drafting. | Most sessions |
-| **Comprehensive** | Full artefacts at every step unless you say otherwise. | Confident in direction, want everything generated up front |
-
-Draft depth is independent of initiative complexity  -  complexity controls how deep *intake* goes; draft depth controls how much *output* each skill produces. Override per artefact any time by saying so in chat.
-
----
-
 ## Co-thinking protocol (Wave 4)
 
 The assistant is a thinking partner, not a production line. At every interrogation moment  -  problem statement, success metric, requirement, decision, slice  -  it surfaces:
@@ -386,7 +358,7 @@ Multiple state files track your initiative. Each owns specific facts:
 | Workstream states (per scope) | `status-data.json` | canvas, status page |
 | Confidence scores | `status-data.json` | canvas, status page |
 | Session-scoped notes (today's tentative decisions) | `SESSION-CONTEXT.md` | promoted to tracker at session end |
-| Cross-initiative patterns | `learnings.md` | Anti-Pattern Detector watchlist |
+| Cross-initiative patterns | `_workstream/learnings.md` | Anti-Pattern Detector watchlist |
 
 **When files disagree:**
 
@@ -401,7 +373,7 @@ The **State Validator** (see Skills section) enforces consistency between these 
 
 ## Active learnings surfacing (Wave 6)
 
-A file called `learnings.md` persists across initiatives. Between intake and retros, the orchestrator now actively surfaces relevant patterns at key inflection points:
+A file called `_workstream/learnings.md` persists across initiatives (this is the canonical runtime copy — not the sample shipped inside the `ba-assistant` skill tree). Between intake and retros, the orchestrator now actively surfaces relevant patterns at key inflection points:
 
 | Inflection | What surfaces |
 |---|---|
@@ -494,7 +466,7 @@ The critique is surfaced transparently  -  not hidden. You'll see lines like "*S
 
 ### Cross-initiative learnings (enhanced Wave 6)
 
-A file called `learnings.md` persists across initiatives. The Retrospective skill writes patterns, watchlist items, and skill refinements to it at retros. The Intake Reviewer reads it at the start of every new initiative. And since Wave 6, the orchestrator **actively surfaces** relevant patterns at key inflection points during work  -  see the "Active learnings surfacing" section above.
+A file called `_workstream/learnings.md` persists across initiatives — the canonical, on-disk runtime copy that survives reinstall/upgrade (the `learnings.md` shipped inside `skills/ba-assistant/` is only ever a package sample used to seed it once). The Retrospective skill writes patterns, watchlist items, and skill refinements to it at retros. The Intake Reviewer reads it at the start of every new initiative. And since Wave 6, the orchestrator **actively surfaces** relevant patterns at key inflection points during work  -  see the "Active learnings surfacing" section above.
 
 Each pattern carries a lifecycle status (`candidate` → `established` → `archived`) and an evidence log. Established patterns (confirmed across 2+ initiatives) trigger stronger warnings; candidates carry an advisory note. Archived patterns (6+ months inactive) are skipped unless explicitly invoked.
 
@@ -505,7 +477,7 @@ This means recurring failure modes get caught earlier and more frequently  -  no
 ## How to work with the Assistant
 
 1. **Provide context**  -  share the PM's all-in-one, existing documents, transcripts, or notes. More context = better guidance.
-2. **Set your draft depth**  -  at session start, choose `minimal`, `standard`, or `comprehensive` output volume. Override per artefact any time.
+2. **Say how much output you want** when it matters - e.g. "outline only" or "full pack". There is no session-start draft-depth quiz.
 3. **Use the form intake**  -  Wave 4 batches workspace setup questions; fill what you know, leave blanks for gaps.
 4. **Answer honestly**  -  it's fine to say "I don't know" or "I need to ask compliance." The Assistant logs unknowns and suggests next steps.
 5. **Use commands**  -  `/next` when stuck, `/status` for a live snapshot, `/report` for a full document, `/snapshot` for the tracker, `/validate-state` to check sync, `/wrap` to close out a session.

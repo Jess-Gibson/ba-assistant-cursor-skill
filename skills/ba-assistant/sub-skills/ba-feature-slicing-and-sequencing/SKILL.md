@@ -74,7 +74,7 @@ The output candidate axes set is initiative-specific  -  the 3 above are generic
 
 This light-pass mode **does not replace Phase 3 slicing**. It exists to ensure scope-shape is co-thinking territory at intake, not a post-hoc Phase 3 surprise.
 
-> **Cross-cutting rule:** This skill produces multiple artefact-class outputs at full Phase 3 invocation (slice register, critical path tracker, sequencing rationale, priority alignment, parallelisation plan). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `ba-assistant\SKILL.md → Co-thinking and artefact production protocol`  -  surface planned artefacts upfront and ask the user to select. The intake light pass mode (above) is intentionally constrained and does NOT trigger the multi-artefact rule.
+> **Cross-cutting rule:** This skill produces multiple artefact-class outputs at full Phase 3 invocation (slice register, critical path tracker, sequencing rationale, priority alignment, parallelisation plan). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `references/co-thinking-protocol.md`  -  surface planned artefacts upfront and ask the user to select. The intake light pass mode (above) is intentionally constrained and does NOT trigger the multi-artefact rule.
 
 ---
 

@@ -65,7 +65,7 @@ If any ticket has changed status, flag it so the calling skill (canvas, status p
 The skill needs:
 - **Cloud ID or site URL**  -  stored in `confluence-pages.json` or `SESSION-CONTEXT.md`
 - **Ticket keys**  -  from `status-data.json` or SESSION-CONTEXT
-- **MCP server**  -  `user-atlassian-jira-Server`
+- **MCP server**  -  see `references/runlayer-atlassian-mcp.md` for the invocation pattern and cloud ID handling. Prefer `user-runlayer-plugin` (fast path: `execute_tool` with `getJiraIssue` directly, skip `search_tools`). If that server is not available in this session, fall back to the official Atlassian MCP if one is connected. Never call a server that is not actually present in this session  -  check what's available before assuming a name.
 
 ## Integration
 
@@ -78,4 +78,4 @@ The skill needs:
 
 ## MCP tool reference
 
-Read the tool schema at `mcps/user-atlassian-jira-Server/tools/getJiraIssue.json` before calling. Required parameters: `cloudId`, `issueIdOrKey`. Optional: `fields`, `expand`.
+Use the **Common tools** table in `references/runlayer-atlassian-mcp.md` for `getJiraIssue`'s exact `tool_name` and required arguments (`cloudId`, `issueIdOrKey`; optional `fields`, `expand`). Do not read a cached `mcps/user-atlassian-*` schema file  -  those go stale after any MCP migration; call `search_tools` instead if the argument shape is uncertain.

@@ -1,6 +1,6 @@
 ---
 name: ba-context-capture
-description: Passively detects new facts, decisions, blockers, context, and open questions emerging in normal conversation and writes them to SESSION-CONTEXT.md in real time. Fills the gap between meeting debrief (meeting-specific) and end-of-session checkpoint (wrap-up only). Runs continuously alongside the Anti-Pattern Detector.
+description: Passively detects new facts, decisions, blockers, context, and open questions emerging in normal conversation and writes them to SESSION-CONTEXT.md in real time. Also actively surfaces relevant learnings.md patterns at key inflection points. Fills the gap between meeting debrief (meeting-specific) and end-of-session checkpoint (wrap-up only). Runs continuously alongside the Anti-Pattern Detector.
 ---
 
 # Skill: Context Capture (Mid-Chat)
@@ -142,6 +142,58 @@ At the end-of-session checkpoint, all mid-session captures are reviewed:
 - **Don't guess attribution**  -  if the user says "someone mentioned X", log it as unattributed. Don't invent a source.
 - **Don't promote mid-session**  -  SESSION-CONTEXT.md is the landing zone. Promotion to tracker happens at session end (end-of-session checkpoint). Exception: if the user explicitly says "add that to the tracker"  -  then promote immediately.
 - **Don't capture instructions to you**  -  "can you check the Jira board" is a task, not a fact. Only capture information *about the initiative*.
+
+## Active learnings surfacing (Wave 6)
+
+`_workstream/learnings.md` is read at intake (by Intake Reviewer) and during retros. Between those points, patterns sit dormant. Active surfacing fixes that  -  this skill queries `_workstream/learnings.md` at specific inflection points during work and surfaces relevant patterns in chat, the same way it surfaces mid-chat captures.
+
+(Moved here from `ba-assistant/SKILL.md` Wave 6, folded in because it's the same "watch every turn, surface without blocking" shape as mid-chat capture, rather than a separate always-loaded orchestrator section.)
+
+### Inflection points
+
+| Inflection | What to search for |
+|---|---|
+| New requirement entering the register | Patterns tagged with "requirement", "interrogation", or matching the requirement's domain |
+| Workstream transitions to active for a scope | Patterns specific to that workstream (Discovery, Slicing, Delivery, etc.) |
+| A new stakeholder added to the strategy | Patterns tagged with "stakeholder" or "engagement" |
+| A spike created or assigned | Patterns about spikes (outcome capture, stalled spikes, scope creep on spikes) |
+| A workshop being designed | Patterns about workshop facilitation, attendance, debrief, Miro |
+| A Confluence page being published | Patterns about page hierarchy, supersede markers, status pages |
+| A bulk file operation being proposed | Patterns about sync, content review, currency checks |
+| Sponsor or PM is being engaged with new content | Patterns about pre-brief timing, exec narrative, sentiment |
+
+### Surfacing format
+
+A single chat line BEFORE the work proceeds, never blocking:
+
+```
+💡 **Learning from previous initiatives:** [one-line pattern]. [One-line application to current context]. [What I'll do unless you say otherwise]
+```
+
+Example:
+
+```
+💡 **Learning from previous initiatives:** On Sample Initiative we hit document proliferation when a new register was created without marking the old one superseded. I'll check whether this new requirements doc replaces or supplements `current-requirements.md` before creating it. Say "skip the learning" if not relevant.
+```
+
+### Rules
+
+1. **Match strength matters.** Surface Established patterns aggressively. Surface Candidate patterns only when the match is strong (current context matches multiple keywords from the pattern). Skip Archived patterns unless explicitly invoked.
+
+2. **One surfacing per inflection point.** Don't bombard. If 3 patterns match, pick the most relevant; mention the others exist with "I'm also tracking 2 other patterns here, ask if you want them."
+
+3. **Never block.** The pattern is information, not gate. Work proceeds unless the user says "wait, that's relevant."
+
+4. **Don't surface patterns about the failure mode the user is actively avoiding.** If they're already taking the right action, surfacing the pattern adds noise. Use judgement  -  if context shows the action is being handled correctly, skip.
+
+5. **Log every surfacing in `metrics-cache.json → learningSurfacings`.** This is itself data  -  patterns that surface frequently but never change behaviour are candidates for archive; patterns that surface and change behaviour are validated as valuable.
+
+### Anti-pattern (added to Anti-Pattern Detector)
+
+| Watching | Trigger | Anti-pattern flagged |
+|---|---|---|
+| Orchestrator | Inflection point reached AND no `_workstream/learnings.md` query AND patterns exist that match the context | Dormant learnings  -  pattern not surfaced when it should have been (added Wave 6) |
+| Orchestrator | Same pattern surfaced 5+ times in a session OR 10+ times across 3 sessions with no behaviour change | Noisy pattern  -  candidate for archive (added Wave 6) |
 
 ## Integration with BA Assistant
 

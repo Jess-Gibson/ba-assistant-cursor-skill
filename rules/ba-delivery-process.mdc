@@ -5,12 +5,7 @@ alwaysApply: false
 
 # Business analysis (BA) — process and runbook
 
-**Authoritative source copies** (read for full detail):
-
-- [`docs/ba/ba_end_to_end_process.md`](../docs/ba/ba_end_to_end_process.md) — end-to-end BA process, principles, phases, integration guidelines, agent/skill best practices.  
-- [`docs/ba/ba_runbook.md`](../docs/ba/ba_runbook.md) — setup, operational playbook (steps 0–7), guardrails, stage gates.
-
-> **Note:** These docs may live in your workspace under `docs/ba/` or at a custom path. Update the paths to match your workspace.
+This package does not ship separate `docs/ba/` process/runbook files — the phases, principles, and guardrails below are the summary, and the bundled `skills/ba-assistant/` orchestrator (`SKILL.md`, `instructions.md`, `references/workstreams.md`) is the actual working implementation. If your own workspace maintains a separate end-to-end process doc or runbook, link it here and update this note.
 
 When a task is **BA-heavy** (discovery, requirements, Confluence/Jira, analysis, BRD/PRD, root-cause, diagrams, data narrative), follow those documents and this rule. **Do not** replace [agent-behavior.mdc](agent-behavior.mdc) (AskQuestion, safety); this rule **adds** process expectations.
 
@@ -19,8 +14,8 @@ When a task is **BA-heavy** (discovery, requirements, Confluence/Jira, analysis,
 1. **Context first** — Prefer project `AGENTS.md` and linked knowledge; keep them updated when decisions land.  
 2. **Declarative work** — State goals, inputs, and outputs; avoid prescribing implementation before requirements are clear.  
 3. **Stop for human approval** — After discovery summaries, problem definitions, **implementation plans**, prototype reviews, and before destructive or high-risk actions: pause for explicit confirmation (aligns with existing guardrails).  
-4. **Plan then execute** — For multi-step or structural work, produce and get agreement on a plan before large edits (see [writing-plans](.cursor/skills/writing-plans/SKILL.md) as needed).  
-5. **Iterative prototypes** — For exploratory build work, use [prototype-builder](.cursor/skills/prototype-builder/SKILL.md); small cycles, verify assumptions.  
+4. **Plan then execute** — For multi-step or structural work, produce and get agreement on a plan before large edits (no bundled planning skill ships in this package — see `CUSTOMIZATION.md` §11 if you want one).
+5. **Iterative prototypes** — For exploratory build work, run small cycles and verify assumptions (no bundled prototyping skill ships in this package — see `CUSTOMIZATION.md` §11).
 6. **Second-order thinking** — Ask what system caused an issue, what dependencies exist, and whether assumptions are explicit (as documented in ba-profile.mdc).  
 7. **Citations** — When using external research, cite sources.  
 8. **Least privilege** — Subagents/tools only as needed; research vs write separation where possible.
@@ -44,21 +39,21 @@ When a task is **BA-heavy** (discovery, requirements, Confluence/Jira, analysis,
 - **Context resets** on long or task switches; summarise state; use subagents to reduce bleed.  
 - **Security/privacy** — no plain-text secrets; anonymise where appropriate for analysis.
 
-## Workspace skill mapping (use when names differ from runbook)
+## Workspace skill mapping (what's actually bundled vs. build-your-own)
 
-The runbook may name agents and generic skills differently. In **this** workspace, route using [.cursor/rules/skills-routing.mdc](skills-routing.mdc) and `.cursor/skills/`, for example:
+Route using [.cursor/rules/skills-routing.mdc](skills-routing.mdc) and `.cursor/skills/`. What ships in this package versus what you'd need to build yourself:
 
-- Requirement / AC / discovery → `requirement-gatherer`  
-- Diagrams / flows → `pm-diagram-generator`  
-- Confluence → `publish-docs-to-confluence` (read MCP schemas first)  
-- Jira (project-specific patterns) → `jira-templates` skill (create your own per CUSTOMIZATION.md) or Atlassian MCP as appropriate  
-- Data / metrics / narrative → `pm-data-analyst`  
-- Prototyping → `prototype-builder`  
-- Quality review of requirements or design → `qa-checker`  
-- PRD structure → `prd-all-in-one`  
-- Multi-step delivery plans → `writing-plans` / `subagent-driven-development`  
+- Requirement / AC / discovery → bundled: `ba-assistant/sub-skills/ba-discovery-and-requirements`, `ba-assistant/sub-skills/ba-requirements-interrogator`
+- Diagrams / flows → not bundled (see `CUSTOMIZATION.md` §11)
+- Confluence → bundled: `publish-docs-to-confluence` (read its `references/confluence-workflow.md` first)
+- Jira (project-specific patterns) → not bundled as a template skill (`CUSTOMIZATION.md` §11 / §5) — but ticket status sync ships as `ba-assistant/sub-skills/ba-jira-sync`
+- Data / metrics / narrative → bundled: `ba-assistant/sub-skills/ba-data-investigation`
+- Prototyping → not bundled (see `CUSTOMIZATION.md` §11)
+- Quality review of requirements or design → bundled: `ba-assistant/sub-skills/ba-requirements-interrogator`, `ba-assistant/sub-skills/ba-state-validator` (see `CUSTOMIZATION.md` §11 if you want a separate standalone checker)
+- PRD structure → not bundled (see `CUSTOMIZATION.md` §11)
+- Multi-step delivery plans → not bundled (see `CUSTOMIZATION.md` §11)
 
-If an external **ba-orchestrator** or **dependency-mapper** is not present, the **default agent** should still follow the same **phases, gates, and DoD** from the two docs.
+If none of the bundled sub-skills fit, the **default agent** should still follow the same **phases, gates, and DoD** described above.
 
 ## MCP
 

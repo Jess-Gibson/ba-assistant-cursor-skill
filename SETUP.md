@@ -1,6 +1,6 @@
 # BA Assistant for Cursor — Setup Guide
 
-**Version 11** - see [CHANGELOG.md](CHANGELOG.md) and [README.md](README.md).
+**Version 13** - see [CHANGELOG.md](CHANGELOG.md) and [README.md](README.md).
 
 > Originally designed and built by Jess Gibson, Senior BA (2025–2026).
 > Built iteratively across real BA initiatives using agent-assisted development.
@@ -106,9 +106,11 @@ python tools/upgrade-ba-assistant.py --package /path/to/ba-assistant-cursor-skil
 BA Assistant works without connectors, but mail actions, calendar, Jira,
 Confluence, and company search need them. Prefer **Runlayer-governed** servers.
 
-### MYOB (recommended)
+### If your organisation runs Runlayer
 
-1. Open **[Runlayer servers](https://myob.runlayer.com/servers)** and sign in with SSO
+1. Open your organisation's Runlayer servers page and sign in with SSO
+   (ask your admin for the URL if you don't have it, typically
+   `https://<your-org>.runlayer.com/servers`)
 2. Search for what you need, for example:
    - `Glean` (company search; often mail/meetings too)
    - `Microsoft Outlook` / `Microsoft Outlook Calendar`

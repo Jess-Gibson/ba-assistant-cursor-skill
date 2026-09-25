@@ -4,11 +4,11 @@
 
 The Intake Reviewer is the first specialist skill invoked by the BA Initiative Navigator.  It reviews the PM's **all‑in‑one** or initial brief to extract key context about the initiative.  It asks clarifying questions to challenge vague statements, identifies early scope ambiguities, surfaces obvious risks and assumptions, and prepares preliminary RAID items.  The goal is to provide a clear starting point and agenda for subsequent stakeholder alignment.
 
-> **Cross-cutting rule:** This skill produces multiple artefact-class outputs (Project-hub, SESSION-CONTEXT, initiative-tracker, status-data.json, confluence-pages.json, optionally workshop pack and HTML snapshot). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `ba-assistant\SKILL.md → Co-thinking and artefact production protocol`  -  surface planned artefacts upfront and ask the user to select which to produce. Canvas auto-generation (step 7) and the exit gate (step 8) are the highest-risk points for over-production.
+> **Cross-cutting rule:** This skill produces multiple artefact-class outputs (Project-hub, SESSION-CONTEXT, initiative-tracker, status-data.json, confluence-pages.json, optionally workshop pack). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `references/co-thinking-protocol.md`, surface planned artefacts upfront and ask the user to select which to produce. The exit gate (final step) is the highest-risk point for over-production. There is no canvas step here, canvas is on demand only (`/canvas`, `/status`).
 
 ## Load cross-initiative learnings first
 
-Before reviewing the intake, **read `learnings.md`** from the BA assistant root directory. This file contains patterns and watchlist items from previous initiatives that should inform how this intake is conducted.
+Before reviewing the intake, **read `_workstream/learnings.md`** (the canonical, persistent cross-initiative learnings file — not the sample shipped at `skills/ba-assistant/learnings.md`). This file contains patterns and watchlist items from previous initiatives that should inform how this intake is conducted.
 
 Use the learnings to:
 - Pre-populate the Anti-Pattern Detector's initiative-specific watchlist with relevant patterns
@@ -17,27 +17,54 @@ Use the learnings to:
 
 Do not lecture the user with the full learnings file. Use it silently to tune the intake conversation, surfacing patterns only when they become relevant.
 
+## Opening prompt
+
+Phase 0 is **not** a single "tell me about it then I'll take it from there" exchange. It is a deliberate, visible sequence with the user, who must always be able to see which step is running, what has been captured, and what is coming next.
+
+Open with (workspace context and research already happened in `ba-new-initiative` before this point):
+
+> "Now that I've got the background, let's make sure we really understand the
+> problem and what success looks like.
+>
+> First question: **what are we working on?** Share your PM brief, initiative name,
+> or just tell me what you know."
+
 ## Intake sequence
 
 Run these steps in order. The user sees them as a numbered Phase 0 progress checklist in chat; the table below is internal sequencing.
 
+**Before step 1:** `ba-new-initiative` already scaffolded the folder, ran workspace
+context, and did the multi-source research (Confluence, Jira, Glean, web, regulator
+gate, AI source verification). Read its findings from `SESSION-CONTEXT.md`. Only
+redo workspace context or research here if this initiative predates that skill, or
+its output is missing or clearly stale.
+
 | # | Step | What it does | Sub-skill invoked |
 |---|---|---|---|
-| 1 | **Workspace context** | Confirm Jira project, Confluence space, parent page, repos, Slack channel before any other work. |  -  (this skill) |
-| 2 | **Multi-source context gathering** | Search Confluence, Jira, Glean (enterprise + code), and the web for existing context BEFORE asking the user to restate anything. Vet every source for freshness, AI-generated content, and authority. **Regulator gate:** if the work touches a regulator (Sample Initiative, [regulator], APRA, ACCC, OAIC, AML/CTF, PSD2, GDPR, etc.), web-search the regulator's own publication directly  -  internal Confluence summaries are secondary. **AI source verification:** if a source looks AI-written, verify every Confluence/Jira ID it cites returns 200 OK before quoting any claim. **Skip-acknowledgement:** tell the user what was searched and what was skipped, and why. Lean intakes can skip Glean + Web unless the regulator gate fires. **`HK-INTK-BDI-baseline`:** if the initiative has any existing quantitative baseline (volumes, error rates, usage, incident counts), invoke `ba-data-investigation` to check and cross-validate it before it feeds the Problem Clarity confidence score  -  don't let a stale or single-source number set the baseline unchecked. Warn, not block: if declined or no baseline exists yet, cap Problem Clarity confidence at Medium until checked. |  -  (this skill) + Glean skills + WebSearch + `ba-data-investigation` |
-| 3 | **Confirm complexity** | Now that sources have been read and vetted, present a complexity choice (Lean / Standard / Full) via `AskQuestion`. Show what was found so the user picks informed. If the regulator gate fired in step 2, Lean is unavailable. |  -  (this skill) |
-| 4 | **Problem statement interrogation** | Invoke Requirements Interrogator in Discovery mode for the problem statement. One good question at a time, follow the thread, surface the underlying need. Lean intakes skip  -  straight to scope + RAID. | `ba-requirements-interrogator` |
-| 5 | **Success metrics interrogation** | Invoke Requirements Interrogator in Discovery mode for success metrics. Same conversational pattern. Lean intakes skip  -  straight to scope + RAID. | `ba-requirements-interrogator` |
-| 6 | **Scope slicing light pass** | Invoke Feature Slicing & Sequencing in *intake light pass mode*. Produce 2-3 candidate slice axes with reasoning + trade-offs + recommendation. Get user co-shaping via `AskQuestion`. Result writes to `status-data.json → initiative.intakeLightSlices` and feeds Phase 3 slicing as a starting point. Strict scope: light pass only  -  full slice register, critical path, sequencing plan, MoSCoW matrix are Phase 3 outputs. Lean intakes skip. | `ba-feature-slicing-and-sequencing` |
-| 7 | **Canvas auto-generation** | Invoke Project Canvas to generate the initial 8-tab canvas + HTML snapshot. Most tabs will be empty-state callouts  -  this is intentional and acts as a visual roadmap. Canvas displays a "DRAFT  -  pending PM approval" banner on every tab until exit gate sign-off is recorded. Lean intakes still get a canvas, with sparser content. | `ba-project-canvas` |
-| 8 | **Phase 0 exit gate** | Present the intake summary + draft RAID + canvas back to the user. Every v1 artefact (problem statement, success metrics, scope, RAID) is marked "draft pending PM approval" by default. Record the PM name and approval status in the **tracker's PM approval register** (raid-format.md § Tracker-owned structured registers  -  E-promote); the `status-data.json → initiative.pmApproval` mirror follows on canvas refresh. End with an `AskQuestion` offering proceed / refine problem / refine metrics / pull more context / request PM review now. Never auto-advance to Phase 1. Never present v1 outputs as authoritative until PM sign-off is captured. |  -  (this skill) |
+| 1 | **Confirm complexity** | Present a complexity choice (Lean / Standard / Full) via `AskQuestion`, informed by `ba-new-initiative`'s research. If a regulator gate fired during that research, Lean is unavailable. |  -  (this skill) |
+| 2 | **Problem statement interrogation** | Invoke Requirements Interrogator in Discovery mode for the problem statement. One good question at a time, follow the thread, surface the underlying need. Lean intakes skip, straight to scope + RAID. | `ba-requirements-interrogator` |
+| 3 | **Success metrics interrogation** | Invoke Requirements Interrogator in Discovery mode for success metrics. Same conversational pattern. Lean intakes skip, straight to scope + RAID. | `ba-requirements-interrogator` |
+| 4 | **Scope slicing light pass** | Invoke Feature Slicing & Sequencing in *intake light pass mode*. Produce 2-3 candidate slice axes with reasoning + trade-offs + recommendation. Get user co-shaping via `AskQuestion`. Result writes to `status-data.json → initiative.intakeLightSlices` and feeds Phase 3 slicing as a starting point. Strict scope: light pass only, full slice register, critical path, sequencing plan, MoSCoW matrix are Phase 3 outputs. Lean intakes skip. | `ba-feature-slicing-and-sequencing` |
+| 5 | **Phase 0 exit gate** | Present the intake summary + draft RAID back to the user. No canvas here, canvas is on demand only (`/canvas`, `/status`). Every v1 artefact (problem statement, success metrics, scope, RAID) is marked "draft pending PM approval" by default. Record the PM name and approval status in the **tracker's PM approval register** (`raid-format.md` § Tracker-owned structured registers); the `status-data.json → initiative.pmApproval` mirror follows on next canvas refresh, whenever that happens. End with an `AskQuestion` offering proceed / refine problem / refine metrics / pull more context / request PM review now. Never auto-advance to Phase 1. Never present v1 outputs as authoritative until PM sign-off is captured. |  -  (this skill) |
 
 Show a visible status header to the user every time a sub-skill is invoked, e.g.
 `> Running: Requirements Interrogator (Discovery mode) → problem statement`. See Phase 0 progress checklist in the orchestrator for the user-facing step names.
 
-If step 4 or 5 surfaces that the problem or metrics need more thinking, log them
-as unknowns in the tracker and still proceed to steps 7–8. The Phase 0 gate gives
+If step 2 or 3 surfaces that the problem or metrics need more thinking, log them
+as unknowns in the tracker and still proceed to steps 4-5. The Phase 0 gate gives
 the user the choice to refine or move on at risk.
+
+### PM approval state (mandatory at the exit gate)
+
+Before moving to Phase 1 kickoff prep, present the intake summary table, draft RAID, and confidence scores back to the user, and **end with an AskQuestion** offering: proceed to Phase 1 / refine the problem statement / refine success metrics / pull in more context first / **request PM review now (draft message)**. Do not auto-advance.
+
+- Capture the PM's name in `status-data.json → initiative.pmApproval.pm`.
+- Set `initiative.pmApproval.status = 'pending'` (or `'requested'` if the user has chosen to draft the review message now).
+- All v1 outputs (problem statement, success metrics, scope, RAID) are drafts until `initiative.pmApproval.status === 'approved'`.
+- The canvas, status-snapshot HTML, and project hub page MUST display a visible `DRAFT  -  pending <PM name> approval` banner until sign-off is captured.
+- If the user does not yet know who the PM is, record `pm: 'TBC'` and flag it as the top unknown in the tracker, but still display the banner.
+
+Never present v1 outputs as authoritative, to the user, to downstream skills, or in Confluence/Jira, until the PM approval state is recorded as `approved`.
 
 ---
 
@@ -45,13 +72,13 @@ the user the choice to refine or move on at risk.
 
 Not every intake needs the full Phase 0 treatment. Adapt depth to size of work.
 
-| Level | Definition | Scope | Steps that run |
+| Level | Definition | Scope | What runs |
 |---|---|---|---|
-| **Lean** | Small, incremental, well-understood, low blast radius | 1–3 stories, 1 feature, 1–4 weeks, no compliance, no new stakeholders | Steps 1, 7 (canvas only), 8 |
-| **Standard** | Medium initiative with some uncertainty | Multiple stories, 1–2 features, 1–3 months, normal compliance touch, known stakeholders | All steps 1–8 |
-| **Full** | Major initiative, multi-feature, sustained change | Multi-feature, 3+ months, compliance-driven, new sponsor or stakeholders, high blast radius | All steps + Current State Assessment, Sponsor Engagement, Workshop Design (kickoff) before step 8 |
+| **Lean** | Small, incremental, well-understood, low blast radius | 1–3 stories, 1 feature, 1–4 weeks, no compliance, no new stakeholders | Confirm complexity + context extraction + PM questions + scope exploration + RAID + exit gate. Skips whatever each Task above marks "Lean intakes skip" (problem/metrics interrogation, slicing). |
+| **Standard** | Medium initiative with some uncertainty | Multiple stories, 1–2 features, 1–3 months, normal compliance touch, known stakeholders | All Tasks above. |
+| **Full** | Major initiative, multi-feature, sustained change | Multi-feature, 3+ months, compliance-driven, new sponsor or stakeholders, high blast radius | All Tasks above, plus Current State Assessment, Sponsor Engagement, Workshop Design (kickoff) before the exit gate. |
 
-**Ask the user AFTER source vetting (step 2)**, not before  -  so they pick informed by what was found. If the regulator gate fired during source vetting, Lean is unavailable; tell the user why ("Lean isn't available  -  regulator trigger detected").
+**Ask the user AFTER `ba-new-initiative`'s research findings are in hand**, not before, so they pick informed by what was found. If the regulator gate fired during that research, Lean is unavailable; tell the user why ("Lean isn't available, regulator trigger detected").
 
 **Override the user's pick** when the situation demands it. Examples: compliance work in scope → Lean → Standard; multi-cohort scope → Standard → Full; sparse 1-line brief with nothing found → Lean → Standard. Always tell the user what you bumped and why. They can re-override and accept the risk; log the decision in the tracker.
 
@@ -87,99 +114,29 @@ This stance is informed by the Glean `confidence-signals` skill and the always-a
 
 ---
 
-## Step 2 in detail  -  Multi-source context gathering
+## Multi-source research: already done
 
-Before asking the user to restate anything they may already have documented,
-search broadly across internal AND external sources. Report findings with
-confidence signals (see "Source skepticism principles" above) so the user can
-decide what to use, verify, or ignore.
-
-### Sources to search (in this order, in parallel where possible)
-
-| # | Source | Tool / skill | What to look for |
-|---|---|---|---|
-| 1 | **Confluence** | Runlayer → `searchConfluenceUsingCql` or `atlassian__search` | Pages matching initiative name, keywords, related domains. Check for existing PRDs, BRDs, requirements pages, decision logs. |
-| 2 | **Jira** | Runlayer → `searchJiraIssuesUsingJql` (your-jira-cloud cloudId) | Existing epics, stories, problem cards, spikes related to the initiative. Look in PROJ, SW, and other relevant projects. |
-| 3 | **Glean  -  enterprise** | `enterprise-search` skill | Docs, Slack threads, email, design docs, RFCs across the org. Use confidence signals to weight results. |
-| 4 | **Glean  -  code** | `code-exploration` skill | Existing code that implements related capability. Useful for technical initiatives  -  answer "has this been built before?" before designing it again. |
-| 5 | **Web** | `WebSearch` tool | External context: regulations, vendor documentation, industry standards, news. Especially important for regulatory or compliance-driven initiatives (e.g. Sample Initiative regulatory mandate, [regulator] changes, APP updates). Search using current year per workspace rules. |
-
-### Reporting findings to the user
-
-After searching, present findings in a single structured response with confidence
-signals applied. Example format:
-
-```
-Internal sources found:
-
-Confluence (3 results)
-- "Sample Regulatory Reform Policy Brief" (12894521098)
-  Last updated: Nov 2024  -  STALE (regulation moved Mar 2026, this predates it)
-  Author: Sarah K (unknown if still relevant)
-  Authority: Informal  -  draft page, never signed off
-  Recommendation: read for historical context but verify against current regulation
-- "Sample Payments Feature Architecture" (12876543210)
-  Last updated: May 2026  -  CURRENT
-  Author: [Tech Lead]
-  Authority: Authoritative  -  linked from architecture hub
-  Recommendation: read in full
-- "Sample Regulatory Implementation Notes (draft)" (12892100123)
-  Last updated: Apr 2026
-  Author: AI-generated per page header, no human verifier listed
-  Authority: UNVERIFIED AI CONTENT
-  Recommendation: DO NOT treat as authoritative  -  ask the team who reviewed it
-
-Jira (2 results)
-- PROJ-4189 "Fee config epic"  -  status: Closed, Sept 2025 (potentially stale)
-- PROJ-4502 "Sample Initiative reform impact analysis"  -  status: In Progress, opened Apr 2026
-
-External sources found:
-
-Web (5 results)
-- Sample Initiative "Review of Card Payments Regulation" final report (regulator.gov.example, Mar 2026)  -  authoritative
-- AusPayNet response to Sample Initiative consultation (Apr 2026)  -  authoritative
-- News: "Retail bodies welcome regulatory mandate" (Apr 2026)  -  informational only
-- ...
-```
-
-Then present an `AskQuestion`:
-
-> Which sources should I read in detail before continuing intake?
-> [Read all current/authoritative sources] [Read only the Confluence + Jira items I marked authoritative] [Skip  -  I'll tell you what's relevant] [Verify the AI-generated content first by asking the team]
-
-### Regulator gate (mandatory)
-
-If the work touches a regulator or regulatory framework  -  Sample Initiative, [regulator], APRA, ACCC, ASIC, OAIC, ATO, AusPayNet, AML/CTF, Privacy Act / APP, CDR, PCI DSS, GDPR, PSD2/PSD3, CCPA, or generic cues like "regulatory mandate", "interchange reform", "compliance deadline"  -  **web search is mandatory regardless of complexity.**
-
-Always read the regulator's own publication directly. Internal Confluence summaries are secondary evidence, never primary. Surface the regulator source to the user separately from internal sources, with a recency check. If WebSearch isn't available, block intake  -  don't proceed past source vetting without acknowledgement that the external view is missing.
-
-### AI source verification (mandatory)
-
-For every source flagged as "unverified AI content", verify every Confluence/Jira ID it cites returns 200 OK (use `getConfluencePage` / `getJiraIssue`) before quoting any claim. Record the result in `confluence-pages.json` under the source's entry.
-
-- If any cited ID is 404 → the source has fabricated references and CANNOT be trusted for any claim. Flag the whole source as untrusted; default recommendation is "ignore entirely".
-- If all cited IDs verify → downgrade to "AI-assisted, references verified" and use sparingly with citation back to the verified primary source.
-
-### Skip-acknowledgement
-
-At the end of source vetting, tell the user what was searched and what was skipped, and why. A skipped source must be acknowledged, not silent. One line per source category is enough.
-
-### When MCP or Glean is unavailable
-
-If a tool is not connected or authentication fails, **degrade gracefully**:
-
-- Confluence / Jira MCP missing → tell the user, ask if they have key page URLs or epic keys to share manually.
-- Glean missing → skip those sources, note in the findings report ("Glean not available  -  couldn't search Slack / enterprise docs").
-- WebSearch missing → skip, note the gap.
-
-Never silently skip a source. The user must always see what was searched and
-what wasn't.
+`ba-new-initiative` runs the full search (Confluence, Jira, Glean, web), the
+regulator gate, AI source verification, and skip-acknowledgement, and writes
+findings to `SESSION-CONTEXT.md` before this skill is invoked. Read that instead of
+re-searching. Only redo it here if this initiative predates that skill, its findings
+are missing, or something has clearly gone stale since. If you do redo it, follow
+the same procedure documented in `sub-skills/ba-new-initiative/SKILL.md` step 6, it
+is the one place that procedure is written down now.
 
 ---
 
 ## Workspace setup
 
-At the start of intake (step 1), confirm workspace context. Batch related questions into one or two `AskQuestion` panels rather than 8 sequential questions  -  the user is filling in a form, not being interviewed.
+`sub-skills/ba-new-initiative/SKILL.md` captures this at scaffolding time for any
+initiative created after that skill existed. Before Task 1 below, check
+`status-data.json -> initiative` (or the tracker) for a cached workspace context
+first. If it's there, use it and go straight to Task 1. Only run the capture below
+for an initiative that predates that skill or skipped the question.
+
+When capture is needed, batch related questions into one or two `AskQuestion` panels
+rather than 8 sequential questions, the user is filling in a form, not being
+interviewed.
 
 Capture:
 
@@ -209,21 +166,20 @@ This prevents the common pattern of pages being created ad-hoc under wrong paren
 
 ## Tasks
 
-Run these in order. The first two are about workspace setup and prior art before any user-facing conversation about the brief. The middle tasks form the visible intake conversation. The last few close out Phase 0.
+Workspace context and multi-source research happened in `ba-new-initiative` before
+this skill was invoked (see the two sections above). These tasks form the visible
+intake conversation and close out Phase 0.
 
-1. **Workspace context** – Confirm Jira project, Confluence space + parent page, repos, Slack channel, intake doc link, Jira template story (optional). Cache for all subsequent skills. Batch as one or two `AskQuestion` panels.
-2. **Multi-source context gathering** – Search Confluence, Jira, Glean (enterprise + code), and the web for existing context. Vet every source for freshness, AI-generated content, and authority. Apply the regulator gate, AI source verification, and skip-acknowledgement (see sections above). Ask the user which sources to read in full.
-3. **Confirm complexity** – Now that sources are known, present a complexity `AskQuestion` (Lean / Standard / Full) with the source-vetting findings visible. If the regulator gate fired, Lean is unavailable.
-4. **Context extraction** – Summarise the PM's all-in-one or early brief: problem, objective, proposed success metrics, high-level scope, stakeholders, deadlines, constraints. Translate into a concise summary suitable for kickoff. Pull in anything relevant found in step 2.
-5. **Interrogate the problem statement** – Invoke Requirements Interrogator in Discovery mode. One good question at a time. Surface: who experiences the problem, what does it cost them, how are they dealing with it today, what would change without it. Output → provisional problem statement marked "draft  -  pending PM approval".
-6. **Interrogate success metrics** – Invoke Requirements Interrogator in Discovery mode. Surface: what behaviour changes if this works, how would we know, what data already exists, what's the smallest measurable signal. Output → provisional metric statement(s) marked "draft  -  pending PM approval".
-7. **Scope slicing light pass** – Invoke `ba-feature-slicing-and-sequencing` in *intake light pass mode*. Surface 2-3 candidate slice axes (by workstream / by cohort / by feature) with rationale + trade-offs + recommendation. Get user co-shaping via `AskQuestion`. Output → `status-data.json → initiative.intakeLightSlices` and a Decision row in the tracker. Strict scope: light pass only  -  no full slice register, no sequencing plan, no MoSCoW matrix (those are Phase 3). Lean intakes skip.
-8. **Questions for PM** – For everything *other than* problem, success metrics, and slicing axes (stakeholders, deadlines, constraints, untested claims from source material, missing baselines), build the `questions-for-pm.md` list per the Output Guidelines template. Put each question to the user in chat  -  they may have the answer informally from the PM (capture with verbal provenance), or it goes on the list for the PM-BA alignment meeting.
-9. **Scope and out-of-scope exploration** – Challenge proposed scope: what's in, what's out, what dependencies on other teams or systems exist, where might scope creep occur.
-10. **Early RAID identification** – Highlight obvious Risks, Assumptions, Issues, and Dependencies. Record in preliminary RAID log (handed to Risk & Tracker skill). Decisions table format: `ID | Decision | Owner / Made by | Date | Status`.
-11. **Auto-generate canvas + HTML snapshot** – Invoke Project Canvas to generate the initial 8-tab canvas + `status-snapshot.html`. Canvas displays a "DRAFT  -  PENDING PM APPROVAL" banner on every tab until PM sign-off is recorded. Tabs will be sparse at this stage  -  that's expected. Tell the user: *"Canvas generated at `<path>`. It's mostly empty-state at this point  -  it will fill in as we work through the phases. All v1 outputs are marked draft pending PM approval."*
-12. **Prepare kickoff agenda items** – Suggest agenda points and questions for the stakeholder kickoff meeting based on gaps identified. Hand to Kickoff Preparation skill.
-13. **Phase 0 exit gate** – Present the intake summary table + draft RAID + confidence scores + canvas link + `questions-for-pm.md`. Confirm PM name and capture approval status in the **tracker's PM approval register** (E-promote; the status-data mirror follows on canvas refresh). Make the approval state visible everywhere v1 outputs appear (canvas banner, project hub, status page). End with `AskQuestion`: proceed to Phase 1 / request PM review now (draft message) / refine problem statement / refine success metrics / pull more context first. Never auto-advance.
+1. **Confirm complexity** – Now that research findings are known, present a complexity `AskQuestion` (Lean / Standard / Full) with the findings visible. If the regulator gate fired, Lean is unavailable.
+2. **Context extraction** – Summarise the PM's all-in-one or early brief: problem, objective, proposed success metrics, high-level scope, stakeholders, deadlines, constraints. Translate into a concise summary suitable for kickoff. Pull in anything relevant from the research findings.
+3. **Interrogate the problem statement** – Invoke Requirements Interrogator in Discovery mode. One good question at a time. Surface: who experiences the problem, what does it cost them, how are they dealing with it today, what would change without it. Output → provisional problem statement marked "draft  -  pending PM approval".
+4. **Interrogate success metrics** – Invoke Requirements Interrogator in Discovery mode. Surface: what behaviour changes if this works, how would we know, what data already exists, what's the smallest measurable signal. Output → provisional metric statement(s) marked "draft  -  pending PM approval".
+5. **Scope slicing light pass** – Invoke `ba-feature-slicing-and-sequencing` in *intake light pass mode*. Surface 2-3 candidate slice axes (by workstream / by cohort / by feature) with rationale + trade-offs + recommendation. Get user co-shaping via `AskQuestion`. Output → `status-data.json → initiative.intakeLightSlices` and a Decision row in the tracker. Strict scope: light pass only  -  no full slice register, no sequencing plan, no MoSCoW matrix (those are Phase 3). Lean intakes skip.
+6. **Questions for PM** – For everything *other than* problem, success metrics, and slicing axes (stakeholders, deadlines, constraints, untested claims from source material, missing baselines), build the `questions-for-pm.md` list per the Output Guidelines template. Put each question to the user in chat  -  they may have the answer informally from the PM (capture with verbal provenance), or it goes on the list for the PM-BA alignment meeting.
+7. **Scope and out-of-scope exploration** – Challenge proposed scope: what's in, what's out, what dependencies on other teams or systems exist, where might scope creep occur.
+8. **Early RAID identification** – Highlight obvious Risks, Assumptions, Issues, and Dependencies. Record in preliminary RAID log (handed to Risk & Tracker skill). Decisions table format: `ID | Decision | Owner / Made by | Date | Status`.
+9. **Prepare kickoff agenda items** – Suggest agenda points and questions for the stakeholder kickoff meeting based on gaps identified. Hand to Kickoff Preparation skill.
+10. **Phase 0 exit gate** – Present the intake summary table + draft RAID + confidence scores + `questions-for-pm.md`. No canvas here, canvas is on demand (`/canvas`, `/status`). Confirm PM name and capture approval status in the **tracker's PM approval register**; the status-data mirror follows whenever the canvas is next refreshed. Make the approval state visible everywhere v1 outputs appear (project hub, status page, and the canvas whenever it exists). End with `AskQuestion`: proceed to Phase 1 / request PM review now (draft message) / refine problem statement / refine success metrics / pull more context first. Never auto-advance.
 
 ## Typical Questions to Ask
 
@@ -268,6 +224,6 @@ Status legend: `informal` = PM answered verbally (provenance captured) · `open`
 The Intake Reviewer challenges vague or unjustified statements immediately but does not deep‑dive into discovery.  When something is unclear:
 
 - State the ambiguity succinctly and propose a clarifying question.
-- If an assumption is unstated, call it out: “It seems we’re assuming X.  Should we validate that?”
-- Highlight potential scope creep if the PM’s description is broad or unspecific.  Suggest clearly defining what is out of scope.
+- If an assumption is unstated, call it out: "It seems we're assuming X.  Should we validate that?"
+- Highlight potential scope creep if the PM's description is broad or unspecific.  Suggest clearly defining what is out of scope.
 - Do not block progress; simply capture questions and assumptions and proceed to kickoff preparation.

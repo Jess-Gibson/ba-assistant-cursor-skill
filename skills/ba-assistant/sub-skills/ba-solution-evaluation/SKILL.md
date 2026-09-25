@@ -13,7 +13,7 @@ This is an entire BABOK v3 knowledge area (Solution Evaluation) and the most com
 
 Solution Evaluation is **not** a retrospective. Retrospective is about *how we worked*; Solution Evaluation is about *whether what we built delivered the value we said it would*.
 
-> **Cross-cutting rule:** This skill produces multiple artefact-class outputs (evaluation report, post-launch metrics, charts, gap analysis, recommendation doc). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `ba-assistant\SKILL.md → Co-thinking and artefact production protocol`  -  surface planned artefacts upfront and ask the user to select.
+> **Cross-cutting rule:** This skill produces multiple artefact-class outputs (evaluation report, post-launch metrics, charts, gap analysis, recommendation doc). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `references/co-thinking-protocol.md`  -  surface planned artefacts upfront and ask the user to select.
 
 ## Mandatory hooks
 

@@ -2,11 +2,11 @@
 
 **Location:** `~/.cursor/skills/ba-assistant/references/workboard-format.md`
 **Owner:** `/workboard` procedure (`workboard-procedure.md`) + status scoring (this standard)
-**Last reviewed:** 2026-09-14
+**Last reviewed:** 2026-09-25
 
 Canonical source for status scoring, `workboard.json` initiative fields, and canvas display rules. Any `/workboard` refresh or `/wrap` workboard update MUST apply this standard. Do not default every initiative to `on-track`.
 
-**Related but different:** per-initiative **milestone** status inside `status-data.json` uses `on-track | at-risk | missed | complete` (see `references/canvas-data-model.md`). Workboard **initiative** status is a separate enum with additional values (`new`, `monitoring`, `closed`). Do not conflate the two.
+**Related but different:** per-initiative **milestone** status inside `status-data.json` uses `on-track | at-risk | missed | complete` (see `references/canvas-data-model.md`). Workboard **initiative** status is a separate enum with additional values (`new`, `monitoring`, `closed`, `archived`). Do not conflate the two.
 
 ---
 
@@ -22,6 +22,7 @@ Allowed values for `workboard.json → initiatives[].status` and the workboard c
 | `critical` | Go-live or compliance blocked this week with no mitigation path | Ordinary backlog noise |
 | `monitoring` | Shipped/live; BA work is operational follow-through only | Active build still in flight for core scope |
 | `closed` | Delivery initiative complete; ops obligations may remain but no BA delivery track | Dev tickets still open for core scope |
+| `archived` | `ba-initiative-closeout` has run: folder moved to `archive/`, no further BA work expected | Initiative is merely quiet/deprioritised but the folder still lives under the active initiatives root |
 
 ---
 
@@ -32,9 +33,10 @@ Apply in order. **Escalate to the strictest status that matches** — do not dow
 1. **Missing original target date → at least `at-risk`.**
 2. **Live/post-go-live → `monitoring`, not `on-track`.**
 3. **GTM-only monitoring with no build → `closed`.**
-4. **`on-track` requires named owners on the next 2 weeks of critical path.**
-5. **`critical` is rare.** Reserve for hard external deadlines this week with no mitigation.
-6. **When in doubt between `on-track` and `at-risk`, choose `at-risk`.**
+4. **`ba-initiative-closeout` has moved the folder to `archive/` → `archived`, not `closed`.** This is the only status `/workboard` should never assign itself — it's set once, by that skill, as part of the move.
+5. **`on-track` requires named owners on the next 2 weeks of critical path.**
+6. **`critical` is rare.** Reserve for hard external deadlines this week with no mitigation.
+7. **When in doubt between `on-track` and `at-risk`, choose `at-risk`.**
 
 See decision flow in section 3 for the full tree.
 
@@ -44,6 +46,7 @@ See decision flow in section 3 for the full tree.
 
 ```
 START
+  ├─ ba-initiative-closeout has moved the folder to archive/? ───► archived
   ├─ No blueprint / pre-kick-off only? ──────────────────────────► new
   ├─ Core delivery complete, no active BA track? ────────────────► closed
   ├─ Live in production, follow-through only? ───────────────────► monitoring

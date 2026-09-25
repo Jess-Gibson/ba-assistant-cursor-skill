@@ -58,7 +58,10 @@ If a learning can't be acted on, surface that as a gap  -  don't just record it.
 
 ## Cross-initiative learnings file
 
-This skill is responsible for maintaining `learnings.md` at the BA assistant root.
+This skill is responsible for maintaining `_workstream/learnings.md` — the
+canonical, persistent cross-initiative learnings file (not the sample shipped
+at `skills/ba-assistant/learnings.md`, which the installer only ever uses to
+seed `_workstream/learnings.md` the first time, never to overwrite it).
 This file is the persistent memory across initiatives  -  it survives initiative
 close and is read by Intake_Reviewer at the start of every new initiative.
 

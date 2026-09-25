@@ -2,11 +2,11 @@
 
 **Location:** `~/.cursor/skills/ba-assistant/references/activity-map.md`
 **Owner:** execution-router (routing), this standard (the map)
-**Last reviewed:** 2026-08-03 (Version 10: model-tier column removed; Auto-balance assumed)
+**Last reviewed:** 2026-09-25 (Version 14: orchestrator slim; canvas on-demand; resume/`/reanchor` is default BAU)
 
 The single source of truth for how the BA Assistant's sub-skills group into **activities** and how each skill gets invoked. The user drives by activity ("I'm framing a problem", "I'm shaping a solution"), not by remembering 25 skill names. Leave the Cursor model picker on Auto-balance; do not print model-tier nudges.
 
-This map replaces the old "Specialist Skills" table in `ba-profile.mdc`. Workstreams (M0–M8) describe **where the initiative is**; activities describe **what kind of thinking the current task needs**. A Discovery-workstream task can still be a Frame activity (e.g. reframing the problem mid-discovery).
+This map replaces the old "Specialist Skills" table in `ba-profile.mdc`. Activities describe **what kind of thinking the current task needs** (Frame, Discover, Shape, Deliver, Run). Friendly phase names (Intake, Discovery, Delivery, etc.) are fine in chat; the old M0–M8 code list in `references/workstreams.md` is optional legacy only and is not required for day-to-day routing.
 
 ---
 
@@ -36,7 +36,8 @@ This map replaces the old "Specialist Skills" table in `ba-profile.mdc`. Workstr
 | Skill | Activity | Invocation |
 |---|---|---|
 | ba-setup | Onboarding | Explicit (first run) |
-| ba-intake-reviewer | Frame | Specialist |
+| ba-new-initiative | Frame | Explicit (project-creation trigger phrases; also invoked when resume finds no matching initiative folder) |
+| ba-intake-reviewer | Frame | Specialist (hands off from ba-new-initiative) |
 | ba-workshop-design | Frame | Specialist |
 | ba-sponsor-engagement | Frame | Specialist |
 | ba-stakeholder-strategy | Frame | Specialist |
@@ -51,10 +52,12 @@ This map replaces the old "Specialist Skills" table in `ba-profile.mdc`. Workstr
 | ba-jira-sync | Deliver | Specialist + Explicit |
 | ba-dev-handover | Deliver | Explicit (gate) |
 | ba-change-strategy | Deliver | Specialist |
-| ba-project-canvas | Run | Explicit (`/canvas` `/status`) + auto at gates |
+| ba-project-canvas | Run | Explicit (`/canvas` `/status`) only — never auto-generated |
 | ba-playback-and-enablement | Run | Specialist / Explicit |
 | ba-solution-evaluation | Run | Explicit (post-launch) |
 | ba-retrospective-and-learning | Run | Explicit (`/retro`) + auto-suggest |
+| ba-initiative-closeout | Run | Explicit (`/close`) |
+| ba-commitment-scan | Run | Explicit (end-of-day reconciliation, or "what did I promise/complete?") |
 | ba-risk-and-tracker | Cross-cutting | Monitor + specialist writes |
 | ba-anti-pattern-detector | Cross-cutting | Monitor |
 | ba-context-capture | Cross-cutting | Monitor |
@@ -76,5 +79,9 @@ Notes:
 5. Monitors are always notionally on; their triggers live in `execution-router.mdc`.
 
 ## 5. Versioning
+
+v1.3 (2026-09-25, Version 14). Canvas is on-demand only (`/canvas` `/status`). M0–M8 code list demoted to optional legacy; activities are the day-to-day routing model. Resume/`/reanchor` is the default BAU path.
+
+v1.2 (2026-09-25, Version 13). Added ba-new-initiative (Frame, hands off to ba-intake-reviewer), ba-initiative-closeout (Run, `/close`), and ba-commitment-scan (Run, end-of-day reconciliation).
 
 v1.1 (2026-08-03, Version 10). Model-tier column and nudge removed. Workboard listed as inline Run procedure. Adding or absorbing a skill requires updating this map in the same change.

@@ -6,6 +6,8 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
+import sys
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -107,7 +109,12 @@ def load_workboard_config(cursor_home: Path) -> dict:
         "ba_first_name": ba_name.split()[0] if ba_name not in ("[BA name]", "", "TBC") else "BA",
         "initiatives_root": resolve_initiatives_root(home, rules_text),
         "downloads_path": downloads.replace("\\", "/"),
-        "downloads_cmd": f'cmd /c dir "{downloads.replace(chr(92), chr(92)*2)}" /a-d /o-d',
+        "downloads_cmd": (
+            f'cmd /c dir "{downloads.replace(chr(92), chr(92)*2)}" /a-d /o-d'
+            if sys.platform == "win32"
+            else f'ls -lt "{downloads}"'
+        ),
+        "python_cmd": "py" if sys.platform == "win32" else "python3",
         "actions_file": actions_file,
         "actions_format_file": actions_format,
         "sync_command": sync_command,
@@ -141,9 +148,9 @@ def today_meetings(workboard: dict, calendar: dict, today: str) -> list[dict]:
         current = [item for item in calendar["meetings"] if str(item.get("start", "")).startswith(today)]
         if current:
             return current
-    for day in calendar.get("days", []):
+    for day in calendar.get("days") or []:
         if day.get("date") == today:
-            return day.get("meetings", [])
+            return day.get("meetings") or []
     if workboard.get("meetings_date") == today and isinstance(workboard.get("meetings_today"), list):
         return workboard["meetings_today"]
     return []
@@ -156,8 +163,8 @@ def normalize_downloads(workboard: dict) -> list[str]:
     if not isinstance(source, dict):
         return []
     return [
-        *[str(item) for item in source.get("new_since_last", [])],
-        *[str(item) for item in source.get("still_untriaged", [])],
+        *[str(item) for item in source.get("new_since_last") or []],
+        *[str(item) for item in source.get("still_untriaged") or []],
     ]
 
 
@@ -317,10 +324,8 @@ def priority_queue(actions: list[dict], today: str, refreshed_today: bool) -> li
 
 
 def normalize_stakeholder_raise(workboard: dict, config: dict) -> dict:
-    raw = workboard.get("stakeholder_raise") or workboard.get("alice_raise") or {}
+    raw = workboard.get("stakeholder_raise") or {}
     name = raw.get("name") or config.get("stakeholder_name")
-    if not name and workboard.get("alice_raise"):
-        name = "Alice"
     items: list[dict] = []
     for item in raw.get("items") or []:
         if item.get("status") != "open":
@@ -363,9 +368,7 @@ def normalize_stakeholder_raise(workboard: dict, config: dict) -> dict:
         "fyis": fyis,
         "openCount": len(items),
         "askCount": len(asks),
-        "sourceField": "stakeholder_raise" if workboard.get("stakeholder_raise") else (
-            "alice_raise" if workboard.get("alice_raise") else None
-        ),
+        "sourceField": "stakeholder_raise" if workboard.get("stakeholder_raise") else None,
     }
 
 
@@ -392,10 +395,10 @@ Then:
 3. For each initiative, refresh phase, milestone, blocker, risk, next action, and status from canonical files. Score status using workboard-format.md.
 4. Downloads: run {config['downloads_cmd']} (never Get-ChildItem). Triage files newer than last_refreshed. Skip installers, zips, lnk, ini.
 5. Jira movement for initiatives with jira_project. If Jira is unavailable, record unable to check and continue.
-6. Run {config['sync_command']} only if a debrief or tracker added {ba}-owned actions, then py _workstream/{config['regenerate_script']}.
+6. Run {config['sync_command']} only if a debrief or tracker added {ba}-owned actions, then {config['python_cmd']} _workstream/{config['regenerate_script']}.
 7. Write the snapshot to _workstream/workboard.json (including {config['actions_summary_field']}, downloads, last_refreshed). Keep Today as a read-only ordered day plan. Editable status, due, and notes belong only on Open actions.
 8. Generate the canvas from the portable template so these button prompts survive:
-   py _workstream/generate-workboard-canvas.py --cursor-home "{config['cursor_home']}" --canvas "{config['canvas_path']}"
+   {config['python_cmd']} _workstream/generate-workboard-canvas.py --cursor-home "{config['cursor_home']}" --canvas "{config['canvas_path']}"
 9. Keep tabs Today / Initiatives / Open actions, optional Stakeholder raise when configured, and buttons Update, End of Day, Save staged updates.
 
 Do not walk every open {ba} action (that is End of Day). Optional short AskQuestion only on today's remind or due items if yesterday was not closed out.
@@ -405,7 +408,7 @@ End with: what changed, the ordered Today queue, and AskQuestion for which prior
 
 def build_eod_prompt(config: dict) -> str:
     ba = config["ba_first_name"]
-    return f"""/wrap
+    return f"""/workboard end-of-day
 
 This is end-of-day closeout so tomorrow's board and {ba} actions are honest. Follow skills/ba-assistant/references/sync-procedures.md (Full end-of-day closeout sequence) in full. Do not skip steps. Do not output only a summary.
 
@@ -416,7 +419,7 @@ Also read:
 - _workstream/{config['actions_file']}.md
 - _workstream/{config['actions_file']}.json
 - _workstream/calendar-feed.json
-- {config['wrap_command']}
+- {config['workboard_command']}
 
 Cursor home: {config['cursor_home']}
 Initiative folders: {config['initiatives_root']}/{{slug}}/
@@ -433,14 +436,18 @@ Do these in order:
 
 4. Full-file state validation across all initiatives (entire SESSION-CONTEXT.md, initiative-tracker.md, status-data.json). Report drift with item counts. Do not invent owners or dates.
 
-5. Action runthrough. Walk every open, in_progress, or blocked {ba} action one-by-one, highest urgency first, using AskQuestion: Done, In progress, Follow up, Move deadline, Cancel, No update. Write {config['actions_file']}.json after answers. Then py _workstream/{config['regenerate_script']} and print Gate: {config['sync_gate']}: PASS/FAIL.
+5. Action runthrough. Walk every open, in_progress, or blocked {ba} action one-by-one, highest urgency first, using AskQuestion: Done, In progress, Follow up, Move deadline, Cancel, No update. Write {config['actions_file']}.json after answers. Then {config['python_cmd']} _workstream/{config['regenerate_script']} and print Gate: {config['sync_gate']}: PASS/FAIL.
 
 6. Promote unpromoted SESSION-CONTEXT items to the tracker, tagged [promoted]. Then run {config['sync_command']} again.
 
 7. Refresh _workstream/workboard.json: rescore initiative status (never default to on-track), recalc milestone days_out, mark today's meetings done, set last_refreshed now.
 
-8. Generate canvases/ba-workboard.canvas.tsx from the portable template:
-   py _workstream/generate-workboard-canvas.py --cursor-home "{config['cursor_home']}" --canvas "{config['canvas_path']}"
+7b. Roll calendar to the next working day (mandatory at EOD):
+   {config['python_cmd']} _workstream/roll-calendar-eod.py --workstream "{config['cursor_home']}/_workstream"
+   Print Gate: calendar-roll: PASS/FAIL. This updates calendar-feed.json (range + meetings) and workboard meetings_date / meetings_today / meetings_tomorrow for tomorrow morning.
+
+8. Generate canvases/ba-workboard.canvas.tsx (--eod-roll runs step 7b then generates for the rolled meetings_date):
+   {config['python_cmd']} _workstream/generate-workboard-canvas.py --eod-roll --cursor-home "{config['cursor_home']}" --canvas "{config['canvas_path']}"
    Preserve Today / Initiatives / Open actions, optional Stakeholder raise, and Update, End of Day, Save staged updates. Today stays read-only.
 
 9. Next-working-day prep (skip Sat/Sun unless critical meetings remain today). Include Reminders (commitments to start) from remind_on / due tomorrow, plus one concrete first action before standup.
@@ -454,16 +461,16 @@ def build_apply_prompt_prefix(config: dict) -> str:
     return (
         f"Apply the workboard action drafts below. Validate {config['action_id_pattern']} IDs and allowed "
         f"statuses/dates in _workstream/{config['actions_file']}.json, write only valid changes, regenerate "
-        f"{config['actions_file']}.md with py _workstream/{config['regenerate_script']}, then refresh the "
+        f"{config['actions_file']}.md with {config['python_cmd']} _workstream/{config['regenerate_script']}, then refresh the "
         f"workboard canvas."
     )
 
 
 def build_data(workboard: dict, actions_data: dict, calendar: dict, today: str, config: dict) -> dict:
-    initiatives = workboard.get("initiatives", [])
+    initiatives = workboard.get("initiatives") or []
     names = {str(item.get("slug")): str(item.get("name") or item.get("slug")) for item in initiatives if item.get("slug")}
     actions = []
-    for action in actions_data.get("actions", []):
+    for action in actions_data.get("actions") or []:
         if action.get("status") in {"done", "cancelled"}:
             continue
         row = dict(action)
@@ -476,9 +483,9 @@ def build_data(workboard: dict, actions_data: dict, calendar: dict, today: str, 
     refreshed_today = refreshed.startswith(today)
     top_action = next((item for item in priority_queue(actions, today, refreshed_today) if item["kind"] == "action"), None)
     go_live_today = [
-        str(initiative.get("next_milestone", {}).get("what"))
+        str((initiative.get("next_milestone") or {}).get("what"))
         for initiative in initiatives
-        if str(initiative.get("next_milestone", {}).get("date", ""))[:10] == today
+        if str((initiative.get("next_milestone") or {}).get("date", ""))[:10] == today
     ]
     suggested_focus = None
     suitable_gap = next((gap for gap in free_blocks if gap["minutes"] >= 60), None)
@@ -552,12 +559,41 @@ def resolve_actions_path(workstream: Path, config: dict) -> Path:
     return preferred
 
 
+def run_eod_calendar_roll(workstream: Path, closeout_date: str | None = None) -> str:
+    script = workstream / "roll-calendar-eod.py"
+    if not script.exists():
+        print(f"Gate: calendar-roll: FAIL (missing {script})")
+        return date.today().isoformat()
+    cmd = [sys.executable, str(script), "--workstream", str(workstream)]
+    if closeout_date:
+        cmd.extend(["--closeout-date", closeout_date])
+    proc = subprocess.run(cmd, capture_output=True, text=True)
+    if proc.stdout:
+        print(proc.stdout.rstrip())
+    if proc.stderr:
+        print(proc.stderr.rstrip(), file=sys.stderr)
+    if proc.returncode != 0:
+        print("Gate: calendar-roll: FAIL (roll-calendar-eod.py exited non-zero)")
+    wb = read_json(workstream / "workboard.json", {})
+    return str(wb.get("meetings_date") or date.today().isoformat())
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Generate the BA Workboard canvas")
     parser.add_argument("--cursor-home", type=Path, default=Path.home() / ".cursor")
     parser.add_argument("--source-home", type=Path, help="Read _workstream data from this home (defaults to --cursor-home)")
     parser.add_argument("--canvas", type=Path, help="Absolute target .canvas.tsx path")
     parser.add_argument("--today", default=date.today().isoformat())
+    parser.add_argument(
+        "--eod-roll",
+        action="store_true",
+        help="EOD closeout: roll calendar to next working day before generating (runs roll-calendar-eod.py)",
+    )
+    parser.add_argument(
+        "--closeout-date",
+        default=None,
+        help="With --eod-roll: date being closed out (YYYY-MM-DD). Default: workboard meetings_date.",
+    )
     args = parser.parse_args()
 
     home = args.cursor_home.expanduser().resolve()
@@ -566,6 +602,9 @@ def main() -> int:
     config = load_workboard_config(home)
     if args.canvas:
         config["canvas_path"] = posix(args.canvas.expanduser().resolve())
+
+    if args.eod_roll:
+        args.today = run_eod_calendar_roll(workstream, args.closeout_date)
 
     workboard = read_json(workstream / "workboard.json", {"initiatives": []})
     actions = read_json(resolve_actions_path(workstream, config), {"actions": []})

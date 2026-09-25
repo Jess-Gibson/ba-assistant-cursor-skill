@@ -18,20 +18,21 @@ Hard rules:
 - Do NOT replace commands/workboard.md or commands/wrap.md unless I confirm. If they already exist, leave them and write *.package siblings for comparison.
 
 Please:
-1. Find the extracted folder (it contains tools/upgrade-workboard.py). Run a dry-run:
-   py tools/upgrade-workboard.py --package "<extracted folder>"
-   (or python / python3 if py is missing)
+1. Find the extracted folder (it contains tools/upgrade-workboard.py). Run a dry-run using
+   whichever Python launcher actually resolves on this machine (`python3` on Mac/Linux,
+   `py` on Windows — try one, fall back to the other):
+   python3 tools/upgrade-workboard.py --package "<extracted folder>"
 
 2. Show me REPLACE vs PROTECT vs KEEP. Stop and ask if anything looks like it would overwrite my data or a file I customised.
 
 3. After I confirm, apply with preview (not live canvas):
-   py tools/upgrade-workboard.py --package "<extracted folder>" --apply
+   python3 tools/upgrade-workboard.py --package "<extracted folder>" --apply
    That writes capability files and generates canvases/ba-workboard-overlay-preview.canvas.tsx from MY existing JSON.
 
 4. Open or tell me how to open the preview canvas. Ask: keep preview only, promote preview to my live ba-workboard.canvas.tsx, or discard.
 
 5. If I like the preview, regenerate the live canvas from my data:
-   py _workstream/generate-workboard-canvas.py --canvas "<my canvases folder>/ba-workboard.canvas.tsx"
+   python3 _workstream/generate-workboard-canvas.py --canvas "<my canvases folder>/ba-workboard.canvas.tsx"
    Do not seed empty JSON. Do not invent initiatives.
 
 If you are unsure whether a file is personalised, ASK ME. Do not guess.

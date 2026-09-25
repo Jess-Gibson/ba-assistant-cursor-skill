@@ -5,6 +5,13 @@ description: Process a meeting (transcript, notes, or recall) into structured up
 
 # Skill: Meeting Debrief
 
+## Standards used
+
+- `references/raid-format.md`: decisions, risks, open questions, and actions extracted from a meeting, before they route to Risk and Tracker
+- `references/proactive-assistance-protocol.md`: pre-meeting brief preparation this skill's reverse mode produces
+
+If standards conflict with skill-specific guidance below, the standard wins.
+
 ## Description
 
 The Meeting Debrief skill captures the value of a meeting and propagates it through the BA Assistant's living tracker and specialist skills. It can be invoked **any time**  -  meetings happen across all phases (kickoffs, discovery workshops, solution review, sprint planning, stakeholder check-ins, sponsor 1:1s, retros, ad-hoc syncs).
@@ -71,6 +78,20 @@ When the user says "debrief" without specifying an initiative, the skill must de
 ## Batch routing (one-approval flow)
 
 Instead of asking for approval at each routing step, the debrief produces a **single batch update card** after extraction. This is the biggest time-saver -- one review, one approval, all files updated.
+
+### Show in chat first (mandatory)
+
+**Always** post the full debrief extraction in chat **before** any file writes and **before** the approval AskQuestion. The user must be able to read the substance without opening files.
+
+Minimum in chat:
+1. Meeting context (name, date, attendees, initiative scope)
+2. Decisions made and deferred
+3. Actions (all five types) with owners and dates
+4. Open questions with paired actions
+5. RAID / knowns / cross-reference (new vs update vs skip)
+6. The batch update card ("WILL WRITE TO…") summarising file targets
+
+Then use AskQuestion for approve / edit / skip comms. **Do not** ask for approval with only a one-line summary.
 
 ### Batch update card format
 
@@ -150,15 +171,15 @@ Each initiative's files are updated separately. The sync gate runs for each affe
 | User said "debrief" with no file  -  find newest transcript | 3-day scoped list only (below) |
 | User said "debrief [initiative]" with no file | 3-day scoped list only, then auto-detect from filenames + content |
 
-**Command (mandatory when scanning is needed):**
+**Command (mandatory when scanning is needed)** — cross-platform, use your platform's Python launcher (`py` on Windows, `python3` on Mac/Linux):
 
-```powershell
-& "$env:USERPROFILE\.cursor\_workstream\list-downloads-recent.ps1" -Days 3
+```
+python3 _workstream/list-downloads-recent.py --path "[Downloads folder - set BA_DOWNLOADS_PATH]" --days 3
 ```
 
-The script uses `cmd /c dir` internally (sorted newest-first) and stops when files are older than 3 days. Typical result: ~10 files, not 100+.
+Lists files modified in the last 3 days, newest first. Typical result: ~10 files, not 100+.
 
-**Never during debrief:** `cmd /c dir "[Downloads folder - set BA_DOWNLOADS_PATH]" /a-d /o-d` (full folder).
+**Never during debrief:** the full-folder Downloads check (`references/workspace-operations.md`'s OS table) — that's for `/workboard`, `/reanchor`, and resume only.
 
 Cross-reference the 3-day list against SESSION-CONTEXT / tracker for what's already debriefed. Prefer transcript-like files (`.docx`, `.vtt`, `.txt`) when auto-picking "newest unprocessed".
 
@@ -166,31 +187,29 @@ Cross-reference the 3-day list against SESSION-CONTEXT / tracker for what's alre
 
 ## Docx transcript ingestion (mandatory  -  agent Shell)
 
-The Read tool **cannot** open `.docx`. When the source is a Word transcript (Downloads, `@` attachment, or path in the user message), **never** use nested `powershell -Command`, inline `$path`/`$zip`/`$xml` variables, or `Expand-Archive` in Shell.
+The Read tool **cannot** open `.docx` directly. When the source is a Word transcript (Downloads, `@` attachment, or path in the user message), extract it with `_workstream/extract-docx-text.py` (stdlib-only, no PowerShell, no external packages  -  runs identically on Windows and Mac/Linux):
 
-**Always run this exact pattern** (replace paths only). Cursor's shell is **already PowerShell**  -  use direct call (`&`), not nested `powershell -NoProfile -File`:
-
-```powershell
-& "$env:USERPROFILE\.cursor\_workstream\extract-docx-text.ps1" -DocxPath "FULL_PATH_TO.docx" -OutPath "$env:USERPROFILE\.cursor\_workstream\debrief-extract-SLUG.txt"
+```
+python3 _workstream/extract-docx-text.py --docx-path "FULL_PATH_TO.docx" --out-path "_workstream/debrief-extract-SLUG.txt"
 ```
 
-**Before Shell:** `Test-Path` the `-OutPath`. If the text file exists and is newer than the docx, **skip extraction** and Read the out file directly.
+(Windows: use `py` instead of `python3`.)
+
+**Before running it:** check whether `--out-path` already exists and is newer than the source docx. If so, **skip extraction** and Read the out file directly.
 
 | Canonical outputs (Sample Initiative 17 Jul debrief) | Path |
 |---|---|
-| Arthur no-regrets transcript | `_workstream\debrief-extract-rba-noregrets-17jul.txt` |
-| ARL scope transcript | `_workstream\debrief-extract-arl-scope.txt` |
+| No-regrets transcript | `_workstream\debrief-extract-sample-initiative-noregrets-17jul.txt` |
+| Scope transcript | `_workstream\debrief-extract-sample-initiative-scope.txt` |
 
-Then **Read** the `-OutPath` text file and debrief from that.
+Then **Read** the `--out-path` text file and debrief from that.
 
-| Need | Script |
+| Need | Command |
 |---|---|
-| Text for debrief (default) | `_workstream\extract-docx-text.ps1` |
-| Unzip docx XML only | `_workstream\extract-docx.ps1` |
+| Text for debrief (default) | `extract-docx-text.py --docx-path ... --out-path ...` |
+| Unzip docx XML only (formatting/track-changes visible) | same command, add `--raw-xml` |
 
-If `beforeShellExecution` blocks a nested `-Command`, **immediately retry** with the `-File` line above. Do not retry the blocked pattern.
-
-Fallback if the script fails: `py -c "import zipfile,re,sys; ..."` (see `workspace-operations.md`). Never nest `powershell -Command`.
+If the script errors (not a valid `.docx`, missing file, unreadable XML), it prints a clear message and exits non-zero rather than crashing  -  read the error and fix the input path, don't retry blindly.
 
 ## Tasks
 
@@ -326,6 +345,8 @@ Fallback if the script fails: `py -c "import zipfile,re,sys; ..."` (see `workspa
     - Identify decisions needed at this meeting
     - Propose an agenda
     - Draft a pre-read for sponsor / key attendees if appropriate
+
+    The orchestrator may invoke this as the cheap preparation selected by `references/proactive-assistance-protocol.md`, when calendar and current state make the meeting relevant. Prepare the brief locally or in chat. Do not send a pre-read or alter the calendar without the user's instruction.
 
 ## Typical Questions to Ask
 

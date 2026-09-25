@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Upgrade an existing BA Assistant install to Version 10 without clobbering personal config.
+Upgrade an existing BA Assistant install to the current package version (see VERSION / CHANGELOG.md) without clobbering personal config.
 
 Usage:
   python upgrade-ba-assistant.py --package "C:\\path\\to\\ba-assistant-cursor-skill" [--dry-run]
@@ -17,10 +17,8 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-VERSION = "11"
-
 PROTECTED_RULE_NAMES = {"ba-profile.mdc", "ba-assistant-config.mdc"}
-VOICE_HINTS = ("voice", "jess-voice")
+VOICE_HINTS = ("voice",)
 
 PACKAGE_RULES = [
     "skills-routing.mdc",
@@ -113,7 +111,7 @@ def migrate_personal_tasks(workstream: Path, dry_run: bool) -> list[str]:
     except json.JSONDecodeError:
         return ["MIGRATE fail: workboard.json invalid JSON"]
 
-    pts = [p for p in data.get("personal_tasks", []) if p.get("status") in (None, "open", "in_progress", "blocked")]
+    pts = [p for p in data.get("personal_tasks") or [] if p.get("status") in (None, "open", "in_progress", "blocked")]
     if not pts:
         return ["MIGRATE skip: no open personal_tasks"]
 
@@ -157,7 +155,7 @@ def migrate_personal_tasks(workstream: Path, dry_run: bool) -> list[str]:
     if not dry_run:
         ba.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         # Archive personal_tasks in workboard
-        data["personal_tasks_archived_v10"] = data.get("personal_tasks", [])
+        data["personal_tasks_archived_v10"] = data.get("personal_tasks") or []
         data["personal_tasks"] = []
         wb.write_text(json.dumps(data, indent=2), encoding="utf-8")
         actions.append("MIGRATE archived personal_tasks into personal_tasks_archived_v10; cleared personal_tasks[]")
@@ -201,7 +199,7 @@ def seed_workstream(workstream: Path, dry_run: bool) -> list[str]:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Upgrade BA Assistant to Version 10")
+    ap = argparse.ArgumentParser(description="Upgrade BA Assistant to the current package version")
     ap.add_argument("--package", required=True, help="Path to ba-assistant-cursor-skill checkout or extract")
     ap.add_argument("--apply", action="store_true", help="Apply changes (default is dry-run)")
     ap.add_argument("--force-personal", action="store_true", help="Allow overwriting ba-profile.mdc (dangerous)")
@@ -215,6 +213,9 @@ def main() -> int:
     if not skills_pkg.exists():
         log(f"ERROR: package skills not found at {skills_pkg}")
         return 1
+
+    pkg_ver_file = pkg / "VERSION"
+    VERSION = pkg_ver_file.read_text(encoding="utf-8").strip() if pkg_ver_file.exists() else "unknown"
 
     home = cursor_home()
     skills_dest = home / "skills" / "ba-assistant"

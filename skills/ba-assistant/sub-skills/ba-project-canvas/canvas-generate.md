@@ -308,8 +308,8 @@ const SCOPES: Scope[] = [
 
 | ❌ Bad (BA jargon) | ✅ Good (real business context) |
 |---|---|
-| `label: "F-A Rule Uplift"` | `label: "Data Collection Uplift Collection Uplift"` |
-| `shortLabel: "Feature A"` | `shortLabel: "Data Collection Uplift Uplift"` |
+| `label: "F-A Rule Uplift"` | `label: "Data Collection Uplift"` |
+| `shortLabel: "Feature A"` | `shortLabel: "Data Collection"` |
 | `label: "Cohort A: Stale Draft"` | `label: "Stale Drafts (<30d, never live)"` |
 | `shortLabel: "Cohort A"` | `shortLabel: "Stale Drafts"` |
 | `label: "Cohort B: Churned >7yr"` | `label: "Churned merchants (>7yr)"` |

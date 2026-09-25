@@ -40,7 +40,7 @@ If a handover needs something that isn't confirmed yet, the handover stops and e
 
 ## Cross-cutting rules
 
-- This skill produces multiple artefact-class outputs. Before generating, apply the **"What I'll produce next" declaration** rule from `ba-assistant/SKILL.md → Co-thinking and artefact production protocol`. Surface the planned handover artefact and its gate result, then let the user confirm before publishing.
+- This skill produces multiple artefact-class outputs. Before generating, apply the **"What I'll produce next" declaration** rule from `references/co-thinking-protocol.md`. Surface the planned handover artefact and its gate result, then let the user confirm before publishing.
 - Apply the **co-thinking journey** (what I know / what I don't / recommendation / trade-off / ask) before publishing anything the user hasn't explicitly requested by type.
 - Follow the **real business names** rule: handover artefacts use real scope names (e.g. "High-risk merchants"), never internal codes (`C-A`), in any human-readable field.
 - Print the **visible skill handoff header** on every hook (`> Running: <Skill> → <intent>`).

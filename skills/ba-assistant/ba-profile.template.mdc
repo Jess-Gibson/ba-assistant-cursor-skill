@@ -62,6 +62,7 @@ paths:
 
 ```yaml
 defaultDraftDepth: "standard"   # minimal | standard | comprehensive
+stopFollowup: false             # true | false
 ```
 
 **What this means:**
@@ -70,6 +71,8 @@ defaultDraftDepth: "standard"   # minimal | standard | comprehensive
 - `comprehensive` — full artefacts at every step unless you say otherwise.
 
 Override per artefact any time by saying so in chat.
+
+**`stopFollowup`** — when the stop hook detects unpromoted items in `SESSION-CONTEXT.md` (decisions, risks, open questions), it can auto-submit a reminder as if you'd typed it (a "ghost" turn), once per conversation. Default is **off**: the assistant stays silent and you notice unpromoted items yourself (or via `/wrap`, `/validate-state`). Set to `true` to opt into the automatic nudge.
 
 ---
 

@@ -2,6 +2,8 @@
 
 This file documents **every inter-skill hook** in the BA Assistant as a stable contract. Hooks are how specialist skills delegate work to each other; without explicit contracts they drift, duplicate, or silently fail.
 
+Section headers below label hooks by the workstream they belong to (e.g. "M0 Intake", "M2a"). These are optional cross-references. Day-to-day routing uses `references/activity-map.md`. The M0–M8 glossary is `references/workstreams.md` and is not loaded at orchestrator bootstrap.
+
 **Treat this file as the API.** When changing a hub skill (one called by many others), check this registry first to see what callers depend on. When adding a new hook, add an entry here.
 
 ---
@@ -29,25 +31,15 @@ This file documents **every inter-skill hook** in the BA Assistant as a stable c
 - 🟣 **Wave 4**  -  added or modified in Wave 4 (May 2026)
 - 🟣 **Wave 5**  -  added or modified in Wave 5 (May–Jun 2026)
 - 🟤 **Wave 8**  -  added or modified in Wave 8 (Jul 2026)  -  `ba-data-investigation` data-grounding rollout
+- 🟠 **Wave 9**  -  added or modified in Wave 9 (Aug 2026)  -  `ba-dev-handover` gated publish rollout
+- 🔵 **Wave 10**  -  added or modified in Wave 10 (Sep 2026)  -  initiative lifecycle bookends (`ba-new-initiative`, `ba-initiative-closeout`) and `ba-commitment-scan`
 - 🔴 **Deprecated**  -  kept for compatibility but a replacement exists
 
-### Visible status header rule (Wave 4  -  MANDATORY)
+### Visible status header rule (Wave 4 - MANDATORY)
 
-**Every hook in this registry MUST be preceded by a visible status header in the chat.** This is non-negotiable. See `ba-assistant/SKILL.md → "Visible skill handoffs (MANDATORY  -  Wave 4 enforcement)"` for the format and rules.
+**Every hook in this registry MUST be preceded by a visible status header in the chat.** Format, completion-line shape, and examples are canonical in `references/co-thinking-protocol.md` (Visible skill handoffs). Do not restate the template here.
 
 If a hook fires without a header, the user loses visibility into what the assistant is doing. Treat missing headers as a bug, not a stylistic choice.
-
-Format:
-
-```
-> Running: <Skill Name> [(mode)] → <one-line intent>
-```
-
-Completion line (after the hook returns):
-
-```
-✓ <Skill Name> complete  -  <one-line outcome>
-```
 
 ---
 
@@ -64,22 +56,27 @@ These skills receive the most hooks. Changes to them are highest-risk.
 | `Sponsor_Engagement` | 7+ | Sustained sponsor relationship  -  many phases call back |
 | `Anti_Pattern_Detector` | passive (no inbound) | Watches all outputs; flags inline |
 | `Meeting_Debrief` | event-driven | Called after every meeting; routes outputs to many skills |
-| `ba-data-investigation` | 7 | Canonical data-pairing skill  -  every confidence score, priority, risk rating, and solution comparison that wants evidence routes here (Wave 8) |
+| `ba-data-investigation` | 9 | Canonical data-pairing skill  -  every confidence score, priority, risk rating, and solution comparison that wants evidence routes here (Wave 8) |
 | `ba-dev-handover` | outbound only | Publishes confirmed analysis to the delivery repo; calls Interrogator (handoff-and-halt), Data Investigation, Risk & Tracker, Jira, State Validator (Wave 9) |
 
 ---
 
 ## All hooks (caller → callee)
 
+### New Initiative (M0 Intake prep, Wave 10)  -  outbound
+
+| Hook ID | Callee | Trigger | Inputs | Outputs | Failure mode | Status |
+|---|---|---|---|---|---|---|
+| HK-NEWI-BDI-baseline | ba-data-investigation | During the multi-source research pass, if a quantitative baseline exists to check | Candidate baseline metric, sources found | Cross-validated baseline or qualitative flag | Warn  -  cap Problem Clarity confidence at Medium until checked | 🔵 W10 (moved from ba-intake-reviewer's old `HK-INTK-BDI-baseline`, Wave 8, when multi-source research moved to this skill) |
+
 ### Intake Reviewer (M0 Intake)  -  outbound
 
 | Hook ID | Callee | Trigger | Inputs | Outputs | Failure mode | Status |
 |---|---|---|---|---|---|---|
 | HK-INTK-SPON-init | Sponsor_Engagement | Phase 0, after sponsor named | sponsor name, role, decision rights | Sponsor profile draft | If no sponsor identified, log as 🧨 risk and proceed | 🟡 W3 |
-| HK-INTK-CSA-baseline | Current_State_Assessment | If initiative deemed `standard` or `full` complexity (Wave 3  -  Step 7) | Initiative context, known systems | Current state report draft | Lean intake skips; logs as assumption | 🟡 W3 |
+| HK-INTK-CSA-baseline | Current_State_Assessment | If initiative deemed `standard` or `full` complexity | Initiative context, known systems | Current state report draft | Lean intake skips; logs as assumption | 🟡 W3 |
 | HK-INTK-RT-init | Risk_and_Tracker | Always at end of Phase 0 | Initial knowns/unknowns from intake | Tracker initialised | Block  -  no Phase 1 without tracker | 🟢 |
 | HK-INTK-CANV-init | Project_Canvas | Always at end of Phase 0 | Tracker, initial scope | Canvas + HTML snapshot at Phase 0 state | Warn; not blocking | 🟢 |
-| HK-INTK-BDI-baseline | ba-data-investigation | Step 2 (multi-source context gathering), if a quantitative baseline exists to check | Candidate baseline metric, sources found | Cross-validated baseline or qualitative flag | Warn  -  cap Problem Clarity confidence at Medium until checked | 🟤 W8 |
 
 ### Workshop Design (M1 Kickoff and workshop triggers)  -  outbound
 
@@ -242,6 +239,14 @@ These skills receive the most hooks. Changes to them are highest-risk.
 | HK-SV-APD-patterns | Anti_Pattern_Detector | After validation | Divergence list | Updated watchlist entries (only if patterns) | Warn | 🟣 W5 |
 | HK-SV-COMD-supersede | Communication_Drafter | When pages need superseding | Page list | Supersede banner content | Warn  -  manual fallback | 🟣 W5 |
 
+### Initiative Closeout (Wave 10)  -  outbound
+
+| Hook ID | Callee | Trigger | Inputs | Outputs | Failure mode | Status |
+|---|---|---|---|---|---|---|
+| HK-CLOSE-RETRO-closure | Retrospective_and_Learning | Step 1, always, first | Initiative slug | Type 3 closure retro output | Block  -  cannot proceed to file audit without it | 🔵 W10 |
+| HK-CLOSE-SV-postmove | State_Validator | Step 8, after archive move | Old path, new path | Divergence report | Block  -  closing gate | 🔵 W10 |
+| HK-CLOSE-COMD-supersede | Communication_Drafter | Step 3, if pages need a supersede banner | Page list | Supersede banner content | Warn  -  manual fallback | 🔵 W10 |
+
 ### Dev Handover (Wave 9)  -  outbound
 
 | Hook ID | Callee | Trigger | Inputs | Outputs | Failure mode | Status |
@@ -251,6 +256,12 @@ These skills receive the most hooks. Changes to them are highest-risk.
 | HK-DH-RT-raid | Risk_and_Tracker | Handover references a dependency/decision/constraint | RAID reference | RAID summary table EMBEDDED in the artefact (tracker IDs preserved; tracker never linked) | Block  -  untraceable handover | 🟠 W9 |
 | HK-DH-JIRA-ticket | Project Jira skill (jira-templates convention; create-your-own in the public repo) | Spike/ADR/story published, gate passed | Published markdown | Jira ticket created/updated | Warn  -  markdown stands; ticket pending | 🟠 W9 |
 | HK-DH-SV-register | ba-state-validator | After publish | Handover + source artefact IDs | Dependency registered for drift watch | Warn  -  manual re-check fallback | 🟠 W9 |
+
+### Data Investigation (cross-cutting, Wave 8)  -  inbound
+
+| Hook ID | Callee | Trigger | Inputs | Outputs | Failure mode | Status |
+|---|---|---|---|---|---|---|
+| HK-ST-BDI-gold-before-bulk | ba-data-investigation | Any skill, before asking a human to review a bulk transform (hundreds of rows) or treating a remapped spreadsheet as ready to send | Transform output, row count | Gold cases + must-not-regress list + checker run | Warn  -  do not publish until gold cases and checker pass | 🟤 W8 |
 
 ---
 
@@ -307,3 +318,9 @@ Not a `ba-*` inter-skill hook (it's a lifecycle hook, `beforeMCPExecution`), but
 - **Jul 2026 hardening:** Added mandatory `context_explore` inventory section after a frame-on-frame overlap incident  -  hook no longer accepts a generic plan file without board inventory and placement sections.
 - **Fail-open:** hook errors (bad JSON, missing env, etc.) always resolve to `allow`  -  a bug in the gate script must never block unrelated work.
 - **Anti-Pattern Detector cross-reference:** the existing soft trigger row ("Pre-flight compliance not demonstrated") in `ba-anti-pattern-detector/SKILL.md` stays in place as a narrative/visibility layer; the hook is now the actual enforcement.
+
+### Correction (conformance audit, Sep 2026): this hook never shipped in this package
+
+The section above describes work that was never carried through: there is no `gate-miro-preflight.py` (or `.ps1`/`.sh` twin) under `hooks/`, and `hooks/hooks.json`'s `beforeMCPExecution` block only registers `jira-dor-gate.py`  -  `gate-miro-preflight` is not referenced anywhere in it. The `$env:CURSOR_MIRO_PREFLIGHT_OK` / `$env:CURSOR_MIRO_PREFLIGHT_WINDOW_MIN` overrides described above are likewise not read by any script in this repo.
+
+`rules/critical-gates.mdc` has been corrected accordingly: the Miro pre-flight row is now marked **SOFT (manual check)**, not HARD, until the script above is actually written and registered. Treat everything above this note as a design record of intended work, not a description of current package behaviour.

@@ -1,10 +1,10 @@
 {
   "version": 1,
-  "_comment": "Wave: D3/C1/C1b/C3 blocks added 5 Jul 2026, verified against Cursor hooks docs. Scripts are cross-platform python (sh/ps1 twins in hooks/). stop emits followup_message (only documented stop output); beforeSubmitPrompt additional_context is a documented no-op today, registered for future-proofing; postToolUse carries the shared-repo warning (afterFileEdit has no output channel).",
+  "_comment": "Wave: D3/C1/C1b/C3 blocks added 5 Jul 2026, verified against Cursor hooks docs. Every hook script is a single cross-platform hooks/*.py file (no more sh/ps1 twins - session-init.py and snapshot-before-compact.py replaced the last two PowerShell-only entries). The 'python'/'python3'/'py' interpreter token in each command below still needs to be OS-correct (bare `python` resolves to nothing, or to the Microsoft Store stub, on a fresh Windows install; Mac/Linux commonly ship `python3` but not a bare `python`) - tools/install-ba-assistant.py rewrites that token to `py` (Windows) or `python3` (Mac/Linux) for the package's own entries when it installs/merges this file, so this shipped copy is a template, not the literal command Cursor will run. stop can emit followup_message (only documented stop output, auto-submits a ghost user turn) but defaults OFF -- opt in with `stopFollowup: true` in ba-assistant-config.mdc (see inject-state-reminder.py's stop_followup_enabled()); beforeSubmitPrompt additional_context is a documented no-op today, registered for future-proofing; postToolUse carries the shared-repo warning (afterFileEdit has no output channel).",
   "hooks": {
     "sessionStart": [
       {
-        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/session-init.ps1",
+        "command": "python ./hooks/session-init.py",
         "timeout": 10
       },
       {
@@ -15,7 +15,7 @@
     ],
     "preCompact": [
       {
-        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/snapshot-before-compact.ps1",
+        "command": "python ./hooks/snapshot-before-compact.py",
         "timeout": 8
       }
     ],
@@ -30,7 +30,7 @@
       {
         "command": "python ./hooks/jira-dor-gate.py",
         "timeout": 8,
-        "failClosed": false
+        "failClosed": true
       }
     ],
     "afterFileEdit": [

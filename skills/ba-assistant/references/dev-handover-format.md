@@ -2,7 +2,7 @@
 
 **Location:** `~/.cursor/skills/ba-assistant/references/dev-handover-format.md`
 **Owner:** ba-dev-handover (workflow), this standard (format)
-**Last reviewed:** 2026-07-05
+**Last reviewed:** 2026-09-25
 
 Canonical source for the four dev handover artefact shapes, the handover note wrapper, the shared-repo folder convention, and the confirmed-vs-working boundary. The Dev Handover skill produces artefacts in conformance with this file. State Validator checks published handovers against it and against the confirmed register they derive from.
 

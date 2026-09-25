@@ -26,6 +26,7 @@ The method below is not generic analytics practice  -  it's distilled directly f
 | `HK-CSA-BDI-data` | Current State Assessment | Any quantitative slice needed (volumes, failure rates, latency, error counts) | Warn  -  proceed qualitatively, flag gap in the Current State Report |
 | `HK-DISC-BDI-validate` | Discovery and Requirements | An assumption or hypothesis needs data validation | Warn  -  proceed with the assumption flagged (⚠️) |
 | `HK-EVAL-BDI-actual` | Solution Evaluation | Pulling actual outcome metrics post-launch | Block  -  no evaluation without actuals (unchanged from prior `pm-data-analyst` hook) |
+| `HK-ST-BDI-gold-before-bulk` | Short-term / data packs (any skill publishing a remapped spreadsheet) | Before asking a human to review a bulk transform (hundreds of rows) or treating it as ready to send | Warn: do not publish. Write gold cases and a must-not-regress list, run a checker, then publish. |
 
 Every caller shows the standard visible status header before invoking: `> Running: Data Investigation → <one-line intent>`.
 
@@ -181,9 +182,20 @@ Used for the micro-decision hooks (`HK-SOL-BDI-viability`, `HK-SLI-BDI-sizing`, 
 
 Don't run the full artefact structure for a micro-decision  -  it's disproportionate. The quick format still applies the same rigor (steps 1-10 above), just reported concisely.
 
+### Gold cases before bulk publish (`HK-ST-BDI-gold-before-bulk`)
+
+Do not use the confidence-score pairing prompt for this hook. Before publishing or handing a bulk remapped pack for human review:
+
+1. Name the source-of-truth path. Do not mutate those columns.
+2. Write gold cases (expected outputs for known messy rows) and a must-not-regress list (rows that must stay as parsed).
+3. Run a checker against those lists.
+4. Only then ask the human to review.
+
+If the checker is missing, stop and say so. Do not ship "improved" rows first.
+
 ## The reusable pairing prompt
 
-Every hook above fires this before proceeding, unless the calling skill already has a fresh, cross-validated answer in hand from earlier in the session:
+Every hook above except `HK-ST-BDI-gold-before-bulk` fires this before proceeding, unless the calling skill already has a fresh, cross-validated answer in hand from earlier in the session:
 
 ```
 I don't have hard data behind this [confidence score / priority / risk rating / solution comparison] yet  -  it's a judgement call right now.

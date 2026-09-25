@@ -12,17 +12,17 @@ When populating a meeting debrief into an existing frame that already has facili
 
 | Section | Board element | Notes |
 |---|---|---|
-| Summary / overview | Content Panel (header + grey box + text) | Narrative  -  use standard panel pattern from `design-system.md` |
+| Summary / overview | Accent Card (Pattern A) | Narrative  -  purple rail + grey round card from `design-system.md` |
 | Decisions table | Coloured header + grey backdrop + Miro TABLE inside | Table must be visually contained within a labelled section |
 | Action items table | Coloured header + grey backdrop + Miro TABLE inside | Same pattern as Decisions |
 | Open questions table | Coloured header + grey backdrop + Miro TABLE inside | Same pattern as Decisions |
 | RAID updates table | Coloured header + grey backdrop + Miro TABLE inside | Same pattern as Decisions |
-| Stakeholder signals | Content Panel (header + grey box + text) | Narrative with bold names |
-| Cross-cutting impacts | Content Panel (header + grey box + text) | Narrative with bold labels |
-| Before next meeting | Content Panel (header + grey box + text) | Grouped by timeframe |
-| Decisions deferred | Content Panel or TABLE | Depends on volume |
-| Knowns confirmed | Content Panel or TABLE | Depends on volume |
-| Attendance | Content Panel (header + grey box + text) | If not already in facilitation content |
+| Stakeholder signals | Accent Card (Pattern A) | Narrative with bold names |
+| Cross-cutting impacts | Accent Card (Pattern A) | Narrative with bold labels |
+| Before next meeting | Accent Card (Pattern A) | Grouped by timeframe |
+| Decisions deferred | Accent Card or TABLE | Depends on volume |
+| Knowns confirmed | Accent Card or TABLE | Depends on volume |
+| Attendance | Accent Card (Pattern A) | If not already in facilitation content |
 
 **CRITICAL: Tables must be wrapped in labelled sections.** A bare Miro table on the board with no header or visual container is unreadable when zoomed out  -  the viewer cannot tell what the table represents without reading individual cells. Every table MUST have:
 1. A coloured header shape directly above it identifying the section (e.g. "Decisions (D-053 to D-059)")
@@ -80,7 +80,7 @@ Key structural rules:
 
 1. `layout_read` the target frame  -  understand what exists and where space is available
 2. Map debrief sections to horizontal positions in reading order
-3. Create all narrative sections (header + grey box + text) via a single `layout_create` call
+3. Create all narrative sections (Accent Card Pattern A) via a single `layout_create` call
 4. Create Miro tables via `table_create` + `table_sync_rows` at the correct positions
 5. Create header shapes above each table via `layout_create` (matching table center x)
 6. `layout_read` to verify  -  check for overlaps, misalignment, missing content

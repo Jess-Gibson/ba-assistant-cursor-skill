@@ -176,7 +176,7 @@ If `yes`, **same or next AskQuestion panel** (free-text is the answer):
 - `url` — Type the URL in the free-text field
 - `skip_url` — Skip URL for now
 
-> What is your main Jira project key? (e.g. FCM or TEAM)
+> What is your main Jira project key? (e.g. PROJ or TEAM)
 
 - `key` — Type the project key in the free-text field
 - `skip_key` — Skip project key for now
@@ -244,7 +244,8 @@ checklist in plain language:
 
 If they need to connect anything **Missing**:
 
-1. Open **[Runlayer servers](https://myob.runlayer.com/servers)** (SSO).
+1. Open your organisation's Runlayer servers page (SSO) — ask your admin for
+   the URL if you don't have it (typically `https://<your-org>.runlayer.com/servers`).
 2. Search for the name (e.g. `Glean`, `Microsoft Outlook Calendar`,
    `Atlassian - Jira`, `Atlassian - Confluence`).
 3. **Add to client** → Cursor → Authenticate in Cursor Settings → Tools & MCP.

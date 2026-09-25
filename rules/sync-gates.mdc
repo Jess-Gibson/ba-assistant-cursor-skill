@@ -1,6 +1,6 @@
 ---
 description: Sync gate pointer — when state-drift checks fire and where the procedures live
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Sync gates (pointer)
@@ -10,15 +10,15 @@ State drift is the number one workflow pain. Enforcement is layered:
 | Layer | Mechanism | What |
 |---|---|---|
 | Inline capture | `ba-context-capture` (every turn) | New facts/decisions → SESSION-CONTEXT.md, silent |
-| Deterministic breakpoints | `stop` + `preCompact` hooks | Unpromoted-item count + staleness computed from files, injected only when real |
+| Deterministic breakpoints | `stop` + `preCompact` hooks (`inject-state-reminder.py --stop`, `snapshot-before-compact.py`) | Unpromoted-item count + staleness computed from files, injected only when real |
 | Judgement breakpoints | This pointer | The triggers below — run the procedure from the reference |
 
 **Triggers that MUST run a quick sync check:** after a debrief completes · before switching initiatives · before any Confluence publish · on `/validate-state` (report-only) · on `/wrap` (fix + close).
 
-**Procedures** (check steps, sync card format, auto-promotion rules, BA-actions runthrough, full `/wrap` closeout): load `ba-assistant/references/sync-procedures.md` when a trigger fires or a sync command runs.
+**Procedures** (check steps, sync card format, auto-promotion rules, BA-actions runthrough): load `ba-assistant/references/sync-procedures.md` when a trigger fires or a sync command runs. The end-of-day action runthrough is heavier and lives separately in `references/eod-closeout-procedure.md`, loaded only when `/workboard end-of-day` fires. `/wrap` is the lighter, chat-scoped tier: it closes out this thread only, and does not refresh the workboard.
 
 Canonical file hierarchy on conflict: tracker > status-data > SESSION-CONTEXT > everything else (full ownership table: `ba-assistant/SKILL.md`).
 
-`/wrap` must include **sync-ba-actions** (step 6b in sync-procedures) before refreshing the workboard. Print `Gate: ba-actions-sync: PASS/FAIL`.
+`/wrap` must include **sync-ba-actions** for any action created or changed in this chat (see sync-procedures). Print `Gate: ba-actions-sync: PASS/FAIL`.
 
 `/sync-check` is retired — treat as `/validate-state`.

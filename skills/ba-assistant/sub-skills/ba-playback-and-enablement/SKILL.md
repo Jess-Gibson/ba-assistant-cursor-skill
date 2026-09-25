@@ -9,7 +9,9 @@ description: Playback materials, sign-offs, enablement. Use for playback phase i
 
 The Playback and Enablement skill ensures that the initiative is communicated clearly to stakeholders, that sign‑offs are secured at appropriate stages, and that operational teams and customers are prepared for the changes.  It helps create materials for solution playbacks, stakeholder reviews, executive updates, and training sessions.  It tracks sign‑offs and prepares documentation for deployment, training, and communications.
 
-> **Cross-cutting rule:** This skill produces multiple artefact-class outputs (playback decks, sign-off log, comms artefacts, enablement plan, training materials, change comms drafts). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `ba-assistant\SKILL.md → Co-thinking and artefact production protocol`  -  surface planned artefacts upfront and ask the user to select. The Communication Drafter section in this skill is invokable cross-cutting and is also prone to over-production.
+> **Cross-cutting rule:** This skill produces multiple artefact-class outputs (playback decks, sign-off log, comms artefacts, enablement plan, training materials, change comms drafts). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `references/co-thinking-protocol.md`  -  surface planned artefacts upfront and ask the user to select. The Communication Drafter section in this skill is invokable cross-cutting and is also prone to over-production.
+
+> **Markdown layout:** For enablement handovers, Support/Ops briefings, and comms `.md` files, read `references/markdown-readability.md` before drafting. Dark mode safe: `---`, tables, blockquotes; no HTML colour boxes.
 
 ## Tasks
 

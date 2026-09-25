@@ -6,7 +6,9 @@
 
 Demoted from the always-on `sync-gates.mdc` in the always-on restructure. Load when a sync
 trigger fires or a sync command (`/validate-state`, `/wrap`) runs. The 20-turn breakpoint
-check is now deterministic (stop-hook `stop-sync-check.sh`) and no longer relies on this file.
+check is now deterministic (stop-hook `inject-state-reminder.py --stop`) and no longer relies on this file.
+
+Commands below use `python3` (Mac/Linux); on Windows, substitute `py`.
 
 ## Procedures (formerly the sync-gates.mdc body)
 
@@ -146,13 +148,13 @@ This pattern works because:
 
 The Action runthrough above and the sync gate procedure cover the core of `/wrap`, but the full closeout  -  also what the workboard canvas's "End of Day" button triggers, keep both in sync  -  runs these steps in order:
 
-1. **Downloads check.** Run `cmd /c dir "[Downloads folder - set BA_DOWNLOADS_PATH]" /a-d /o-d`  -  never `Get-ChildItem` or PowerShell/.NET enumeration (see `ba-assistant/references/workspace-operations.md`). Check ALL file types newer than the last known session timestamp, not just `.docx`. Triage by extension (docx → extract + debrief, pdf → read + assess relevance, images → check filename/context, spreadsheets → check relevance, installers/zips/lnk/ini → skip). Process anything relevant into the matching initiative's SESSION-CONTEXT.md.
+1. **Downloads check.** List `BA_DOWNLOADS_PATH` per the OS table in `ba-assistant/references/workspace-operations.md`  -  **Windows:** `cmd /c dir "[path]" /a-d /o-d` (never `Get-ChildItem` or PowerShell/.NET enumeration). **macOS/Linux:** `ls -lt "[path]"` or Glob. Check ALL file types newer than the last known session timestamp, not just `.docx`. Triage by extension (docx → extract + debrief, pdf → read + assess relevance, images → check filename/context, spreadsheets → check relevance, installers/zips/lnk/ini → skip). Process anything relevant into the matching initiative's SESSION-CONTEXT.md.
 2. **Meeting reconciliation.** Read `_workstream/calendar-feed.json`. For each meeting today that involved other people (skip solo blocks), check whether its initiative/topic has a same-day SESSION-CONTEXT.md entry. Present a reconciliation table (`Time | Meeting | Initiative | Captured?`), then list only the uncaptured ones.
 3. **Per-meeting targeted recall.** For each uncaptured meeting, ask via AskQuestion: "[Time] [Meeting name]  -  any decisions, actions, commitments, or risks from this one?" (options: "Nothing to capture" / "Yes  -  let me tell you"). Write anything surfaced to the relevant SESSION-CONTEXT.md with a dated header and a `📝 Captured` tag. Finish with a catch-all: "Anything else from today  -  side conversations, Slack decisions, hallway agreements  -  that didn't happen in a formal meeting?"
 4. **Full-file state validation across all initiatives.** For each initiative, read the **entire** SESSION-CONTEXT.md (not just the tail) and initiative-tracker.md, and check status-data.json consistency. Report drift with specific item IDs and counts (this is a deeper pass than the Quick sync check above, which only scans for sync markers).
 5. **Action runthrough**  -  as described above.
 6. **Promote unpromoted items**  -  per the Automated state cascade rules above, tagging each with `[promoted]`.
-6b. **Sync BA actions**  -  run `sync-ba-actions` per `references/ba-actions-format.md` §3: upsert BA-owned rows from today's debriefs, SESSION-CONTEXT captures, and initiative tracker action registers; then **`py _workstream/regenerate-ba-actions-md.py`** (full MD derive from JSON  -  never hand-edit MD); print `Gate: ba-actions-sync: PASS/FAIL`. This step closes the debrief→tracker→[BA name]-list gap.
+6b. **Sync BA actions**  -  run `sync-ba-actions` per `references/ba-actions-format.md` §3: upsert BA-owned rows from today's debriefs, SESSION-CONTEXT captures, and initiative tracker action registers; then **`python3 _workstream/regenerate-ba-actions-md.py`** (full MD derive from JSON  -  never hand-edit MD); print `Gate: ba-actions-sync: PASS/FAIL`. This step closes the debrief→tracker→[BA name]-list gap.
 7. **Refresh `_workstream/workboard.json`**  -  initiative status updates (score per `references/workboard-format.md`  -  do not default to `on-track`), milestone `days_out` recalculated from today's date, `ba_actions_summary`, `meetings_today`/`meetings_tomorrow` from calendar feed when present, `last_refreshed` updated, today's meetings marked done. BA personal task counts come from `ba-actions.json`, not legacy `personal_tasks[]`.
 8. **Rewrite `canvases/ba-workboard.canvas.tsx`** with the refreshed data  -  Today / Initiatives / Open actions tabs; Update, End of Day, and Apply action updates buttons, all preserved with their prompts. Do not add an End of day tab.
 9. **Next-working-day prep.** Determine the next working day (skip Sat/Sun)  -  unless critical meetings remain later today, in which case prep for the rest of today first. Read `calendar-feed.json` for that day and summarise: meetings (highlight critical ones), top priority tasks, prep items.

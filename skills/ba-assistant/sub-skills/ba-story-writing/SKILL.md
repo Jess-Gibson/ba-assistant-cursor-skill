@@ -1,4 +1,4 @@
-# Skill: Delivery Definition
+# Skill: Story Writing
 
 ## Standards used
 
@@ -9,9 +9,9 @@ If standards conflict with skill-specific guidance below, the standard wins.
 
 ## Description
 
-The Delivery Definition skill converts the shaped solution and feature slices into a delivery backlog.  It creates epics, user stories, spikes, and acceptance criteria, ensures that each item meets the definition of ready, and proposes a delivery sequence.  It interacts closely with the Feature Slicing and Sequencing skill for sequencing logic and with the Requirements skill for traceability.  This skill is responsible for producing a backlog that engineers can start working on with minimal uncertainty.
+The Story Writing skill converts the shaped solution and feature slices into a delivery backlog, and absorbs what used to be a separate Delivery Definition / DoR skill. It creates epics, user stories, spikes, and acceptance criteria, ensures that each item meets the definition of ready, and proposes a delivery sequence. It interacts closely with the Feature Slicing and Sequencing skill for sequencing logic and with the Requirements skill for traceability. This skill is responsible for producing a backlog that engineers can start working on with minimal uncertainty.
 
-> **Cross-cutting rule:** This skill produces multiple artefact-class outputs (epics, stories with acceptance criteria, DoR evaluations, story-level dependencies, MoSCoW evaluations). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `ba-assistant\SKILL.md → Co-thinking and artefact production protocol`  -  surface planned artefacts upfront and ask the user to select. The Jira drafting flow is especially prone to over-production once a template is in place.
+> **Cross-cutting rule:** This skill produces multiple artefact-class outputs (epics, stories with acceptance criteria, DoR evaluations, story-level dependencies, MoSCoW evaluations). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `references/co-thinking-protocol.md`  -  surface planned artefacts upfront and ask the user to select. The Jira drafting flow is especially prone to over-production once a template is in place.
 
 ## Workspace setup  -  confirm before drafting
 

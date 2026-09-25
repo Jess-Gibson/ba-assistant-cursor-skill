@@ -12,6 +12,28 @@
 # One line max. Silence when state is clean — the reminder only exists when earned.
 
 import json, os, re, sys, glob, time
+from pathlib import Path
+
+
+def stop_followup_enabled() -> bool:
+    """Opt-in only (B4c): the stop hook's followup_message auto-submits a ghost
+    user turn. Default OFF. Set `stopFollowup: true` in ba-assistant-config.mdc
+    to opt in. Absent/false/unparseable config => disabled, matching the
+    documented default-off contract."""
+    for name in ("ba-assistant-config.mdc", "ba-profile.mdc"):
+        path = Path.home() / ".cursor" / "rules" / name
+        if not path.is_file():
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        for line in text.splitlines():
+            m = re.match(r"\s*stopFollowup\s*[:=]\s*(\S+)", line.strip(), re.I)
+            if m:
+                return m.group(1).strip().strip("\"'").lower() in ("true", "1", "yes", "on")
+    return False
+
 
 def newest_session_context():
     cands = []
@@ -57,9 +79,11 @@ if notes:
 
 if STOP_MODE:
     # Cursor docs (5 Jul 2026): the stop hook's only supported output is followup_message
-    # (auto-submits a user message). Nudge ONCE per conversation (loop_count guard); after the
-    # agent promotes items they gain [promoted] tags, so the recheck goes silent naturally.
-    if out and loop_count == 0:
+    # (auto-submits a user message, i.e. a "ghost" turn the user didn't type). Default OFF
+    # (B4c) -- opt in with `stopFollowup: true` in ba-assistant-config.mdc. Nudge at most
+    # ONCE per conversation when opted in (loop_count guard); after the agent promotes
+    # items they gain [promoted] tags, so the recheck goes silent naturally.
+    if out and loop_count == 0 and stop_followup_enabled():
         print(json.dumps({"followup_message":
             "Automated sync check (stop hook): " + " | ".join(notes[:2]) +
             " — promote the items to the tracker (or run /wrap), reply with a one-line confirmation, and stop."}))

@@ -1,6 +1,6 @@
 # BA Assistant for Cursor
 
-**Version 12** - see [CHANGELOG.md](CHANGELOG.md).
+**Version 13** - see [CHANGELOG.md](CHANGELOG.md).
 
 A comprehensive Business Analysis assistant built as a Cursor skill. Designed to support BAs through the full initiative lifecycle — from intake and discovery through delivery, playback, and retrospective.
 
@@ -33,7 +33,7 @@ The BA Assistant is an AI-powered BA thinking partner that runs inside [Cursor](
 
 | Phase | Skills |
 |-------|--------|
-| Intake | Intake Reviewer, Install (one-shot package copy), Setup (personalisation wizard) |
+| Intake | New Initiative (scaffolding + one-time workspace context), Intake Reviewer, Install (one-shot package copy), Setup (personalisation wizard) |
 | Kickoff | Workshop Design |
 | Discovery | Current State Assessment, Discovery & Requirements, Requirements Interrogator (incl. Mode 4 HLR review) |
 | Slicing | Feature Slicing & Sequencing |
@@ -42,13 +42,17 @@ The BA Assistant is an AI-powered BA thinking partner that runs inside [Cursor](
 | Playback | Playback & Enablement |
 | Evaluation | Solution Evaluation, Retrospective & Learning |
 | Change | Change Strategy |
-| Cross-cutting | Risk & Tracker, Stakeholder Strategy, Sponsor Engagement, Anti-Pattern Detector, Context Capture, Meeting Debrief, Project Canvas, State Validator, Data Investigation |
+| Closeout | Initiative Closeout (`/close`, gated one-way archive) |
+| Cross-cutting | Risk & Tracker, Stakeholder Strategy, Sponsor Engagement, Anti-Pattern Detector, Context Capture, Meeting Debrief, Project Canvas, State Validator, Data Investigation, Commitment Scan (end-of-day reconciliation) |
 
 **Workboard** is an **inline Run procedure** (`references/workboard-procedure.md`), not a sub-skill folder.
 
-### Optional companion skill: Miro board analysis
+The table above uses old "Phase" names for a quick skills index. For the canonical M0–M8 workstream model (purpose, scope, states, gates), see `skills/ba-assistant/references/workstreams.md`.
 
-`skills/miro-board-analysis/` — workshop boards, kickoff templates, debrief boards, spike cards, Pass 2b placement rules. Optional Miro MCP.
+### Optional companion skills
+
+- `skills/miro-board-analysis/` — workshop boards, kickoff templates, debrief boards, spike cards, Pass 2b placement rules. Optional Miro MCP.
+- `skills/publish-docs-to-confluence/` — publish or update Confluence pages from local Markdown, fix broken wiki links, attach assets, link Jira issues. Optional Confluence-capable Atlassian MCP connector.
 
 ### Key commands
 
@@ -67,6 +71,7 @@ The BA Assistant is an AI-powered BA thinking partner that runs inside [Cursor](
 | `/retro` | Retrospective |
 | `/reanchor` | Re-read state files when the assistant drifts |
 | `/handover` | Publish confirmed analysis to the delivery repo |
+| `/close` | Archive a finished initiative (closure retro, file audit, move to `archive/`) |
 | `/ba-assistant` | Start BA Assistant (runs setup wizard on first install) |
 | `/install-ba-assistant` | Install or repair package files from the public repo |
 | `/setup` | Re-run the first-run configuration wizard |
@@ -96,7 +101,7 @@ Default initiative folders: `~/.cursor/initiatives`. After files are installed, 
 
 ---
 
-## Upgrade from an older install (Version 11)
+## Upgrade from an older install
 
 Preserves personalised `ba-profile.mdc` and `_workstream` data. Migrates legacy `personal_tasks[]` into `ba-actions.json` when safe.
 
@@ -130,12 +135,16 @@ For BAs who already installed and customised BA Assistant: share `dist/ba-workbo
 It upgrades canvas template, generator, and procedure/format. It does **not** overwrite actions JSON, profile, live canvas, or (by default) `/workboard`. Apply writes a preview canvas first.
 
 ```powershell
-py tools\upgrade-workboard.py --package .          # dry-run
+py tools\upgrade-workboard.py --package .          # dry-run (Windows)
 py tools\upgrade-workboard.py --package . --apply  # preview canvas, keep live board
+```
+```bash
+python3 tools/upgrade-workboard.py --package .          # dry-run (Mac/Linux)
+python3 tools/upgrade-workboard.py --package . --apply
 ```
 
 See `tools/workboard-overlay-docs/INSTALL-WORKBOARD.md` and `CURSOR-INSTALL-PROMPT.md`.
-Rebuild the zip after capability changes: `py tools/build-workboard-overlay-zip.py`.
+Rebuild the zip after capability changes: `python3 tools/build-workboard-overlay-zip.py` (Windows: `py`).
 
 ---
 
@@ -149,7 +158,7 @@ commands/                     # Slash command stubs
 tools/upgrade-ba-assistant.*  # Safe full upgrade
 tools/upgrade-workboard.*     # Workboard capability overlay only
 dist/ba-workboard-overlay.zip # Friend handoff package
-VERSION                       # 10
+VERSION                       # 13
 CHANGELOG.md
 SETUP.md
 ```

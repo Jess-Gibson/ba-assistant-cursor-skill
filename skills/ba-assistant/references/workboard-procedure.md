@@ -9,6 +9,8 @@ Cross-initiative dashboard procedure. Not a sub-skill. Triggered by `/workboard`
 
 Distinct from `ba-project-canvas` (deep single-initiative dashboard).
 
+Commands below use `python3` (Mac/Linux); on Windows, substitute `py`.
+
 ---
 
 ## Outputs
@@ -46,12 +48,12 @@ Read `SESSION-CONTEXT.md` (tail around 50 lines) and `initiative-tracker.md` whe
 3. **Per initiative.** Refresh phase, milestone, blocker, risk, next action, and status from canonical files. Score status with `workboard-format.md`; never default to `on-track`.
 4. **Downloads / transcripts check (best-effort).** Use the platform-appropriate listing from `workspace-operations.md` and `BA_DOWNLOADS_PATH`. Check all file types newer than the last refresh. Write filenames to `unprocessed_downloads[]`.
 5. **Jira delta (best-effort).** For initiatives with `jira_project`, query recent ticket movement since `jira_last_synced`. On MCP failure: note "Jira: unable to check" and continue.
-6. **Sync actions** if a debrief or tracker added/changed BA-owned actions (`sync-ba-actions`), then `py _workstream/regenerate-ba-actions-md.py`.
+6. **Sync actions** if a debrief or tracker added/changed BA-owned actions (`sync-ba-actions`), then `python3 _workstream/regenerate-ba-actions-md.py`.
 7. **Write** the refreshed snapshot back to `workboard.json`, including `ba_actions_summary`, downloads/review data when available, optional `stakeholder_raise`, and `last_refreshed`.
 8. **Generate the canvas** from the portable template (this preserves Update and End of Day prompts):
 
    ```text
-   py _workstream/generate-workboard-canvas.py --canvas "<absolute path>/canvases/ba-workboard.canvas.tsx"
+   python3 _workstream/generate-workboard-canvas.py --canvas "<absolute path>/canvases/ba-workboard.canvas.tsx"
    ```
 
    Omit `--canvas` only when a single Cursor project canvases folder exists. Keep **Today / Initiatives / Open actions**, optional **Stakeholder raise** when configured, **Update**, **End of Day**, and **Save staged updates**. Today is a read-only ordered day plan with checkboxes that stage done in Open actions. Editable status, due, and notes belong only in **Open actions**.
@@ -67,7 +69,7 @@ When the user clicks **Save staged updates** (or pastes the generated apply prom
 
 1. Validate each `BA-NNN` ID against `_workstream/ba-actions.json`.
 2. Accept only `open|in_progress|done|cancelled|blocked` status values and ISO `YYYY-MM-DD` due dates (or blank).
-3. Merge approved changes, set `last_updated`, then run `py _workstream/regenerate-ba-actions-md.py`.
+3. Merge approved changes, set `last_updated`, then run `python3 _workstream/regenerate-ba-actions-md.py`.
 4. Regenerate the canvas to clear the draft overlay and report `Gate: ba-actions-sync: PASS/FAIL`.
 
 Do not write new personal actions to deprecated `workboard.json → personal_tasks[]`.

@@ -130,13 +130,16 @@ Replace these with the regulators and standards relevant to your industry and ju
 
 ## 7. Learnings File
 
-`learnings.md` starts empty. It grows as you run retrospectives. Each learning has:
+The canonical, persistent copy lives at `~/.cursor/_workstream/learnings.md` — the
+installer seeds it there from the package's sample (`skills/ba-assistant/learnings.md`)
+the first time you install, and never overwrites it again on reinstall/upgrade once
+you have real content. It grows as you run retrospectives. Each learning has:
 
 - A pattern description
 - Tags for when to surface it
 - A strength level (Candidate → Established → Archived)
 
-You don't need to seed this file — it populates naturally through the `/retro` command. But if your team has shared BA learnings, you can pre-populate entries following the format in the file header.
+You don't need to seed this file — it populates naturally through the `/retro` command. But if your team has shared BA learnings, you can pre-populate entries in `~/.cursor/_workstream/learnings.md` following the format in the file header.
 
 ---
 
@@ -189,6 +192,67 @@ Copy into `~/.cursor/hooks/` and wire `sessionStart` only if you want automation
 ### If you don't use the initiative-blueprint convention
 
 `/workboard` cross-references `blueprints/<slug>/SESSION-CONTEXT.md` when available. If your initiatives don't live in that structure, describe state conversationally and skip file cross-referencing steps.
+
+---
+
+## 11. Optional Capabilities Referenced in Routing But Not Bundled
+
+`skills-routing.mdc` and `execution-router.mdc` mention a handful of intents that don't have a shipped skill behind them in this package's `skills/` folder. Those rows exist to tell you what a BA might want and where to hook it in — not to claim the skill is ready to use. If one of these triggers matters to you, build the skill yourself and point the routing row at your own skill folder.
+
+### Diagrams (general Mermaid: flows, architecture, journeys, ER charts)
+- **Trigger:** "draw this", "diagram", "flowchart", "architecture diagram", "user journey"
+- **What it would do:** Generate Mermaid diagrams in markdown for docs/Confluence, for cases broader than the one HTML flowchart template below.
+- **Build your own:** No generic reference ships for this. `references/visual-output-format.md` + `references/templates/flowchart.html` cover the bundled interactive HTML flowchart case only — general Mermaid generation would be a separate build.
+
+### Batch Confluence sync from a repo Markdown registry
+- **Trigger:** "sync all my docs to Confluence", "batch publish", `confluence-pages.json`, dry-run / `--only` flags
+- **What it would do:** A CLI (in your own workspace's `tools/`) that walks a page registry and pushes many Confluence pages at once.
+- **Build your own:** Use `skills/publish-docs-to-confluence/SKILL.md` and its `references/confluence-workflow.md` as the single-page pattern to extend into a batch CLI. For one-off pages, the bundled `publish-docs-to-confluence` skill already does the job — no need to build anything.
+
+### Data analyst (warehouse/SQL queries, metrics narrative)
+- **Trigger:** "query the warehouse", "pull metrics", "synthesize these logs into a narrative"
+- **What it would do:** Warehouse/SQL querying plus narrative synthesis of findings.
+- **Build your own:** No generic reference ships for this. `ba-assistant/sub-skills/ba-data-investigation` covers BA-scoped data investigation inside an initiative — a standalone data-analyst skill for broader warehouse/SQL work would be a separate build.
+
+### Jira production analytics (root-cause charts, problem-card deep-dive)
+- **Trigger:** "root cause from Jira problem tickets", "problem-card deep-dive", production regression analytics tied to Jira
+- **What it would do:** Cross-reference production issues in Jira with root-cause charts, in one of two selectable modes.
+- **Build your own:** No generic reference ships for this. `references/jira-ticket-format.md` (see Section 5 above) covers the ticket shape you'd be querying against, but not the analytics workflow itself.
+
+### Sumo Logic troubleshooting
+- **Trigger:** "check Sumo logs", "troubleshoot production", "post-release regression watch"
+- **What it would do:** Query Sumo Logic and correlate log findings with a release or incident.
+- **Build your own:** No generic reference ships for this — it's specific to the Sumo Logic tool. `ba-assistant/sub-skills/ba-data-investigation` is the nearest BA-flavoured analogue if you want a starting structure.
+
+### Full PRD (All-in-One format)
+- **Trigger:** "write a full PRD", an all-in-one product requirements doc (distinct from a short requirements synthesis)
+- **What it would do:** Produce a complete PRD (goals, scope, requirements, success metrics, etc.) as one artefact.
+- **Build your own:** `references/requirement-format.md` and `references/requirements-register-unified-template.md` cover the requirements-register shape BA Assistant already produces — treat those as a starting point, not a finished PRD template, since a full PRD covers more ground than a register.
+
+### Creative brainstorming before scoping
+- **Trigger:** "let's brainstorm this feature first", creative exploration before building or specifying scope
+- **What it would do:** Explore intent, requirements, and design options before committing to a build.
+- **Build your own:** No generic reference ships for this in the package. Check whether your AI environment already offers a general-purpose brainstorming skill before building a BA-specific one.
+
+### Standing sync to a team/delivery repo (`/sync-team-repo`)
+- **Trigger:** "sync to team repo", "push to harness", `/sync-team-repo`
+- **What it would do:** A gated, file-by-file sync from your local initiative analysis to a shared team or delivery repository, driven off a `TEAM-REPO-HANDOFF.md` file table.
+- **Build your own:** `execution-router.mdc`'s "Sync/publish-risk" classification row and its Harness sync path (read the handoff file, hash-compare, require explicit "sync now", never bulk-copy) already describe the gating procedure — you still need to write the skill (or inline procedure) that actually performs the file-by-file copy for your target repo.
+
+### Jira ticket templates for your project (see also Section 5)
+- **Trigger:** "create a Jira bug/story/spike", ticket format for your project/instance
+- **What it would do:** Format Jira issues to your team's conventions on your Atlassian instance.
+- **Build your own:** Start from `skills/ba-assistant/references/jira-ticket-format.md` — the generic ticket structure this package's Jira handling is modeled on. Replace the `[YOUR-PROJECT]` and `[your-instance]` placeholders as described in Section 5.
+
+### Prototyping (iterative build-and-verify loop)
+- **Trigger:** "let's prototype this", exploratory build work needing small cycles and assumption-checking
+- **What it would do:** Run short build/verify iterations on a spike or proof of concept, distinct from the analysis-only work this package covers.
+- **Build your own:** No generic reference ships for this — it's a coding/build workflow, not a BA analysis one. `ba-assistant/sub-skills/ba-data-investigation` is the nearest BA-flavoured analogue if you want a starting structure for the verification-loop discipline.
+
+### Quality review of requirements or design (`qa-checker`)
+- **Trigger:** "QA this requirement", "review this design for gaps", pre-handover quality pass distinct from the interrogation flow
+- **What it would do:** A standalone quality/completeness review of requirements or design artefacts.
+- **Build your own:** `ba-assistant/sub-skills/ba-requirements-interrogator` and `ba-assistant/sub-skills/ba-state-validator` already cover requirement-quality and drift-detection inside BA Assistant's own flow — check whether either already meets the need before building a separate checker.
 
 ---
 

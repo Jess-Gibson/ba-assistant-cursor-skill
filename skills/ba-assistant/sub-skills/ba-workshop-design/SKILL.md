@@ -5,6 +5,14 @@ description: Design and run workshops across the initiative lifecycle  -  kickof
 
 # Skill: Workshop Design
 
+## Standards used
+
+- `references/visual-output-format.md`: workshop visuals (current state diagrams, journey maps, exec one-pagers)
+- `references/raid-format.md`: decisions, actions, and risks surfaced in a workshop, before they are logged to the tracker
+- `references/proactive-assistance-protocol.md`: the readiness pass this skill can be invoked from as cheap pre-meeting preparation
+
+If standards conflict with skill-specific guidance below, the standard wins.
+
 ## Description
 
 The Workshop Design skill owns the **facilitation engine** for the BA Assistant. Any time the user needs to plan, run, or recover from a workshop, this skill provides the template, agenda, attendee logic, facilitation patterns, and debrief routing.
@@ -13,7 +21,7 @@ Workshops are the highest-bandwidth way the BA gathers information and aligns st
 
 **This skill absorbed `ba-kickoff-preparation`** during Wave 3 consolidation  -  the Kickoff workshop is now one template among several inside this skill. Kickoff is the most prominent and detailed template, but the same engine powers all workshop types.
 
-> **Cross-cutting rule:** This skill produces multiple artefact-class outputs (facilitation pack, agenda, attendee list, pre-reads, debrief instructions, anti-patterns/do-not-say lists). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `ba-assistant\SKILL.md → Co-thinking and artefact production protocol`  -  surface planned artefacts upfront and ask the user to select. The Sample Initiative dry-run produced a full 60-min pack on a `deeper_workshop` selection because the option label conflated topic with depth  -  see also "AskQuestion authoring guidelines" in BA Assistant SKILL.md.
+> **Cross-cutting rule:** This skill produces multiple artefact-class outputs (facilitation pack, agenda, attendee list, pre-reads, debrief instructions, anti-patterns/do-not-say lists). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `references/co-thinking-protocol.md`  -  surface planned artefacts upfront and ask the user to select. The Sample Initiative dry-run produced a full 60-min pack on a `deeper_workshop` selection because the option label conflated topic with depth  -  see also "AskQuestion authoring" in references/co-thinking-protocol.md.
 
 ## When to invoke
 

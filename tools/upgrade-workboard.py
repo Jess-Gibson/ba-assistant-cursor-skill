@@ -21,6 +21,7 @@ OVERLAY_FILES = [
     ("skills/ba-assistant/references/workboard-procedure.md", "skills/ba-assistant/references/workboard-procedure.md"),
     ("skills/ba-assistant/references/workboard-format.md", "skills/ba-assistant/references/workboard-format.md"),
     ("tools/generate-workboard-canvas.py", "_workstream/generate-workboard-canvas.py"),
+    ("tools/roll-calendar-eod.py", "_workstream/roll-calendar-eod.py"),
 ]
 
 OPTIONAL_COMMANDS = [

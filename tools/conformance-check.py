@@ -78,8 +78,9 @@ def main():
             rel = m.group(1)
             if not os.path.exists(os.path.join(refs_dir, rel)) and not os.path.exists(os.path.join(refs_dir, "templates", os.path.basename(rel))):
                 missing.add(rel)
-    # Allowlist: references owned by OTHER skills (pm-data-analyst), cited from routing/maps.
-    external = {"warehouse-and-sql.md", "narrative-synthesis.md"}
+    # Allowlist: references owned by OTHER skills in this repo (their own references/
+    # folder, not ba-assistant's), or by skills outside this package (pm-data-analyst).
+    external = {"warehouse-and-sql.md", "narrative-synthesis.md", "confluence-workflow.md"}
     missing = {m for m in missing if not m.startswith("<") and m not in external}
     if missing:
         add("FAIL", "references", f"Referenced but missing under references/: {sorted(missing)}")
@@ -138,6 +139,56 @@ def main():
         add("FAIL", "routing", f"Routing rows point at missing sub-skills: {dangling}")
     else:
         add("PASS", "routing", "All ba-assistant sub-skill routing targets exist")
+
+    # ---- 7. HARD gates in critical-gates.mdc must name a real, registered script ----
+    hooks_dir = os.path.join(root, "hooks")
+    hooks_json_text = read(os.path.join(hooks_dir, "hooks.json")) or ""
+    hook_files_present = set(os.listdir(hooks_dir)) if os.path.isdir(hooks_dir) else set()
+
+    gates_text = read(os.path.join(rules_dir, "critical-gates.mdc")) or ""
+    bad_gate_rows = []
+    for line in gates_text.splitlines():
+        line = line.strip()
+        if not (line.startswith("|") and line.endswith("|")):
+            continue
+        cells = [c.strip() for c in line.strip("|").split("|")]
+        if len(cells) < 3:
+            continue
+        gate_name, enforcement = cells[0], cells[2]
+        if gate_name == "Gate" or set(gate_name) <= {"-"}:
+            continue  # header / separator row
+        if "**HARD" not in enforcement:
+            continue  # only HARD-marked rows claim a hook-enforced script
+        scripts = set()
+        for backticked in re.findall(r"`([^`]*)`", enforcement):
+            scripts |= set(re.findall(r"[A-Za-z0-9_\-]+\.(?:py|ps1|sh)\b", backticked))
+        for script in scripts:
+            present = script in hook_files_present
+            registered = script in hooks_json_text
+            if not (present and registered):
+                reason = []
+                if not present:
+                    reason.append("missing under hooks/")
+                if not registered:
+                    reason.append("not referenced in hooks/hooks.json")
+                bad_gate_rows.append(f"{gate_name!r} names `{script}` ({', '.join(reason)})")
+    if bad_gate_rows:
+        add("FAIL", "gate-scripts", f"HARD gate rows naming a script that isn't both present under hooks/ AND registered in hooks.json: {bad_gate_rows}")
+    else:
+        add("PASS", "gate-scripts", "Every HARD gate row in critical-gates.mdc names a script present under hooks/ and registered in hooks.json")
+
+    # ---- 8. Orphan scripts under hooks/ (present but never registered) ----
+    orphans = []
+    if os.path.isdir(hooks_dir):
+        for fname in sorted(hook_files_present):
+            if fname == "hooks.json" or os.path.isdir(os.path.join(hooks_dir, fname)):
+                continue
+            if fname not in hooks_json_text:
+                orphans.append(fname)
+    if orphans:
+        add("WARN", "orphan-scripts", f"Files under hooks/ never referenced in any hooks.json command string: {orphans}")
+    else:
+        add("PASS", "orphan-scripts", "Every file under hooks/ is referenced in hooks.json")
 
     # ---- report ----
     width = max(len(c) for _, c, _ in results)

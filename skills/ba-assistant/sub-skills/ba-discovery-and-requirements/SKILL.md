@@ -12,7 +12,7 @@ If standards conflict with skill-specific guidance below, the standard wins.
 
 The Discovery and Requirements skill performs the deep work of understanding the current state, eliciting requirements, and surfacing unknowns.  It synthesises information from transcripts, stakeholder interviews, existing documents, system repositories, data sources, and operational insights.  The skill ensures requirements are captured early and updated iteratively, with clear traceability back to evidence.  It distinguishes between high‑level requirements (what we want) and lower‑level requirements (how it should behave) and organises them into functional, non‑functional, compliance/legal, data/reporting, design/content, operational/process, and acceptance categories.
 
-> **Cross-cutting rule:** This skill produces multiple artefact-class outputs (requirements register, current state map, interrogation logs, JTBD breakdowns, MoSCoW matrix). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `ba-assistant\SKILL.md → Co-thinking and artefact production protocol`  -  surface planned artefacts upfront and ask the user to select. Pair with the co-thinking journey at every interrogation point (gaps + assumptions surfaced before drafting).
+> **Cross-cutting rule:** This skill produces multiple artefact-class outputs (requirements register, current state map, interrogation logs, JTBD breakdowns, MoSCoW matrix). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `references/co-thinking-protocol.md`  -  surface planned artefacts upfront and ask the user to select. Pair with the co-thinking journey at every interrogation point (gaps + assumptions surfaced before drafting).
 
 ## Mandatory hooks
 
@@ -40,8 +40,11 @@ Current State Assessment" as an assumption in the tracker.
 
 ### Hook 1  -  Requirements Interrogator (per requirement)
 
-Before any requirement is accepted into the requirements register, this skill
-MUST invoke **Requirements Interrogator** in Discovery mode for that requirement.
+A requirement enters `register.md` immediately on capture, at `status:
+proposed`  -  interrogation is **not** a gate on entry (see `requirement-format.md`
+§3 and Task 6 below). What this hook governs is what happens next: this skill
+MUST invoke **Requirements Interrogator** in Discovery mode for every `proposed`
+requirement to advance it past that state.
 
 This is the single most important hook in the entire BA assistant. Documented
 requirements are not understood requirements. The Interrogator surfaces what
@@ -50,15 +53,20 @@ to answer, what already exists, what would change without it. Without this
 hook, requirements get translated to design decisions on the basis of
 assumptions, which is the most common and expensive failure mode in delivery.
 
-A requirement may only enter the register once the Requirements Interrogator
-has produced a **confirmed provisional requirement statement**  -  a statement
-the user has explicitly validated as correctly capturing the underlying need.
+A requirement moves from `proposed` to `interrogated` only once the
+Requirements Interrogator has produced a **confirmed provisional requirement
+statement**  -  a statement the user has explicitly validated as correctly
+capturing the underlying need. It stays visible in the register at `proposed`
+the whole time it's un-interrogated; that visibility is the point (see the
+Entry rule in `requirement-format.md` §3) rather than something to avoid by
+withholding entry.
 
 If the interrogation surfaces that the requirement needs rethinking, is
-out of scope, or should be deferred, log it in the tracker under the
-appropriate category (❓ unknown, ⏳ deferred, or ⚠️ assumption) and do
-not add it to the requirements register until the underlying need is
-re-interrogated and a confirmed statement is produced.
+out of scope, or should be deferred, keep the register row at (or revert it
+to) `proposed` / `deferred` per `requirement-format.md` §3b, and also log it
+in the tracker under the appropriate category (❓ unknown, ⏳ deferred, or
+⚠️ assumption). Do not advance it to `interrogated` until the underlying need
+is re-interrogated and a confirmed statement is produced.
 
 ## Tasks
 

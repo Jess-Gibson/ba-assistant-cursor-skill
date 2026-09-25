@@ -68,6 +68,12 @@ Verify: `text_top > grey_top` AND `text_bottom < grey_bottom`
 
 **Failure looks like:** Text visibly extends below or above its grey backdrop box.
 
+**Accent Card (Pattern A) extra checks:**
+- Purple rail and grey card share the same `y` and `h`
+- Rail `w` ≈ 40 and sits on the left edge of the grey card
+- Title TEXT is `color=#7b14ef` and `size=48` (not a separate coloured header shape above the card)
+- No leftover Pattern B header bar for the same section title
+
 **Fix:** Increase grey box height (`grey_h`), recalculate `grey_y`, and recreate. Use the formula from `design-system.md`: `grey_box_h = (estimated_text_height × 1.15) + 65`.
 
 ---

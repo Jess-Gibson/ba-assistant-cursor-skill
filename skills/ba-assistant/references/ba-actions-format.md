@@ -7,6 +7,8 @@
 
 BA-owned and [BA name]-coordinated actions live here. Initiative trackers remain the team RAID; this file is **the BA's working list only**.
 
+Commands below use `python3` (Mac/Linux); on Windows, substitute `py`.
+
 ---
 
 ## 1. Why JSON + derived MD (not MD-only or workboard-only)
@@ -133,7 +135,7 @@ For **`/wrap`**, also scan debriefs dated **today** across all initiatives.
 **Hard rule:** `_workstream/ba-actions.md` is **always** produced by a **full regenerate** from `ba-actions.json`. After **every** JSON write (`/todo`, `/done`, action runthrough, debrief sync, `/wrap` 6b), run:
 
 ```text
-py _workstream/regenerate-ba-actions-md.py
+python3 _workstream/regenerate-ba-actions-md.py
 ```
 
 (or regenerate the entire MD in the same agent turn using the same rules below  -  **never** patch sections by hand, never a "top priority" subset that omits closed rows, never stale rows left in Open after status  ->  `done`).
@@ -179,7 +181,7 @@ After sync, print: `Gate: ba-actions-sync: PASS (N open, M added, K updated)` or
 | `/todo list` | List from ba-actions.json, not personal_tasks |
 | Canvas **Update** button | Same morning-prep scan when refresh runs start-of-day |
 | Canvas **End of Day** button | Full `/wrap` including ba-actions EOD critical scan + runthrough |
-| Canvas **Apply action updates** | Validates draft patches from canvas sidecar → writes JSON → `py _workstream/regenerate-ba-actions-md.py` |
+| Canvas **Apply action updates** | Validates draft patches from canvas sidecar → writes JSON → `python3 _workstream/regenerate-ba-actions-md.py` |
 
 ---
 

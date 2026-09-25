@@ -4,7 +4,7 @@ Generate and maintain an interactive Cursor Canvas dashboard for any BA/PM initi
 
 **This skill is self-bootstrapping.** It works whether or not the user has previously run the BA Assistant, whether or not project files exist, and regardless of project maturity. It gathers its own context, adapts to what's available, and produces the canvas.
 
-> **Cross-cutting rule:** This skill produces multiple artefact-class outputs (canvas .tsx, status-snapshot.html, status-data.json, optionally intake-form.canvas.tsx). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `ba-assistant/SKILL.md → Co-thinking and artefact production protocol`. Auto-generation triggers (`/canvas`, `/status`, end-of-Phase-0, every phase gate) are the highest-volume invocation points.
+> **Cross-cutting rule:** This skill produces multiple artefact-class outputs (canvas .tsx, status-snapshot.html, status-data.json, optionally intake-form.canvas.tsx). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `references/co-thinking-protocol.md`. Canvas is on demand only (`/canvas`, `/status`); never auto at Phase 0 or phase gates.
 
 ---
 

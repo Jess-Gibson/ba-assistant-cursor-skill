@@ -65,7 +65,7 @@ After algorithm Pass 4, write the coordinate manifest to:
 ```
 _workstream/miro-plans/[board-name].plan.md
 ```
-Present to the user with frame dimensions, section list, full coordinate manifest, and these **hook-required plan sections**:
+Present to the user with frame dimensions, section list, full coordinate manifest, and these **required plan sections** (manual pre-flight check):
 
 1. **`## Board inventory (context_explore)`**  -  output of `context_explore` pasted as a frame table (Pass 2b-0)
 2. **`## Board placement`**  -  neighbour collision math, proposed x/y, gap verification (Pass 2b)
@@ -116,7 +116,7 @@ Run through before any `layout_create`, `table_create`, or content creation call
 
 ### 2. Discover existing board (`context_explore` FIRST, then `layout_read`)
 
-- [ ] Call **`context_explore`** on the board URL  -  paste frame list into plan (`## Board inventory (context_explore)`). **Hook blocks build without this.**
+- [ ] Call **`context_explore`** on the board URL  -  paste frame list into plan (`## Board inventory (context_explore)`). Manually confirm this section exists before `layout_create`; no pre-flight hook ships in this package.
 - [ ] Run `layout_read mode=structured` on at least 2 frames **from that inventory** (style reference + nearest neighbour)
 - [ ] Note: header shape types, fill colours, font sizes, grey box patterns
 - [ ] Note: x/y positioning patterns, spacing between sections

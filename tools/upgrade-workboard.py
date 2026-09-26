@@ -107,7 +107,10 @@ def migrate_legacy_actions(
     """Copy legacy action data once when the generic stores are absent/empty.
 
     Legacy filename literals are intentionally isolated in this migration.
-    Normal runtime reads only ba-actions files.
+    Normal runtime reads only ba-actions files. On apply, the legacy file is
+    always moved into this run's backup afterwards (whether it was copied or
+    the current file already won), so it can never be copied again later.
+    Files are never merged.
     """
     actions: list[str] = []
     pairs = (
@@ -117,16 +120,25 @@ def migrate_legacy_actions(
     for legacy, current, current_is_empty in pairs:
         if not legacy.exists():
             continue
-        if not current_is_empty(current):
-            actions.append(f"MIGRATE skip: {current.name} already contains data")
-            continue
-        actions.append(f"MIGRATE {legacy.name} -> {current.name} (preserve legacy source)")
-        if dry_run:
-            continue
-        backup_file(legacy, backup_root, home)
-        backup_file(current, backup_root, home)
-        current.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(legacy, current)
+        try:
+            archive = backup_root / legacy.relative_to(home)
+        except ValueError:
+            archive = backup_root / legacy.name
+        if current_is_empty(current):
+            actions.append(f"MIGRATE {legacy.name} -> {current.name}, then ARCHIVE {legacy.name} -> {archive}")
+            if dry_run:
+                continue
+            backup_file(current, backup_root, home)
+            current.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(legacy, current)
+        else:
+            actions.append(
+                f"ARCHIVE {legacy.name} -> {archive} ({current.name} already contains data and wins; files not merged)"
+            )
+            if dry_run:
+                continue
+        archive.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(legacy), str(archive))
     return actions
 
 

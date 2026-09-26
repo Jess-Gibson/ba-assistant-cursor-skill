@@ -14,6 +14,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import platform
 import shutil
@@ -489,6 +490,28 @@ def merge_hooks_json(package_hooks: Path, dest_hooks: Path, dry_run: bool, strat
         dest_hooks.write_text(json.dumps(merged, indent=2) + "\n", encoding="utf-8")
 
 
+def migrate_legacy_actions(cursor_home: Path, package: Path, dry_run: bool) -> None:
+    """Reuse the canonical migrate-once implementation from upgrade-workboard.
+
+    Runs after seed_workstream(), so a freshly seeded empty ba-actions.json
+    still receives legacy data once.
+    """
+    script = package / "tools" / "upgrade-workboard.py"
+    if not script.exists():
+        log(f"MIGRATE skip: missing canonical workboard upgrader {script}")
+        return
+    spec = importlib.util.spec_from_file_location("ba_upgrade_workboard", script)
+    if spec is None or spec.loader is None:
+        log(f"MIGRATE skip: cannot load canonical workboard upgrader {script}")
+        return
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    ts = datetime.now().strftime("%Y%m%d-%H%M%S")
+    backup_root = cursor_home / "ba-assistant-backups" / f"legacy-actions-{ts}"
+    for line in module.migrate_legacy_actions(cursor_home / "_workstream", backup_root, cursor_home, dry_run):
+        log(line)
+
+
 def seed_workstream(cursor_home: Path, package: Path, dry_run: bool) -> None:
     ws = cursor_home / "_workstream"
     ensure_dir(ws, dry_run)
@@ -654,6 +677,7 @@ def install(package: Path, cursor_home: Path, dry_run: bool, hooks_strategy: str
         merge_hooks_json(hooks_dir / "hooks.json", cursor_home / "hooks.json", dry_run, strategy=hooks_strategy)
 
     seed_workstream(cursor_home, package, dry_run)
+    migrate_legacy_actions(cursor_home, package, dry_run)
     initiatives = seed_initiatives(cursor_home, dry_run)
     write_install_marker(cursor_home, package, dry_run)
 

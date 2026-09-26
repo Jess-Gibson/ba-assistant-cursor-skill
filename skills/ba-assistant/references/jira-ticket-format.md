@@ -1,10 +1,10 @@
 # Jira Ticket Format Standard
 
 **Location:** `~/.cursor/skills/ba-assistant/references/jira-ticket-format.md`
-**Owner:** `jira-templates` skill (workflow and full format detail), this standard (positioning and high-level rules)
+**Owner:** your optional `jira-templates` skill if installed (workflow and full format detail), this standard (positioning and high-level rules)
 **Last reviewed:** 2026-05-30
 
-This reference is a **positioning file**. The detailed format definition for PROJ Jira tickets  -  ADF panels, mandatory custom fields, canonical example issue IDs, panel type quick reference, verification considerations, full templates for Bug / Story / Spike  -  lives in the existing `jira-templates` skill (already structured as a separate top-level skill in `.cursor/skills/`).
+This reference is a **positioning file**. The detailed format definition for PROJ Jira tickets  -  ADF panels, mandatory custom fields, canonical example issue IDs, panel type quick reference, verification considerations, full templates for Bug / Story / Spike  -  lives in your own optional `jira-templates` skill (`[your-jira-templates]`, see CUSTOMIZATION.md §5). It does not ship with this package. If it is missing, use this file plus example issues read from your project via MCP.
 
 This file exists to:
 1. Make Jira format discoverable as part of the references index
@@ -120,7 +120,7 @@ Before a ticket gets created, the BA Assistant runs the verification considerati
 **Always check:**
 - Telemetry  -  what events fire, where
 - Feature toggling  -  flag, default state, rollout plan
-- Geo scope (e.g. AU & NZ for PROJ)
+- Geo / market scope (set from the initiative)
 - Unhappy paths  -  including UI behaviour for each
 - Flow variants  -  which flows does this hit
 
@@ -207,8 +207,6 @@ v1.0 (2026-05-30). Changes to the hard rules (Section 2) require version bump. P
 
 ---
 
-## 11. Note on the existing jira-templates skill
+## 11. Note on the optional jira-templates skill
 
-The `jira-templates` skill currently lives at `~/.cursor/skills/jira-templates/` as a top-level skill, not a sub-skill of `ba-assistant`. This is fine and doesn't need to change. The reference-guides refactor isn't moving it; it's just being referenced from this file so the standards index can point to it.
-
-If a future change wants to bring it under `ba-assistant/sub-skills/` for consistency, that's a separate refactor and out of scope for the reference-guides work.
+`jira-templates` is an optional personal skill (for example `~/.cursor/skills/jira-templates/`) that you build for your own project's ticket conventions. It does not ship with this package. If it is not installed, use this file, `references/user-story-format.md`, and example issues read from your project via MCP.

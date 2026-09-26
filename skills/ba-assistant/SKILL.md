@@ -60,7 +60,7 @@ Load sub-skills and `references/` **only when needed**. Do not read all sub-skil
 Skip when already personalised.
 
 1. If `sub-skills/ba-install/SKILL.md` is missing, treat this as a local master and continue (no installer UI).
-2. If `~/.cursor/rules/ba-assistant-config.mdc` is missing or still has `[Your Name]`, and `sub-skills/ba-setup/SKILL.md` exists, run BA Setup. Run BA Install first if install is missing.
+2. If `~/.cursor/rules/ba-assistant-config.mdc` is missing or still has `[Your Name]`, and `sub-skills/ba-setup/SKILL.md` exists, run BA Setup. Run BA Install first if install is missing. Wherever package files say `[BA name]`, use `name` from that config.
 3. Once personalised, never re-show install/setup unless the user runs `/setup` or `/install-ba-assistant`.
 
 Default initiatives root when setup runs: `~/.cursor/initiatives` (`BA_INITIATIVES_ROOT`).

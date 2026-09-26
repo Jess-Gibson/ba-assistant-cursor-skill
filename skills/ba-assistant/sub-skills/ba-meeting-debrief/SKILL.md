@@ -51,7 +51,7 @@ When the user says "debrief" without specifying an initiative, the skill must de
 ### Detection procedure
 
 1. **Check transcript content**  -  Scan the transcript/notes for initiative markers:
-   - **Sample Initiative / fee overlay / scheme fee / blocking / cohort / NP / Sample Payments Product / ARL** → Sample Initiative
+   - **Sample Initiative / fee overlay / scheme fee / blocking / cohort / Sample Payments Product / ARL** → Sample Initiative
    - **Data Collection / Business Verification / [vendor] / stale draft / data minimisation / verification / identity** → Data Collection
    - **sample-reassessment-initiative / telemetry / bug bash / auto-approval / OSP / support tool** → sample-reassessment-initiative
    - **Multiple matches** → tag as cross-initiative, list which initiatives are touched

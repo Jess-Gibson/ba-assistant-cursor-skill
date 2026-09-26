@@ -110,8 +110,9 @@ Track these for future waves:
 | See the visual canvas | Type `/canvas`, say "show the canvas", or click "open canvas" in an `AskQuestion` chip |
 | Publish status to Confluence | Type `/publish-status` |
 | Run a retro | Type `/retro` |
-| Check if things are in sync | Type `/validate-state` (or old `/sync-check`  -  same thing) |
-| Close out and checkpoint | Type `/wrap`  -  fixes drift, refreshes workboard, suggests new chat |
+| Put this chat into the initiative files | Type `/validate-state` (or old `/sync-check`  -  same thing) |
+| Close out this chat | Type `/wrap`  -  chat-only checkpoint into session context and the tracker (no workboard refresh) |
+| Finish the day | Type `/workboard end-of-day` |
 | See cross-initiative priorities | Type `/workboard` |
 | Re-anchor after long thread | Type `/reanchor`  -  re-reads state files, resumes from current position |
 | Fill intake as a form | Directly ask for an intake-form canvas |

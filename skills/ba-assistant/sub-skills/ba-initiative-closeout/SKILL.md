@@ -8,9 +8,12 @@ description: >
   of daily refresh churn. Invoke on "/close", "close out X", "archive X",
   "this one's done". Never runs automatically — always explicit, user-initiated,
   and confirmed batch by batch. Mirrors ba-new-initiative in reverse.
+disable-model-invocation: true
 ---
 
 # Skill: Initiative Closeout
+
+> **Hook ids:** this skill names `HK-...` ids. Open that row in `~/.cursor/skills/ba-assistant/hook-contracts.md` if you need the contract. Do not read the whole file.
 
 Tidy-up, not ceremony. No welcome panel, no complexity dial. Confirm the
 initiative is actually done, run the retro so its learnings inform the file

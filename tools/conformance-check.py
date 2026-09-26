@@ -190,6 +190,37 @@ def main():
     else:
         add("PASS", "orphan-scripts", "Every file under hooks/ is referenced in hooks.json")
 
+    # ---- 9. Referenced mail script must exist ----
+    mail_script = "scan-outlook-mail.py"
+    mail_exists = bool(glob.glob(os.path.join(root, "**", mail_script), recursive=True))
+    mail_refs = []
+    for pattern in ("**/*.md", "**/*.mdc", "**/*.py", "**/*.json"):
+        for f in glob.glob(os.path.join(root, pattern), recursive=True):
+            name = os.path.basename(f)
+            if name in ("CHANGELOG.md", "conformance-check.py"):
+                continue
+            if mail_script in (read(f) or ""):
+                mail_refs.append(os.path.relpath(f, root))
+    if mail_refs and not mail_exists:
+        add("FAIL", "mail-script", f"{mail_script} is referenced but does not exist: {sorted(mail_refs)}")
+    else:
+        add("PASS", "mail-script", f"{mail_script} is not referenced, or it exists")
+
+    # ---- 10. Commands must point at the installed skill path ----
+    cmd_dir = os.path.join(root, "commands")
+    bad_cmd = []
+    for f in sorted(glob.glob(os.path.join(cmd_dir, "*.md"))):
+        for i, line in enumerate((read(f) or "").splitlines(), 1):
+            if not re.search(r"(?<![~/\w.-])skills/ba-assistant/", line):
+                continue
+            if "~/.cursor/skills/" in line:
+                continue  # the sentence also gives the installed path
+            bad_cmd.append(f"{os.path.basename(f)}:{i}")
+    if bad_cmd:
+        add("FAIL", "command-paths", f"commands/*.md read skills/ba-assistant/ without the ~/.cursor/ prefix: {bad_cmd}")
+    else:
+        add("PASS", "command-paths", "commands/*.md use ~/.cursor/skills/ba-assistant/ paths")
+
     # ---- report ----
     width = max(len(c) for _, c, _ in results)
     fails = 0

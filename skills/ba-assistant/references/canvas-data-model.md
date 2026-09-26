@@ -21,8 +21,10 @@ This file is the canonical source for the `status-data.json` schema, the canvas 
 ### File location
 
 ```
-blueprints/<initiative>/status-data.json
+~/.cursor/initiatives/<initiative>/status-data.json
 ```
+
+(Or under `paths.initiativesRoot` from `ba-assistant-config.mdc`. A legacy `blueprints/<initiative>/` folder still works.)
 
 ### Why a structured data model exists
 
@@ -135,8 +137,8 @@ If a tracker item applies to the whole initiative, `scope.level = "initiative"`.
 ```jsonc
 {
   "id": "PROJ-Project-002",
-  "name": "Data Collection Uplift Merchant Onboarding",
-  "slug": "sample-data-collection-merchant-onboarding",
+  "name": "Sample onboarding initiative",
+  "slug": "sample-onboarding-initiative",
   "code": "string (e.g. P002)",
   "stage": "string",
   "startedAt": "2026-04-15",
@@ -579,21 +581,25 @@ signOffCycleTime = approvedDate - requestedDate (in working days)
 
 ### `dorChecks` array
 
-**Derived (E-promote):** canonical in the tracker's DoR checks register (`raid-format.md § Tracker-owned structured registers`); this array is re-derived from it on every canvas refresh. Metric computations are unchanged  -  they read this mirror after refresh.
+**Mirror of the tracker register, written at DoR time:** canonical in the tracker's DoR checks register (`raid-format.md § Tracker-owned structured registers`). `ba-story-writing` upserts the matching row here in the same step it writes the register, because the Jira DoR gate hook reads this array at create time (often before a Jira key exists). A canvas refresh re-derives it from the register and must keep `storyTitle` and `result`.
 
 ```jsonc
 {
   "dorChecks": [
     {
-      "storyKey": "PROJ-4287",
+      "storyTitle": "Reject applications when phone format is invalid",
+      "storyKey": "PROJ-4287",    // omit or "" until Jira assigns one
       "scope": "feature_cohort_a",
       "checkedAt": "2026-05-28",
-      "firstAttempt": "pass",     // "pass" | "partial" | "fail"
+      "firstAttempt": "partial",  // "pass" | "partial" | "fail"  -  did it pass first time? (hit-rate metric)
+      "result": "pass",           // "pass" | "partial" | "fail"  -  latest outcome (the DoR gate reads this)
       "missingCriteria": []
     }
   ]
 }
 ```
+
+The DoR gate matches a row on `storyKey` (when the create has one) or `storyTitle`, and treats `result` as the pass signal (falling back to `firstAttempt` for older rows). The hit-rate metric keeps using `firstAttempt`.
 
 ### `stories`, `spikes`, `tickets` arrays
 
@@ -720,7 +726,7 @@ function dorHitRate(scopeId, windowDays = 30) {
 }
 ```
 
-**Source:** `dorChecks` array in `status-data.json` capturing every DoR run with `storyKey`, `firstAttempt: pass | partial | fail`, `date`, `scope`. Delivery Definition writes to this array on every DoR check.
+**Source:** `dorChecks` array in `status-data.json` capturing every DoR run with `storyTitle`, `storyKey`, `firstAttempt: pass | partial | fail`, `result`, `date`, `scope`. Delivery Definition writes to this array on every DoR check.
 
 Warning threshold: <70% on any scope with active delivery. Trend matters more than absolute value  -  a falling rate is the signal.
 
@@ -788,9 +794,9 @@ Other skills update `status-data.json` via these triggers:
 | Jira Sync | Every `/status`, every resume, on demand | `stories[].status`, `tickets[].status`, derived workstream states |
 | Project Canvas (Data Model section) | Before every canvas render | Re-derives structured view from `initiative-tracker.md` (incl. the four tracker-owned registers: dorChecks, moscowMatrix, pmApproval, signOffs) |
 | Discovery and Requirements | New requirement entered | `confidenceScores.requirementsCompleteness.current` re-evaluated |
-| Delivery Definition | DoR check performed | Writes the tracker's DoR checks register; `dorChecks` mirror follows on refresh |
+| Delivery Definition | DoR check performed | Writes the tracker's DoR checks register **and** upserts `dorChecks` in the same step (`storyTitle`, `storyKey` if known, `result`). Do not wait for a canvas refresh: the Jira DoR gate reads `dorChecks`. |
 | Sponsor Engagement | Touchpoint complete | Appends to RAID if outcomes warrant |
-| State Validator | Detects drift | Reports only  -  does not auto-write |
+| State Validator | Detects drift | On resume / before publish: reports only. On `/validate-state`: writes what this chat captured into `SESSION-CONTEXT.md`, the tracker, and `status-data.json` where they exist, and upserts this chat's BA actions |
 
 ---
 

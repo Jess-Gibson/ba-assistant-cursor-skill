@@ -1,4 +1,12 @@
+---
+name: ba-risk-and-tracker
+description: Maintains the initiative tracker: RAID entries, decisions, and open questions.
+disable-model-invocation: true
+---
+
 # Skill: Risk and Tracker Management
+
+> **Hook ids:** this skill names `HK-...` ids. Open that row in `~/.cursor/skills/ba-assistant/hook-contracts.md` if you need the contract. Do not read the whole file.
 
 ## Standards used
 

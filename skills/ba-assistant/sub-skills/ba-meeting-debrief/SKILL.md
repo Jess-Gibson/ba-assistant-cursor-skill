@@ -1,6 +1,7 @@
 ---
 name: ba-meeting-debrief
 description: Process a meeting (transcript, notes, or recall) into structured updates  -  decisions, actions, open questions, new/changed requirements, RAID items. Routes updates to the right specialist skills and updates the living tracker. Callable from any phase.
+disable-model-invocation: true
 ---
 
 # Skill: Meeting Debrief
@@ -50,28 +51,21 @@ When the user says "debrief" without specifying an initiative, the skill must de
 
 ### Detection procedure
 
-1. **Check transcript content**  -  Scan the transcript/notes for initiative markers:
-   - **Sample Initiative / fee overlay / scheme fee / blocking / cohort / Sample Payments Product / ARL** → Sample Initiative
-   - **Data Collection / Business Verification / [vendor] / stale draft / data minimisation / verification / identity** → Data Collection
-   - **sample-reassessment-initiative / telemetry / bug bash / auto-approval / OSP / support tool** → sample-reassessment-initiative
-   - **Multiple matches** → tag as cross-initiative, list which initiatives are touched
+Do not use a keyword list of projects. Match against what is already on disk.
 
-2. **Check calendar match**  -  Read `_workstream/calendar-feed.json`. Match the meeting subject against:
-   - Known recurring meetings (Standup = all initiatives; Sample Product Tier = cross-initiative)
-   - Attendee overlap with initiative stakeholders ([Team Member]/[Team Member]/[Tech Lead] = Data Collection; [Team Member]/[Team Member]/[Team Member] = Sample Initiative; [Team Member]/[BA name] Lee/[Team Member] = sample-reassessment-initiative)
-   - Meeting subject keywords (same markers as above)
+1. **List known initiatives.** Read the folder names under the initiatives root (`paths.initiativesRoot` in `ba-assistant-config.mdc`, default `~/.cursor/initiatives/`), plus the initiative names in `~/.cursor/_workstream/workboard.json` and the heading of each initiative's `SESSION-CONTEXT.md`.
 
-3. **Confirm with user (once)**  -  Present the auto-detected initiative(s) and ask to confirm:
-   ```
-   Detected: This looks like a Data Collection meeting (mentions [vendor], [Team Member], stale drafts).
-   [Correct - proceed with Data Collection] [Actually it's Sample Initiative] [Cross-initiative] [Let me specify]
-   ```
-   If the user has already stated the initiative in their message, skip this confirmation.
+2. **Compare.** Look for those initiative names (and names of people, systems or Jira keys already recorded in each initiative's `SESSION-CONTEXT.md`) in the transcript, the meeting subject from `_workstream/calendar-feed.json` if present, and the user's own words.
+   - **One clear match** → use it.
+   - **Several matches** → tag as cross-initiative and list which initiatives are touched.
+   - **No clear match** → ask.
 
-4. **Load initiative context**  -  Once confirmed, read:
-   - `blueprints/{slug}/SESSION-CONTEXT.md` (tail 50 lines)
-   - `blueprints/{slug}/initiative-tracker.md` (if it exists)
-   - `blueprints/{slug}/status-data.json` (if it exists)
+3. **Confirm with user (once)**  -  If the match is not obvious, ask once with the candidate initiatives as options plus "Cross-initiative" and "Let me specify". If the user already named the initiative in their message, skip this.
+
+4. **Load initiative context**  -  Once confirmed, read from `{initiativesRoot}/{slug}/` (fall back to a legacy `blueprints/{slug}/` only if the initiatives path does not exist):
+   - `SESSION-CONTEXT.md` (tail 50 lines)
+   - `initiative-tracker.md` (if it exists)
+   - `status-data.json` (if it exists)
    
    This ensures the cross-reference step (Task 7) has the current tracker to compare against.
 
@@ -151,7 +145,7 @@ Sample Initiative updates:
   + DEC-XX: ...
   + A-XX: ...
 
-Data Collection updates:
+Sample onboarding initiative updates:
   + OQ-XX: ...
   + RISK-XX: ...
 

@@ -6,9 +6,12 @@ description: >
   HTML snapshot, Confluence pages, project hub). Produces a divergence report and optionally
   propagates updates. Runs on demand via `/validate-state`, as Step 1 of the session resume flow,
   before `/publish-status`, and at end of any session where canonical state was modified.
+disable-model-invocation: true
 ---
 
 # Skill: State Validator
+
+> **Hook ids:** this skill names `HK-...` ids. Open that row in `~/.cursor/skills/ba-assistant/hook-contracts.md` if you need the contract. Do not read the whole file.
 
 ## Description
 
@@ -22,11 +25,13 @@ This skill detects divergences across canonical state files and downstream artef
 in a single table, and propagates updates on user confirmation. It is **read-mostly** by default,
 never auto-edits without explicit per-divergence approval.
 
-**Exception (standing, 27 Aug 2026):** `/validate-state` **always** updates `/todo` via `sync-ba-actions` (`references/ba-actions-format.md` §3). That write is limited to `_workstream/ba-actions.json` + regenerate `_workstream/ba-actions.md`. Do not wait for artefact-propagation approval.
+**`/validate-state` writes.** `/validate-state` checks this chat against the current initiative. Write what this chat captured into the right files: `SESSION-CONTEXT.md`, the tracker, and `status-data.json` where those files already exist, and upsert only the BA actions that came from this chat into `~/.cursor/_workstream/ba-actions.json`. Do not refresh the workboard. Do not walk every open action. Do not invent files. If something has no obvious home, say so and ask. Regenerate `ba-actions.md` after the upsert.
+
+The read-mostly default below applies when this skill runs on resume or before a publish, not to `/validate-state`.
 
 > **Cross-cutting rule:** Before producing a propagation plan, apply the **"What I'll produce next"
-> declaration** rule from `ba-assistant/SKILL.md`. Validation is read-only; propagation is the
-> artefact-producing step that needs the user to confirm scope.
+> declaration** rule from `ba-assistant/SKILL.md`. On resume and before publish, validation is read-only; propagation is the
+> artefact-producing step that needs the user to confirm scope. `/validate-state` writes this chat's captures (see above).
 
 ## When to invoke
 

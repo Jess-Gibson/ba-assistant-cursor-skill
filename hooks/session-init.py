@@ -26,10 +26,11 @@ picking one arbitrarily:
     missing).
   - "OTHER NEW DOWNLOADS" (non-transcript) block and .vtt extension support:
     only session-init.ps1 had these. Ported from the .ps1.
-  - Search roots: session-init.sh searched MORE roots than session-init.ps1
-    (it also checked ~/ba-initiatives, ~/Initiatives, ~/projects, in addition
-    to ~/.cursor/Initiatives and ~/.cursor/blueprints). Kept the broader .sh
-    list — nothing suggested the narrower .ps1 list was a deliberate trim.
+  - Search roots: BA_INITIATIVES_ROOT if set, else paths.initiativesRoot from
+    ~/.cursor/rules/ba-assistant-config.mdc (what setup writes), then always
+    ~/.cursor/initiatives (the installer default). The older roots
+    (~/.cursor/Initiatives, ~/.cursor/blueprints, ~/ba-initiatives,
+    ~/Initiatives, ~/projects) stay as legacy fallbacks only.
   - CURSOR_NEW_TRANSCRIPTS join character: .ps1 joined paths with ';', .sh
     joined with a raw newline (fragile in an env var). Kept ';' (.ps1's).
 Kept from both: AGENTS.md/README.md guidance line, SESSION-CONTEXT tail
@@ -40,6 +41,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -88,14 +90,26 @@ def write_last_session_time(timestamp_file: Path) -> None:
         pass
 
 
+def config_initiatives_root() -> str:
+    """paths.initiativesRoot from ba-assistant-config.mdc (setup writes it there;
+    it does not set an environment variable)."""
+    cfg = Path.home() / ".cursor" / "rules" / "ba-assistant-config.mdc"
+    try:
+        text = cfg.read_text(encoding="utf-8", errors="ignore")
+    except OSError:
+        return ""
+    m = re.search(r'^\s*initiativesRoot\s*:\s*["\']?([^"\'#\n]+)', text, re.M)
+    return os.path.expanduser(m.group(1).strip()) if m else ""
+
+
 def search_roots() -> list[str]:
     roots = []
-    initiatives_root = os.environ.get("BA_INITIATIVES_ROOT")
+    initiatives_root = os.environ.get("BA_INITIATIVES_ROOT") or config_initiatives_root()
     if initiatives_root:
         roots.append(initiatives_root)
     home = str(Path.home())
-    # Broader list from session-init.sh (nothing suggested the .ps1's
-    # narrower 2-root list was a deliberate trim — see module docstring).
+    roots.append(str(Path(home) / ".cursor" / "initiatives"))
+    # Legacy fallbacks so an older setup (e.g. a blueprints folder) still works.
     roots += [
         str(Path(home) / ".cursor" / "Initiatives"),
         str(Path(home) / ".cursor" / "blueprints"),
@@ -304,8 +318,8 @@ def main() -> int:
     latest, latest_mtime = find_latest_session_context(roots)
 
     context_block = (
-        "No SESSION-CONTEXT.md found under configured initiative roots. "
-        "Set BA_INITIATIVES_ROOT (ba-setup wizard) if initiatives live elsewhere."
+        "No SESSION-CONTEXT.md found under the initiatives folder "
+        "(paths.initiativesRoot in ba-assistant-config.mdc, default ~/.cursor/initiatives)."
     )
     if latest is not None:
         modified = datetime.fromtimestamp(latest_mtime).strftime("%Y-%m-%d %H:%M")

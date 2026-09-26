@@ -1,6 +1,7 @@
 ---
 name: ba-change-strategy
 description: Sustained organisational change management using ADKAR  -  audience impact assessment, change planning, adoption tracking, resistance management. Bridges Playback & Enablement to full change discipline.
+disable-model-invocation: true
 ---
 
 # Skill: Change Strategy

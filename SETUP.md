@@ -153,12 +153,12 @@ Also confirm `~/.cursor/skills/ba-assistant/SKILL.md` exists.
 
 | Setting | Default |
 |---------|---------|
-| Initiatives root | `~/.cursor/initiatives` (`BA_INITIATIVES_ROOT`) |
+| Initiatives root | `~/.cursor/initiatives` (`paths.initiativesRoot` in `ba-assistant-config.mdc`) |
 | Downloads | `~/Downloads` (`BA_DOWNLOADS_PATH`) |
 | Personalisation file | `~/.cursor/rules/ba-assistant-config.mdc` |
 | Persona rule | `~/.cursor/rules/ba-profile.mdc` (package; not overwritten by wizard) |
 
-Legacy `blueprints/` folders still work if you point `BA_INITIATIVES_ROOT` there.
+Legacy `blueprints/` folders still work: the hooks check them as a fallback, or point `paths.initiativesRoot` there.
 
 ---
 

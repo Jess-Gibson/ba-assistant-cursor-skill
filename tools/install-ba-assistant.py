@@ -63,27 +63,10 @@ EXCLUDE_FROM_SKILL_TREE = {
     "learnings.md",
 }
 
-PACKAGE_COMMANDS = [
-    "ba-assistant.md",
-    "setup.md",
-    "workboard.md",
-    "todo.md",
-    "wrap.md",
-    "status.md",
-    "canvas.md",
-    "validate-state.md",
-    "handover.md",
-    "debrief.md",
-    "metrics.md",
-    "reanchor.md",
-    "retro.md",
-    "next.md",
-    "report.md",
-    "fast-track.md",
-    "publish-status.md",
-    "snapshot.md",
-    "audit-standards.md",
-]
+def package_commands(package: Path) -> list[Path]:
+    """Every commands/*.md the package ships. Globbed, never a hand list that drifts."""
+    cmd_dir = package / "commands"
+    return sorted(cmd_dir.glob("*.md")) if cmd_dir.exists() else []
 
 
 def log(msg: str) -> None:
@@ -287,14 +270,30 @@ def hook_entry_script_name(entry: dict) -> str | None:
     return None
 
 
+# Prompt hooks this package used to ship. A prompt entry has no script to match
+# on, so without this a reinstall kept the old copy AND appended the new one.
+PACKAGE_PROMPT_OWNER = "ba-assistant"
+LEGACY_PACKAGE_PROMPT_PREFIXES = (
+    "SESSION START: Classify per execution-router.mdc",
+)
+
+
+def is_package_prompt_entry(entry: dict) -> bool:
+    if not isinstance(entry, dict) or entry.get("type") != "prompt":
+        return False
+    if entry.get("_owner") == PACKAGE_PROMPT_OWNER:
+        return True
+    prompt = str(entry.get("prompt", "")).lstrip()
+    return prompt.startswith(LEGACY_PACKAGE_PROMPT_PREFIXES)
+
+
 def merge_hook_event(event_name: str, user_entries: list, pkg_entries: list) -> tuple[list, list[str]]:
     """Merge one hooks.<event> array.
 
-    The package's own entries for this event (matched by script basename)
-    always reflect the package's current version. Any entry the user added
-    that this package doesn't own for this event (including any `"type":
-    "prompt"` entry, which has no script basename to match on) is preserved.
-    Returns (merged_list, log_lines).
+    The package's own entries for this event (matched by script basename, or
+    for prompt hooks by `_owner` / a known package prompt prefix) always
+    reflect the package's current version. Any entry the user added that this
+    package doesn't own is preserved. Returns (merged_list, log_lines).
     """
     pkg_names = {hook_entry_script_name(e) for e in pkg_entries}
     pkg_names.discard(None)
@@ -304,6 +303,9 @@ def merge_hook_event(event_name: str, user_entries: list, pkg_entries: list) -> 
         name = hook_entry_script_name(entry)
         if name is not None and name in pkg_names:
             logs.append(f"DROP hooks.{event_name} stale user entry ({name}, superseded by package)")
+            continue
+        if is_package_prompt_entry(entry):
+            logs.append(f"DROP hooks.{event_name} old package prompt entry (replaced, not stacked)")
             continue
         kept.append(entry)
         logs.append(f"KEEP hooks.{event_name} user entry ({name or entry.get('type', 'entry')})")
@@ -398,6 +400,54 @@ def rewrite_package_python_interpreters(pkg_hooks: dict) -> int:
     return rewritten
 
 
+DOR_GATE_SCRIPT = "jira-dor-gate.py"
+
+
+def guard_dor_gate_interpreter(pkg_hooks: dict) -> list[str]:
+    """The DoR gate runs with failClosed:true. If the Python interpreter itself is
+    missing, that would block EVERY MCP call (Confluence reads included). Keep
+    the gate strict when the script runs, but allow when the interpreter can't
+    start. A crash of the script itself stays fail-closed.
+
+    Mac/Linux: wrap the command in `sh -c` that checks for the interpreter first.
+    Windows: no portable wrapper, so if the py launcher is missing right now,
+    register the gate fail-open and warn.
+    """
+    logs: list[str] = []
+    interpreter = package_python_command()
+    allow_json = '{"permission":"allow","agent_message":"","user_message":""}'
+    for entries in pkg_hooks.values():
+        if not isinstance(entries, list):
+            continue
+        for entry in entries:
+            if not isinstance(entry, dict) or hook_entry_script_name(entry) != DOR_GATE_SCRIPT:
+                continue
+            cmd = entry.get("command", "")
+            if platform.system() == "Windows":
+                if shutil.which(interpreter) is None:
+                    entry["failClosed"] = False
+                    logs.append(
+                        f"WARN '{interpreter}' not found: DoR gate registered with failClosed:false "
+                        "so MCP calls are not blocked. Install Python and re-run the installer."
+                    )
+                continue
+            if cmd.startswith("sh -c"):
+                continue
+            tokens = cmd.split()
+            if len(tokens) != 2:
+                continue
+            script_path = tokens[1]
+            escaped = allow_json.replace('"', '\\"')
+            # Script path stays the LAST token (passed as $0) so
+            # hook_entry_script_name still matches it on the next merge.
+            entry["command"] = (
+                f"sh -c 'command -v {interpreter} >/dev/null 2>&1 || "
+                f"{{ echo \"{escaped}\"; exit 0; }}; exec {interpreter} \"$0\"' {script_path}"
+            )
+            logs.append("WRAP DoR gate command: allow MCP calls if the interpreter is missing")
+    return logs
+
+
 def merge_hooks_json(package_hooks: Path, dest_hooks: Path, dry_run: bool, strategy: str = "merge") -> None:
     """Install/merge hooks.json per --hooks-strategy.
 
@@ -424,6 +474,8 @@ def merge_hooks_json(package_hooks: Path, dest_hooks: Path, dry_run: bool, strat
                 f"REWRITE {n_rewritten} package hook command(s) to use "
                 f"'{package_python_command()}' interpreter (detected OS: {platform.system()})"
             )
+        for line in guard_dor_gate_interpreter(pkg_hook_events_for_rewrite):
+            log(line)
 
     if not dest_hooks.exists():
         log(f"COPY hooks.json -> {dest_hooks}")
@@ -537,22 +589,28 @@ def seed_workstream(cursor_home: Path, package: Path, dry_run: bool) -> None:
         log(f"SEED {ba}")
         if not dry_run:
             ba.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-    readme_src = package / "_workstream" / "README.md"
-    if readme_src.exists():
-        copy_file(readme_src, ws / "README.md", dry_run)
-    generator_src = package / "tools" / "generate-workboard-canvas.py"
-    if generator_src.exists():
-        copy_file(generator_src, ws / "generate-workboard-canvas.py", dry_run)
-    calendar_roll_src = package / "tools" / "roll-calendar-eod.py"
-    if calendar_roll_src.exists():
-        copy_file(calendar_roll_src, ws / "roll-calendar-eod.py", dry_run)
-    calendar_sample_src = package / "_workstream" / "calendar-feed.sample.json"
-    if calendar_sample_src.exists():
-        copy_file(calendar_sample_src, ws / "calendar-feed.sample.json", dry_run)
-    # These three already live under the package's own _workstream/ (not tools/) --
-    # copy them by name the same way. Previously only README.md was copied from here;
-    # the scripts themselves were referenced everywhere but never actually seeded.
-    for name in ("regenerate-ba-actions-md.py", "extract-docx-text.py", "list-downloads-recent.py"):
+    copy_workstream_scripts(cursor_home, package, dry_run)
+
+
+# Package-owned helper scripts under _workstream/ (code, not BA data). Install and
+# upgrade both refresh these; JSON data files are never touched here.
+WORKSTREAM_TOOL_SCRIPTS = ("generate-workboard-canvas.py", "roll-calendar-eod.py")
+WORKSTREAM_PACKAGE_FILES = (
+    "README.md",
+    "calendar-feed.sample.json",
+    "regenerate-ba-actions-md.py",
+    "extract-docx-text.py",
+    "list-downloads-recent.py",
+)
+
+
+def copy_workstream_scripts(cursor_home: Path, package: Path, dry_run: bool) -> None:
+    ws = cursor_home / "_workstream"
+    for name in WORKSTREAM_TOOL_SCRIPTS:
+        src = package / "tools" / name
+        if src.exists():
+            copy_file(src, ws / name, dry_run)
+    for name in WORKSTREAM_PACKAGE_FILES:
         src = package / "_workstream" / name
         if src.exists():
             copy_file(src, ws / name, dry_run)
@@ -566,7 +624,7 @@ def seed_initiatives(cursor_home: Path, dry_run: bool) -> Path:
         text = (
             "# BA initiatives\n\n"
             "Default root for BA Assistant initiative folders "
-            "(`BA_INITIATIVES_ROOT`).\n\n"
+            "(`paths.initiativesRoot` in ~/.cursor/rules/ba-assistant-config.mdc).\n\n"
             "Create initiatives with: "
             '"Start a new initiative called [name]"\n'
         )
@@ -655,16 +713,8 @@ def install(package: Path, cursor_home: Path, dry_run: bool, hooks_strategy: str
             copy_file(persona, dest_persona, dry_run)
 
     # Commands
-    for name in PACKAGE_COMMANDS:
-        src = package / "commands" / name
-        if src.exists():
-            copy_file(src, cursor_home / "commands" / name, dry_run)
-    # Copy any other command stubs present in package
-    cmd_dir = package / "commands"
-    if cmd_dir.exists():
-        for src in cmd_dir.glob("*.md"):
-            if src.name not in PACKAGE_COMMANDS:
-                copy_file(src, cursor_home / "commands" / src.name, dry_run)
+    for src in package_commands(package):
+        copy_file(src, cursor_home / "commands" / src.name, dry_run)
 
     # Hooks scripts
     hooks_dir = package / "hooks"

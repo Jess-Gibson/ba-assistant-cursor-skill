@@ -7,7 +7,7 @@
 
 **Do not ask the user where files are.** Find them automatically:
 
-**Step 1  -  Find the project folder.** Search the workspace for the project's blueprint/analysis directory. Common patterns:
+**Step 1  -  Find the project folder.** Look under the initiatives root first: `paths.initiativesRoot` in `ba-assistant-config.mdc` (default `~/.cursor/initiatives/<slug>/`). Only if nothing is there, search the workspace for a legacy layout:
 - `<workspace>/blueprints/<project-name>/` -- flat structure (Sample Initiative pattern, preferred)
 - `<workspace>/blueprints/Project NNN - <name>/` -- numbered project format
 - `<workspace>/<project-name>/docs/` -- simpler layout
@@ -272,7 +272,7 @@ With all gathered context, generate both outputs. Data is embedded directly in b
 A **horizontal multi-select pill cluster** above the tab strip. Three visually-grouped clusters separated by `|` characters as `Text size="small" tone="tertiary"`:
 
 ```
-Filter scope:  [✓ 🏛️ Initiative level]  |  [F1 …]  [F2 …]  [F3 …]  |  [Cohort: Solo]  [Cohort: AccountRight]  [Cohort: Business]
+Filter scope:  [✓ 🏛️ Initiative level]  |  [F1 …]  [F2 …]  [F3 …]  |  [Cohort: Existing customers]  [Cohort: New customers]  [Cohort: Partners]
 Showing the whole initiative (Initiative level) · click a feature or cohort to drill in · click "Initiative level" to reset
 ```
 
@@ -308,8 +308,8 @@ const SCOPES: Scope[] = [
 
 | ❌ Bad (BA jargon) | ✅ Good (real business context) |
 |---|---|
-| `label: "F-A Rule Uplift"` | `label: "Data Collection Uplift"` |
-| `shortLabel: "Feature A"` | `shortLabel: "Data Collection"` |
+| `label: "F-A Rule Uplift"` | `label: "Phone Number Validation"` |
+| `shortLabel: "Feature A"` | `shortLabel: "Phone Validation"` |
 | `label: "Cohort A: Stale Draft"` | `label: "Stale Drafts (<30d, never live)"` |
 | `shortLabel: "Cohort A"` | `shortLabel: "Stale Drafts"` |
 | `label: "Cohort B: Churned >7yr"` | `label: "Churned merchants (>7yr)"` |
@@ -372,7 +372,7 @@ type ScopeFilter = (id: ScopeId) => boolean;
 // ...etc  -  every tab takes `isActive: ScopeFilter`
 ```
 
-Every tab uses `isActive(scope.id)` to decide whether to show a row, bar, or node. This pattern enables true multi-scope views (e.g. "show me F1 + Cohort Solo on the same timeline") without forcing a single-scope drill-down.
+Every tab uses `isActive(scope.id)` to decide whether to show a row, bar, or node. This pattern enables true multi-scope views (e.g. "show me F1 + the existing-customer cohort on the same timeline") without forcing a single-scope drill-down.
 
 **Pill rendering pattern (every scope pill follows this):**
 

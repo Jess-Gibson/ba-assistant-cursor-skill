@@ -116,7 +116,7 @@ Slash commands trigger orchestrator-driven flows. Type the slash in chat; if Cur
 | `/metrics` | Pull and display all four metrics with per-scope breakdown and trend. Quick check-in without the full status output |
 | `/reanchor` | Re-read the orchestrator and active project state files. Use when a long thread has drifted  -  skills not firing, status headers missing, workstream model forgotten |
 | `/audit-standards` | Run a conformance check against all reference standards across the live initiative. Reports artefacts that don't conform |
-| `/validate-state` | Mid-session drift report (read-only). Diffs SESSION-CONTEXT vs tracker, checks status-data.json, flags stale Confluence pages, optional Jira delta. Offers fix options but does not auto-write |
+| `/validate-state` | Writes what this chat captured into the initiative files (`SESSION-CONTEXT.md`, tracker, `status-data.json` where they exist) and upserts this chat's BA actions into `ba-actions.json`. No workboard refresh, no walk of every action. Asks if something has no obvious home |
 | `/wrap` | Chat-scoped checkpoint. Captures this thread's decisions, actions, and outputs, promotes its unpromoted items to the tracker, syncs BA actions changed in this chat, and checkpoints SESSION-CONTEXT. Does not refresh the workboard or reconcile the calendar (that is `/workboard end-of-day`) |
 | `/workboard` | Cross-initiative priorities view. Shows all initiatives, top tasks, today's meetings, sync status. `/workboard end-of-day` is the daily closeout (calendar reconcile, full action runthrough, workboard refresh) |
 
@@ -431,7 +431,7 @@ When the assistant produces stakeholder-facing text  -  `/status`, `/next`, stat
 
 | Bad (BA jargon) | Good (real business context) |
 |---|---|
-| "Feature A is on track" | "Data Collection Uplift Collection Uplift is on track" |
+| "Feature A is on track" | "Phone number validation is on track" |
 | "Cohort B paused" | "Churned >7yr paused until BL-LEGAL-1" |
 
 Internal IDs (`F-A`, `C-B`) appear only in data models and code  -  never in text you or your stakeholders read.
@@ -527,7 +527,7 @@ These get surfaced in `/snapshot` and especially in `/retro` outputs.
 - **Use the JTBD lens.** "When [situation], I want to [motivation], so I can [outcome]" surfaces functional, emotional, and social dimensions that "user story" format alone misses.
 - **Ask for visuals early.** A diagram surfaces dependencies that text hides.
 - **Pay attention to surfaced learnings.** When the assistant says "Learning from previous initiatives...", it's drawing from real patterns  -  consider whether it applies before dismissing.
-- **Run `/validate-state` when you're unsure.** It's read-only and fast  -  tells you if anything has drifted without changing anything.
+- **Run `/validate-state` when you're unsure.** It writes what this chat captured into the right initiative files and `ba-actions`, and asks if something has no obvious home.
 - **Use `/wrap` at the end of every chat thread.** It promotes this thread's tentative decisions to the tracker and catches unpromoted items. Run `/workboard end-of-day` once a day for the cross-initiative closeout.
 
 ---
@@ -541,7 +541,7 @@ Requirements and scope evolve. When they do:
 - **A stakeholder is surprised?** That's a signal Stakeholder Strategy and Playback need to be refreshed. Update the engagement plan.
 - **A workstream completed for one scope but not another?** That's fine  -  that's dual-track. Just keep the workstream tracker honest. The canvas will show it visually.
 
-- **Something feels out of sync?** Run `/validate-state` for a read-only drift report. It diffs SESSION-CONTEXT vs tracker, checks status-data.json, and flags stale Confluence pages. Run `/wrap` to promote what this chat changed, or `/workboard end-of-day` for the daily cross-initiative sweep.
+- **Something feels out of sync?** Run `/validate-state` to write this chat's captures into the initiative files and `ba-actions`. Run `/wrap` to promote what this chat changed, or `/workboard end-of-day` for the daily cross-initiative sweep.
 
 The Assistant doesn't expect a clean linear flow. It expects change.
 

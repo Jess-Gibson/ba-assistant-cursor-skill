@@ -1,4 +1,12 @@
+---
+name: ba-current-state-assessment
+description: Builds an evidence-based picture of how process, systems, data and people work today, before requirements are written.
+disable-model-invocation: true
+---
+
 # Skill: Current State Assessment
+
+> **Hook ids:** this skill names `HK-...` ids. Open that row in `~/.cursor/skills/ba-assistant/hook-contracts.md` if you need the contract. Do not read the whole file.
 
 ## Description
 

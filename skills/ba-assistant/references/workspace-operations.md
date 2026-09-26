@@ -8,14 +8,14 @@ Configurable paths (set in **ba-setup** Step 3):
 | Variable | Purpose | Typical default |
 |---|---|---|
 | `BA_DOWNLOADS_PATH` | Transcripts / downloads inbox | `~/Downloads` |
-| `BA_INITIATIVES_ROOT` | Initiative folders root | `~/.cursor/initiatives` |
-| `BA_SHARED_REPO_ROOT` | Shared delivery repo for `/handover` | (optional) |
+| `BA_INITIATIVES_ROOT` | Initiative folders root. Setup stores it as `paths.initiativesRoot` in `ba-assistant-config.mdc` (it does not set an env var); an env var, if you set one, overrides it. Skills use this name for that folder. | `~/.cursor/initiatives` |
+| `BA_SHARED_REPO_ROOT` | Optional override. Normally `/handover` stores the shared delivery repo as `paths.sharedRepoRoot` in `ba-assistant-config.mdc` | (optional) |
 
 ---
 
 ## Downloads / transcripts check
 
-On resume, `/reanchor`, `/workboard`, and `/wrap`: list recent files in `BA_DOWNLOADS_PATH` (all types, not only `.docx`). Flag anything unprocessed vs SESSION-CONTEXT / tracker.
+On resume, `/reanchor`, and `/workboard`: list recent files in `BA_DOWNLOADS_PATH` (all types, not only `.docx`). Flag anything unprocessed vs SESSION-CONTEXT / tracker.
 
 ### Platform commands
 
@@ -31,7 +31,7 @@ On resume, `/reanchor`, `/workboard`, and `/wrap`: list recent files in `BA_DOWN
 |---|---|
 | `/debrief` with `@` attachment | Skip Downloads scan |
 | `/debrief` finding newest transcript | ~3 days |
-| Resume / `/workboard` / `/wrap` | ~7 days |
+| Resume / `/workboard` | ~7 days |
 
 ---
 

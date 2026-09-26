@@ -1,4 +1,12 @@
+---
+name: ba-project-canvas
+description: Generates and maintains an interactive tabbed Cursor canvas and HTML snapshot of an initiative's status.
+disable-model-invocation: true
+---
+
 # BA Project Canvas
+
+> **Hook ids:** this skill names `HK-...` ids. Open that row in `~/.cursor/skills/ba-assistant/hook-contracts.md` if you need the contract. Do not read the whole file.
 
 Generate and maintain an interactive Cursor Canvas dashboard for any BA/PM initiative. The canvas provides a visual, tabbed overview of project state  -  a living status board you can open beside the chat.
 

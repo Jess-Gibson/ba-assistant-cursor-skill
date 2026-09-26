@@ -8,6 +8,7 @@ description: >
   for X", or when the resume flow finds no existing initiative folder matching what
   the user describes. Replaces the old welcome-panel and project-initialisation flow
   that used to live inline in ba-assistant/SKILL.md.
+disable-model-invocation: true
 ---
 
 # Skill: New Initiative Setup

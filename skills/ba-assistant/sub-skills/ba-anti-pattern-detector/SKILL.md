@@ -1,4 +1,12 @@
+---
+name: ba-anti-pattern-detector
+description: Monitors BA analysis and delivery work for common pitfalls such as premature solutioning and overscoping, and flags them.
+disable-model-invocation: true
+---
+
 # Skill: Anti‑Pattern Detector
+
+> **Hook ids:** this skill names `HK-...` ids. Open that row in `~/.cursor/skills/ba-assistant/hook-contracts.md` if you need the contract. Do not read the whole file.
 
 ## Description
 
@@ -72,7 +80,7 @@ Specific triggers to watch for, by skill:
 | State Validator | The same fact has appeared in the divergence table in 3+ sessions for the same initiative | **Repeatedly drifting fact  -  stronger update gate needed** (added Wave 5; promote to learnings.md watchlist) |
 | Orchestrator | >40 user turns since SKILL.md was last loaded AND a mandatory hook is missed | **Long-thread drift  -  suggest `/reanchor`** (added Wave 5) |
 | All skills (General [Organisation] workspace) | Agent writes, opens, or references a path under `blueprints/` with a leading `.cursor/` segment (e.g. `.cursor/blueprints/Sample Initiative/...`) when workspace root is already `~/.cursor` | **Workspace path prefix poison  -  Cursor will fail to open file (null URI)** (added 3 Jun 2026; learnings pattern; use `blueprints/...` only) |
-| End-of-session | User signals wrap-up (`wrap up`, `end of session`, `done for tonight`, `checkpoint`) AND agent closes without loading **ba-retrospective-and-learning** (Type 1 minimum) | **End-of-session without retro  -  learnings not captured** (added 3 Jun 2026 cursor-path retro) |
+| End-of-session | User signals wrap-up (`wrap up`, `checkpoint`) or end of day (`done for tonight`, `end of day`) AND agent loads **ba-retrospective-and-learning** without an explicit retro request or `/retro` | **Unrequested retro** (wrap-up means `/wrap`; end of day means `/workboard end-of-day`) |
 | Any skill with a `HK-*-BDI-*` hook (Solution Shaping, Feature Slicing & Sequencing, Risk & Tracker, Intake Reviewer, Current State Assessment, Discovery & Requirements, Solution Evaluation) | A confidence score, priority rating, or risk probability/impact is set to `high` or `medium` AND `evidence.type` is `qualitative` or missing AND the relevant `ba-data-investigation` pairing hook was never offered to the user this session for that scope | **Ungrounded rating  -  data-pairing hook skipped without a stated reason** (added Wave 8, `ba-data-investigation`) |
 | Solution Shaping | An options comparison table (A/B/C, trade-off table) is produced with viability confidence scores AND `HK-SOL-BDI-viability` was not invoked, or was invoked and the user picked "proceed on judgement" for every option with no data attempted | **Options compared on gut feel only** (added Wave 8, `ba-data-investigation`) |
 | Risk and Tracker | A Blocking Questions Log entry from `ba-data-investigation` (`blocking: true`) has been open >14 days with no owner follow-up recorded | **Stale blocking question  -  data gap sitting unaddressed** (added Wave 8, `ba-data-investigation`) |
@@ -126,7 +134,7 @@ Triggers in this detector now respect the `Status` field of their associated pat
 
 When an Established trigger fires and the user wants to proceed at risk:
 
-1. Detector surfaces the block with pattern context: "This is the 3rd initiative where this trigger has fired. On Data Collection Uplift Project 002 it correlated with 2 weeks of rework. Proceed at risk?"
+1. Detector surfaces the block with pattern context: "This is the 3rd initiative where this trigger has fired. On a previous initiative it correlated with 2 weeks of rework. Proceed at risk?"
 2. User responds via AskQuestion: [Address the issue first] [Proceed at risk  -  log reason] [Mark this pattern as no longer relevant]
 3. If "Proceed at risk", capture the reason in the tracker. The retro at the end of this initiative will revisit whether the override was right.
 4. If "Mark as no longer relevant", reduce the pattern's Confirmed-in count by 1 (or archive if the count drops to 0). This is rare but allows patterns to retire when the underlying conditions change (e.g. tooling improvement removes a failure mode).

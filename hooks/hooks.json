@@ -1,16 +1,11 @@
 {
   "version": 1,
-  "_comment": "Wave: D3/C1/C1b/C3 blocks added 5 Jul 2026, verified against Cursor hooks docs. Every hook script is a single cross-platform hooks/*.py file (no more sh/ps1 twins - session-init.py and snapshot-before-compact.py replaced the last two PowerShell-only entries). The 'python'/'python3'/'py' interpreter token in each command below still needs to be OS-correct (bare `python` resolves to nothing, or to the Microsoft Store stub, on a fresh Windows install; Mac/Linux commonly ship `python3` but not a bare `python`) - tools/install-ba-assistant.py rewrites that token to `py` (Windows) or `python3` (Mac/Linux) for the package's own entries when it installs/merges this file, so this shipped copy is a template, not the literal command Cursor will run. stop can emit followup_message (only documented stop output, auto-submits a ghost user turn) but defaults OFF -- opt in with `stopFollowup: true` in ba-assistant-config.mdc (see inject-state-reminder.py's stop_followup_enabled()); beforeSubmitPrompt additional_context is a documented no-op today, registered for future-proofing; postToolUse carries the shared-repo warning (afterFileEdit has no output channel).",
+  "_comment": "Every hook script is a single cross-platform hooks/*.py file. The 'python' interpreter token in each command is a template: tools/install-ba-assistant.py (and the upgrader) rewrite it to `py` (Windows) or `python3` (Mac/Linux) when merging into ~/.cursor/hooks.json. beforeMCPExecution runs the Jira DoR gate with failClosed:true, so a crash of the gate script blocks the call; the installer wraps that command on Mac/Linux so a MISSING interpreter allows the call instead of blocking every MCP tool (on Windows, if the py launcher is not found at install time, the gate is registered with failClosed:false and the installer warns). sessionStart runs session-init.py only (the old prompt-type re-entry hook was removed: prompt hooks are judged by a separate small model and do not drive the assistant; the re-entry card lives in execution-router.mdc). stop can emit followup_message but is off unless `stopFollowup: true` in ba-assistant-config.mdc. beforeSubmitPrompt additional_context is not read by Cursor today (registered for future-proofing only). postToolUse carries the shared-repo warning (afterFileEdit has no output channel).",
   "hooks": {
     "sessionStart": [
       {
         "command": "python ./hooks/session-init.py",
         "timeout": 10
-      },
-      {
-        "type": "prompt",
-        "prompt": "SESSION START: Classify per execution-router.mdc. BA-resume requires: (1) Read SESSION-CONTEXT.md + initiative-tracker.md, (2) present the Re-entry Card (initiative | phase | day | where we are | next action | Jira delta | sync status), (3) AskQuestion with clickable options including recommended next action. Missing any = non-compliant. Input: $ARGUMENTS",
-        "timeout": 12
       }
     ],
     "preCompact": [

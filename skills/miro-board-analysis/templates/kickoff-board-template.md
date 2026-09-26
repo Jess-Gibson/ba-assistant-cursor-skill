@@ -208,8 +208,8 @@ SHAPE x=988 y=1476 w=1821 h=82 type=round_rectangle fill=#fff854 ... "<p><span s
 CARD x=231 y=1588 w=227 h=42 theme=#659df2 "<p>Designers</p>"
 CARD x=231 y=1639 w=227 h=42 theme=#ffdc4a "<p>Tech + Delivery</p>"
 CARD x=231 y=1691 w=227 h=42 theme=#fe02a7 "<p>Product</p>"
-CARD x=487 y=1639 w=227 h=42 theme=#067429 "<p>CXNPL</p>"
-CARD x=487 y=1691 w=227 h=42 theme=#2dc75c "<p>GSB</p>"
+CARD x=487 y=1639 w=227 h=42 theme=#067429 "<p>[external partner]</p>"
+CARD x=487 y=1691 w=227 h=42 theme=#2dc75c "<p>[external partner 2]</p>"
 CARD x=487 y=1588 w=227 h=42 theme=#af7e04 "<p>S&O</p>"
 ```
 

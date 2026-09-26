@@ -31,7 +31,22 @@ def out(permission, agent="", user=""):
     sys.exit(0)
 
 def repo_root():
-    return os.environ.get("BA_SHARED_REPO_ROOT", "")
+    # paths.sharedRepoRoot in ~/.cursor/rules/ba-assistant-config.mdc (/handover writes it
+    # the first time the BA says where confirmed analysis goes). The env var may override.
+    # Neither set = guard does nothing.
+    env = os.environ.get("BA_SHARED_REPO_ROOT", "")
+    if env:
+        return env
+    cfg = os.path.expanduser(os.path.join("~", ".cursor", "rules", "ba-assistant-config.mdc"))
+    try:
+        text = open(cfg, encoding="utf-8", errors="ignore").read()
+    except Exception:
+        return ""
+    m = re.search(r'^\s*sharedRepoRoot\s*:\s*["\']?([^"\'#\n]+)', text, re.M)
+    val = m.group(1).strip() if m else ""
+    if not val or val.startswith("["):   # unset or still a template placeholder
+        return ""
+    return os.path.expanduser(val)
 
 def scan_file(path):
     try:

@@ -1,6 +1,7 @@
 ---
 name: ba-workshop-design
 description: Design and run workshops across the initiative lifecycle  -  kickoff, current state, discovery, slicing, solution shaping, retro, change kickoff. Owns facilitation patterns, templates, agendas, attendee logic, and post-workshop debrief routing.
+disable-model-invocation: true
 ---
 
 # Skill: Workshop Design
@@ -375,7 +376,7 @@ Miro board: [created / skipped]
 Invite:     [drafted / skipped]
 
 Files created/updated:
-  - blueprints/{slug}/workshops/[name].md (workshop pack)
+  - ~/.cursor/initiatives/{slug}/workshops/[name].md (workshop pack)
   - _workstream/workboard.json (prep task added)
 
 Next: Send the invite, share the pre-read, review the Miro board.

@@ -33,31 +33,27 @@ PACKAGE_RULES = [
     "markdown-readability.mdc",
 ]
 
-PACKAGE_COMMANDS = [
-    "ba-assistant.md",
-    "setup.md",
-    "install-ba-assistant.md",
-    "workboard.md",
-    "todo.md",
-    "wrap.md",
-    "status.md",
-    "canvas.md",
-    "validate-state.md",
-    "handover.md",
-    "debrief.md",
-    "metrics.md",
-    "reanchor.md",
-    "retro.md",
-    "next.md",
-    "report.md",
-    "fast-track.md",
-    "publish-status.md",
-    "snapshot.md",
-    "audit-standards.md",
-]
+# Companion skills installed alongside ba-assistant when the package ships them.
+COMPANION_SKILLS = ("miro-board-analysis", "publish-docs-to-confluence")
+
+# Files inside skills/ba-assistant/ that hold BA data, not package code.
+SKIP_IN_SKILL_TREE = {"learnings.md"}
 
 
-def cursor_home() -> Path:
+def load_installer(package: Path):
+    """Reuse the installer's hook merge and workstream-script copy, so install
+    and upgrade can never drift. Upgrade still does NOT call install(): that
+    recopies whole skill trees and can re-seed files."""
+    script = package / "tools" / "install-ba-assistant.py"
+    spec = importlib.util.spec_from_file_location("ba_installer", script)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"cannot load installer {script}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def default_cursor_home() -> Path:
     return Path.home() / ".cursor"
 
 
@@ -69,7 +65,7 @@ def log(msg: str) -> None:
         print(msg.encode("ascii", "replace").decode("ascii"))
 
 
-def copy_tree_merge(src: Path, dest: Path, dry_run: bool, label: str) -> list[str]:
+def copy_tree_merge(src: Path, dest: Path, dry_run: bool, label: str, skip: set[str] | None = None) -> list[str]:
     actions = []
     if not src.exists():
         return [f"SKIP missing package path {src}"]
@@ -77,7 +73,10 @@ def copy_tree_merge(src: Path, dest: Path, dry_run: bool, label: str) -> list[st
         if not f.is_file():
             continue
         rel = f.relative_to(src)
-        # Never overwrite ba-setup from an old personal fork incorrectly — package wins for skills tree
+        if skip and rel.as_posix() in skip:
+            actions.append(f"KEEP {label}/{rel.as_posix()} (BA data, not package code)")
+            continue
+        # Package wins for skill files; files the BA added to the tree are left alone.
         target = dest / rel
         actions.append(f"UPDATE {label}/{rel.as_posix()}")
         if not dry_run:
@@ -219,6 +218,7 @@ def main() -> int:
     ap.add_argument("--package", required=True, help="Path to ba-assistant-cursor-skill checkout or extract")
     ap.add_argument("--apply", action="store_true", help="Apply changes (default is dry-run)")
     ap.add_argument("--force-personal", action="store_true", help="Allow overwriting ba-profile.mdc (dangerous)")
+    ap.add_argument("--cursor-home", default=None, help="Cursor home (default: ~/.cursor)")
     args = ap.parse_args()
     dry_run = not args.apply
 
@@ -233,7 +233,8 @@ def main() -> int:
     pkg_ver_file = pkg / "VERSION"
     VERSION = pkg_ver_file.read_text(encoding="utf-8").strip() if pkg_ver_file.exists() else "unknown"
 
-    home = cursor_home()
+    home = Path(args.cursor_home).expanduser().resolve() if args.cursor_home else default_cursor_home()
+    installer = load_installer(pkg)
     skills_dest = home / "skills" / "ba-assistant"
     rules_dest = home / "rules"
     commands_dest = home / "commands"
@@ -255,8 +256,12 @@ def main() -> int:
     profile = rules_dest / "ba-profile.mdc"
     if profile.exists() and not args.force_personal:
         plan.append(f"PROTECT {profile} (personalised - skipped)")
-    elif profile.exists() and args.force_personal:
+    elif profile.exists() and args.force_personal and (rules_pkg / "ba-profile.mdc").exists():
         plan.append(f"FORCE UPDATE {profile}")
+        if not dry_run:
+            shutil.copy2(rules_pkg / "ba-profile.mdc", profile)
+    plan.append(f"PROTECT {rules_dest / 'ba-assistant-config.mdc'} (personal config - never touched)")
+    plan.append(f"PROTECT {home / 'initiatives'} (initiative data - never touched)")
 
     # Protect voice rules
     if rules_dest.exists():
@@ -276,6 +281,10 @@ def main() -> int:
             to_bak.append(skills_dest)
         if (home / "hooks.json").exists():
             to_bak.append(home / "hooks.json")
+        if (home / "hooks").exists():
+            to_bak.append(home / "hooks")
+        if commands_dest.exists():
+            to_bak.append(commands_dest)
         for name in PACKAGE_RULES:
             p = rules_dest / name
             if p.exists():
@@ -283,7 +292,13 @@ def main() -> int:
         backup(to_bak, backup_root)
 
     # Skills tree replace
-    plan.extend(copy_tree_merge(skills_pkg, skills_dest, dry_run, "skills/ba-assistant"))
+    plan.extend(copy_tree_merge(skills_pkg, skills_dest, dry_run, "skills/ba-assistant", skip=SKIP_IN_SKILL_TREE))
+
+    # Companion skills, if the package ships them
+    for name in COMPANION_SKILLS:
+        src = pkg / "skills" / name
+        if src.exists():
+            plan.extend(copy_tree_merge(src, home / "skills" / name, dry_run, f"skills/{name}"))
 
     # Delete obsolete ba-workboard
     obsolete = skills_dest / "sub-skills" / "ba-workboard"
@@ -306,16 +321,27 @@ def main() -> int:
             rules_dest.mkdir(parents=True, exist_ok=True)
             shutil.copy2(src, dest)
 
-    # Commands
-    for name in PACKAGE_COMMANDS:
-        src = commands_pkg / name
-        dest = commands_dest / name
-        if not src.exists():
-            continue
-        plan.append(f"UPDATE command {name}")
+    # Commands: every commands/*.md the package ships (globbed, no hand list)
+    for src in sorted(commands_pkg.glob("*.md")) if commands_pkg.exists() else []:
+        plan.append(f"UPDATE command {src.name}")
         if not dry_run:
             commands_dest.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(src, dest)
+            shutil.copy2(src, commands_dest / src.name)
+
+    # Hook scripts + hooks.json merge (same merge the installer uses)
+    hooks_pkg = pkg / "hooks"
+    if hooks_pkg.exists():
+        for src in sorted(hooks_pkg.glob("*.py")):
+            plan.append(f"UPDATE hook {src.name}")
+            if not dry_run:
+                (home / "hooks").mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src, home / "hooks" / src.name)
+        plan.append(f"MERGE hooks.json -> {home / 'hooks.json'} (your own hook entries are kept)")
+        installer.merge_hooks_json(hooks_pkg / "hooks.json", home / "hooks.json", dry_run)
+
+    # Workboard helper scripts (code only; _workstream JSON data is never replaced)
+    plan.append(f"UPDATE workboard helper scripts in {workstream}")
+    installer.copy_workstream_scripts(home, pkg, dry_run)
 
     # Workstream seed + migrate
     plan.extend(seed_workstream(workstream, dry_run))
@@ -337,7 +363,6 @@ def main() -> int:
         log("Dry-run only. Re-run with --apply to execute.")
     else:
         log("Applied. Re-open Cursor / start a new chat, then run /workboard once.")
-        log("hooks.json was NOT replaced; merge calendar sessionStart yourself if desired.")
     return 0
 
 

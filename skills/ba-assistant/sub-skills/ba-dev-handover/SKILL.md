@@ -11,9 +11,12 @@ description: >
   from the confirmed register (parallel to how /publish-status derives a Confluence page), gates them for
   quality before they leave, writes them to the shared repo, and feeds the matching Jira ticket.
   It never publishes unconfirmed work.
+disable-model-invocation: true
 ---
 
 # Skill: Dev Handover
+
+> **Hook ids:** this skill names `HK-...` ids. Open that row in `~/.cursor/skills/ba-assistant/hook-contracts.md` if you need the contract. Do not read the whole file.
 
 ## Description
 
@@ -90,7 +93,7 @@ If the user hasn't said, ask via AskQuestion: Requirements pack / Spike request 
 
 ### 2. Confirm the shared-repo target
 
-Read `BA_SHARED_REPO_ROOT` (env var) or `confluence-pages.json → sharedRepo` if recorded. If neither exists, ask once for the shared repo path and the initiative slug, then cache it. The confirmed export lands at `<shared-repo>/analysis/<slug>/confirmed/`; exchanges at `<shared-repo>/analysis/<slug>/exchanges/`. See `dev-handover-format.md` for the full structure.
+Read `paths.sharedRepoRoot` from `~/.cursor/rules/ba-assistant-config.mdc` (an optional `BA_SHARED_REPO_ROOT` env var overrides it). If it is empty, ask once for the shared repo path ("where should confirmed analysis go?") and write it to `paths.sharedRepoRoot` in that file, next to the other paths. Ask for the initiative slug if it is not obvious. Do not store the path in `confluence-pages.json`. The confirmed export lands at `<shared-repo>/analysis/<slug>/confirmed/`; exchanges at `<shared-repo>/analysis/<slug>/exchanges/`. See `dev-handover-format.md` for the full structure.
 
 ### 3. Readiness check (the gate's first half)
 
@@ -170,7 +173,7 @@ Per `instructions.md → Self-Critique`, before presenting: what am I assuming t
 
 | Failure | What to do |
 |---|---|
-| Shared repo path unknown | Ask once, cache in confluence-pages.json → sharedRepo |
+| Shared repo path unknown | Ask once, write to `paths.sharedRepoRoot` in `ba-assistant-config.mdc` |
 | Jira MCP unavailable | Publish the markdown; skip ticket; note in the handover note that the ticket is pending |
 | A required requirement isn't confirmed | Halt and hand off to the Interrogator conversation (requirements/story pack) or flag provisional (spike/ADR); never silently publish a draft |
 | User insists on publishing a soft-fail | Allow after explicit acknowledgement; log the override to metrics-cache |

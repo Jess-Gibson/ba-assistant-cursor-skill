@@ -1,3 +1,9 @@
+---
+name: ba-intake-reviewer
+description: Reviews a PM's all-in-one or initial brief, challenges vague statements, and sets up the initiative's starting files.
+disable-model-invocation: true
+---
+
 # Skill: Intake Reviewer
 
 ## Description

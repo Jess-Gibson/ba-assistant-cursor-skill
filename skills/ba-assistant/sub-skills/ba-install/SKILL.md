@@ -5,7 +5,7 @@ description: >
   Use when the user asks to install BA Assistant, clone and install from a GitHub URL,
   "set up BA Assistant for me", or opens this package repo as a first-time BA.
   Copies skills, rules, hooks, and commands, then hands off to ba-setup.
-disable-model-invocation: false
+disable-model-invocation: true
 ---
 
 # BA Install — One-shot package install for non-developer BAs

@@ -35,14 +35,34 @@ def stop_followup_enabled() -> bool:
     return False
 
 
+def config_initiatives_root() -> str:
+    """paths.initiativesRoot from ba-assistant-config.mdc (setup writes it there;
+    it does not set an environment variable)."""
+    path = Path.home() / ".cursor" / "rules" / "ba-assistant-config.mdc"
+    try:
+        text = path.read_text(encoding="utf-8", errors="ignore")
+    except OSError:
+        return ""
+    m = re.search(r'^\s*initiativesRoot\s*:\s*["\']?([^"\'#\n]+)', text, re.M)
+    return os.path.expanduser(m.group(1).strip()) if m else ""
+
+
 def newest_session_context():
     cands = []
     ctx = os.environ.get("CURSOR_SESSION_CONTEXT_PATH", "")
     if ctx and os.path.isfile(ctx):
         return ctx
-    for root in filter(None, [os.environ.get("BA_INITIATIVES_ROOT", ""),
-                              os.path.expanduser("~/.cursor/blueprints"),
-                              os.path.expanduser("~/ba-initiatives")]):
+    roots = [os.environ.get("BA_INITIATIVES_ROOT", "") or config_initiatives_root(),
+             os.path.expanduser("~/.cursor/initiatives"),
+             # Legacy fallbacks so an older setup still works.
+             os.path.expanduser("~/.cursor/Initiatives"),
+             os.path.expanduser("~/.cursor/blueprints"),
+             os.path.expanduser("~/ba-initiatives")]
+    seen = set()
+    for root in roots:
+        if not root or root in seen:
+            continue
+        seen.add(root)
         cands += glob.glob(os.path.join(root, "**", "SESSION-CONTEXT.md"), recursive=True)
     return max(cands, key=os.path.getmtime) if cands else ""
 

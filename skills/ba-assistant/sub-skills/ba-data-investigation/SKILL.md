@@ -1,9 +1,12 @@
 ---
 name: ba-data-investigation
 description: Pairs with the user to gather, question, cross-validate, and debug data before a BA decision (confidence score, priority, risk rating, solution comparison, baseline, or post-launch actual) gets locked in on judgement alone. Invoked by other BA Assistant skills via hooks. Encodes the BA's own data-investigation methodology, not a generic analytics workflow.
+disable-model-invocation: true
 ---
 
 # Skill: Data Investigation and Evidence Pairing
+
+> **Hook ids:** this skill names `HK-...` ids. Open that row in `~/.cursor/skills/ba-assistant/hook-contracts.md` if you need the contract. Do not read the whole file.
 
 ## Description
 

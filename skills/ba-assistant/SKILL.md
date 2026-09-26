@@ -42,7 +42,8 @@ Work with the BA, not ahead of them and not instead of them.
 Read **before anything else**:
 
 - `instructions.md`
-- `hook-contracts.md`
+
+Do not read the whole `hook-contracts.md` at bootstrap. When a skill names a hook id (`HK-...`), open that row only if you need the contract.
 
 Load sub-skills and `references/` **only when needed**. Do not read all sub-skills at bootstrap (`execution-router.mdc` §3).
 
@@ -52,7 +53,8 @@ Load sub-skills and `references/` **only when needed**. Do not read all sub-skil
 | Learnings at inflection points | `sub-skills/ba-context-capture/SKILL.md` |
 | Artefact standards index | `references/standards-index.md` |
 | Co-thinking, AskQuestion, handoff headers | `references/co-thinking-protocol.md` |
-| Wrap / promote / validate | `references/sync-procedures.md` |
+| Wrap | `~/.cursor/commands/wrap.md` |
+| Promote / validate | `references/sync-procedures.md` |
 | Skill list and invocation types | `references/activity-map.md` |
 
 ## Step 1.5 - First-run install / setup only
@@ -78,7 +80,7 @@ Signals: `/reanchor`, continue, resume, named initiative, or an analysis folder 
 7. AskQuestion: continue recommended / different focus / `/status` / validate / canvas.
 8. Drop into the active work. Help progress it in this conversation; do not stop at a status dump.
 
-**End of session:** offer `/wrap` → `references/sync-procedures.md` (never automatic).
+**End of session:** offer `/wrap` → `~/.cursor/commands/wrap.md` (chat-only checkpoint, never automatic). End of day is `/workboard end-of-day`.
 
 ## Step 3 - Phase 0 handoff (new initiatives only)
 

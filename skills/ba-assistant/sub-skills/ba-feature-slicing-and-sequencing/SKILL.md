@@ -1,9 +1,12 @@
 ---
 name: ba-feature-slicing-and-sequencing
 description: Feature slices before epics, prioritisation, critical path. Use when slicing or sequencing work in BA Assistant.
+disable-model-invocation: true
 ---
 
 # Skill: Feature Slicing and Sequencing
+
+> **Hook ids:** this skill names `HK-...` ids. Open that row in `~/.cursor/skills/ba-assistant/hook-contracts.md` if you need the contract. Do not read the whole file.
 
 ## Description
 
@@ -134,7 +137,7 @@ GOAL: 90% quick T2P onboarding completion (up from 72%)
   ACTOR: Compliance team
     IMPACT: Signs off the auto-approval rule
       DELIVERABLE: Auto-approval logic documented + audit trail
-    IMPACT: Doesn't require re-Data Collection for in-scope cohort
+    IMPACT: Doesn't require re-collecting data for the in-scope cohort
       DELIVERABLE: Confluence policy update + sign-off
 ```
 

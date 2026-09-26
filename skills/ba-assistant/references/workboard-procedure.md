@@ -32,11 +32,11 @@ Commands below use `python3` (Mac/Linux); on Windows, substitute `py`.
 
 For each `initiatives[].slug`, resolve its folder in this order:
 
-1. `initiatives/{slug}/` when present (default `BA_INITIATIVES_ROOT`)
-2. `blueprints/{slug}/` in a packaged workspace
-3. Any custom path set in `ba-assistant-config.mdc`
+1. `initiatives[].path` when it is set
+2. `{initiativesRoot}/{slug}/`, where `initiativesRoot` is `paths.initiativesRoot` in `ba-assistant-config.mdc` (default `~/.cursor/initiatives`)
+3. Legacy fallback only: `blueprints/{slug}/`, if the initiatives path does not exist
 
-Read `SESSION-CONTEXT.md` (tail around 50 lines) and `initiative-tracker.md` when present. Use `initiatives[].path` when it is set.
+Read `SESSION-CONTEXT.md` (tail around 50 lines) and `initiative-tracker.md` when present.
 
 ---
 

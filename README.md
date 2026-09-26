@@ -4,7 +4,7 @@
 
 A comprehensive Business Analysis assistant built as a Cursor skill. Designed to support BAs through the full initiative lifecycle — from intake and discovery through delivery, playback, and retrospective.
 
-> Originally designed and built by Jess Gibson, Senior BA (2025–2026).
+> Built by Jess Gibson.
 > Built iteratively across real BA initiatives using agent-assisted development.
 
 ---
@@ -62,7 +62,7 @@ The table above uses friendly phase names as a quick skills index. Day-to-day ro
 | `/status` | Full current state with canvas and HTML snapshot |
 | `/canvas` | Generate/refresh the interactive project dashboard |
 | `/report` | Full structured deep-dive report |
-| `/validate-state` | Mid-session drift check (read-only) |
+| `/validate-state` | Write this chat's captures into the initiative files and `ba-actions` |
 | `/wrap` | Chat-scoped checkpoint — capture, promote, sync BA actions changed in this chat (workboard refresh is `/workboard end-of-day`) |
 | `/workboard` | Cross-initiative dashboard |
 | `/todo` | Quick-capture into `ba-actions.json` |

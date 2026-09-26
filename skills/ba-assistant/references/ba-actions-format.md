@@ -18,7 +18,7 @@ Commands below use `python3` (Mac/Linux); on Windows, substitute `py`.
 | **Canonical** | `_workstream/ba-actions.json` | Structured store agents read/write; stable IDs; upsert on sync |
 | **Derived** | `_workstream/ba-actions.md` | Regenerated on every sync; open first, closed at bottom; [BA name] reads this |
 | **Display** | `canvases/ba-workboard.canvas.tsx` | Curated subset (high + due-soon) for cross-initiative dashboard |
-| **Team RAID** | `blueprints/{slug}/initiative-tracker.md` | Everyone's actions; [BA name] rows **feed** ba-actions on sync |
+| **Team RAID** | `~/.cursor/initiatives/{slug}/initiative-tracker.md` | Everyone's actions; [BA name] rows **feed** ba-actions on sync |
 
 **Do not** maintain dated snapshot MD files (e.g. `ba-active-actions-snapshot.md`) as the working list. Use them only for one-off audits, then retire.
 
@@ -50,7 +50,7 @@ Commands below use `python3` (Mac/Linux); on Windows, substitute `py`.
       "source": {
         "type": "debrief",
         "label": "MoSCoW 20 Jul",
-        "file": "blueprints/Sample Initiative/debriefs/sample-workshop-debrief.md",
+        "file": "initiatives/sample-initiative/debriefs/sample-workshop-debrief.md",
         "date": "2026-07-20"
       },
       "tracker_ref": "A-252",
@@ -78,7 +78,7 @@ Commands below use `python3` (Mac/Linux); on Windows, substitute `py`.
 |-------|----------|----------------|
 | `id` | Yes | `BA-NNN` sequential; never reuse |
 | `task` | Yes | Plain language; no bare tracker codes in task text |
-| `initiative` | No | Slug (`Sample Initiative`, `Data Collection`, `sample-reassessment-initiative`) or `null` |
+| `initiative` | No | Slug (`sample-initiative`, `sample-onboarding-initiative`, `sample-reassessment-initiative`) or `null` |
 | `raised` | Yes | ISO date action first captured |
 | `due` | No | ISO date or `null` |
 | `status` | Yes | `open`, `in_progress`, `done`, `cancelled`, `blocked` |
@@ -174,30 +174,35 @@ After sync, print: `Gate: ba-actions-sync: PASS (N open, M added, K updated)` or
 |---------|------|
 | `ba-meeting-debrief` task 10 | Replace old `personal_tasks` write with `sync-ba-actions` |
 | `/todo`, `/done` | Read/write `ba-actions.json`; regenerate MD |
-| `/wrap` step 5 | EOD critical scan + one-by-one AskQuestion runthrough (see `sync-procedures.md` §5a–5b) |
-| `/wrap` step 6b | Full sync after tracker promotion (step 6) |
+| `/wrap` step 3 | Sync only the BA actions created or changed in this chat (see `commands/wrap.md`) |
+| `/validate-state` | Upsert only the BA actions that came from this chat |
+| `/workboard end-of-day` | EOD critical scan + action runthrough (see `eod-closeout-procedure.md` §5a–5b) |
 | `/workboard` step 5 | Read open counts from ba-actions for "High tasks" stat |
-| `/workboard` step 8 | **Morning prep scan:** surface `remind_on` + high-priority due tomorrow (see `sync-procedures.md` step 9) |
+| `/workboard` step 8 | **Morning prep scan:** surface `remind_on` + high-priority due tomorrow (see `eod-closeout-procedure.md` step 9) |
 | `/todo list` | List from ba-actions.json, not personal_tasks |
 | Canvas **Update** button | Same morning-prep scan when refresh runs start-of-day |
-| Canvas **End of Day** button | Full `/wrap` including ba-actions EOD critical scan + runthrough |
+| Canvas **End of Day** button | `/workboard end-of-day` per `eod-closeout-procedure.md` (not `/wrap`) |
 | Canvas **Apply action updates** | Validates draft patches from canvas sidecar → writes JSON → `python3 _workstream/regenerate-ba-actions-md.py` |
 
 ---
 
 ## 4b. EOD and daily update behaviour
 
-### End of day (`/wrap`, canvas End of Day)
+### End of day (`/workboard end-of-day`, canvas End of Day)
+
+Follow `eod-closeout-procedure.md`. In short:
 
 1. Regenerate or read `ba-actions.md` so counts are current.
-2. Run **EOD critical scan** (`sync-procedures.md` §5a): overdue, due today, remind today, high items the BA said they would finish today.
+2. Run the **EOD critical scan** (`eod-closeout-procedure.md` §5a): overdue, due today, remind today, high items the BA said they would finish today.
 3. Present critical items in a callout **before** meeting reconciliation or initiative validation.
-4. Walk **every** open action one-by-one with AskQuestion (§5b options: Done, In progress, Follow up, Move deadline, Cancel, No update).
-5. After runthrough + step 6b sync, the handoff block (step 10) must include **Reminders (commitments to start)** from `remind_on` / due tomorrow.
+4. Review today's key actions per §5b of that file. Do not walk every open action.
+5. Next-working-day prep includes **Reminders (commitments to start)** from `remind_on` / due tomorrow.
+
+`/wrap` is not end of day. It only syncs actions created or changed in this chat.
 
 ### Daily update (`/workboard`, canvas Update)
 
-When the user runs a morning or mid-day refresh (not full `/wrap`):
+When the user runs a morning or mid-day refresh (not end of day):
 
 1. Read `ba-actions.json` + `ba-actions.md`.
 2. Surface **first-thing priorities:**

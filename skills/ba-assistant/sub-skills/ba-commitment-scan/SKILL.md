@@ -1,6 +1,7 @@
 ---
 name: ba-commitment-scan
 description: Read-only commitment scan of the user's Slack, Microsoft Teams and Outlook. Use during `/workboard end-of-day`, or when the user asks what they promised, completed, discussed, or needs captured from messages. Scan DMs, replies, @mentions and threads they reacted to. Extract commitments, decisions, completed work, risks and action changes, then update only evidence-backed local BA state. Never post or reply.
+disable-model-invocation: true
 ---
 
 # Skill: Commitment Scan (EOD)

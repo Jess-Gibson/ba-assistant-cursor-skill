@@ -37,18 +37,27 @@ def make_initiative(tmpdir, name, status_data_text):
     return ctx
 
 
-def run_gate(payload, ctx_path):
+def run_gate(payload, ctx_path, home=None, raw_stdin=None):
     env = dict(os.environ)
-    env["CURSOR_SESSION_CONTEXT_PATH"] = ctx_path
+    if ctx_path:
+        env["CURSOR_SESSION_CONTEXT_PATH"] = ctx_path
+    else:
+        env.pop("CURSOR_SESSION_CONTEXT_PATH", None)
     env.pop("BA_INITIATIVES_ROOT", None)
+    # Point the home folder at an isolated temp dir so the gate never reads the real
+    # ~/.cursor/initiatives or ~/.cursor/rules on the machine running the tests.
+    env["HOME"] = home or os.path.dirname(ctx_path)
+    env["USERPROFILE"] = env["HOME"]
     proc = subprocess.run(
         [PY, GATE],
-        input=json.dumps(payload),
+        input=raw_stdin if raw_stdin is not None else json.dumps(payload),
         capture_output=True,
         text=True,
         env=env,
         timeout=15,
     )
+    if proc.returncode != 0:
+        raise AssertionError(f"gate exited {proc.returncode}. stderr:\n{proc.stderr}")
     if not proc.stdout.strip():
         raise AssertionError(f"gate produced no stdout. stderr:\n{proc.stderr}")
     try:
@@ -72,11 +81,21 @@ def create_payload(summary, issuetype="Story", tool_name="createJiraIssue", extr
     }
 
 
+def runlayer_payload(inner_tool, arguments):
+    """Runlayer shape from references/runlayer-atlassian-mcp.md: one generic execute_tool
+    MCP tool with the real Atlassian tool nested inside."""
+    return {
+        "hook_event_name": "beforeMCPExecution",
+        "tool_name": "execute_tool",
+        "tool_input": json.dumps({"tool_name": inner_tool, "arguments": arguments}),
+    }
+
+
 results = []
 
 
-def case(name, expected, payload, ctx_path):
-    result, stderr = run_gate(payload, ctx_path)
+def case(name, expected, payload, ctx_path, home=None, raw_stdin=None):
+    result, stderr = run_gate(payload, ctx_path, home=home, raw_stdin=raw_stdin)
     got = result.get("permission")
     ok = got == expected
     results.append((name, expected, got, ok))
@@ -230,6 +249,90 @@ def main():
             "allow",
             {"hook_event_name": "beforeMCPExecution", "tool_name": "layout_read", "tool_input": json.dumps({"miro_url": "x"})},
             ctx6,
+        )
+
+        # --- Case 8: Runlayer execute_tool wrapping createJiraIssue, Story, empty
+        # dorChecks -> DENY. Before the unwrap fix the outer name hid the create.
+        ctx8 = make_initiative(tmp, "case8", json.dumps({"dorChecks": []}))
+        case(
+            "8. Runlayer execute_tool + createJiraIssue Story, no pass -> DENY",
+            "deny",
+            runlayer_payload("createJiraIssue", {
+                "cloudId": "x", "projectKey": "PROJ", "issueTypeName": "Story",
+                "summary": "Reject applications when phone format is invalid"}),
+            ctx8,
+        )
+        # 8b: same Runlayer wrapper, non-create tool -> ALLOW.
+        case(
+            "8b. Runlayer execute_tool + non-create tool -> ALLOW",
+            "allow",
+            runlayer_payload("searchJiraIssuesUsingJql", {"cloudId": "x", "jql": "project = PROJ"}),
+            ctx8,
+        )
+
+        # --- Case 9: failed first time, passed on retry. Gate reads the final result,
+        # not firstAttempt -> ALLOW (via Runlayer shape, title match, no key yet).
+        ctx9 = make_initiative(tmp, "case9", json.dumps({
+            "dorChecks": [
+                {"storyTitle": "Reject applications when phone format is invalid",
+                 "firstAttempt": "partial", "result": "pass"}
+            ]
+        }))
+        case(
+            "9. row result=pass, firstAttempt=partial, title matches -> ALLOW",
+            "allow",
+            runlayer_payload("createJiraIssue", {
+                "issueTypeName": "Story",
+                "summary": "Reject applications when phone format is invalid"}),
+            ctx9,
+        )
+
+        # --- Case 10: row has only a storyKey (old shape, no storyTitle). The create has
+        # no key yet, so nothing can bind -> DENY. The writer must store storyTitle.
+        ctx10 = make_initiative(tmp, "case10", json.dumps({
+            "dorChecks": [{"storyKey": "PROJ-777", "result": "pass"}]
+        }))
+        case(
+            "10. row has key only, create has no key yet -> DENY",
+            "deny",
+            create_payload("Reject applications when phone format is invalid"),
+            ctx10,
+        )
+
+        # --- Case 11: Bug with flat issueTypeName whose description mentions a story
+        # -> ALLOW. The description is never scanned for the word "story".
+        ctx11 = make_initiative(tmp, "case11", json.dumps({"dorChecks": []}))
+        case(
+            "11. Bug via issueTypeName, 'story' in description -> ALLOW",
+            "allow",
+            runlayer_payload("createJiraIssue", {
+                "issueTypeName": "Bug", "summary": "Phone validation throws 500",
+                "description": "Found while testing story ABC-12."}),
+            ctx11,
+        )
+
+        # --- Case 12: stdin is valid JSON but not an object -> ALLOW, exit 0.
+        case(
+            "12. non-object stdin -> ALLOW",
+            "allow",
+            None,
+            ctx11,
+            raw_stdin="[1, 2, 3]",
+        )
+
+        # --- Case 13: no env vars at all. Initiative lives in ~/.cursor/initiatives
+        # (the installer default) -> the gate finds its pass and ALLOWs.
+        home13 = os.path.join(tmp, "home13")
+        init13 = os.path.join(home13, ".cursor", "initiatives", "sample")
+        os.makedirs(init13)
+        with open(os.path.join(init13, "status-data.json"), "w", encoding="utf-8") as f:
+            json.dump({"dorChecks": [{"storyTitle": "Sample story found by default root", "result": "pass"}]}, f)
+        case(
+            "13. no env vars, pass in ~/.cursor/initiatives -> ALLOW",
+            "allow",
+            create_payload("Sample story found by default root"),
+            None,
+            home=home13,
         )
 
     # --- Report ---

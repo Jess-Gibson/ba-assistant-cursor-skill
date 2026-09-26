@@ -53,7 +53,7 @@ If ADF JSON is large, build it in a UTF-8 `.json` file, parse, and pass the obje
 
 `[Area] Imperative outcome`  -  short, specific, searchable. Independent of project.
 
-Good: `[Onboarding] Reject Fiserv applications when phone format invalid`
+Good: `[Onboarding] Reject applications when phone format is invalid`
 Bad: `Bug in onboarding`, `Investigation needed`, `Fix the thing from yesterday`
 
 ### 2e. Stories describe the problem, not the solution

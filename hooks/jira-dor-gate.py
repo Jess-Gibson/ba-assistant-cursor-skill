@@ -20,8 +20,12 @@ try:
     payload = json.loads(sys.stdin.read())
 except Exception as e:
     # We don't even know what tool this is for -> can't attribute this to a Story create.
-    # Fail open here matches hooks.json's failClosed:false contract for "we genuinely don't know".
+    # Allow explicitly and exit 0. hooks.json registers this gate with failClosed:true, so a
+    # crash here would block EVERY MCP call, not just Story creates.
     log(f"could not parse hook payload from stdin: {e}")
+    out("allow")
+if not isinstance(payload, dict):
+    log("hook payload is not a JSON object; allowing")
     out("allow")
 
 # beforeMCPExecution delivers tool_input as a JSON-params STRING (Cursor docs, 5 Jul 2026).
@@ -48,6 +52,23 @@ def get_tool_name(p):
     return ""
 
 tool_name = get_tool_name(payload)
+
+# Runlayer wraps every Atlassian call in one generic MCP tool:
+#   execute_tool { "tool_name": "createJiraIssue", "arguments": {...} }
+# (see references/runlayer-atlassian-mcp.md). The outer name says nothing about Jira, so
+# unwrap it: the inner tool_name is the real tool and the inner arguments are the payload.
+if tool_name.lower().endswith("execute_tool") and isinstance(payload.get("tool_input"), dict):
+    inner = payload["tool_input"]
+    inner_name = inner.get("tool_name") or inner.get("toolName")
+    inner_args = inner.get("arguments")
+    if isinstance(inner_args, str):
+        try:
+            inner_args = json.loads(inner_args)
+        except Exception:
+            pass
+    if isinstance(inner_name, str) and inner_name.strip():
+        tool_name = inner_name.strip()
+        payload["tool_input"] = inner_args if isinstance(inner_args, dict) else {}
 CREATE_ISSUE_RE = re.compile(r'create.{0,12}(jira)?.{0,12}issue|jira.{0,12}create', re.I)
 
 if tool_name:
@@ -69,7 +90,7 @@ def find_issuetype(o):
     global issuetype
     if isinstance(o, dict):
         for k, v in o.items():
-            if k.lower() == "issuetype":
+            if k.lower() in ("issuetype", "issuetypename"):
                 if isinstance(v, dict):
                     issuetype = str(v.get("name", "")).lower()
                 elif isinstance(v, str):
@@ -82,8 +103,26 @@ find_issuetype(args_source)
 
 if issuetype and issuetype != "story":
     out("allow")            # explicit non-story type (spike, bug, enabler, chore, task)
-if not issuetype and not re.search(r'\bstory\b', blob, re.I):
-    out("allow")            # no type found and nothing story-ish in the call
+
+def find_summary_text(o):
+    if isinstance(o, dict):
+        for k, v in o.items():
+            if k.lower() == "summary" and isinstance(v, str):
+                return v
+            found = find_summary_text(v)
+            if found:
+                return found
+    elif isinstance(o, list):
+        for i in o:
+            found = find_summary_text(i)
+            if found:
+                return found
+    return ""
+
+# No type found: only the summary may suggest a Story. Never scan the description, or a
+# Bug "found while testing story ABC-12" gets blocked.
+if not issuetype and not re.search(r'\bstory\b', find_summary_text(args_source), re.I):
+    out("allow")
 
 # Pull the summary/title and (if this is really an edit of an already-keyed issue) the
 # issue key, for matching against the tracker.
@@ -155,13 +194,39 @@ def row_matches_story(chk, story_key, summary):
     return longer.startswith(shorter)
 
 
+def config_initiatives_root():
+    # Setup writes paths.initiativesRoot into ~/.cursor/rules/ba-assistant-config.mdc.
+    # It does not set an environment variable.
+    cfg = os.path.expanduser(os.path.join("~", ".cursor", "rules", "ba-assistant-config.mdc"))
+    try:
+        text = open(cfg, encoding="utf-8", errors="ignore").read()
+    except Exception:
+        return ""
+    m = re.search(r'^\s*initiativesRoot\s*:\s*["\']?([^"\'#\n]+)', text, re.M)
+    return os.path.expanduser(m.group(1).strip()) if m else ""
+
+
+def initiative_roots():
+    home = os.path.expanduser("~")
+    roots = [os.environ.get("BA_INITIATIVES_ROOT", "") or config_initiatives_root(),
+             os.path.join(home, ".cursor", "initiatives"),
+             # Legacy fallbacks so older setups still work.
+             os.path.join(home, ".cursor", "Initiatives"),
+             os.path.join(home, ".cursor", "blueprints"),
+             os.path.join(home, "ba-initiatives")]
+    out_roots = []
+    for r in roots:
+        if r and os.path.isdir(r) and os.path.realpath(r) not in [os.path.realpath(x) for x in out_roots]:
+            out_roots.append(r)
+    return out_roots
+
+
 def find_initiative_dirs():
     dirs = []
     ctx = os.environ.get("CURSOR_SESSION_CONTEXT_PATH", "")
     if ctx and os.path.isfile(ctx):
         dirs.append(os.path.dirname(ctx))
-    root = os.environ.get("BA_INITIATIVES_ROOT", "")
-    if root and os.path.isdir(root):
+    for root in initiative_roots():
         dirs += [os.path.dirname(p) for p in glob.glob(os.path.join(root, "**", "status-data.json"), recursive=True)]
     return dirs
 
@@ -191,7 +256,9 @@ for d in find_initiative_dirs():
     for chk in checks:
         if not isinstance(chk, dict):
             continue
-        result = chk.get("firstAttempt", chk.get("result", ""))
+        # The gate uses the FINAL result. firstAttempt ("passed first time?") feeds the
+        # hit-rate metric only; a story that failed once then passed must not stay blocked.
+        result = chk.get("result", chk.get("firstAttempt", ""))
         if is_pass_result(result) and row_matches_story(chk, story_key, summary):
             allowed = True
             break

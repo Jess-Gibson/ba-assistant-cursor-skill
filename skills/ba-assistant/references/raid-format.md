@@ -353,7 +353,7 @@ Drift between RAID in `initiative-tracker.md` and `status-data.json → raid` is
 The initiative tracker owns four structured registers previously canonical in status-data.json. The canvas mirrors them INTO status-data.json on refresh; the mirror is a derived cache.
 
 ### DoR checks
-| Story | First attempt (pass/partial/fail) | Date | Scope |
+| Story title | Story key (if known) | First attempt (pass/partial/fail) | Result (pass/partial/fail) | Date | Scope |
 
 ### MoSCoW (per scope)
 | Requirement | Scope | Rating | Override decision (D-NNN if any) |

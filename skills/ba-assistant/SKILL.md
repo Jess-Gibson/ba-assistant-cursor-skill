@@ -65,16 +65,16 @@ Skip when already personalised.
 2. If `~/.cursor/rules/ba-assistant-config.mdc` is missing or still has `[Your Name]`, and `sub-skills/ba-setup/SKILL.md` exists, run BA Setup. Run BA Install first if install is missing. Wherever package files say `[BA name]`, use `name` from that config.
 3. Once personalised, never re-show install/setup unless the user runs `/setup` or `/install-ba-assistant`.
 
-Default initiatives root when setup runs: `~/.cursor/initiatives` (`BA_INITIATIVES_ROOT`).
+Default initiatives root when setup runs: `~/.cursor/initiatives` (`paths.initiativesRoot`). Once setup has run, use the config values (name, domain, Jira, Confluence, paths) everywhere; see "Use the BA's settings" in `execution-router.mdc`.
 
 ## Step 2 - Resume and re-anchor (normal BAU)
 
 Signals: `/reanchor`, continue, resume, named initiative, or an analysis folder that already exists. Do not re-run Phase 0. If no initiative exists, say so and point at `ba-new-initiative`. Do not invent a resume.
 
-1. Find the project folder under `BA_INITIATIVES_ROOT` (default `~/.cursor/initiatives`) using `references/workspace-operations.md`. Do not glob the `.cursor` root. Multiple matches: AskQuestion.
+1. **Which initiative.** Use, in order: the initiative the user named in this chat (or `/reanchor <name>`); the one the session banner says the open workspace belongs to (`INITIATIVE CONTEXT`); otherwise list the initiatives under `paths.initiativesRoot` and AskQuestion which one. **Never** treat the most recently modified `SESSION-CONTEXT.md` as this chat's initiative. Do not draft, write, or create anything (artefact, tracker row, Jira ticket) against an initiative until it is named or confirmed. Folder lookup: `references/workspace-operations.md`. Do not glob the `.cursor` root.
 2. Run `ba-state-validator` silently; surface drift if any. Clean: brief "state aligned".
-3. If `_workstream/generate-initiative-snapshots.py` exists, prefer the compact snapshot, then read listed canonical files only if stale or needed: `SESSION-CONTEXT.md`, `status-data.json`, `initiative-tracker.md`, `Project-hub.md`, `confluence-pages.json`, `superseded-pages.json` if present, `learnings.md` (runtime copy may live at `_workstream/learnings.md`).
-4. Downloads check: `references/workspace-operations.md` over `BA_DOWNLOADS_PATH` (7-day list; skip on `/debrief`).
+3. **Resume read order** (this list is the only copy; `/reanchor` and `execution-router.mdc` point here). If `_workstream/generate-initiative-snapshots.py` exists, prefer its compact snapshot and read the files below only if stale or needed. If it is missing, say the snapshot shortcut is absent and read: `SESSION-CONTEXT.md`, `status-data.json`, `initiative-tracker.md`, then `Project-hub.md`, `confluence-pages.json`, `superseded-pages.json` if present, `learnings.md` (runtime copy may live at `_workstream/learnings.md`).
+4. Downloads check: `references/workspace-operations.md` over the downloads folder (`paths.downloadsPath`; 7-day list; skip on `/debrief`).
 5. Re-entry card: `execution-router.mdc` §7. Then the readiness pass if one cheap artefact is grounded.
 6. Pre-populate Anti-Pattern Detector from SESSION-CONTEXT and matching learnings.
 7. AskQuestion: continue recommended / different focus / `/status` / validate / canvas.

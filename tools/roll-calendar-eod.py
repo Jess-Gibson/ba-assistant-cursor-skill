@@ -73,8 +73,14 @@ def parse_rule_value(text: str, key: str) -> str | None:
         for pattern in patterns:
             match = re.match(pattern, line.strip())
             if match:
-                value = match.group(1).strip().strip('"').strip("'")
-                if value and value not in {"[Your Name]", "[BA name]", "TBC"}:
+                value = match.group(1).strip()
+                if value[:1] in {'"', "'"}:
+                    # Quoted: take what is inside the quotes, ignore a trailing # comment.
+                    end = value.find(value[0], 1)
+                    value = value[1:end] if end > 0 else value[1:]
+                else:
+                    value = value.split(" #", 1)[0].strip()
+                if value and value not in {"[Your Name]", "[BA name]", "TBC"} and not value.startswith("["):
                     return value
     return None
 

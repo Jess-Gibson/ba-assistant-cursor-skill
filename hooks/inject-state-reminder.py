@@ -1,19 +1,19 @@
-# stop hook (--stop) — computed unpromoted-state reminder (C3). The package no longer
-# registers the beforeSubmitPrompt mode (Cursor ignores its additional_context); that
-# branch below is kept only so an old hooks.json entry still exits cleanly.
-# Computes the reminder from actual files, not from rules the model has to remember.
-# Off unless `stopFollowup: true` in ba-assistant-config.mdc.
+# stop hook (--stop): computed unpromoted-state reminder (C3). Off unless
+# `stopFollowup: true` in ba-assistant-config.mdc, and even then it nudges at most
+# once per conversation. It never runs on each prompt: the package does not register
+# a beforeSubmitPrompt hook (Cursor ignores that event's additional_context). The
+# non --stop branch at the bottom only lets an old hooks.json entry exit cleanly.
 #
-# stdin: hook JSON (user prompt etc — verify field names against current Cursor docs)
-# stdout: {"additional_context": "..."} (empty string = inject nothing)
+# It checks only the initiative session-init.py named for this chat
+# (CURSOR_SESSION_CONTEXT_PATH). No named initiative = silent. It never falls back
+# to "newest SESSION-CONTEXT.md by modified time".
 #
 # What it computes (cheap, local-file-only, <50ms):
-#   1. Unpromoted items in the newest SESSION-CONTEXT.md (DEC-/RISK-/OQ-/ACT-/DEP-
-#      lines without a [promoted] tag) → reminder to promote / run /wrap.
-#   2. status-data.json older than initiative-tracker.md by >1h → staleness note.
-# One line max. Silence when state is clean — the reminder only exists when earned.
+#   1. Unpromoted DEC-/RISK-/OQ-/ACT-/DEP- lines (no [promoted] tag) -> promote / run /wrap.
+#   2. status-data.json older than initiative-tracker.md by >1h -> staleness note.
+# Silence when state is clean.
 
-import json, os, re, sys, glob, time
+import json, os, re, sys
 from pathlib import Path
 
 
@@ -37,36 +37,9 @@ def stop_followup_enabled() -> bool:
     return False
 
 
-def config_initiatives_root() -> str:
-    """paths.initiativesRoot from ba-assistant-config.mdc (setup writes it there;
-    it does not set an environment variable)."""
-    path = Path.home() / ".cursor" / "rules" / "ba-assistant-config.mdc"
-    try:
-        text = path.read_text(encoding="utf-8", errors="ignore")
-    except OSError:
-        return ""
-    m = re.search(r'^\s*initiativesRoot\s*:\s*["\']?([^"\'#\n]+)', text, re.M)
-    return os.path.expanduser(m.group(1).strip()) if m else ""
-
-
-def newest_session_context():
-    cands = []
+def named_session_context():
     ctx = os.environ.get("CURSOR_SESSION_CONTEXT_PATH", "")
-    if ctx and os.path.isfile(ctx):
-        return ctx
-    roots = [os.environ.get("BA_INITIATIVES_ROOT", "") or config_initiatives_root(),
-             os.path.expanduser("~/.cursor/initiatives"),
-             # Legacy fallbacks so an older setup still works.
-             os.path.expanduser("~/.cursor/Initiatives"),
-             os.path.expanduser("~/.cursor/blueprints"),
-             os.path.expanduser("~/ba-initiatives")]
-    seen = set()
-    for root in roots:
-        if not root or root in seen:
-            continue
-        seen.add(root)
-        cands += glob.glob(os.path.join(root, "**", "SESSION-CONTEXT.md"), recursive=True)
-    return max(cands, key=os.path.getmtime) if cands else ""
+    return ctx if ctx and os.path.isfile(ctx) else ""
 
 STOP_MODE = "--stop" in sys.argv
 loop_count = 0
@@ -77,7 +50,7 @@ except Exception:
     pass
 
 notes = []
-sc = newest_session_context()
+sc = named_session_context()
 if sc:
     try:
         text = open(sc, encoding="utf-8", errors="ignore").read()
@@ -112,7 +85,5 @@ if STOP_MODE:
     else:
         print(json.dumps({}))
 else:
-    # beforeSubmitPrompt: additional_context is NOT a documented output for this event
-    # (docs list continue/user_message only). Emitted anyway - harmless if ignored,
-    # future-proof if Cursor adds support. continue:true keeps the prompt flowing.
-    print(json.dumps({"continue": True, "additional_context": out}))
+    # Retired beforeSubmitPrompt entry in an old hooks.json: let the prompt through, say nothing.
+    print(json.dumps({"continue": True}))

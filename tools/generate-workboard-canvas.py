@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -39,8 +40,14 @@ def parse_rule_value(text: str, key: str) -> str | None:
         for pattern in patterns:
             match = re.match(pattern, line.strip())
             if match:
-                value = match.group(1).strip().strip('"').strip("'")
-                if value and value not in {"[Your Name]", "TBC"}:
+                value = match.group(1).strip()
+                if value[:1] in {'"', "'"}:
+                    # Quoted: take what is inside the quotes, ignore a trailing # comment.
+                    end = value.find(value[0], 1)
+                    value = value[1:end] if end > 0 else value[1:]
+                else:
+                    value = value.split(" #", 1)[0].strip()
+                if value and value not in {"[Your Name]", "TBC"} and not value.startswith("["):
                     return value
     return None
 
@@ -57,10 +64,14 @@ def resolve_canvas_path(cursor_home: Path) -> str:
 
 
 def resolve_initiatives_root(cursor_home: Path, rules_text: str) -> str:
-    for key in ("initiatives_root", "BA_INITIATIVES_ROOT"):
+    env = os.environ.get("BA_INITIATIVES_ROOT")
+    if env:
+        return posix(Path(env).expanduser())
+    # initiativesRoot is what /setup writes; the other two are older spellings.
+    for key in ("initiativesRoot", "initiatives_root", "BA_INITIATIVES_ROOT"):
         value = parse_rule_value(rules_text, key)
         if value:
-            return value.replace("\\", "/")
+            return posix(Path(value).expanduser())
     analysis = cursor_home / "-- analysis --"
     if analysis.exists():
         return posix(analysis)
@@ -83,7 +94,13 @@ def load_workboard_config(cursor_home: Path) -> dict:
     stakeholder_name = parse_rule_value(rules_text, "stakeholder_name") or parse_rule_value(
         rules_text, "stakeholder_prep_name"
     )
-    downloads = parse_rule_value(rules_text, "BA_DOWNLOADS_PATH") or posix(Path.home() / "Downloads")
+    downloads = (
+        os.environ.get("BA_DOWNLOADS_PATH")
+        or parse_rule_value(rules_text, "downloadsPath")
+        or parse_rule_value(rules_text, "BA_DOWNLOADS_PATH")
+        or str(Path.home() / "Downloads")
+    )
+    downloads = posix(Path(downloads).expanduser())
 
     return {
         "cursor_home": posix(home),

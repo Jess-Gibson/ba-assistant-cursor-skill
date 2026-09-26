@@ -47,10 +47,26 @@ Also classify the **activity** (Frame / Discover / Shape / Deliver / Run — see
 ### Mid-thread re-anchor (`/reanchor`)
 
 1. Re-read `ba-assistant/SKILL.md` and `instructions.md`
-2. Re-read the active project's `SESSION-CONTEXT.md`, `status-data.json`, `initiative-tracker.md`
+2. Confirm the initiative and re-read its files per `SKILL.md` Step 2 (items 1 and 3 own the rule and the read order)
 3. Resume from current state; confirm: "Re-anchored. Current workstream: <X>. Continue with: <Y>?"
 
 The Anti-Pattern Detector flags drift symptoms and offers `/reanchor` proactively.
+
+## 2b. Use the BA's settings (`ba-assistant-config.mdc`)
+
+`/setup` writes `~/.cursor/rules/ba-assistant-config.mdc`; it is always in context. Use its values everywhere. Never ask for one that is already set, and never write a placeholder into an output when the real value is there.
+
+| Package text says | Use |
+|---|---|
+| `[BA name]`, "the BA" in drafts and headers | `name` (and `role`, `team`) |
+| Jira site, `your-jira...`, `PROJ` / `[YOUR-PROJECT]` in instructions or JQL | `jira.instanceUrl`, `jira.projectKey` (an initiative's `status-data.json → initiative.jiraProjectKey` overrides) |
+| Confluence site / space / parent page | `confluence.spaceKey`, `confluence.parentPageUrl` (initiative's `confluence-pages.json` / `initiative.confluenceSpace` overrides) |
+| Domain context, "related domains" | `domain` and `domainDocs`: shape intake questions, research queries, and examples to this domain |
+| Initiatives folder, `BA_INITIATIVES_ROOT` | `paths.initiativesRoot` |
+| Downloads / transcripts folder, `BA_DOWNLOADS_PATH` | `paths.downloadsPath` |
+| Shared delivery repo, `BA_SHARED_REPO_ROOT` | `paths.sharedRepoRoot` |
+
+An env var with the upper-case name overrides the config value. A value still in `[brackets]` or `[Configure later]` counts as unset: ask once, then offer to save the answer to the config. `PROJ-1234` style keys in package examples are illustrations only.
 
 ## 3. Skill loading — one primary, not bulk
 

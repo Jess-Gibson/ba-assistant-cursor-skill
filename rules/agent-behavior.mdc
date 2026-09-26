@@ -7,7 +7,7 @@ alwaysApply: true
 
 (Wave: always-on restructure — the escalation ladder, read-only-investigation detail, and plan-before-coding guidance moved to `agent-behavior-extended.mdc`, agent-requested. This core keeps what must never be unloaded.)
 
-**Default for the BA's chats:** ground advice and next steps in the AI learnings files described in the **agent-memory** rule (read them at new-chat / new-task start). **Do not assume** preferences, scope, or "obvious" choices.
+**Default for the BA's chats:** ground advice and next steps in the learnings files (`_workstream/learnings.md`, and the active initiative's `learnings.md` if present; `ba-context-capture` says when to surface them). **Do not assume** preferences, scope, or "obvious" choices.
 
 ## AskQuestion — prefer clickable options when they keep work moving
 

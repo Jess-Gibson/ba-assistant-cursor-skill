@@ -46,7 +46,7 @@ Route using [.cursor/rules/skills-routing.mdc](skills-routing.mdc) and `.cursor/
 - Requirement / AC / discovery → bundled: `ba-assistant/sub-skills/ba-discovery-and-requirements`, `ba-assistant/sub-skills/ba-requirements-interrogator`
 - Diagrams / flows → `~/.cursor/skills/ba-assistant/references/visual-output-format.md` + `references/templates/flowchart.html` (interactive HTML flowchart)
 - Confluence → bundled: `publish-docs-to-confluence` (read its `references/confluence-workflow.md` first)
-- Jira (project-specific patterns) → your own `[your-jira-templates]` (`CUSTOMIZATION.md` §5, §11); ticket status sync ships as `ba-assistant/sub-skills/ba-jira-sync`
+- Jira: create via `ba-story-writing` + `references/jira-ticket-format.md` (draft, BA approves, create via Runlayer; an optional personal `jira-templates` skill only adds formatting); ticket status sync ships as `ba-assistant/sub-skills/ba-jira-sync`
 - Data / metrics / narrative → bundled: `ba-assistant/sub-skills/ba-data-investigation` (the only data skill)
 - Spikes / proofs of concept → spike request via `ba-assistant/sub-skills/ba-dev-handover`
 - Quality review of requirements or design → bundled: `ba-assistant/sub-skills/ba-requirements-interrogator`, `ba-assistant/sub-skills/ba-state-validator`, plus `/validate-state` and the `ba-dev-handover` gates

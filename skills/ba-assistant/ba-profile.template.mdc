@@ -43,7 +43,7 @@ confluence:
 
 ## Domain knowledge docs
 
-List any Confluence pages, URLs, or file paths that give the assistant domain context. These are read at intake to help ask smarter questions.
+List any Confluence pages, URLs, or file paths that give the assistant domain context. New-initiative research reads these first, and `domain` shapes questions and examples throughout.
 
 ```yaml
 domainDocs:
@@ -124,9 +124,9 @@ When publishing status pages to Confluence, the assistant will use the Status Pa
 
 ## Jira integration notes
 
-If Jira MCP is configured, the assistant will:
+If Jira is connected (Runlayer), the assistant will:
 - Search for existing tickets at intake
-- Create stories, spikes, and bugs in your configured project
+- Draft stories, spikes, and bugs for your review, and create them in your configured project only after you choose **Create in Jira**
 - Sync ticket statuses into `status-data.json`
 
 If Jira MCP is not configured, the assistant generates ticket content as draft text that you can copy-paste. See `SETUP.md` for MCP setup instructions.

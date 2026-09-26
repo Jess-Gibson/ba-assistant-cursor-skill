@@ -376,7 +376,7 @@ The user can defer fixes. But it surfaces drift before it accumulates.
 | Artefact type | Reference standard | Conformance check |
 |---|---|---|
 | Story / spike / bug / enabler ticket | `references/user-story-format.md` | Sections present, INVEST passes, DoR checklist present, scope linked |
-| Story in Jira | + `references/jira-ticket-format.md`, + `jira-templates` | ADF format used, canonical example mirrored, custom fields populated |
+| Story in Jira | + `references/jira-ticket-format.md`, + optional `jira-templates` if installed | ADF format used, canonical example mirrored, custom fields populated |
 | RAID entry (R / A / I / DEP / D / OQ) | `references/raid-format.md` | Required fields present, status in valid set, age-based flags |
 | Requirement entry | `references/requirement-format.md` | Required fields present, interrogator output linked for confirmed, acceptance for met present |
 | MoSCoW matrix | `references/requirement-format.md` | Per-scope coverage, override decisions linked |

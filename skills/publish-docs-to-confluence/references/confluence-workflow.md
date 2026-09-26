@@ -28,7 +28,7 @@
 
 ## Example Confluence targets (project-specific)
 
-- **Site:** `your-confluence.atlassian.net`
+- **Site:** the host of `confluence.parentPageUrl` in `~/.cursor/rules/ba-assistant-config.mdc` (space: `confluence.spaceKey`)
 - **Page / space IDs:** Resolve from the Confluence URL or initiative `confluence-pages.json`
 - **cloudId:** pinned Confluence UUID above (also `_workstream/atlassian-cloud-ids.json`)
 

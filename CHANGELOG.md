@@ -2,6 +2,18 @@
 
 ## Version 14 - 2026-09-25
 
+### Version 14 tight fix set
+
+- **Which initiative (P1):** session start no longer treats the newest `SESSION-CONTEXT.md` as this chat's initiative. It names one only when the open workspace is that initiative's folder or only one exists; otherwise it lists them and the assistant asks. No drafting or writing against a guessed initiative. The stop reminder and pre-compact snapshot do nothing without a named initiative. With none named, the Jira DoR gate checks every initiative.
+- **BA actions only (P2):** debrief's approve path writes `_workstream/ba-actions.json` (never `workboard.json → personal_tasks[]`); the session banner counts open BA actions from `ba-actions.json`.
+- **Jira create (P3):** draft → BA reviews → **Create in Jira** → create via Runlayer. No create before approval. No dependency on an unshipped `jira-templates` skill (optional formatting only).
+- **Schema check (P4):** internal checklist in `ba-story-writing` replaces the unshipped `Schema_Field_Validator`; warn and confirm, never block on a missing skill.
+- **Stop reminder (P5):** comments no longer claim a per-prompt injection; still off unless `stopFollowup: true`.
+- **Downloads (P6):** session start scans `paths.downloadsPath` from `/setup` (env var overrides) plus `~/Downloads`.
+- **Your settings are used:** `execution-router.mdc` maps every placeholder (`[BA name]`, `PROJ`, Jira/Confluence site, paths, domain) to the `/setup` values. New-initiative and intake pre-fill Jira/Confluence from config; research starts from `domainDocs`. Setup now asks for domain docs. Fixed the workboard canvas and calendar EOD scripts reading the wrong config keys and keeping the trailing comment in `name`.
+- **Housekeeping:** user guide skill and command inventory matches the package; dangling names removed (`slash-commands-ux.md`, `agent-memory`, `mcps/`, `/summary`, old status publisher); shared-repo guard compares folders, not string prefixes; resume read order lives only in `SKILL.md` Step 2.
+- **Tests:** `python3 tests/run_all.py` runs the DoR gate, hook, and package consistency suites. Repo only: never installed, never run while you use the assistant.
+
 ### Orchestrator slim (cost, same working relationship)
 
 - Replaced the 800-line `SKILL.md` ceremony (welcome panel, draft-depth quiz, inline Phase 0 checklist, duplicated learnings/standards/workstreams essays, auto-canvas) with a ~90-line router plus a 5-bullet working-relationship contract.

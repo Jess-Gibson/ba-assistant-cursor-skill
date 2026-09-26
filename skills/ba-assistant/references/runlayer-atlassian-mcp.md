@@ -1,6 +1,6 @@
 # Atlassian (Jira + Confluence) via Runlayer MCP
 
-the BA's Atlassian integrations route through **`user-runlayer-plugin`**, not direct `user-atlassian-*` servers.
+The BA's Atlassian integrations route through **`user-runlayer-plugin`**, not direct `user-atlassian-*` servers.
 
 ## Invocation pattern
 
@@ -18,12 +18,14 @@ Use the **underlying Atlassian tool names** from search results (e.g. `updateCon
 
 ## Cloud IDs ([Organisation])
 
+The sites come from `ba-assistant-config.mdc`: Jira = `jira.instanceUrl`, Confluence = the host of `confluence.parentPageUrl` (often the same site). Default Jira project = `jira.projectKey`, default Confluence space = `confluence.spaceKey`.
+
 | Site | Use as `cloudId` |
 |---|---|
-| Confluence (`your-confluence.atlassian.net`) | `<confluence-cloud-uuid>` |
-| Jira (`your-jira.atlassian.net`) | `<jira-cloud-uuid>` |
+| Confluence | UUID of the resource whose URL matches your Confluence site |
+| Jira | UUID of the resource whose URL matches `jira.instanceUrl` |
 
-**Jira JQL:** always pass the **Jira cloud UUID**. Using the wrong site URL or the Confluence cloud ID fails for Jira JQL. Resolve real UUIDs via `getAccessibleAtlassianResources` (or set them in `ba-profile.mdc` / setup).
+**Jira JQL:** always pass the **Jira cloud UUID**. Using the wrong site URL or the Confluence cloud ID fails for Jira JQL. Resolve the UUIDs once per chat with `getAccessibleAtlassianResources` (below) and reuse them.
 
 **Resolve dynamically** when unsure: `execute_tool` with `tool_name: "atlassian__getAccessibleAtlassianResources"` (or `_2` on Jira bundle) and `{}`, then pick the resource whose URL matches the target site.
 
@@ -36,14 +38,14 @@ Use the **underlying Atlassian tool names** from search results (e.g. `updateCon
 | Update Confluence page | `updateConfluencePage` | `{ "cloudId", "pageId", "body", "contentFormat": "markdown" }` |
 | Create Confluence page | `createConfluencePage` | `{ "cloudId", "spaceId", "body", "title?", "parentId?" }` |
 | Jira search (Rovo) | `atlassian__search_2` | `{ "query": "..." }` |
-| Jira JQL | `searchJiraIssuesUsingJql` | `{ "cloudId": "<your-jira-cloud UUID>", "jql", "fields?", "maxResults?" }` |
-| Read Jira issue | `getJiraIssue` | `{ "cloudId": "<your-jira-cloud UUID>", "issueIdOrKey", "fields?", "responseContentFormat?": "adf" }` |
+| Jira JQL | `searchJiraIssuesUsingJql` | `{ "cloudId": "<Jira UUID>", "jql" (default `project = <jira.projectKey>`), "fields?", "maxResults?" }` |
+| Read Jira issue | `getJiraIssue` | `{ "cloudId": "<Jira UUID>", "issueIdOrKey", "fields?", "responseContentFormat?": "adf" }` |
 | Create Jira issue | `createJiraIssue` | `{ "cloudId", "projectKey", ... }` per search_tools schema |
 | Edit Jira issue | `editJiraIssue` | `{ "cloudId", "issueIdOrKey", ... }` per search_tools schema |
 
 ## Schema discovery
 
-Use **Common tools** + cloud IDs above for known calls. Call **`search_tools`** only for tools not listed there or when the argument shape is uncertain. Legacy `mcps/user-atlassian-*` cached schemas may be stale after the Runlayer migration.
+Use **Common tools** + cloud IDs above for known calls. Call **`search_tools`** only for tools not listed there or when the argument shape is uncertain. Do not rely on cached schema files from an older direct Atlassian MCP; they go stale.
 
 ## Other MCP servers (not Runlayer)
 

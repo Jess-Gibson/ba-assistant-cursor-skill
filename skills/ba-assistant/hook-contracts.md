@@ -129,7 +129,7 @@ These skills receive the most hooks. Changes to them are highest-risk.
 | Hook ID | Callee | Trigger | Inputs | Outputs | Failure mode | Status |
 |---|---|---|---|---|---|---|
 | HK-DEL-INT-uninter | Requirements_Interrogator | If a story is being written against an uninterrogated requirement | Story, requirement | Provisional statement | Block | 🟢 |
-| HK-DEL-SFV-schema | Schema_Field_Validator (external) | If story touches a data model/API schema | Story, schema | Validation report | Block | 🟢 |
+| HK-DEL-SFV-schema | Internal schema checklist in `ba-story-writing` (your own validator skill, if installed, runs instead) | If story touches a data model/API schema | Story, schema | Checklist result | Warn, BA confirms; open items become OQs | 🟢 |
 | HK-DEL-DOR-internal | DoR section (formerly Definition_of_Ready) | Final check before any story moves to In Progress | Story, requirement, scope | Ready / Partial / Not Ready | Warn-and-flag for MoSCoW; block for other failures | 🟡 W3 |
 | HK-DEL-RT-moscow-override | Risk_and_Tracker | When PM overrides a MoSCoW warning | Story, scope, rationale | Decision logged | Block  -  overrides must be auditable | 🟡 W3 |
 | HK-DEL-SPON-scope-commit | Sponsor_Engagement | Before scope commitment | Scope summary | Sponsor sign-off | Block on Must scope | 🟡 W1 |
@@ -255,7 +255,7 @@ These skills receive the most hooks. Changes to them are highest-risk.
 | HK-DH-INT-confirm | Requirements_Interrogator | Handover needs a requirement not yet confirmed | Requirement, source | Handoff-and-halt: Interrogator conversation runs; requirement confirmed in register as a separate event; user re-runs /handover | Block (reqs/story pack); warn+flag provisional (spike/ADR) | 🟠 W9 |
 | HK-DH-BDI-ground | ba-data-investigation | Requirement touches a real system with qualitative/absent grounding | Requirement, candidate sources | Grounded facts or qualitative tag | Warn  -  publish as qualitative after acknowledgement | 🟠 W9 |
 | HK-DH-RT-raid | Risk_and_Tracker | Handover references a dependency/decision/constraint | RAID reference | RAID summary table EMBEDDED in the artefact (tracker IDs preserved; tracker never linked) | Block  -  untraceable handover | 🟠 W9 |
-| HK-DH-JIRA-ticket | Project Jira skill (jira-templates convention; create-your-own in the public repo) | Spike/ADR/story published, gate passed | Published markdown | Jira ticket created/updated | Warn  -  markdown stands; ticket pending | 🟠 W9 |
+| HK-DH-JIRA-ticket | `jira-ticket-format.md` via Runlayer, after BA approval (optional `jira-templates` for formatting) | Spike/ADR/story published, gate passed | Published markdown | Jira ticket created/updated | Warn  -  markdown stands; ticket pending | 🟠 W9 |
 | HK-DH-SV-register | ba-state-validator | After publish | Handover + source artefact IDs | Dependency registered for drift watch | Warn  -  manual re-check fallback | 🟠 W9 |
 
 ### Data Investigation (cross-cutting, Wave 8)  -  inbound

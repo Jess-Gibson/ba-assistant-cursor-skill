@@ -70,8 +70,11 @@ If neither applies, skip this skill. Resuming an existing initiative never runs 
    by `initiative-tracker.md`. Refresh the README at phase gates. Generate or
    refresh a canvas only after `/canvas`, `/status`, or a direct user request.
 5. **Capture workspace context once**, batched into one or two `AskQuestion` panels,
-   not a sequential interview:
-   - Jira project key (e.g., PROJ, SW)
+   not a sequential interview. **Pre-fill from `ba-assistant-config.mdc`** and ask the
+   BA to confirm or change, rather than asking blank: Jira project = `jira.projectKey`,
+   Confluence = `confluence.spaceKey` / `confluence.parentPageUrl`. Only ask blank for
+   values the config does not have.
+   - Jira project key (default `jira.projectKey`)
    - Jira issue type templates, if this project uses custom ones
    - Confluence space and parent page
    - Slack channel for initiative comms (e.g. `#sample-initiative`)
@@ -81,14 +84,18 @@ If neither applies, skip this skill. Resuming an existing initiative never runs 
    before asking its own workspace-context question.
 6. **Multi-source research**, before asking the user to restate anything they may
    already have documented. Search, in this order, in parallel where possible:
+   - **Domain docs first:** read the pages listed in `domainDocs` (config) that relate
+     to this initiative, and use `domain` to pick search terms and the regulators and
+     standards worth checking.
    - **Confluence** (Runlayer -> `searchConfluenceUsingCql` or `atlassian__search`) for
-     pages matching the initiative name, keywords, related domains.
-   - **Jira** (Runlayer -> `searchJiraIssuesUsingJql`) for existing epics, stories,
+     pages matching the initiative name, keywords, related domains; start in
+     `confluence.spaceKey`, then widen.
+   - **Jira** (Runlayer -> `searchJiraIssuesUsingJql`, project from step 5) for existing epics, stories,
      problem cards, spikes.
-   - **Glean, enterprise** (`enterprise-search` skill) for docs, Slack threads, email,
-     design docs, RFCs.
-   - **Glean, code** (`code-exploration` skill), for technical initiatives, to check
-     whether this has been built before.
+   - **Glean, enterprise** (via Runlayer) for docs, Slack threads, email, design docs,
+     RFCs.
+   - **Glean, code** (via Runlayer), for technical initiatives, to check whether this
+     has been built before.
    - **Web** (`WebSearch` tool) for regulations, vendor docs, industry standards, news.
 
    Report findings in one structured response with confidence signals per source

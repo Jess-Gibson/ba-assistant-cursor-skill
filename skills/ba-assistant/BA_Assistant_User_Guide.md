@@ -106,6 +106,13 @@ Slash commands trigger orchestrator-driven flows. Type the slash in chat; if Cur
 
 | Command | What it does |
 |---|---|
+| `/ba-assistant` | Start. Installs or personalises if needed, otherwise resumes |
+| `/setup` | Re-run the personalisation wizard (name, domain, Jira, Confluence, paths) |
+| `/debrief` | Process a meeting transcript into decisions, actions, OQs, RAID |
+| `/todo` | Quick-capture a BA action into `_workstream/ba-actions.json` |
+| `/handover` | Publish confirmed analysis to the shared delivery repo (gated) |
+| `/close` | Close out and archive a finished initiative |
+| `/fast-track` | Condensed phase structure for time-critical initiatives |
 | `/next` | Top 3 next actions across all active workstreams and scopes, ranked by urgency, unblock potential, and critical-path criticality |
 | `/status` | Full current state  -  workstream grid, feature status, critical path, blockers, living tracker, MoSCoW coverage, confidence scores. Triple-output: chat + canvas + HTML snapshot |
 | `/publish-status` | Generate and publish the formal status page (Confluence + HTML snapshot) |
@@ -114,13 +121,13 @@ Slash commands trigger orchestrator-driven flows. Type the slash in chat; if Cur
 | `/canvas` | Generate or refresh the interactive project canvas (8 tabs) |
 | `/retro` | Trigger a retrospective  -  workstream-completion (quick), mid-initiative (deeper), or closure (comprehensive) |
 | `/metrics` | Pull and display all four metrics with per-scope breakdown and trend. Quick check-in without the full status output |
-| `/reanchor` | Re-read the orchestrator and active project state files. Use when a long thread has drifted  -  skills not firing, status headers missing, workstream model forgotten |
+| `/reanchor <initiative>` | Pick an initiative back up, or re-read its state when a long thread has drifted. Without a name it lists your initiatives and asks |
 | `/audit-standards` | Run a conformance check against all reference standards across the live initiative. Reports artefacts that don't conform |
 | `/validate-state` | Writes what this chat captured into the initiative files (`SESSION-CONTEXT.md`, tracker, `status-data.json` where they exist) and upserts this chat's BA actions into `ba-actions.json`. No workboard refresh, no walk of every action. Asks if something has no obvious home |
 | `/wrap` | Chat-scoped checkpoint. Captures this thread's decisions, actions, and outputs, promotes its unpromoted items to the tracker, syncs BA actions changed in this chat, and checkpoints SESSION-CONTEXT. Does not refresh the workboard or reconcile the calendar (that is `/workboard end-of-day`) |
 | `/workboard` | Cross-initiative priorities view. Shows all initiatives, top tasks, today's meetings, sync status. `/workboard end-of-day` is the daily closeout (calendar reconcile, full action runthrough, workboard refresh) |
 
-**Note on Cursor slash menus:** Cursor uses `AskQuestion` with clickable options for decision points (not a separate persistent chip row above the input). Slash commands may or may not appear in the autocomplete menu  -  typing the command word in chat always works because the orchestrator honours them. See `slash-commands-ux.md` for documented patterns.
+**Note on Cursor slash menus:** Cursor uses `AskQuestion` with clickable options for decision points (not a separate persistent chip row above the input). Slash commands may or may not appear in the autocomplete menu  -  typing the command word in chat always works because the orchestrator honours them.
 
 ---
 
@@ -239,68 +246,76 @@ Specify your preference: `/report quick summary`, `/report confluence-ready`, et
 
 ---
 
-## Skills (21 active)
+## Skills
 
-You don't need to invoke skills by name  -  the orchestrator calls them as needed. But it helps to know what's available. **Skills marked "(merged in)" are sections within a host skill, not standalone files.**
+You don't need to invoke skills by name. The orchestrator picks them from what you're doing. This list matches the folders under `~/.cursor/skills/ba-assistant/sub-skills/`. The routing source of truth is `references/activity-map.md`.
 
-### Core workflow skills (workstream-driven)
-
-| Skill | Workstream | Purpose |
-|---|---|---|
-| `Intake_Reviewer` | Intake (M0) | PM brief, complexity signal, workspace setup, multi-source context, JTBD-tagged problem |
-| `Workshop_Design` *(absorbs Kickoff Preparation)* | Kickoff (M1) | Workshop facilitation, kickoff agendas, group sessions |
-| `Discovery_and_Requirements` | Discovery (M2) | Current state, requirements with MoSCoW matrix per scope, **(merged in: Experiment & Validation)** |
-| `Current_State_Assessment` | Discovery (M2a) | Evidence-based "as-is"  -  diagrams, code dives, source vetting, workshops |
-| `Feature_Slicing_and_Sequencing` | Slicing & Sequencing (M3) | Independently valuable slices, dependency diagram, **(merged in: Critical Path & Priority)**, impact mapping |
-| `Solution_Shaping` | Solution (M4) | Future state, options, ADRs, JTBD-segmented (functional/emotional/social) |
-| `Delivery_Definition` | Delivery (M5) | Epics, stories, spikes, AC, **(merged in: Definition of Ready)**, **MoSCoW warn-and-flag gate** |
-| `Playback_and_Enablement` | Playback (M6) | Sign-offs, training, **(merged in: Communication Drafter)** |
-| `Solution_Evaluation` *(NEW Wave 1)* | Eval & Retro (M7) | Post-launch  -  measure actual vs expected outcomes; continue/adjust/sunset |
-| `Retrospective_and_Learning` | Eval & Retro (retro half) | Workstream-completion / mid-initiative / closure retros; updates `_workstream/learnings.md` |
-
-### Sustained-relationship skills (NEW Wave 1)
+### Frame (what problem, who cares)
 
 | Skill | Purpose |
 |---|---|
-| `Sponsor_Engagement` | Sustains the executive sponsor relationship (Standish CHAOS #1 success factor) |
-| `Change_Strategy` | Manages organisational change using ADKAR (Awareness, Desire, Knowledge, Ability, Reinforcement) |
+| `ba-new-initiative` | Scaffolds a new initiative folder and starting files |
+| `ba-intake-reviewer` | Reviews the PM brief, challenges vague statements, runs intake |
+| `ba-workshop-design` | Designs and runs workshops (kickoff through retro) |
+| `ba-stakeholder-strategy` | Stakeholder map, influence, comms plan, RACI |
+| `ba-sponsor-engagement` | Sponsor cadence, pre-decision briefings, escalation |
+| `ba-requirements-interrogator` | Challenges requirements: Discovery, Rethink, In-flight modes |
 
-### Cross-cutting skills (run in support)
+### Discover (how it works today, what's required)
 
 | Skill | Purpose |
 |---|---|
-| `Risk_and_Tracker` | Maintains the living tracker (scoped, with action register), progress dashboard |
-| `Stakeholder_Strategy` | Identifies, analyses, and engages stakeholders; produces RACI |
-| `Requirements_Interrogator` | Three modes: Discovery, Rethink, In-flight  -  with JTBD lens |
-| `Meeting_Debrief` *(NEW Wave 1)* | Processes meeting transcripts/notes; updates tracker, requirements, OQs, actions |
-| `State_Validator` *(NEW Wave 5)* | Cross-document consistency checks  -  detects drift between tracker, status-data.json, Jira, and Confluence. Runs silently on resume; on demand via `/validate-state` |
+| `ba-current-state-assessment` | Evidence-based as-is: process, systems, data, people |
+| `ba-discovery-and-requirements` | Requirements register, MoSCoW per scope, related RAID |
+| `ba-data-investigation` | Gathers and cross-checks data before a BA decision |
+| `ba-meeting-debrief` | Turns a transcript or notes into decisions, actions, OQs, RAID (`/debrief`) |
 
-### Passive skills (run continuously)
+### Shape (options, slices, sequence)
 
-| Skill | What it watches for |
+| Skill | Purpose |
 |---|---|
-| `Anti_Pattern_Detector` | Premature solutioning, skipped slicing, missing stakeholders, missing MoSCoW, workstream-aware combinations (Solution active without Discovery complete, Delivery across 3+ scopes without resource declaration, late discovery, workstream thrashing), dormant learnings (Wave 6), non-conformant artefact output (Wave 7) |
-| `Schema_Field_Validator` | Triggered when a data model field is proposed  -  checks if it belongs |
-| `Context_Capture` | Scans every user message for new facts, decisions, blockers, OQs, scope changes, stakeholder context, and corrections. Writes to `SESSION-CONTEXT.md` in real time with an inline `📝` confirmation. Does not interrupt conversation flow. |
+| `ba-solution-shaping` | Solution options, ADRs, spikes, recommended path |
+| `ba-feature-slicing-and-sequencing` | Feature slices, priority, critical path |
 
-### Support skills (invoked by other skills)
+### Deliver (stories, tickets, handover)
 
-| Skill | Produces |
+| Skill | Purpose |
 |---|---|
-| `Visual_Storytelling` | Diagrams, charts, one-pagers, dashboards, journey maps |
-| `Project_Canvas` *(now hosts Status Data Model)* | Interactive 8-tab canvas + `status-data.json` schema + HTML snapshot |
-| `Jira_Sync` | Read/write Jira tickets; respects template captured at intake |
+| `ba-story-writing` | Epics, stories, spikes, bugs; Definition of Ready; Jira drafts you approve before anything is created |
+| `ba-jira-sync` | Pulls Jira ticket statuses into `status-data.json` |
+| `ba-dev-handover` | Publishes confirmed analysis to the shared delivery repo (`/handover`) |
+| `ba-change-strategy` | Organisational change (ADKAR), adoption, resistance |
+| `ba-playback-and-enablement` | Playbacks, sign-offs, enablement, stakeholder comms |
 
-### Skills that were merged (Wave 3)  -  no functionality lost
+### Run (status, wrap, close)
 
-| Was standalone | Now inside | Why |
-|---|---|---|
-| `Kickoff_Preparation` | `Workshop_Design` | Kickoff is a workshop |
-| `Critical_Path_and_Priority` | `Feature_Slicing_and_Sequencing` | Same job, two angles |
-| `Definition_of_Ready` | `Delivery_Definition` | DoR is a quality gate inside delivery |
-| `Status_Data_Model` | `Project_Canvas` | Data model is canvas infrastructure |
-| `Experiment_and_Validation` | `Discovery_and_Requirements` | Experiments validate requirements |
-| `Communication_Drafter` | `Playback_and_Enablement` | Comms is cross-cutting; placed under most-frequent caller |
+| Skill | Purpose |
+|---|---|
+| `ba-risk-and-tracker` | The living tracker: RAID, decisions, OQs |
+| `ba-project-canvas` | Initiative canvas and `status-data.json` (`/canvas`, `/status`) |
+| `ba-state-validator` | Checks files agree with each other and with this chat (`/validate-state`) |
+| `ba-commitment-scan` | Read-only scan of mail/chat for what you promised (`/workboard end-of-day`) |
+| `ba-retrospective-and-learning` | Retros on request (`/retro`), learnings |
+| `ba-solution-evaluation` | Post-launch: actual vs expected, continue/adjust/sunset |
+| `ba-initiative-closeout` | Closes an initiative cleanly (`/close`) |
+
+### Always on in the background
+
+| Skill | What it does |
+|---|---|
+| `ba-context-capture` | Writes new facts, decisions, blockers, OQs to `SESSION-CONTEXT.md` with an inline `📝` |
+| `ba-anti-pattern-detector` | Flags premature solutioning, skipped slicing, missing MoSCoW, skipped Jira approval, and similar |
+
+### Setup
+
+| Skill | Purpose |
+|---|---|
+| `ba-install` | Installs the package files (`/install-ba-assistant`) |
+| `ba-setup` | Personalisation wizard (`/setup`): name, domain, Jira, Confluence, paths |
+
+**Not a live skill:** `ba-visual-storytelling` is kept only so old references resolve; diagram rules live in `references/visual-output-format.md`.
+
+**Schema checks:** stories that touch a data field run a short schema checklist inside `ba-story-writing`. If you have your own schema validator skill installed, it runs instead. Nothing blocks on it being missing.
 
 ---
 
@@ -486,7 +501,7 @@ This means recurring failure modes get caught earlier and more frequently  -  no
 8. **Push back**  -  if the Assistant flags a risk or suggests an action, you can accept, question, or defer. If you proceed at risk, the decision is logged.
 9. **Engage the co-thinking**  -  when the assistant surfaces what it knows, what it doesn't know, and its recommendation, give your take before it produces artefacts. This is where the best analysis happens.
 10. **Iterate**  -  workstreams loop back. You can loop into discovery after slicing, update requirements during solution shaping, raise change tickets during delivery. The Assistant adapts.
-11. **Drop meeting transcripts**  -  after meetings, paste the transcript; `Meeting_Debrief` extracts decisions, actions, OQs, and updates relevant skills/tracker.
+11. **Drop meeting transcripts**  -  after meetings, paste the transcript; `ba-meeting-debrief` extracts decisions, actions, OQs, and updates relevant skills/tracker.
 12. **Ask for visuals**  -  "show me the dependency diagram", "make me a one-pager for this", "draft an email to [Team Member]." The Assistant produces them.
 13. **Use `/reanchor` in long threads**  -  if the assistant feels like it's drifted or skills aren't firing, `/reanchor` re-reads all state files and resumes from the current position.
 14. **Check cross-initiative priorities**  -  `/workboard` shows all initiatives, top tasks, today's meetings, and sync status in one view.

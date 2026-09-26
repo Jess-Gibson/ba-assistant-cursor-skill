@@ -25,7 +25,7 @@ This skill detects divergences across canonical state files and downstream artef
 in a single table, and propagates updates on user confirmation. It is **read-mostly** by default,
 never auto-edits without explicit per-divergence approval.
 
-**`/validate-state` writes.** `/validate-state` checks this chat against the current initiative. Write what this chat captured into the right files: `SESSION-CONTEXT.md`, the tracker, and `status-data.json` where those files already exist, and upsert only the BA actions that came from this chat into `~/.cursor/_workstream/ba-actions.json`. Do not refresh the workboard. Do not walk every open action. Do not invent files. If something has no obvious home, say so and ask. Regenerate `ba-actions.md` after the upsert.
+**`/validate-state` writes.** `/validate-state` checks this whole chat against the current initiative files and captures anything missing, so a new chat can pick up with nothing lost. Write what this chat decided, learned or produced into the right files: `SESSION-CONTEXT.md`, the tracker, and `status-data.json` where those files already exist, and upsert the BA actions that came from this chat into `~/.cursor/_workstream/ba-actions.json`. Then re-read those files and confirm they match the chat. Do not refresh the workboard. Do not walk every open action. Do not invent files. If something has no obvious home, say so and ask. Regenerate `ba-actions.md` after the upsert.
 
 The read-mostly default below applies when this skill runs on resume or before a publish, not to `/validate-state`.
 

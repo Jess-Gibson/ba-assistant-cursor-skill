@@ -58,7 +58,7 @@ def main():
     for m in re.finditer(r"not all (\d+)", skill_md):
         claimed.add(int(m.group(1)))
     if not claimed:
-        add("WARN", "counts", "No count claims found in SKILL.md (unexpected)")
+        add("PASS", "counts", f"SKILL.md makes no sub-skill count claims, so nothing can drift ({n_active} active sub-skills)")
     elif claimed == {n_active}:
         add("PASS", "counts", f"All SKILL.md count claims = {n_active} actual active sub-skills ({len(superseded)} superseded markers)")
     else:

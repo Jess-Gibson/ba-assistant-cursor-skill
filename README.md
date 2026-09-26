@@ -85,7 +85,8 @@ The table above uses friendly phase names as a quick skills index. Day-to-day ro
 
 ```text
 Install BA Assistant from https://github.com/Jess-Gibson/ba-assistant-cursor-skill
-into my Cursor home. Copy skills, rules, hooks, and commands, verify the install,
+into my Cursor home. Run tools/install-ba-assistant.py to install skills, rules,
+hooks, and commands (do not copy hooks.json by hand), verify the install,
 then run the personalisation wizard. Default my initiatives folder to
 ~/.cursor/initiatives. When setup finishes, help me with MCP / Runlayer
 connections and offer to set up my workboard or start my first initiative.

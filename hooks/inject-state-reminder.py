@@ -1,6 +1,8 @@
-# beforeSubmitPrompt hook — computed context injection (C3).
-# Replaces static always-on reminder rules with ONE relevant line per turn, computed
-# from actual state. Cuts the always-on tax AND fires reliably (it's code, not vibes).
+# stop hook (--stop) — computed unpromoted-state reminder (C3). The package no longer
+# registers the beforeSubmitPrompt mode (Cursor ignores its additional_context); that
+# branch below is kept only so an old hooks.json entry still exits cleanly.
+# Computes the reminder from actual files, not from rules the model has to remember.
+# Off unless `stopFollowup: true` in ba-assistant-config.mdc.
 #
 # stdin: hook JSON (user prompt etc — verify field names against current Cursor docs)
 # stdout: {"additional_context": "..."} (empty string = inject nothing)

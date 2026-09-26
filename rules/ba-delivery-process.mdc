@@ -44,7 +44,7 @@ When a task is **BA-heavy** (discovery, requirements, Confluence/Jira, analysis,
 Route using [.cursor/rules/skills-routing.mdc](skills-routing.mdc) and `.cursor/skills/`. What ships in this package:
 
 - Requirement / AC / discovery → bundled: `ba-assistant/sub-skills/ba-discovery-and-requirements`, `ba-assistant/sub-skills/ba-requirements-interrogator`
-- Diagrams / flows → bundled: `ba-assistant/sub-skills/ba-visual-storytelling`, interactive HTML flowchart (`references/visual-output-format.md` + `references/templates/flowchart.html`)
+- Diagrams / flows → `~/.cursor/skills/ba-assistant/references/visual-output-format.md` + `references/templates/flowchart.html` (interactive HTML flowchart)
 - Confluence → bundled: `publish-docs-to-confluence` (read its `references/confluence-workflow.md` first)
 - Jira (project-specific patterns) → your own `[your-jira-templates]` (`CUSTOMIZATION.md` §5, §11); ticket status sync ships as `ba-assistant/sub-skills/ba-jira-sync`
 - Data / metrics / narrative → bundled: `ba-assistant/sub-skills/ba-data-investigation` (the only data skill)

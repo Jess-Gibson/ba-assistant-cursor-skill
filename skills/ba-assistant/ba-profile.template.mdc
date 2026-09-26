@@ -97,7 +97,7 @@ These commands are always available in any BA Assistant session:
 | `/retro` | Trigger a retrospective |
 | `/metrics` | Pull all four metrics with per-scope breakdown |
 | `/reanchor` | Re-read state files when the assistant has drifted in a long thread |
-| `/validate-state` | Write what this chat captured into the initiative files and upsert this chat's BA actions |
+| `/validate-state` | Capture anything this chat has not yet written to the initiative files and actions, then confirm a new chat can pick up |
 | `/wrap` | Chat checkpoint only. Capture this chat into session context and the tracker. No workboard refresh |
 | `/workboard` | Cross-initiative priorities view |
 | `/setup` | Re-run the first-run wizard to reconfigure |

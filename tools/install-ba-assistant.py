@@ -315,6 +315,13 @@ def merge_hook_event(event_name: str, user_entries: list, pkg_entries: list) -> 
     return kept + list(pkg_entries), logs
 
 
+# (event, script) pairs the package used to register and no longer does. Removed
+# from an existing hooks.json on merge so old installs stop running them.
+RETIRED_PACKAGE_HOOKS = {
+    ("beforeSubmitPrompt", "inject-state-reminder.py"),  # Cursor ignores its output
+}
+
+
 def merge_hooks_object(pkg_hooks: dict, existing_hooks: dict) -> tuple[dict, list[str]]:
     """Deep-merge the `"hooks"` object: per-event array merge via
     merge_hook_event, plus untouched preservation of any event key the
@@ -334,8 +341,23 @@ def merge_hooks_object(pkg_hooks: dict, existing_hooks: dict) -> tuple[dict, lis
         merged[event_name] = merged_list
         logs.extend(event_logs)
     for event_name in existing_hooks:
-        if event_name not in pkg_hooks:
-            logs.append(f"KEEP hooks.{event_name} (event not defined by package, left untouched)")
+        if event_name in pkg_hooks:
+            continue
+        entries = existing_hooks.get(event_name)
+        if isinstance(entries, list):
+            kept = []
+            for entry in entries:
+                name = hook_entry_script_name(entry) if isinstance(entry, dict) else None
+                if (event_name, name) in RETIRED_PACKAGE_HOOKS:
+                    logs.append(f"DROP hooks.{event_name} retired package entry ({name})")
+                    continue
+                kept.append(entry)
+            if kept:
+                merged[event_name] = kept
+            else:
+                merged.pop(event_name, None)
+                continue
+        logs.append(f"KEEP hooks.{event_name} (event not defined by package, left untouched)")
     return merged, logs
 
 

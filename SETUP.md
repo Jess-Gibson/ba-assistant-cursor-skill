@@ -12,7 +12,8 @@ You do **not** need to be a developer. Open Cursor, start a new chat, and paste:
 
 ```text
 Install BA Assistant from https://github.com/Jess-Gibson/ba-assistant-cursor-skill
-into my Cursor home. Copy skills, rules, hooks, and commands, verify the install,
+into my Cursor home. Run tools/install-ba-assistant.py to install skills, rules,
+hooks, and commands (do not copy hooks.json by hand), verify the install,
 then run the personalisation wizard. Default my initiatives folder to
 ~/.cursor/initiatives. When setup finishes, help me with MCP / Runlayer
 connections and offer to set up my workboard or start my first initiative.
@@ -21,7 +22,7 @@ connections and offer to set up my workboard or start my first initiative.
 Cursor should:
 
 1. Clone or open the package
-2. Copy skills, rules, hooks, and commands into your Cursor home (`~/.cursor`)
+2. Run `tools/install-ba-assistant.py` to install skills, rules, hooks, and commands into your Cursor home (`~/.cursor`). The installer sets the right Python command for Windows or Mac; a hand-copied `hooks.json` will not work.
 3. Create `~/.cursor/initiatives` and seed `_workstream`
 4. Run the personalisation wizard (name, role, Jira/Confluence, output depth)
 5. Offer first tasks: workboard, meeting debrief, first initiative, or MCP help

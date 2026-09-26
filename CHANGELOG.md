@@ -22,7 +22,7 @@
 
 **If you already installed:** the upgrader never overwrites your `~/.cursor/rules/ba-profile.mdc`, so edit two rows in its commands table by hand (or copy just those rows from the package's `rules/ba-profile.mdc`):
 - `/wrap`: "Chat checkpoint only. Capture this chat into session context and the tracker. No workboard refresh."
-- `/validate-state`: it now writes what this chat captured into the initiative files and `ba-actions`. It is no longer a read-only report.
+- `/validate-state`: "Check this whole chat against the initiative files, write anything missing (`SESSION-CONTEXT.md`, tracker, `status-data.json` where they exist, and this chat's BA actions in `ba-actions.json`), then confirm a new chat can pick up." It is no longer a read-only report.
 
 - **Jira DoR gate:** Story creates through Runlayer's `execute_tool` (for example `createJiraIssue`) are now checked, not waved through. The gate reads the final `result` of a DoR check, so a story that failed once and then passed is no longer blocked. It also reads the flat `issueTypeName` field, so a Bug that mentions a story is not blocked. If Python is missing, MCP calls are allowed instead of all being blocked. 7 new test cases (20 in total).
 - **DoR writer:** `ba-story-writing` now writes `status-data.json → dorChecks` (`storyTitle`, `storyKey` if known, `result`) at the same time as the tracker register. It no longer relies on a `DoR: PASS` stamp in the Jira description.
@@ -34,6 +34,15 @@
 - **Skills:** every sub-skill has `name`, `description`, and `disable-model-invocation: true`, so they no longer jump into a chat on their own. The orchestrator and slash commands still open them. The personal config template is always-on (`alwaysApply: true`).
 - **Commands** use `~/.cursor/skills/ba-assistant/...` paths. `/reanchor` and bootstrap no longer read all of `hook-contracts.md`.
 - Removed leftover personal product and team names from examples. Two new conformance checks: a mail script that is referenced but missing, and command paths without `~/.cursor/`.
+
+### Version 14 re-review follow-ups
+
+- `/validate-state` now walks the whole chat, writes anything missing, re-reads the files, and ends with "Safe to start a new chat: yes/no".
+- Jira DoR gate: when the active initiative is known, only its own DoR passes count (a same-titled pass in another initiative no longer lets a Story through). New test case (21 in total).
+- Removed the `beforeSubmitPrompt` hook: Cursor ignores its output. Install and upgrade remove the old entry from existing `hooks.json` files.
+- Install prompts now say to run `tools/install-ba-assistant.py` rather than copy files by hand (a hand-copied `hooks.json` has the wrong Python command).
+- Sync gates point at `references/canonical-ownership.md`; diagram routing points at `references/visual-output-format.md` instead of the retired visual-storytelling folder.
+- Conformance check no longer warns about missing sub-skill counts in `SKILL.md` (0 FAIL, 0 WARN).
 
 ## Version 13 - 2026-09-25
 

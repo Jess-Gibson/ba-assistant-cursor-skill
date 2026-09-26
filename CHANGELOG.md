@@ -11,6 +11,30 @@
 - `/reanchor` re-reads `hook-contracts.md` and runs the bounded readiness pass. Does not invent an initiative.
 - `workstreams.md` remains as an optional M0–M8 glossary; it is not loaded at bootstrap. Activity map is the day-to-day routing model.
 
+### Version 14 QA correction pass
+
+- Aligned resume/new-initiative routing, explicit-only canvas triggers, hook IDs, skill discovery, and manual Miro pre-flight guidance with the slim orchestrator.
+- Removed public Miro identifiers and personal BA-action aliases while preserving a one-time, data-safe workboard migration path.
+- Corrected Windows Downloads fallback, local calendar timezone handling, platform-specific calendar dispatch, and installer coverage for companion skills and the sample calendar feed.
+- Corrected current-facing Version 14 documentation, generic BA identity guidance, status-colour examples, hook history, and README-only author attribution.
+
+### Version 14 fix pass
+
+**If you already installed:** the upgrader never overwrites your `~/.cursor/rules/ba-profile.mdc`, so edit two rows in its commands table by hand (or copy just those rows from the package's `rules/ba-profile.mdc`):
+- `/wrap`: "Chat checkpoint only. Capture this chat into session context and the tracker. No workboard refresh."
+- `/validate-state`: it now writes what this chat captured into the initiative files and `ba-actions`. It is no longer a read-only report.
+
+- **Jira DoR gate:** Story creates through Runlayer's `execute_tool` (for example `createJiraIssue`) are now checked, not waved through. The gate reads the final `result` of a DoR check, so a story that failed once and then passed is no longer blocked. It also reads the flat `issueTypeName` field, so a Bug that mentions a story is not blocked. If Python is missing, MCP calls are allowed instead of all being blocked. 7 new test cases (20 in total).
+- **DoR writer:** `ba-story-writing` now writes `status-data.json → dorChecks` (`storyTitle`, `storyKey` if known, `result`) at the same time as the tracker register. It no longer relies on a `DoR: PASS` stamp in the Jira description.
+- **Initiatives folder:** hooks find `~/.cursor/initiatives` and `paths.initiativesRoot` from `ba-assistant-config.mdc` with no environment variable. Old folder names still work as fallbacks. Debrief reads from the initiatives folder and matches the initiative against what is on disk (the hard-coded keyword table is gone).
+- **Shared repo path:** `/handover` stores it as `paths.sharedRepoRoot` in `ba-assistant-config.mdc`, and the leak guard reads it from there. The guard only blocks when a path is set.
+- **`/wrap`, end of day, retro:** `/wrap` is a chat-only checkpoint everywhere. "Done for tonight" / "end of day" goes to `/workboard end-of-day`. A retro only runs on `/retro` or when you ask for one.
+- **End of day mail:** removed the call to a mail script that never shipped. It does a light Outlook check through MCP if connected, otherwise it says "Mail: unable to check" and carries on.
+- **Upgrade:** now updates hook scripts, merges `hooks.json`, installs every command (including `/close`), updates companion skills and workboard helper scripts. Your profile, config, initiatives, and `_workstream` data are still untouched. Reinstalling no longer stacks duplicate prompt hooks, and the unused session-start prompt hook has been removed.
+- **Skills:** every sub-skill has `name`, `description`, and `disable-model-invocation: true`, so they no longer jump into a chat on their own. The orchestrator and slash commands still open them. The personal config template is always-on (`alwaysApply: true`).
+- **Commands** use `~/.cursor/skills/ba-assistant/...` paths. `/reanchor` and bootstrap no longer read all of `hook-contracts.md`.
+- Removed leftover personal product and team names from examples. Two new conformance checks: a mail script that is referenced but missing, and command paths without `~/.cursor/`.
+
 ## Version 13 - 2026-09-25
 
 ### Initiative lifecycle bookends + commitment scan (Wave 10)
@@ -69,7 +93,7 @@
 
 ### Fixes from independent QA pass (round 1)
 
-- `tools/generate-workboard-canvas.py`: removed a hardcoded real name (`"Alice"`) that `normalize_stakeholder_raise()` used as a fallback display value for a legacy `alice_raise` workboard key, plus the `alice_raise` key itself (not a documented legacy alias like `jess-actions.json`, just a leftover from one person's own data). Rebuilt `dist/ba-workboard-overlay.zip` from the fixed source so the packaged copy doesn't carry the same leak.
+- `tools/generate-workboard-canvas.py`: removed a hardcoded real name that `normalize_stakeholder_raise()` used as a fallback display value for an undocumented personal workboard key, plus the key itself. Rebuilt `dist/ba-workboard-overlay.zip` from the fixed source so the packaged copy doesn't carry the same leak.
 - `.gitignore`: added `dist/ba-workboard-overlay/` (the unzipped build output of `build-workboard-overlay-zip.py` was untracked and unignored, duplicating whatever source leak existed at build time).
 - `ba-install/SKILL.md`: fixed a leftover "for README / Jess to share" heading.
 - `SKILL.md`: welcome-panel invocation-group arithmetic didn't sum to the stated total (`ba-install` was in the total count but missing from every group); added it as a second "once-ever" skill alongside Setup.

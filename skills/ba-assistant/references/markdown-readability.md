@@ -123,10 +123,10 @@ Write what Support can read aloud. Not internal jargon.
 
 | Path pattern | Examples |
 |--------------|----------|
-| `blueprints/{slug}/comms/` | Enablement handovers, Teams drafts |
-| `blueprints/{slug}/debriefs/` | Meeting summaries for stakeholders |
-| `blueprints/{slug}/outputs/` | Confluence draft mirrors, gap lists |
-| `blueprints/**/requirements/` | Only when drafting stakeholder-facing summaries (not raw registers) |
+| `initiatives/{slug}/comms/` | Enablement handovers, Teams drafts |
+| `initiatives/{slug}/debriefs/` | Meeting summaries for stakeholders |
+| `initiatives/{slug}/outputs/` | Confluence draft mirrors, gap lists |
+| `initiatives/**/requirements/` | Only when drafting stakeholder-facing summaries (not raw registers) |
 
 Technical registers, tracker rows, and `SESSION-CONTEXT.md` captures are exempt unless the BA asks for a readable export.
 

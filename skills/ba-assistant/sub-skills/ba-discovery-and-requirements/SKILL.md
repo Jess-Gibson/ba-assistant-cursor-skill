@@ -1,4 +1,12 @@
+---
+name: ba-discovery-and-requirements
+description: Runs discovery and writes the requirements register, MoSCoW per scope, and related RAID entries for an initiative.
+disable-model-invocation: true
+---
+
 # Skill: Discovery and Requirements
+
+> **Hook ids:** this skill names `HK-...` ids. Open that row in `~/.cursor/skills/ba-assistant/hook-contracts.md` if you need the contract. Do not read the whole file.
 
 ## Standards used
 
@@ -181,7 +189,7 @@ is re-interrogated and a confirmed statement is produced.
     - Stories with `Could` rating that are blocking critical-path delivery for a `Must` requirement flag as anti-pattern ("low-priority work blocking high-priority").
 
     **Why this matters:**
-    - The same requirement can be Must for one cohort but Could for another (e.g. for Data Collection Uplift Project 002, "Audit log" is Must for the Existing OIP cohort but Could for the New OP cohort).
+    - The same requirement can be Must for one cohort but Could for another (e.g. in a sample onboarding initiative, "Audit log" is Must for the existing-customer cohort but Could for the new-customer cohort).
     - Forces the PM to commit to scoping decisions explicitly rather than rolling forward with ambiguity.
     - Gives the BA defensible evidence in playback about why specific scope was/wasn't delivered.
     - Surfaces MoSCoW gaps automatically rather than discovering them at delivery review.

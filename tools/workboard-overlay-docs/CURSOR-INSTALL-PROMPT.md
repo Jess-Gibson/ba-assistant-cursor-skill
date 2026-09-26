@@ -13,7 +13,7 @@ Goal: install the richer workboard (Today checkboxes, calendar, full Update / En
 
 Hard rules:
 - Do NOT run upgrade-ba-assistant.py (that replaces the whole skill tree).
-- Do NOT overwrite _workstream/workboard.json, ba-actions.json, jess-actions.json, ba-actions.md, jess-actions.md, calendar-feed.json, ba-profile.mdc, or ba-assistant-config.mdc.
+- Do NOT overwrite _workstream/workboard.json, ba-actions.json, ba-actions.md, calendar-feed.json, ba-profile.mdc, or ba-assistant-config.mdc.
 - Do NOT regenerate or overwrite my live canvases/ba-workboard.canvas.tsx until I explicitly say the preview looks good.
 - Do NOT replace commands/workboard.md or commands/wrap.md unless I confirm. If they already exist, leave them and write *.package siblings for comparison.
 

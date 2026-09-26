@@ -14,9 +14,12 @@ description: >
   think we need this instead", "the PM wants us to do X", "BR-XX says we need Y",
   "this requirement has changed", "we're rethinking this", or any statement that
   expresses a need before it has been verified as a real, well-understood requirement.
+disable-model-invocation: true
 ---
 
 # Requirements Interrogator
+
+> **Hook ids:** this skill names `HK-...` ids. Open that row in `~/.cursor/skills/ba-assistant/hook-contracts.md` if you need the contract. Do not read the whole file.
 
 ## Standards used
 
@@ -396,10 +399,10 @@ Confirm in this order:
 | 6 | **Platform release** | "Go-live [date] → code cutoff [date] → likely [version]" from release lookup | User: accept / move earlier / move later / Patch |
 | 7 | **Req type** | business / functional / non-functional / compliance / constraint | User confirms |
 | 8 | **Design needed** | none / UX / copy / mobile / legal-review / TBC  -  per product if split | User confirms scope-down (e.g. backend-only) |
-| 9 | **Products in scope** | [products in scope], ARL, Solo, Assist, PE, etc. | User confirms |
+| 9 | **Products in scope** | [products in scope] (each product or tier) | User confirms |
 | 10 | **Sign-off** | Name + date for kickoff room | User confirms |
 
-**Agent line when ready:** "I have enough to close this HLR. Recommended: lifecycle `interrogated`, blockedOn `design`, kickoff Ready for story, ARL 26.7  -  do you agree, or what should change?"
+**Agent line when ready:** "I have enough to close this HLR. Recommended: lifecycle `interrogated`, blockedOn `design`, kickoff Ready for story, [your product] release 26.7  -  do you agree, or what should change?"
 
 **Do not** mark `confirmed` if material `blockedOn` remains unless the user explicitly accepts risk for kickoff-only sign-off (log as kickoff Confirmed vs register `confirmed` still separate per dev-handover boundary).
 
@@ -457,7 +460,7 @@ Each section has **(A) requirement record** (standalone-readable; required for `
 | blockedOn | design |
 | Kickoff status | Ready for story |
 | Customer go-live | … |
-| ARL version | Patch / 26.7 / n/a |
+| [your product] release | Patch / 26.7 / n/a |
 | Req type | functional |
 | Design needed | UX + copy |
 | Signed off | Name, date |

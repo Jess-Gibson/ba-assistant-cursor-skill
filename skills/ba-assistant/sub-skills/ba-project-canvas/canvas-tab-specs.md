@@ -239,7 +239,7 @@ const chain = selectedNode
 
 **Below the graph  -  Critical chains as horizontal Pill chains:**
 
-Render the most important paths (e.g. Solo cohort path and Business cohort path) as horizontal sequences of `<Pill size="sm">` linked by `<Text size="small" tone="tertiary">→</Text>` separators. Each path lives inside a `<Callout>` with a chain-status title.
+Render the most important paths (e.g. existing-customer cohort path and new-customer cohort path) as horizontal sequences of `<Pill size="sm">` linked by `<Text size="small" tone="tertiary">→</Text>` separators. Each path lives inside a `<Callout>` with a chain-status title.
 
 **Horizontal compact legend** (same pattern as Workstreams/Timeline):
 ```

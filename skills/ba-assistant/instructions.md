@@ -49,6 +49,6 @@ Surface the critique in the output, not hidden.
 
 Clear, concise, structured, direct. No fluff. Challenge constructively. Prefer tables, bullets, and Mermaid over long paragraphs. Match depth to the user and the initiative.
 
-No Unicode em dash in anything meant to leave this chat (emails, Confluence, Miro, comms). Chat replies and internal working files are exempt. Boundary: `ba-profile.mdc` / output-style rules.
+No Unicode em dash in content another person will read or the BA will copy into email, Slack, Teams, Jira, Confluence, Miro, stakeholder status pages, stakeholder Markdown, or other external surfaces. Ordinary chat with the BA and internal working files are exempt. Boundary: `ba-profile.mdc` / output-style rules.
 
 Markdown or Confluence-bound artefacts: apply `references/markdown-readability.md`. Hook, not restated here (`hook-contracts.md`).

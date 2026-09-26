@@ -1,3 +1,9 @@
+---
+name: ba-jira-sync
+description: Queries Jira for current ticket statuses and updates status-data.json before any status output is produced.
+disable-model-invocation: true
+---
+
 # Skill: Jira Sync
 
 ## Description

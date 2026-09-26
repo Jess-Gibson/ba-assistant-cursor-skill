@@ -1,6 +1,7 @@
 ---
 name: ba-stakeholder-strategy
 description: Stakeholder identification, influence, comms plan. Use for stakeholder strategy in BA Assistant.
+disable-model-invocation: true
 ---
 
 # Skill: Stakeholder Strategy

@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 """List files in a folder modified within the last N days, newest first.
 
-Cross-platform (Windows/Mac/Linux) replacement for a folder-listing script
-that only ever existed as a Windows-only reference, never shipped. Uses
-plain Python directory scanning (pathlib), not the OS shell -- so it doesn't
-depend on `cmd /c dir` or PowerShell's Get-ChildItem, and doesn't inherit
-either platform's own quirks with those tools on some Downloads folders.
+Cross-platform (Windows/Mac/Linux) recent-file listing. Uses pathlib normally.
+On Windows only, if pathlib raises or incorrectly returns no files, it falls
+back to `cmd /c dir`; file timestamps still come from Python metadata.
 
 Usage:
   python3 list-downloads-recent.py --path "~/Downloads" --days 3
@@ -13,9 +11,48 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import subprocess
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
+
+
+def windows_dir_files(folder: Path) -> list[Path]:
+    """Discover filenames without parsing locale-dependent dir timestamps."""
+    try:
+        proc = subprocess.run(
+            ["cmd", "/c", "dir", "/a-d", "/o-d", "/b", str(folder)],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return []
+    if proc.returncode != 0:
+        return []
+    files = []
+    for name in proc.stdout.splitlines():
+        name = name.strip()
+        if not name:
+            continue
+        candidate = folder / name
+        try:
+            if candidate.is_file():
+                files.append(candidate)
+        except OSError:
+            continue
+    return files
+
+
+def list_files(folder: Path) -> list[Path]:
+    if sys.platform != "win32":
+        return [entry for entry in folder.iterdir() if entry.is_file()]
+    try:
+        files = [entry for entry in folder.iterdir() if entry.is_file()]
+    except OSError:
+        files = []
+    return files or windows_dir_files(folder)
 
 
 def main() -> int:
@@ -33,9 +70,7 @@ def main() -> int:
 
     cutoff = datetime.now() - timedelta(days=args.days)
     entries: list[tuple[datetime, Path]] = []
-    for entry in folder.iterdir():
-        if not entry.is_file():
-            continue
+    for entry in list_files(folder):
         try:
             mtime = datetime.fromtimestamp(entry.stat().st_mtime)
         except OSError:

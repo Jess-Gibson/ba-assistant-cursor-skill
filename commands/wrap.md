@@ -5,7 +5,7 @@ Use `/wrap` to close the current chat thread cleanly. It is not an end-of-day pr
 
 **Never a meeting-recall pass.** File debrief or meeting content only if it was already produced in this chat. Never read `calendar-feed.json` or ask what happened in today's meetings — that systematic recall belongs to `/workboard end-of-day` (run daily), not `/wrap`.
 
-The steps below are the full procedure — you do not need to open `sync-procedures.md` to run this (it holds the same steps for reference/editing only, not as a second read). Read the active initiative's canonical files before writing: `SESSION-CONTEXT.md`, `initiative-tracker.md` where present, `status-data.json` where present, plus every output or debrief created or changed in this chat.
+The steps below are the full procedure. Do not open `sync-procedures.md` for `/wrap`. Read the active initiative's canonical files before writing: `SESSION-CONTEXT.md`, `initiative-tracker.md` where present, `status-data.json` where present, plus every output or debrief created or changed in this chat.
 
 **Guiding assumption:** assume the user will never re-open this chat transcript and you will never read it again either. If something they told you, decided, or produced here isn't written to a canonical file by the end of `/wrap`, it's gone. When in doubt about whether something is "material enough" to persist, persist it.
 

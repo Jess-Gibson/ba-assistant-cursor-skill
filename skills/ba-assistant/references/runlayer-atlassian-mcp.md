@@ -52,4 +52,4 @@ Use **Common tools** + cloud IDs above for known calls. Call **`search_tools`** 
 | `user-runlayer-plugin` | Jira, Confluence, Glean, Slack, etc. |
 | `plugin-miro-miro` | Primary Miro (DSL, tables, layout) |
 | `user-miro-desktop` | Miro fallback (stickies, delete) |
-| `user-snowflake-server` | warehouse SQL (`query_snowflake`) |
+| *(your data MCPs, if any)* | warehouse / log sources used by `ba-data-investigation` |

@@ -27,6 +27,8 @@ Section headers below label hooks by the workstream they belong to (e.g. "M0 Int
 ### Status legend
 
 - 🟢 **Stable**  -  well-tested, no plans to change
+- 🟡 **Wave 1**  -  added or modified in Wave 1
+- 🟡 **Wave 2**  -  added or modified in Wave 2
 - 🟡 **Wave 3**  -  added or modified in Wave 3 (May 2026); monitor for first 2 initiatives
 - 🟣 **Wave 4**  -  added or modified in Wave 4 (May 2026)
 - 🟣 **Wave 5**  -  added or modified in Wave 5 (May–Jun 2026)
@@ -76,7 +78,6 @@ These skills receive the most hooks. Changes to them are highest-risk.
 | HK-INTK-SPON-init | Sponsor_Engagement | Phase 0, after sponsor named | sponsor name, role, decision rights | Sponsor profile draft | If no sponsor identified, log as 🧨 risk and proceed | 🟡 W3 |
 | HK-INTK-CSA-baseline | Current_State_Assessment | If initiative deemed `standard` or `full` complexity | Initiative context, known systems | Current state report draft | Lean intake skips; logs as assumption | 🟡 W3 |
 | HK-INTK-RT-init | Risk_and_Tracker | Always at end of Phase 0 | Initial knowns/unknowns from intake | Tracker initialised | Block  -  no Phase 1 without tracker | 🟢 |
-| HK-INTK-CANV-init | Project_Canvas | Always at end of Phase 0 | Tracker, initial scope | Canvas + HTML snapshot at Phase 0 state | Warn; not blocking | 🟢 |
 
 ### Workshop Design (M1 Kickoff and workshop triggers)  -  outbound
 
@@ -281,46 +282,11 @@ Before modifying a hub skill, run through:
 - After one cycle, if no caller still uses it, remove the entry and the underlying logic.
 - If a caller still uses it after one cycle, raise a 🧨 risk and force the migration.
 
-## Wave 3 hook changes summary
+## History
 
-- **New hooks (W3):** MoSCoW gate hooks (DEL-DOR-internal, DISC-COMD-moscow, DEL-RT-moscow-override); workstream-aware hooks in Anti-Pattern Detector; scope on every tracker hook; action register hooks; data-model hooks moved internal to Canvas.
-- **Internalised hooks (W3  -  were external, now in-skill):** Kickoff Prep → Workshop Design; DoR → Delivery Definition; Critical Path → Slicing; Experiment → Discovery; Status Data Model → Canvas; Communication Drafter → Playback.
-- **Hook name preservation:** All caller skills still use the same hook names (`Definition_of_Ready`, `Communication_Drafter`, `Critical_Path_and_Priority`, etc). The orchestrator routes those names to the new locations. Callers don't need to change.
+Wave-by-wave hook changes and the proposed-but-never-shipped Miro hard-gate
+design are recorded in `hook-contracts-history.md`.
 
-## Wave 8 hook changes summary (Jul 2026  -  `ba-data-investigation`)
-
-- **New skill:** `ba-data-investigation`  -  the canonical BA Assistant data-pairing skill, encoding the BA's own cross-validation / dedup-forensics / annotated-SQL / blocking-questions methodology (see `sub-skills/ba-data-investigation/SKILL.md`). Not a replacement for the generic `pm-data-analyst` skill, which remains available for standalone PM analytics outside BA Assistant decision points.
-- **New hooks (W8):** HK-SOL-BDI-viability (Solution Shaping), HK-SLI-BDI-sizing (Feature Slicing & Sequencing), HK-RT-BDI-evidence (Risk & Tracker), HK-INTK-BDI-baseline (Intake Reviewer, extends hook 2).
-- **Rerouted hooks (W8  -  were → pm-data-analyst, now → ba-data-investigation):** HK-CSA-PMDA-data → HK-CSA-BDI-data (Current State Assessment); HK-DISC-PMDA-validate → HK-DISC-BDI-validate (Discovery and Requirements); HK-EVAL-PMDA-actual → HK-EVAL-BDI-actual (Solution Evaluation, still a block-on-failure hook).
-- **Schema change:** `confidenceScores.*` (and the flat `confidence[]` alternative) in `status-data.json` gained an `evidence: { type: "data" | "qualitative" | "not-yet-assessed", source: string | null }` field  -  see `references/canvas-data-model.md`.
-- **Anti-Pattern Detector additions:** "Ungrounded rating", "Options compared on gut feel only", "Stale blocking question" triggers; extended the "Missing co-thinking journey" trigger to include data-pairing hook awareness.
-- **Why a new skill instead of extending `pm-data-analyst`:** `pm-data-analyst` is generic and wasn't built around the BA's specific investigation discipline (source ranking with status tags, row-level dedup/null/sentinel-date forensics before trusting an aggregate, annotated SQL, mandatory cross-validation against a second source, a persistent Blocking Questions Log and Data Quality Caveats register). Keeping it as a dedicated BA Assistant skill means every data-pairing hook across the assistant behaves consistently.
-
-## Wave 9 hook changes summary (Jul 2026  -  `ba-dev-handover`)
-
-- **New skill:** `ba-dev-handover`  -  publishes confirmed analysis to the shared delivery repo, gated. Derived-publish pattern, parallel to Confluence publish. Confirmation and publication are two separate events.
-- **New hooks (W9):** HK-DH-INT-confirm (handoff-and-halt, not a synchronous sub-call), HK-DH-BDI-ground, HK-DH-RT-raid (embed, never link), HK-DH-JIRA-ticket, HK-DH-SV-register.
-- **State Validator extension:** dev-handover exports added to the watched artefact set; new conformance row (handover freshness vs confirmed register; no working-file links).
-- **No format changes to existing artefacts.** EARS is render-at-export only; the register is untouched. Optional: requirement-format gains an `evidence` field (Patch 6) if your local doesn't already have it.
-
-## Wave 10 hook changes summary (Jul 2026)
-
-- **ba-visual-storytelling merged into `references/visual-output-format.md`** (§4 expanded types, §13 storytelling framework, §14 production workflow); all `HK-*-VIS-*` hooks unchanged by name, fulfilled inline against the standard. The sub-skill folder keeps a SUPERSEDED stub for redirect compatibility (7th SUPERSEDED marker).
-- **ba-project-canvas split into a router + 5 capability files** (`canvas-generate.md`, `canvas-tab-specs.md`, `intake-form-canvas.md`, `metrics.md`, `status-page-and-data.md`); no hook changes  -  HK-CANV-DATA-internal and HK-SV-CANV-refresh now point at `status-page-and-data.md`. Metric formulas deduplicated: canonical in `references/canvas-data-model.md` only.
-
-## Non-skill hook change: Miro pre-flight hardened to HARD gate (8 Jul 2026)
-
-Not a `ba-*` inter-skill hook (it's a lifecycle hook, `beforeMCPExecution`), but logged here because `critical-gates.mdc` requires a matching hook-contracts update on any gate table change.
-
-- **What changed:** The Miro 6-pass algorithm / Plan Review Gate requirement  -  previously a reasoning gate enforced only by `miro-enforcement.mdc` (model-invoked, `alwaysApply: false`)  -  is now also enforced by a HARD hook, `gate-miro-preflight.py` (+ `.ps1`/`.sh` twins), registered under `beforeMCPExecution` in `hooks.json`.
-- **Why:** Confirmed 3rd+ recurrence of the identical failure (skip Passes 1-4, skip Plan Review Gate, build directly to `layout_create`)  -  May/Jun 2026, 7 Jul 2026, 8 Jul 2026. Per `retrospective-and-learning`'s own pattern-vs-incident rule, 2+ occurrences is a pattern; a reasoning gate that fails on the identical trigger 3 times needs harder enforcement, not a fourth reminder. See `blueprints/Sample Initiative/retro-mid-initiative-8jul-miro.md` and the corresponding `established` row in `learnings.md`.
-- **Mechanism:** Denies `layout_create` calls unless either (a) a coordinate-manifest `*.plan.md` file under a `miro-plans` folder (or `plans/*miro*.plan.md`) has been written/modified within a freshness window (default 240 min, `$env:CURSOR_MIRO_PREFLIGHT_WINDOW_MIN`) **and** contains `## Board inventory (context_explore)` plus `## Board placement`, or (b) `$env:CURSOR_MIRO_PREFLIGHT_OK=1` is set for the shell session (manual override, set only after [BA name] has approved the plan  -  mirrors `CURSOR_HARNESS_SYNC_OK`). Only gates `layout_create` (new content); `layout_update`, `layout_read`, `context_explore`, `board_list_items` etc. are unaffected.
-- **Jul 2026 hardening:** Added mandatory `context_explore` inventory section after a frame-on-frame overlap incident  -  hook no longer accepts a generic plan file without board inventory and placement sections.
-- **Fail-open:** hook errors (bad JSON, missing env, etc.) always resolve to `allow`  -  a bug in the gate script must never block unrelated work.
-- **Anti-Pattern Detector cross-reference:** the existing soft trigger row ("Pre-flight compliance not demonstrated") in `ba-anti-pattern-detector/SKILL.md` stays in place as a narrative/visibility layer; the hook is now the actual enforcement.
-
-### Correction (conformance audit, Sep 2026): this hook never shipped in this package
-
-The section above describes work that was never carried through: there is no `gate-miro-preflight.py` (or `.ps1`/`.sh` twin) under `hooks/`, and `hooks/hooks.json`'s `beforeMCPExecution` block only registers `jira-dor-gate.py`  -  `gate-miro-preflight` is not referenced anywhere in it. The `$env:CURSOR_MIRO_PREFLIGHT_OK` / `$env:CURSOR_MIRO_PREFLIGHT_WINDOW_MIN` overrides described above are likewise not read by any script in this repo.
-
-`rules/critical-gates.mdc` has been corrected accordingly: the Miro pre-flight row is now marked **SOFT (manual check)**, not HARD, until the script above is actually written and registered. Treat everything above this note as a design record of intended work, not a description of current package behaviour.
+Current Miro pre-flight behaviour is **soft/manual**. No Miro pre-flight hook
+script ships in this package; follow `rules/critical-gates.mdc` and
+`miro-board-analysis/algorithm.md` before `layout_create`.

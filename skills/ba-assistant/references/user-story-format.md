@@ -148,7 +148,7 @@ Format: `Spike: investigate [question or uncertainty]`
 
 Format: `Bug: [system] [unintended behaviour] [trigger condition]`
 
-**Good:** "Bug: Data Collection verification returns 500 when merchant uploads PDF certificate with >5MB file size"
+**Good:** "Bug: Business verification returns 500 when merchant uploads PDF certificate with >5MB file size"
 **Bad:** "Bug: upload broken" (no trigger, no behaviour, no system)
 
 ### Required sections

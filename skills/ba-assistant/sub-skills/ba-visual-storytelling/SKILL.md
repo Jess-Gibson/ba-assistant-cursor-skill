@@ -6,6 +6,8 @@ disable-model-invocation: true
 
 # Skill: Visual Storytelling  -  SUPERSEDED (Wave 10)
 
+> **Hook ids:** this skill names `HK-...` ids. Open that row in `~/.cursor/skills/ba-assistant/hook-contracts.md` if you need the contract. Do not read the whole file.
+
 This skill's content now lives in **`references/visual-output-format.md`**:
 
 - Storytelling framework (Problem → Evidence → Choice → Consequence → Ask) → §13

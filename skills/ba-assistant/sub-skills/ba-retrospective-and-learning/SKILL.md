@@ -1,3 +1,9 @@
+---
+name: ba-retrospective-and-learning
+description: Runs a retrospective on explicit request or /retro, captures what worked and what did not, and records learnings.
+disable-model-invocation: true
+---
+
 # Skill: Retrospective and Learning
 
 ## Description
@@ -104,7 +110,7 @@ The orchestrator offers a pre-mortem when ANY of these conditions are present:
 
 | Signal | Why pre-mortem is warranted |
 |---|---|
-| Regulatory keyword detected at intake (Sample Initiative, [regulator], APRA, ACCC, OAIC, ATO, PSD2, GDPR) | Regulatory work has expensive failure modes |
+| Regulatory keyword detected at intake ([regulator] and the regulators/standards configured for your jurisdiction, e.g. GDPR, PSD2) | Regulatory work has expensive failure modes |
 | Customer-facing scope entering Delivery (M5) for the first time | First production exposure has unknowns no review will catch |
 | Sponsor or PM has expressed hesitation in any meeting debrief in the last 14 days | Sponsor reluctance is the strongest pre-failure signal |
 | A scope is being committed AND `pmApproval.status` is anything other than `approved` | Committing before approval is itself a pre-failure pattern |
@@ -318,7 +324,7 @@ For each phase, capture:
 6. **Update other skills**  -  which skills need their watchlist or behaviour
    updated based on this retro?
 7. **Produce the output**  -  appropriate to the retro type.
-8. **Save the retro to a file**  -  ALWAYS write the retro output to a markdown file in the initiative's blueprints folder. File name: `retro-<type>-<date>.md` (e.g. `retro-mid-initiative-23jun.md`, `retro-phase2-15jul.md`, `retro-closure-01aug.md`). Location: `blueprints/<slug>/` alongside the initiative tracker. These files are valuable as a record of what was learned and when  -  don't just present in chat and lose it.
+8. **Save the retro to a file**  -  ALWAYS write the retro output to a markdown file in the initiative's folder. File name: `retro-<type>-<date>.md` (e.g. `retro-mid-initiative-23jun.md`, `retro-phase2-15jul.md`, `retro-closure-01aug.md`). Location: `~/.cursor/initiatives/<slug>/` (or `paths.initiativesRoot`) alongside the initiative tracker. These files are valuable as a record of what was learned and when  -  don't just present in chat and lose it.
 
 ## Output formats
 

@@ -65,5 +65,5 @@ Multiple completions: `/done BA-013 BA-014`
 
 - **`/workboard`** canvas reads a curated subset from `ba-actions.json` (high + due-soon)
 - BA Assistant sessions surface overdue actions on resume from `ba-actions.json`
-- **`/wrap`** runs `sync-ba-actions` then refreshes the workboard
+- **`/wrap`** runs `sync-ba-actions` for actions changed in this chat only. It does not refresh the workboard (that is `/workboard end-of-day`)
 - Legacy `workboard.json → personal_tasks[]` is deprecated — do not add new PT rows

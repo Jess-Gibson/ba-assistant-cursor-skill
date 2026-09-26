@@ -1,6 +1,6 @@
 # _workstream
 
-Cross-initiative working data for BA Assistant **Version 13**.
+Cross-initiative working data for BA Assistant **Version 14**.
 
 This folder lives in your Cursor **user profile** — `~/.cursor/_workstream/` — not inside a project workspace, because the workboard spans every workspace you work in.
 

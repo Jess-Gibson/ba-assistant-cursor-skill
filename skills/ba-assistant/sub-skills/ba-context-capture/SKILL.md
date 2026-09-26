@@ -1,6 +1,7 @@
 ---
 name: ba-context-capture
 description: Passively detects new facts, decisions, blockers, context, and open questions emerging in normal conversation and writes them to SESSION-CONTEXT.md in real time. Also actively surfaces relevant learnings.md patterns at key inflection points. Fills the gap between meeting debrief (meeting-specific) and end-of-session checkpoint (wrap-up only). Runs continuously alongside the Anti-Pattern Detector.
+disable-model-invocation: true
 ---
 
 # Skill: Context Capture (Mid-Chat)

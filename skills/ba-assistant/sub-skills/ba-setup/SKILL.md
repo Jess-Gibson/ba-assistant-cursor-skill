@@ -150,8 +150,8 @@ another BA's canvas sidecar or embedded records.
 - `change_dl` — Change the Downloads folder (type path in free-text)
 
 If they change a path, confirm it once. Store in config YAML. Prefer writing
-config over lecturing about environment variables. Do not mention `BA_SHARED_REPO_ROOT`
-until `/handover`.
+config over lecturing about environment variables. Do not ask for a shared repo
+path here: `/handover` asks the first time and writes `paths.sharedRepoRoot`.
 
 Capture: `paths.initiativesRoot`, `paths.downloadsPath`.
 
@@ -261,7 +261,9 @@ Never ask for API tokens.
 Default draft depth: **standard** (do not ask unless they ask to change it).
 
 Write `~/.cursor/rules/ba-assistant-config.mdc` from
-`skills/ba-assistant/ba-profile.template.mdc`.
+`~/.cursor/skills/ba-assistant/ba-profile.template.mdc`. Keep the template's
+frontmatter (`alwaysApply: true`) at the top so the config loads in every chat.
+Keep this file short: settings only, no procedures.
 
 **Do not overwrite** always-on `ba-profile.mdc` (persona).
 

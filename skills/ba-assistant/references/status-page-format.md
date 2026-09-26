@@ -33,7 +33,7 @@ Generate content in **markdown** format (`contentFormat: "markdown"`). **Always 
 Every status page follows: `Status as at <DD Mon YYYY>  -  <Initiative name>`
 
 Examples:
-- `Status as at 30 May 2026  -  Data Collection Uplift Merchant Onboarding`
+- `Status as at 30 May 2026  -  Sample onboarding initiative`
 - `Status as at 06 Jun 2026  -  Quick T2P Pilot`
 
 Date is the day the page is published, not the day data was last refreshed. If data is stale at publish time, the freshness note in the header flags it.
@@ -53,7 +53,7 @@ The page ID is recorded in `confluence-pages.json`:
   "type": "status-page",
   "initiative": "sample-data-collection-merchant-onboarding",
   "pageId": "1245891",
-  "title": "Status as at 30 May 2026  -  Data Collection Uplift Merchant Onboarding",
+  "title": "Status as at 30 May 2026  -  Sample onboarding initiative",
   "createdAt": "2026-05-30",
   "parentPageId": "1102453",
   "supersedes": "1238472"
@@ -355,7 +355,7 @@ The Anti-Pattern Detector flags any wider-distribution comms drafted while PM ap
 ## 18. Worked example header
 
 ```
-📊 Status as at 30 May 2026 · Data Collection Uplift Merchant Onboarding
+📊 Status as at 30 May 2026 · Sample onboarding initiative
 
 Sponsor: [name]
 PM: [name] · BA: [BA name] · Tech lead: [name]

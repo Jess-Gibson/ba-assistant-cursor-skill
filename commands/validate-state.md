@@ -1,6 +1,8 @@
 ---
-description: BA Assistant — read-only drift report across state files
+description: BA Assistant — write what this chat captured into the initiative files and ba-actions
 ---
-Run the BA Assistant /validate-state command (skills/ba-assistant/sub-skills/ba-state-validator): read-only divergence report for the current initiative (tracker vs status-data vs SESSION-CONTEXT vs canvas vs Confluence). Offer fix options; do not auto-write initiative artefacts.
+Run the BA Assistant /validate-state command using `~/.cursor/skills/ba-assistant/sub-skills/ba-state-validator/SKILL.md`.
 
-**Always include `/todo` (ba-actions):** after the drift scan, run `sync-ba-actions` per `references/ba-actions-format.md` §3. Upsert BA-owned/coordinated commitments from SESSION-CONTEXT and the tracker into `_workstream/ba-actions.json`, regenerate `_workstream/ba-actions.md`, print `Gate: ba-actions-sync`. Initiative files stay report-only until the user approves propagation.
+`/validate-state` checks this chat against the current initiative. Write what this chat captured into the right files: `SESSION-CONTEXT.md`, the tracker, and `status-data.json` where those files already exist, and upsert only the BA actions that came from this chat into `~/.cursor/_workstream/ba-actions.json`. Do not refresh the workboard. Do not walk every open action. Do not invent files. If something has no obvious home, say so and ask.
+
+After upserting actions, regenerate `~/.cursor/_workstream/ba-actions.md` (`python3 ~/.cursor/_workstream/regenerate-ba-actions-md.py`; on Windows use `py`) and print `Gate: ba-actions-sync: PASS/FAIL`. This is not end of day.

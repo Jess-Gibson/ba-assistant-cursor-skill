@@ -1,4 +1,4 @@
-# Upgrade BA Assistant to Version 10 (Windows)
+# Upgrade BA Assistant to the current package version (Windows)
 # Dry-run:
 #   .\tools\upgrade-ba-assistant.ps1 -PackageRoot "C:\path\to\ba-assistant-cursor-skill"
 # Apply:

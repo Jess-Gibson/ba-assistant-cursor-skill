@@ -1,10 +1,10 @@
 # BA Assistant for Cursor
 
-**Version 13** - see [CHANGELOG.md](CHANGELOG.md).
+**Version 14** - see [CHANGELOG.md](CHANGELOG.md).
 
 A comprehensive Business Analysis assistant built as a Cursor skill. Designed to support BAs through the full initiative lifecycle — from intake and discovery through delivery, playback, and retrospective.
 
-> Originally designed and built by Jess Gibson, Senior BA (2025–2026).
+> Built by Jess Gibson.
 > Built iteratively across real BA initiatives using agent-assisted development.
 
 ---
@@ -47,7 +47,7 @@ The BA Assistant is an AI-powered BA thinking partner that runs inside [Cursor](
 
 **Workboard** is an **inline Run procedure** (`references/workboard-procedure.md`), not a sub-skill folder.
 
-The table above uses old "Phase" names for a quick skills index. For the canonical M0–M8 workstream model (purpose, scope, states, gates), see `skills/ba-assistant/references/workstreams.md`.
+The table above uses friendly phase names as a quick skills index. Day-to-day routing uses `skills/ba-assistant/references/activity-map.md`; the slim `skills/ba-assistant/SKILL.md` is the orchestrator. `skills/ba-assistant/references/workstreams.md` is an optional M0–M8 glossary for legacy terminology and cross-reference.
 
 ### Optional companion skills
 
@@ -62,8 +62,8 @@ The table above uses old "Phase" names for a quick skills index. For the canonic
 | `/status` | Full current state with canvas and HTML snapshot |
 | `/canvas` | Generate/refresh the interactive project dashboard |
 | `/report` | Full structured deep-dive report |
-| `/validate-state` | Mid-session drift check (read-only) |
-| `/wrap` | End-of-session closeout — promote, sync BA actions, refresh workboard |
+| `/validate-state` | Write this chat's captures into the initiative files and `ba-actions` |
+| `/wrap` | Chat-scoped checkpoint — capture, promote, sync BA actions changed in this chat (workboard refresh is `/workboard end-of-day`) |
 | `/workboard` | Cross-initiative dashboard |
 | `/todo` | Quick-capture into `ba-actions.json` |
 | `/fast-track` | Condensed BA flow for time-critical initiatives |
@@ -158,7 +158,7 @@ commands/                     # Slash command stubs
 tools/upgrade-ba-assistant.*  # Safe full upgrade
 tools/upgrade-workboard.*     # Workboard capability overlay only
 dist/ba-workboard-overlay.zip # Friend handoff package
-VERSION                       # 13
+VERSION                       # 14
 CHANGELOG.md
 SETUP.md
 ```

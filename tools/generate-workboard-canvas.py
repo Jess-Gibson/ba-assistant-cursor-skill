@@ -85,24 +85,6 @@ def load_workboard_config(cursor_home: Path) -> dict:
     )
     downloads = parse_rule_value(rules_text, "BA_DOWNLOADS_PATH") or posix(Path.home() / "Downloads")
 
-    use_jess = (workstream / "jess-actions.json").exists()
-    if use_jess:
-        actions_file = "jess-actions"
-        actions_format = "jess-actions-format.md"
-        sync_command = "sync-jess-actions"
-        sync_gate = "jess-actions-sync"
-        action_id_pattern = "JA-NNN"
-        regenerate_script = "regenerate-jess-actions-md.py"
-        summary_field = "jess_actions_summary"
-    else:
-        actions_file = "ba-actions"
-        actions_format = "ba-actions-format.md"
-        sync_command = "sync-ba-actions"
-        sync_gate = "ba-actions-sync"
-        action_id_pattern = "BA-NNN"
-        regenerate_script = "regenerate-ba-actions-md.py"
-        summary_field = "ba_actions_summary"
-
     return {
         "cursor_home": posix(home),
         "ba_name": ba_name,
@@ -115,13 +97,13 @@ def load_workboard_config(cursor_home: Path) -> dict:
             else f'ls -lt "{downloads}"'
         ),
         "python_cmd": "py" if sys.platform == "win32" else "python3",
-        "actions_file": actions_file,
-        "actions_format_file": actions_format,
-        "sync_command": sync_command,
-        "sync_gate": sync_gate,
-        "action_id_pattern": action_id_pattern,
-        "regenerate_script": regenerate_script,
-        "actions_summary_field": summary_field,
+        "actions_file": "ba-actions",
+        "actions_format_file": "ba-actions-format.md",
+        "sync_command": "sync-ba-actions",
+        "sync_gate": "ba-actions-sync",
+        "action_id_pattern": "BA-NNN",
+        "regenerate_script": "regenerate-ba-actions-md.py",
+        "actions_summary_field": "ba_actions_summary",
         "stakeholder_name": stakeholder_name,
         "canvas_path": resolve_canvas_path(home),
         "workboard_command": posix(home / "commands" / "workboard.md"),
@@ -498,9 +480,7 @@ def build_data(workboard: dict, actions_data: dict, calendar: dict, today: str, 
         }
     at_risk = sum(1 for item in initiatives if item.get("status") in {"at-risk", "critical"})
     high = sum(1 for item in actions if item.get("priority") == "high")
-    summary = workboard.get(config["actions_summary_field"]) or workboard.get("ba_actions_summary") or workboard.get(
-        "jess_actions_summary"
-    ) or {}
+    summary = workboard.get(config["actions_summary_field"]) or workboard.get("ba_actions_summary") or {}
     stakeholder = normalize_stakeholder_raise(workboard, config)
     return {
         "today": today,
@@ -549,14 +529,7 @@ def resolve_template_path(cursor_home: Path) -> Path:
 
 
 def resolve_actions_path(workstream: Path, config: dict) -> Path:
-    preferred = workstream / f"{config['actions_file']}.json"
-    if preferred.exists():
-        return preferred
-    for name in ("jess-actions", "ba-actions"):
-        candidate = workstream / f"{name}.json"
-        if candidate.exists():
-            return candidate
-    return preferred
+    return workstream / f"{config['actions_file']}.json"
 
 
 def run_eod_calendar_roll(workstream: Path, closeout_date: str | None = None) -> str:

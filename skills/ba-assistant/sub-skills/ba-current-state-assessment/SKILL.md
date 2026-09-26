@@ -1,4 +1,12 @@
+---
+name: ba-current-state-assessment
+description: Builds an evidence-based picture of how process, systems, data and people work today, before requirements are written.
+disable-model-invocation: true
+---
+
 # Skill: Current State Assessment
+
+> **Hook ids:** this skill names `HK-...` ids. Open that row in `~/.cursor/skills/ba-assistant/hook-contracts.md` if you need the contract. Do not read the whole file.
 
 ## Description
 
@@ -84,7 +92,7 @@ Run these in order. Phase 2 of an initiative begins with these tasks before requ
 
 10. **Update the living tracker**  -  Pain points → potential requirements (flag for Discovery). Tribal knowledge gaps → risks. Compliance assumptions → open questions. Disagreements between sources → open questions or assumptions.
 
-11. **Auto-refresh the canvas**  -  Update the canvas with current state diagrams and pain heatmap (canvas auto-refreshes after major outputs per `ba-project-canvas` rules).
+11. **Prepare canvas-ready updates**  -  Keep current-state diagrams and the pain heatmap ready for the next explicit `/canvas`, `/status`, or direct canvas request. Do not refresh the canvas automatically.
 
 ## Tribal knowledge extraction methods
 

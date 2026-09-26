@@ -29,7 +29,7 @@ User-facing UI uses the friendly name only (Intake, Kickoff, etc). The `M0`–`M
 
 | Workstream (friendly name) | Code | Old phase name | Scope level | Primary skills | Purpose |
 |---|---|---|---|---|---|
-| **Intake** | M0 | Phase 0 | Initiative only (one-time, at start) | Intake Reviewer, New Initiative, Sponsor Engagement | PM brief, complexity signal, workspace setup, multi-source research, initial RAID, canvas init |
+| **Intake** | M0 | Phase 0 | Initiative only (one-time, at start) | Intake Reviewer, New Initiative, Sponsor Engagement | PM brief, complexity signal, workspace setup, multi-source research, initial RAID |
 | **Kickoff** | M1 | Phase 1 | Per-scope  -  typically one initiative kickoff, then feature kickoffs as needed. Not used at cohort/slice granularity | Workshop Design (Template 1) | Workshop facilitation, D1 kickoff agenda, stakeholder/sponsor alignment |
 | **Discovery** | M2 | Phase 2 | Per-feature / per-cohort / per-slice | Current State Assessment, Discovery and Requirements, Requirements Interrogator | Evidence-based current state, requirements extraction with MoSCoW per scope, experiments and validation |
 | ↳ **Current State Assessment** (sub-workstream) | M2a | Phase 2 (early) | Per-feature / per-cohort | Current State Assessment | Deep evidence-based "as-is" pass inside Discovery  -  diagrams, code dives, source vetting, tribal-knowledge capture. Runs before requirements extraction, not a separate top-level workstream |

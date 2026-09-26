@@ -65,14 +65,14 @@ After algorithm Pass 4, write the coordinate manifest to:
 ```
 _workstream/miro-plans/[board-name].plan.md
 ```
-Present to the user with frame dimensions, section list, full coordinate manifest, and these **hook-required plan sections**:
+Present to the user with frame dimensions, section list, full coordinate manifest, and these **required plan sections** (manual pre-flight check):
 
 1. **`## Board inventory (context_explore)`**  -  output of `context_explore` pasted as a frame table (Pass 2b-0)
 2. **`## Board placement`**  -  neighbour collision math, proposed x/y, gap verification (Pass 2b)
 
 **Wait for approval before Pass 5.**
 
-The pre-flight hook **denies** `layout_create` if either section is missing. Chat memory does not count; the plan file does.
+Before `layout_create`, manually confirm both sections are present. Chat memory does not count; the plan file does. No Miro pre-flight hook ships in this package.
 
 ---
 
@@ -116,7 +116,7 @@ Run through before any `layout_create`, `table_create`, or content creation call
 
 ### 2. Discover existing board (`context_explore` FIRST, then `layout_read`)
 
-- [ ] Call **`context_explore`** on the board URL  -  paste frame list into plan (`## Board inventory (context_explore)`). **Hook blocks build without this.**
+- [ ] Call **`context_explore`** on the board URL  -  paste frame list into plan (`## Board inventory (context_explore)`). Manually confirm this section exists before `layout_create`; no pre-flight hook ships in this package.
 - [ ] Run `layout_read mode=structured` on at least 2 frames **from that inventory** (style reference + nearest neighbour)
 - [ ] Note: header shape types, fill colours, font sizes, grey box patterns
 - [ ] Note: x/y positioning patterns, spacing between sections
@@ -178,7 +178,7 @@ Three Miro MCP servers may be available. Check what's listed before calling:
 2. If "Unauthorized" or server not listed: ask user to re-auth the Miro plugin in Cursor.
 3. After re-auth, the server may re-appear or may only work via `user-miro-desktop`.
 4. If only `user-miro-desktop` is available: use it. One call per item is slower but functional. Key differences:
-   - Uses `boardId` param (e.g. `"uXjVHDIdgWg="`) not `miro_url`
+   - Uses `boardId` param (e.g. `"<boardId>"`) not `miro_url`
    - Uses `parentId` (frame ID string) not `parent=` DSL alias
    - `create_shape` supports `shape`, `content`, `fillColor`, `borderColor`, `x`, `y`, `width`, `height`, `parentId`
    - `create_text` supports `content` (HTML), `x`, `y`, `width`, `fontSize`, `parentId`

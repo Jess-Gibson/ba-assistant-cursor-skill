@@ -4,6 +4,9 @@ This repository is a **Cursor skill package** for Business Analysts. When a user
 opens this workspace, or pastes the install prompt, your job is to **install the
 files**, then run the personalisation wizard. Do not only chat about setup.
 
+After installation, behaviour comes from `skills/ba-assistant/SKILL.md` (the
+Version 14 router), not from this install guide.
+
 ## Paste-this prompt (share with new BAs)
 
 ```text

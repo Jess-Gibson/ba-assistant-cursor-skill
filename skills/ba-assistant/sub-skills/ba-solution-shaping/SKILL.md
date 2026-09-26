@@ -1,4 +1,12 @@
+---
+name: ba-solution-shaping
+description: Explores solution options, ADRs and spikes, moving from the problem and requirements to a recommended path.
+disable-model-invocation: true
+---
+
 # Skill: Solution Shaping
+
+> **Hook ids:** this skill names `HK-...` ids. Open that row in `~/.cursor/skills/ba-assistant/hook-contracts.md` if you need the contract. Do not read the whole file.
 
 ## Description
 

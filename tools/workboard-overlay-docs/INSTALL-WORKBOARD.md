@@ -5,7 +5,7 @@ Upgrades **workboard capability only**. Personal data and the live canvas stay p
 | Untouched | Upgraded | Preview only |
 |-----------|----------|--------------|
 | `workboard.json` | Canvas **template** (not your live canvas) | `ba-workboard-overlay-preview.canvas.tsx` |
-| `ba-actions.json` / `jess-actions.json` | `generate-workboard-canvas.py` | |
+| `ba-actions.json` | `generate-workboard-canvas.py` | |
 | `calendar-feed.json` | `workboard-procedure.md`, `workboard-format.md` | |
 | `ba-profile.mdc`, `ba-assistant-config.mdc` | | |
 | Existing `commands/workboard.md` (kept; a `.package` copy is written for comparison) | | |

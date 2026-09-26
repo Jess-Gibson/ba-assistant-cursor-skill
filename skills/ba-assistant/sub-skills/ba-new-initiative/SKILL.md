@@ -8,6 +8,7 @@ description: >
   for X", or when the resume flow finds no existing initiative folder matching what
   the user describes. Replaces the old welcome-panel and project-initialisation flow
   that used to live inline in ba-assistant/SKILL.md.
+disable-model-invocation: true
 ---
 
 # Skill: New Initiative Setup
@@ -66,7 +67,8 @@ If neither applies, skip this skill. Resuming an existing initiative never runs 
    - Status line: `Active` (only ever flipped by a closeout pass, to
      `Closed — see outcome summary below`)
    This is an index, not a competing source of truth: decisions and RAID stay owned
-   by `initiative-tracker.md`. Refresh it at phase gates alongside the canvas.
+   by `initiative-tracker.md`. Refresh the README at phase gates. Generate or
+   refresh a canvas only after `/canvas`, `/status`, or a direct user request.
 5. **Capture workspace context once**, batched into one or two `AskQuestion` panels,
    not a sequential interview:
    - Jira project key (e.g., PROJ, SW)
@@ -94,8 +96,8 @@ If neither applies, skip this skill. Resuming an existing initiative never runs 
    which sources to read in full.
 
    **Regulator gate (mandatory):** if the work touches a regulator or regulatory
-   framework ([regulator], APRA, ACCC, ASIC, OAIC, ATO, AusPayNet, AML/CTF, Privacy
-   Act / APP, CDR, PCI DSS, GDPR, PSD2/PSD3, CCPA, or cues like "regulatory mandate",
+   framework ([regulator], the regulators/standards configured for your jurisdiction
+   per CUSTOMIZATION.md §6, common standards such as PCI DSS, GDPR, PSD2/PSD3, CCPA, or cues like "regulatory mandate",
    "interchange reform", "compliance deadline"), web search is mandatory regardless
    of complexity. Read the regulator's own publication directly, internal Confluence
    summaries are secondary evidence. If WebSearch isn't available, do not proceed

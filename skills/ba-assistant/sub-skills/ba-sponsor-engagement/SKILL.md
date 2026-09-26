@@ -1,6 +1,7 @@
 ---
 name: ba-sponsor-engagement
 description: Sustained sponsor cadence, pre-decision briefings, political cover, exec narrative, escalation. Standish CHAOS #1 success factor  -  distinct from broad stakeholder strategy.
+disable-model-invocation: true
 ---
 
 # Skill: Sponsor Engagement

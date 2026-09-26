@@ -1,3 +1,9 @@
+---
+name: ba-story-writing
+description: Writes epics, stories, spikes and bugs, and runs the Definition of Ready check before Jira creation.
+disable-model-invocation: true
+---
+
 # Skill: Story Writing
 
 ## Standards used
@@ -121,7 +127,7 @@ This section absorbs the former `ba-definition-of-ready` skill. DoR is the gate 
 
 The Definition of Ready ensures that each epic or story in the backlog meets a clear set of criteria before development begins. It verifies that requirements are understood, dependencies are known, acceptance criteria are defined, risks are logged, MoSCoW rating is captured (warn-and-flag), and necessary sign-offs are obtained. DoR acts as a gatekeeper to reduce churn during development and to give engineering teams confidence that work is actionable.
 
-**Where results land (E-promote):** DoR check results are **written to the tracker's DoR checks register** (`references/raid-format.md § Tracker-owned structured registers`); `status-data.json → dorChecks` is updated only via canvas refresh (derived mirror), never written directly.
+**Where results land:** in the same step, write the result to the tracker's DoR checks register (`references/raid-format.md § Tracker-owned structured registers`) **and** upsert the matching row in `status-data.json → dorChecks`: `storyTitle` (exactly as it will be sent to Jira as the summary), `storyKey` if one already exists, `firstAttempt` (first run only), and `result` (`pass` | `partial` | `fail`, the latest outcome). Do not wait for a canvas refresh. The `jira-dor-gate` hook reads `dorChecks` when the Story is created.
 
 ### DoR tasks
 
@@ -131,7 +137,7 @@ The Definition of Ready ensures that each epic or story in the backlog meets a c
 
 3. **Track readiness status**  -  Maintain a readiness status (Ready / Not Ready / Partial) for each story and summarise the reasons for items that are not ready. Communicate this to the orchestrator and delivery planning skills.
 
-3b. **Stamp the Jira description (C1  -  the deterministic gate reads this).** A story that passes DoR includes the line `DoR: PASS (<date>)` in its Jira description; a PM override includes `DoR: PASS (override, see decision D-NNN)`. The `jira-dor-gate` hook denies Story creation in Jira when neither marker is present in the payload (its file-lookup fallback also checks the tracker's DoR checks register / status-data pre-E). Spikes, bugs, and enablers are not gated.
+3b. **Record the pass where the gate can see it.** The `jira-dor-gate` hook denies Story creation in Jira unless `status-data.json → dorChecks` has a row for this story (matched by key, or by title when there is no key yet) with `result: pass`. It ignores any `DoR: PASS` text in the Jira description. A PM override is recorded as a decision (D-NNN) and a `result: pass` row that references it. Spikes, bugs, and enablers are not gated.
 
 4. **Enforce stop-the-line**  -  If a critical DoR criterion is missing (e.g., legal sign-off), warn that proceeding may cause rework or delay. Let the user decide to proceed at risk, and log that decision in the tracker.
 
@@ -149,7 +155,7 @@ The Definition of Ready ensures that each epic or story in the backlog meets a c
     | MoSCoW = Could AND blocks a Must on critical path | **Partial  -  priority conflict** | Flag as "low-priority work blocking high-priority". Surface in `/next` for re-sequencing. |
 
     **Why warn-and-flag, not hard block:**
-    - The user's Data Collection Uplift Project 002 reality has rolling cohorts where MoSCoW may not be fully captured for emerging scopes when delivery starts (e.g. Cohort 2 is mid-discovery while Cohort 1 is delivering shared infrastructure).
+    - Many initiatives have rolling cohorts (for example, a sample onboarding initiative) where MoSCoW may not be fully captured for emerging scopes when delivery starts (e.g. Cohort 2 is mid-discovery while Cohort 1 is delivering shared infrastructure).
     - Hard blocking would force MoSCoW capture too early and create friction.
     - Warn-and-flag gives the PM visibility and an explicit override path, with a decision log that becomes the audit trail at playback.
 

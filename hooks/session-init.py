@@ -20,16 +20,17 @@ picking one arbitrarily:
     context lines): only session-init.ps1 had these blocks. Ported from the
     .ps1; the Windows-only Outlook-COM get-calendar.ps1 call is replaced below
     with an OS-appropriate best-effort call (get-calendar.ps1 on Windows,
-    get-calendar.mac.sh on Mac/Linux — both optional sample scripts under
+    get-calendar.mac.sh on macOS; other systems skip calendar refresh — both optional sample scripts under
     references/sample-scripts/, silently skipped if not installed under
     ~/.cursor/hooks/, exactly like the .ps1 skipped it when the script was
     missing).
   - "OTHER NEW DOWNLOADS" (non-transcript) block and .vtt extension support:
     only session-init.ps1 had these. Ported from the .ps1.
-  - Search roots: session-init.sh searched MORE roots than session-init.ps1
-    (it also checked ~/ba-initiatives, ~/Initiatives, ~/projects, in addition
-    to ~/.cursor/Initiatives and ~/.cursor/blueprints). Kept the broader .sh
-    list — nothing suggested the narrower .ps1 list was a deliberate trim.
+  - Search roots: BA_INITIATIVES_ROOT if set, else paths.initiativesRoot from
+    ~/.cursor/rules/ba-assistant-config.mdc (what setup writes), then always
+    ~/.cursor/initiatives (the installer default). The older roots
+    (~/.cursor/Initiatives, ~/.cursor/blueprints, ~/ba-initiatives,
+    ~/Initiatives, ~/projects) stay as legacy fallbacks only.
   - CURSOR_NEW_TRANSCRIPTS join character: .ps1 joined paths with ';', .sh
     joined with a raw newline (fragile in an env var). Kept ';' (.ps1's).
 Kept from both: AGENTS.md/README.md guidance line, SESSION-CONTEXT tail
@@ -40,6 +41,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -88,14 +90,26 @@ def write_last_session_time(timestamp_file: Path) -> None:
         pass
 
 
+def config_initiatives_root() -> str:
+    """paths.initiativesRoot from ba-assistant-config.mdc (setup writes it there;
+    it does not set an environment variable)."""
+    cfg = Path.home() / ".cursor" / "rules" / "ba-assistant-config.mdc"
+    try:
+        text = cfg.read_text(encoding="utf-8", errors="ignore")
+    except OSError:
+        return ""
+    m = re.search(r'^\s*initiativesRoot\s*:\s*["\']?([^"\'#\n]+)', text, re.M)
+    return os.path.expanduser(m.group(1).strip()) if m else ""
+
+
 def search_roots() -> list[str]:
     roots = []
-    initiatives_root = os.environ.get("BA_INITIATIVES_ROOT")
+    initiatives_root = os.environ.get("BA_INITIATIVES_ROOT") or config_initiatives_root()
     if initiatives_root:
         roots.append(initiatives_root)
     home = str(Path.home())
-    # Broader list from session-init.sh (nothing suggested the .ps1's
-    # narrower 2-root list was a deliberate trim — see module docstring).
+    roots.append(str(Path(home) / ".cursor" / "initiatives"))
+    # Legacy fallbacks so an older setup (e.g. a blueprints folder) still works.
     roots += [
         str(Path(home) / ".cursor" / "Initiatives"),
         str(Path(home) / ".cursor" / "blueprints"),
@@ -143,6 +157,38 @@ def tail_text(path: Path, n: int = TAIL_LINES) -> str:
     return "\n".join(lines[-n:] if len(lines) > n else lines)
 
 
+def windows_dir_files(folder: Path) -> list[Path]:
+    """Discover files through cmd when pathlib cannot enumerate Downloads.
+
+    `/b` keeps the output to filenames only, avoiding locale-dependent date,
+    time, and size columns. Recency still comes from Path.stat() below.
+    """
+    try:
+        proc = subprocess.run(
+            ["cmd", "/c", "dir", "/a-d", "/o-d", "/b", str(folder)],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return []
+    if proc.returncode != 0:
+        return []
+    files = []
+    for name in proc.stdout.splitlines():
+        name = name.strip()
+        if not name:
+            continue
+        candidate = folder / name
+        try:
+            if candidate.is_file():
+                files.append(candidate)
+        except OSError:
+            continue
+    return files
+
+
 def scan_downloads(folders: list[str], since_mtime: float) -> tuple[list[dict], list[dict]]:
     new_transcripts: list[dict] = []
     other_new: list[dict] = []
@@ -155,13 +201,13 @@ def scan_downloads(folders: list[str], since_mtime: float) -> tuple[list[dict], 
         if not folder_path.is_dir():
             continue
         try:
-            entries = list(folder_path.iterdir())
+            entries = [entry for entry in folder_path.iterdir() if entry.is_file()]
         except OSError:
-            continue
+            entries = []
+        if sys.platform == "win32" and not entries:
+            entries = windows_dir_files(folder_path)
         for f in entries:
             try:
-                if not f.is_file():
-                    continue
                 st = f.stat()
             except OSError:
                 continue
@@ -206,14 +252,14 @@ def run_calendar_refresh() -> None:
     """
     hooks_dir = Path.home() / ".cursor" / "hooks"
     try:
-        if sys.platform.startswith("win"):
+        if sys.platform == "win32":
             script = hooks_dir / "get-calendar.ps1"
             if script.exists():
                 subprocess.run(
                     ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(script), "-DaysAhead", "2"],
                     capture_output=True, timeout=15, check=False,
                 )
-        else:
+        elif sys.platform == "darwin":
             script = hooks_dir / "get-calendar.mac.sh"
             if script.exists():
                 subprocess.run(["bash", str(script), "2"], capture_output=True, timeout=15, check=False)
@@ -272,8 +318,8 @@ def main() -> int:
     latest, latest_mtime = find_latest_session_context(roots)
 
     context_block = (
-        "No SESSION-CONTEXT.md found under configured initiative roots. "
-        "Set BA_INITIATIVES_ROOT (ba-setup wizard) if initiatives live elsewhere."
+        "No SESSION-CONTEXT.md found under the initiatives folder "
+        "(paths.initiativesRoot in ba-assistant-config.mdc, default ~/.cursor/initiatives)."
     )
     if latest is not None:
         modified = datetime.fromtimestamp(latest_mtime).strftime("%Y-%m-%d %H:%M")

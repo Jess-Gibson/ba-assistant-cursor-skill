@@ -62,8 +62,8 @@ A low business priority item may still need early action due to long lead times.
 | `/publish-status` | Status page to Confluence per `references/status-page-format.md` — check `confluence-pages.json` first; update existing page, only create if none. |
 | `/canvas` | Generate/refresh the project canvas (invokes `ba-project-canvas`). |
 | `/handover` | Publish confirmed analysis to the delivery repo (invokes `ba-dev-handover`; gated). |
-| `/validate-state` | Read-only drift report across state files. |
-| `/wrap` | End-of-session closeout — validate, promote, refresh workboard, suggest new chat. |
+| `/validate-state` | Write what this chat captured into the initiative files (`SESSION-CONTEXT.md`, tracker, `status-data.json` where they exist) and upsert this chat's BA actions into `ba-actions.json`. No workboard refresh, no walk of every action. |
+| `/wrap` | Chat checkpoint only. Capture this chat into session context and the tracker. No workboard refresh. |
 | `/workboard` | Cross-initiative priorities view: all initiatives, top tasks, today's meetings, sync status (inline procedure). |
 | `/todo` | Quick-capture a personal task into the workboard (via `todo-quick-capture`). |
 | `/metrics` | The 4 BA quality metrics (via `ba-project-canvas`). |

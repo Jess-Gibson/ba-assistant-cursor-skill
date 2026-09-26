@@ -55,7 +55,7 @@ The BA Assistant makes complex analysis work faster, clearer, and less stressful
 
 ## How it works
 
-At the centre is the **BA Initiative Orchestrator**, which coordinates **21 active specialist skills**. The orchestrator asks focused questions, accepts partial answers, and organises responses into structured outputs. It never stops you from moving forward  -  it records missing inputs and suggests how to obtain them.
+At the centre is the **BA Initiative Orchestrator**, which coordinates a set of specialist skills (listed under **Skills** below). The orchestrator asks focused questions, accepts partial answers, and organises responses into structured outputs. It never stops you from moving forward  -  it records missing inputs and suggests how to obtain them.
 
 ### The living tracker
 

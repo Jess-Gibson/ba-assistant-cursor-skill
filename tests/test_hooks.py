@@ -98,6 +98,19 @@ def main():
         check("P1 exactly one initiative -> that one",
               out["env"]["CURSOR_SESSION_CONTEXT_PATH"].endswith(os.path.join("only-one", "SESSION-CONTEXT.md")))
 
+        # Same folder reachable twice (macOS: initiatives/ and Initiatives/ on a
+        # case-insensitive disk). A symlink reproduces that on any OS.
+        dup = make_home(tmp, initiatives=("only-one",))
+        try:
+            (dup / ".cursor" / "Initiatives").symlink_to(dup / ".cursor" / "initiatives", target_is_directory=True)
+            linked = True
+        except (OSError, NotImplementedError):
+            linked = False
+        if linked:
+            out = session_init(dup)
+            check("P1 one initiative seen via two roots is still one initiative",
+                  out["env"]["CURSOR_SESSION_CONTEXT_PATH"] != "", out["additional_context"][:200])
+
         # A sibling folder whose name starts with the initiative's name must not match.
         prefix_home = make_home(tmp, initiatives=("pay", "payroll"))
         ws = prefix_home / ".cursor" / "initiatives" / "payroll"
@@ -158,6 +171,21 @@ def main():
         outside = run_hook("shared-repo-guard.py", home, stdin=json.dumps({"file_path": str(tmp / "repo-old" / "note.md")}))
         check("C guard warns on a leak inside the shared repo", bool(inside.get("agent_message")))
         check("C guard ignores 'repo-old' when the shared repo is 'repo'", not outside.get("agent_message"))
+
+        # Shell mode: only a git commit/push that runs IN the shared repo is checked.
+        (tmp / "repo" / "analysis").mkdir(exist_ok=True)
+        (tmp / "repo" / "analysis" / "leak.md").write_text("[ctx](../SESSION-CONTEXT.md)\n", encoding="utf-8")
+        elsewhere = tmp / "elsewhere"
+        elsewhere.mkdir(exist_ok=True)
+        repo = tmp / "repo"
+        def shell(cmd, cwd):
+            return run_hook("shared-repo-guard.py", home, stdin=json.dumps({"command": cmd, "cwd": str(cwd)}))["permission"]
+        check("C shell: commit inside the shared repo with a leak -> deny", shell('git commit -m "x"', repo) == "deny")
+        check("C shell: git -C <shared repo> commit from elsewhere -> deny", shell(f'git -C "{repo}" commit -m x', elsewhere) == "deny")
+        check("C shell: cd <shared repo> && git commit -> deny", shell(f'cd "{repo}" && git commit -m x', elsewhere) == "deny")
+        check("C shell: unrelated repo whose message mentions the shared path -> allow",
+              shell(f'git commit -m "copied from {repo}"', elsewhere) == "allow")
+        check("C shell: commit in sibling repo-old -> allow", shell("git commit -m x", tmp / "repo-old") == "allow")
 
         # --- Config values reach the tools (name with a trailing comment, setup key names) ---
         cfg_home = Path(tempfile.mkdtemp(dir=tmp))

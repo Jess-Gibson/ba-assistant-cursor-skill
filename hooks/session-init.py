@@ -169,8 +169,12 @@ def find_initiatives(roots: list[str]) -> list[tuple[Path, float]]:
             continue
         for f in candidates:
             try:
-                mtime = f.stat().st_mtime
-                key = str(f.resolve())
+                st = f.stat()
+                mtime = st.st_mtime
+                # Same file reached via two roots (e.g. initiatives/ and Initiatives/ on a
+                # case-insensitive disk): device + inode says it is one file. Path strings
+                # keep the casing they were reached by, so they cannot be the key.
+                key = f"{st.st_dev}:{st.st_ino}" if st.st_ino else os.path.normcase(str(f.resolve()))
             except OSError:
                 continue
             found[key] = (f, mtime)

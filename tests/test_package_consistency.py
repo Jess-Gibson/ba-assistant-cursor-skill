@@ -75,6 +75,9 @@ def main():
                if c.stem != "install-ba-assistant" and f"`/{c.stem}" not in guide]
     check("A user guide lists every slash command", not missing, ", ".join(missing))
 
+    counts = re.findall(r"\b\d+ (?:active )?(?:specialist )?skills\b", guide)
+    check("A user guide makes no hardcoded skill-count claim", not counts, ", ".join(counts))
+
     step2 = (skill / "SKILL.md").read_text(encoding="utf-8")
     reanchor = (REPO / "commands" / "reanchor.md").read_text(encoding="utf-8")
     check("H resume read order lives in SKILL.md Step 2 only",

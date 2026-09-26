@@ -105,7 +105,15 @@ cmd = str(payload.get("command", payload.get("cmd", "")))
 cwd = str(payload.get("cwd", ""))
 if not re.search(r'\bgit\b.*\b(commit|push)\b', cmd):
     out("allow")
-in_shared = bool(root) and (is_within(cwd or ".", root) or root in cmd)
+# Folders the git command runs in: the hook's cwd, any `cd <dir>`, and any `git -C <dir>`.
+# Compared as folders, so a command that merely mentions the repo path elsewhere
+# (or a sibling like repo-old) does not count.
+base = cwd or os.getcwd()
+dirs = [base]
+for m in re.finditer(r'(?:(?<![\w-])cd|\s-C)\s+("[^"]+"|\'[^\']+\'|[^\s;&|]+)', cmd):
+    d = os.path.expanduser(m.group(1).strip("\"'"))
+    dirs.append(d if os.path.isabs(d) else os.path.join(base, d))
+in_shared = bool(root) and any(is_within(d, root) for d in dirs)
 if not in_shared:
     out("allow")
 

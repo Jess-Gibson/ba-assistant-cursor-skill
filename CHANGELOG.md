@@ -12,6 +12,7 @@
 - **Downloads (P6):** session start scans `paths.downloadsPath` from `/setup` (env var overrides) plus `~/Downloads`.
 - **Your settings are used:** `execution-router.mdc` maps every placeholder (`[BA name]`, `PROJ`, Jira/Confluence site, paths, domain) to the `/setup` values. New-initiative and intake pre-fill Jira/Confluence from config; research starts from `domainDocs`. Setup now asks for domain docs. Fixed the workboard canvas and calendar EOD scripts reading the wrong config keys and keeping the trailing comment in `name`.
 - **Housekeeping:** user guide skill and command inventory matches the package; dangling names removed (`slash-commands-ux.md`, `agent-memory`, `mcps/`, `/summary`, old status publisher); shared-repo guard compares folders, not string prefixes; resume read order lives only in `SKILL.md` Step 2.
+- **Recheck fixes:** one initiative reached through two roots (`initiatives/` and `Initiatives/` on a case-insensitive Mac disk) now counts once, so the single-initiative case no longer asks. Shared-repo guard shell mode checks the folder the git command runs in (cwd, `cd`, `git -C`), not whether the command text mentions the repo path. User guide no longer claims a skill count.
 - **Tests:** `python3 tests/run_all.py` runs the DoR gate, hook, and package consistency suites. Repo only: never installed, never run while you use the assistant.
 
 ### Orchestrator slim (cost, same working relationship)

@@ -11,6 +11,7 @@ Default is dry-run. Always backs up before --apply.
 from __future__ import annotations
 
 import argparse
+import json
 import shutil
 import sys
 from datetime import datetime
@@ -43,9 +44,7 @@ PROTECTED_NAMES = {
 PROTECTED_WORKSTREAM = {
     "workboard.json",
     "ba-actions.json",
-    "jess-actions.json",
     "ba-actions.md",
-    "jess-actions.md",
     "calendar-feed.json",
 }
 
@@ -81,6 +80,56 @@ def copy_overlay(src: Path, dest: Path, dry_run: bool) -> str:
     return action
 
 
+def _json_actions_empty(path: Path) -> bool:
+    if not path.exists() or path.stat().st_size == 0:
+        return True
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    if not isinstance(payload, dict):
+        return False
+    return not (payload.get("actions") or payload.get("watching"))
+
+
+def _markdown_empty(path: Path) -> bool:
+    if not path.exists():
+        return True
+    try:
+        return not path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return False
+
+
+def migrate_legacy_actions(
+    workstream: Path, backup_root: Path, home: Path, dry_run: bool
+) -> list[str]:
+    """Copy legacy action data once when the generic stores are absent/empty.
+
+    Legacy filename literals are intentionally isolated in this migration.
+    Normal runtime reads only ba-actions files.
+    """
+    actions: list[str] = []
+    pairs = (
+        (workstream / "jess-actions.json", workstream / "ba-actions.json", _json_actions_empty),
+        (workstream / "jess-actions.md", workstream / "ba-actions.md", _markdown_empty),
+    )
+    for legacy, current, current_is_empty in pairs:
+        if not legacy.exists():
+            continue
+        if not current_is_empty(current):
+            actions.append(f"MIGRATE skip: {current.name} already contains data")
+            continue
+        actions.append(f"MIGRATE {legacy.name} -> {current.name} (preserve legacy source)")
+        if dry_run:
+            continue
+        backup_file(legacy, backup_root, home)
+        backup_file(current, backup_root, home)
+        current.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(legacy, current)
+    return actions
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Workboard overlay upgrade (capability files only)")
     ap.add_argument("--package", required=True, help="Path to ba-assistant-cursor-skill checkout or extracted zip")
@@ -108,6 +157,8 @@ def main() -> int:
     ts = datetime.now().strftime("%Y%m%d-%H%M%S")
     backup_root = home / "ba-assistant-backups" / f"workboard-overlay-{ts}"
     plan.append(f"BACKUP -> {backup_root}")
+
+    plan.extend(migrate_legacy_actions(home / "_workstream", backup_root, home, dry_run))
 
     for name in PROTECTED_WORKSTREAM:
         plan.append(f"PROTECT {home / '_workstream' / name} (never overwrite)")

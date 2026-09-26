@@ -114,7 +114,7 @@ Track these for future waves:
 | Close out and checkpoint | Type `/wrap`  -  fixes drift, refreshes workboard, suggests new chat |
 | See cross-initiative priorities | Type `/workboard` |
 | Re-anchor after long thread | Type `/reanchor`  -  re-reads state files, resumes from current position |
-| Fill intake as a form | Pick "form canvas" when the orchestrator offers it at Phase 0 |
+| Fill intake as a form | Directly ask for an intake-form canvas |
 
 ---
 

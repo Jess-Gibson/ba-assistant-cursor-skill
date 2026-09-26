@@ -66,7 +66,8 @@ If neither applies, skip this skill. Resuming an existing initiative never runs 
    - Status line: `Active` (only ever flipped by a closeout pass, to
      `Closed — see outcome summary below`)
    This is an index, not a competing source of truth: decisions and RAID stay owned
-   by `initiative-tracker.md`. Refresh it at phase gates alongside the canvas.
+   by `initiative-tracker.md`. Refresh the README at phase gates. Generate or
+   refresh a canvas only after `/canvas`, `/status`, or a direct user request.
 5. **Capture workspace context once**, batched into one or two `AskQuestion` panels,
    not a sequential interview:
    - Jira project key (e.g., PROJ, SW)

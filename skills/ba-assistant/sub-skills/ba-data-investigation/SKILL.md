@@ -22,7 +22,7 @@ The method below is not generic analytics practice  -  it's distilled directly f
 | `HK-SOL-BDI-viability` | Solution Shaping | Before recording "confidence in viability" or finalising the options table | Warn  -  proceed qualitatively, tag `evidence: qualitative` |
 | `HK-SLI-BDI-sizing` | Feature Slicing & Sequencing | Before finalising business priority / sequencing order | Warn  -  proceed qualitatively, tag `evidence: qualitative` |
 | `HK-RT-BDI-evidence` | Risk & Tracker | Before setting a new risk's probability/impact level | Warn  -  proceed qualitatively, tag `evidence: qualitative` |
-| `HK-INTK-BDI-baseline` | Intake Reviewer (extends hook 2) | During multi-source context gathering, before setting the Problem Clarity confidence score | Warn  -  cap Problem Clarity at Medium until a source is checked or explicitly declined |
+| `HK-NEWI-BDI-baseline` | New Initiative | During multi-source context gathering, before setting the Problem Clarity confidence score | Warn  -  cap Problem Clarity at Medium until a source is checked or explicitly declined |
 | `HK-CSA-BDI-data` | Current State Assessment | Any quantitative slice needed (volumes, failure rates, latency, error counts) | Warn  -  proceed qualitatively, flag gap in the Current State Report |
 | `HK-DISC-BDI-validate` | Discovery and Requirements | An assumption or hypothesis needs data validation | Warn  -  proceed with the assumption flagged (⚠️) |
 | `HK-EVAL-BDI-actual` | Solution Evaluation | Pulling actual outcome metrics post-launch | Block  -  no evaluation without actuals (unchanged from prior `pm-data-analyst` hook) |
@@ -166,7 +166,7 @@ Used for initiative-level baseline/monitoring design work (`HK-CSA-BDI-data`, `H
 
 ### Quick decision-grounding answer
 
-Used for the micro-decision hooks (`HK-SOL-BDI-viability`, `HK-SLI-BDI-sizing`, `HK-RT-BDI-evidence`, `HK-INTK-BDI-baseline`, `HK-DISC-BDI-validate`):
+Used for the micro-decision hooks (`HK-SOL-BDI-viability`, `HK-SLI-BDI-sizing`, `HK-RT-BDI-evidence`, `HK-NEWI-BDI-baseline`, `HK-DISC-BDI-validate`):
 
 ```
 ## Data check: [decision context]

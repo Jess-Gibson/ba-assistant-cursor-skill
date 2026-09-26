@@ -1,6 +1,6 @@
 # Spike Card Template  -  Miro DSL Reference
 
-> Extracted from the BA's verified reference layout (Frame 15, widget `3458764674327280316` on board `uXjVHdjL1c4=`).
+> Extracted from the BA's verified reference layout (Frame 15, widget `<widgetId>` on board `<boardId>`).
 > Each spike is its own frame (w=2025, h=1500). Two-column layout with questions on the left, scope + priority on the right.
 
 ## Frame structure

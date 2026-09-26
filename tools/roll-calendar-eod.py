@@ -12,12 +12,56 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, time, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-TZ = timezone(timedelta(hours=12))
+
+def local_now() -> datetime:
+    """Return aware local time, preserving zone rules when the OS exposes them."""
+    try:
+        resolved = datetime.now().astimezone()
+        if resolved.tzinfo is None or resolved.utcoffset() is None:
+            raise ValueError("local timezone unavailable")
+        if isinstance(resolved.tzinfo, ZoneInfo):
+            return resolved
+
+        candidates = []
+        env_tz = os.environ.get("TZ")
+        if env_tz:
+            candidates.append(env_tz.lstrip(":"))
+        try:
+            localtime = Path("/etc/localtime").resolve()
+            parts = localtime.parts
+            if "zoneinfo" in parts:
+                marker = len(parts) - 1 - list(reversed(parts)).index("zoneinfo")
+                candidates.append("/".join(parts[marker + 1 :]))
+        except OSError:
+            pass
+        for key in candidates:
+            try:
+                return resolved.astimezone(ZoneInfo(key))
+            except (ValueError, ZoneInfoNotFoundError):
+                continue
+        return resolved
+    except (OSError, ValueError):
+        return datetime.now(ZoneInfo("Australia/Sydney"))
+
+
+def local_midnight(value: date, resolved_tz) -> datetime:
+    """Resolve a date at local midnight with that date's actual UTC offset."""
+    if isinstance(resolved_tz, ZoneInfo):
+        return datetime.combine(value, time.min, tzinfo=resolved_tz)
+    try:
+        resolved = datetime.combine(value, time.min).astimezone()
+        if resolved.tzinfo is None or resolved.utcoffset() is None:
+            raise ValueError("local timezone unavailable")
+        return resolved
+    except (OSError, ValueError):
+        return datetime.combine(value, time.min, tzinfo=ZoneInfo("Australia/Sydney"))
 
 
 def parse_rule_value(text: str, key: str) -> str | None:
@@ -128,7 +172,7 @@ def roll_calendar_eod(workstream: Path, closeout_date: date | None = None) -> di
         if md:
             closeout = date(*map(int, md.split("-")))
     if closeout is None:
-        closeout = datetime.now(TZ).date()
+        closeout = local_now().date()
 
     today = next_working_day(closeout)
     tomorrow = next_working_day(today)
@@ -145,9 +189,12 @@ def roll_calendar_eod(workstream: Path, closeout_date: date | None = None) -> di
         and meeting_date(m.get("start", "")) >= today
     ]
 
-    now = datetime.now(TZ)
-    cal["range_start"] = f"{today.isoformat()}T00:00:00.0000000+12:00"
-    cal["range_end"] = f"{(tomorrow + timedelta(days=1)).isoformat()}T00:00:00.0000000+12:00"
+    now = local_now()
+    resolved_tz = now.tzinfo or ZoneInfo("Australia/Sydney")
+    cal["range_start"] = local_midnight(today, resolved_tz).isoformat(timespec="microseconds")
+    cal["range_end"] = local_midnight(
+        tomorrow + timedelta(days=1), resolved_tz
+    ).isoformat(timespec="microseconds")
     cal["meetings"] = kept
     cal["meeting_count"] = len(kept)
     cal["last_updated"] = now.isoformat()
@@ -156,7 +203,7 @@ def roll_calendar_eod(workstream: Path, closeout_date: date | None = None) -> di
     if not tomorrow_raw:
         cal["note"] = (
             f"EOD roll {closeout.isoformat()} -> {today.isoformat()}. "
-            f"{tomorrow.isoformat()} not in feed yet; re-pull Outlook on morning /workboard Update."
+            f"{tomorrow.isoformat()} not in feed yet; re-pull the calendar on morning /workboard Update."
         )
     else:
         cal["note"] = f"EOD roll {closeout.isoformat()} -> {today.isoformat()}."
@@ -186,7 +233,7 @@ def roll_calendar_eod(workstream: Path, closeout_date: date | None = None) -> di
     elif not tomorrow_raw:
         wb["meetings_tomorrow_note"] = (
             f"{tomorrow.strftime('%a %d %b')}: not in calendar-feed yet. "
-            "Re-pull from Outlook on morning /workboard Update."
+            "Re-pull the calendar on morning /workboard Update."
         )
     else:
         wb["meetings_tomorrow_note"] = f"{tomorrow.strftime('%a %d %b')}: no meetings in feed."

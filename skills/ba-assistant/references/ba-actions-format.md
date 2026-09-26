@@ -115,7 +115,7 @@ Run after **every meeting debrief write**, **`/todo` capture**, **`/wrap` step 6
 
 For each active initiative touched:
 
-1. **Debriefs**  -  Read debrief action tables where Owner contains `[BA name]` or `Gibson`.
+1. **Debriefs**  -  Read debrief action tables where Owner contains `[BA name]`.
 2. **Tracker**  -  Read `initiative-tracker.md` action register where Owner is [BA name] (or [BA name] coordinates).
 3. **SESSION-CONTEXT**  -  Scan today's dated entries and unpromoted `📝 Captured` lines for the BA commitments not yet in ba-actions.
 4. **Quick capture**  -  Items added via `/todo` in this session (already in JSON; skip duplicate insert).
@@ -128,7 +128,7 @@ For **`/wrap`**, also scan debriefs dated **today** across all initiatives.
 2. **Insert** if no match: assign next `BA-NNN`, set `raised` to source date (or today if unknown).
 3. **Update** if match: refresh `due`, `source`, `notes`, `tracker_ref`; do **not** overwrite `status` if already `done`/`cancelled`.
 4. **Priority default:** `high` if due within 2 working days; `medium` if due within 2 weeks; `low` otherwise; bump to `high` if `blocked`.
-5. **Watching:** Upsert `JW-*` from debrief actions owned by others that [BA name] explicitly tracks (MoSCoW chase items, etc.).
+5. **Watching:** Upsert `W-NNN` rows from debrief actions owned by others that [BA name] explicitly tracks (MoSCoW chase items, etc.).
 
 ### 3.3 Regenerate markdown (mandatory, full derive  -  never hand-edit)
 
@@ -190,7 +190,7 @@ After sync, print: `Gate: ba-actions-sync: PASS (N open, M added, K updated)` or
 ### End of day (`/wrap`, canvas End of Day)
 
 1. Regenerate or read `ba-actions.md` so counts are current.
-2. Run **EOD critical scan** (`sync-procedures.md` §5a): overdue, due today, remind today, high items the BA said she would finish today.
+2. Run **EOD critical scan** (`sync-procedures.md` §5a): overdue, due today, remind today, high items the BA said they would finish today.
 3. Present critical items in a callout **before** meeting reconciliation or initiative validation.
 4. Walk **every** open action one-by-one with AskQuestion (§5b options: Done, In progress, Follow up, Move deadline, Cancel, No update).
 5. After runthrough + step 6b sync, the handoff block (step 10) must include **Reminders (commitments to start)** from `remind_on` / due tomorrow.

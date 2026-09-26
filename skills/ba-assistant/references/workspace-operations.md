@@ -3,7 +3,7 @@
 **Location:** `~/.cursor/skills/ba-assistant/references/workspace-operations.md`  
 **Last reviewed:** 2026-08-03 (Version 10 — cross-platform)
 
-Configurable paths (set in **ba-setup** Step 2.5):
+Configurable paths (set in **ba-setup** Step 3):
 
 | Variable | Purpose | Typical default |
 |---|---|---|

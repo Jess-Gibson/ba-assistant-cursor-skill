@@ -54,24 +54,24 @@ Only ask if you couldn't determine these from the files you read:
 - Key deadlines (if not mentioned anywhere)
 - Stakeholders (if not listed in any file)
 
-**Step 3  -  Pull live data from Jira** (mandatory when Jira MCP is available)
+**Step 4  -  Pull live data from Jira** (mandatory when Jira MCP is available)
 
 **Jira is the source of truth for all ticket data.** Never use hardcoded ticket status, titles, or estimates when Jira is reachable. Always execute this full sync sequence:
 
-**3a. Resolve the Jira cloud ID**
+**4a. Resolve the Jira cloud ID**
 ```
 getAccessibleAtlassianResources → pick the cloud ID for your Jira site
 ```
 If your-jira-cloud is not in the list, Jira auth is missing for this session  -  fall back to markdown sources and note the gap in the canvas footer.
 
-**3b. Find the project parent epic(s)**
+**4b. Find the project parent epic(s)**
 The parent epic key should be sourced from (in priority order):
 1. `confluence-pages.json`  -  look for a `jiraEpic` or `jiraParent` field
 2. `PROJECT-CONTEXT.md` or `SESSION-CONTEXT.md`  -  scan for lines like `Epic: PROJ-XXXX` or `Parent: PROJ-XXXX`
 3. `Project-hub.md`  -  look for Jira links
 4. Ask the user: `"What is the parent Jira epic or programme key for this initiative?"`
 
-**3c. Fetch all epics under the programme (if programme key exists)**
+**4c. Fetch all epics under the programme (if programme key exists)**
 ```
 searchJiraIssuesUsingJql:
   jql: "project = PROJ AND issueType = Epic AND 'Epic Link' = <programme-key> ORDER BY key ASC"
@@ -80,7 +80,7 @@ searchJiraIssuesUsingJql:
   maxResults: 50
 ```
 
-**3d. Fetch all stories under each epic**
+**4d. Fetch all stories under each epic**
 For each epic found (or directly if user provides an epic key like PROJ-4304):
 ```
 searchJiraIssuesUsingJql:
@@ -90,13 +90,13 @@ searchJiraIssuesUsingJql:
   maxResults: 100
 ```
 
-**3e. Extract and map from each issue:**
+**4e. Extract and map from each issue:**
 | Jira field | Canvas field |
 |---|---|
 | `issue.key` | `id` |
 | `issue.fields.summary` | `label` (truncate to ~60 chars if needed) |
 | `issue.fields.status.name` | Map to canvas status (see mapping below) |
-| `issue.fields.customfield_10016` OR `issue.fields.customfield_10004` | `storyPoints` (number or null  -  used for velocity forecasting; null values get median-filled per step 3i). **Field varies by Jira instance**  -  check both `customfield_10016` (Jira Software story points) and `customfield_10004` (Story Points classic) and use whichever is non-null. If neither is populated, treat as null. |
+| `issue.fields.customfield_10016` OR `issue.fields.customfield_10004` | `storyPoints` (number or null  -  used for velocity forecasting; null values get median-filled per step 4i). **Field varies by Jira instance**  -  check both `customfield_10016` (Jira Software story points) and `customfield_10004` (Story Points classic) and use whichever is non-null. If neither is populated, treat as null. |
 | `issue.fields.customfield_10007[0].name` | `sprint` label |
 | `issue.fields.customfield_10007[0].startDate` | Sprint start date (ISO)  -  used for timeline `startWeek` when ticket is still To Do |
 | `issue.fields.customfield_10007[0].endDate` | Sprint end date (ISO)  -  used to calculate planned `weeks` duration |
@@ -104,7 +104,7 @@ searchJiraIssuesUsingJql:
 | `issue.fields.issuelinks` | `dependsOn` (filter `inwardIssue` where type = "blocks") |
 | `issue.fields.priority.name` | Note if High/Critical for critical path |
 
-**3f. Jira → canvas status mapping:**
+**4f. Jira → canvas status mapping:**
 | Jira status | Canvas `ItemStatus` |
 |---|---|
 | Done, Closed, Released | `"done"` |
@@ -113,7 +113,7 @@ searchJiraIssuesUsingJql:
 | Blocked, On Hold, Impediment | `"blocked"` |
 | Won't Do, Duplicate | skip (exclude from canvas) |
 
-**3g. Fetch changelog for status transition dates** (mandatory for timeline accuracy)
+**4g. Fetch changelog for status transition dates** (mandatory for timeline accuracy)
 
 For every ticket that will appear on the timeline, fetch it individually with `expand: "changelog"` to extract real status transition dates:
 
@@ -180,13 +180,13 @@ Example: PROJ-4301 is in Sprint 37 (starts 13 May), project kickoff was 28 Apr.
 
 This ensures the timeline always reflects the best available data: real dates when work has started, planned sprint dates for upcoming work, and creation dates as a fallback.
 
-**3h. After fetching, update canvas data arrays:**
+**4h. After fetching, update canvas data arrays:**
 - `STORIES` / `WORK_ITEMS`  -  replace entirely with live Jira data
 - `allItems` in `TimelineTab`  -  update `status`, `label`, `startWeek`, and `weeks` from Jira changelog dates; never keep estimated dates when real dates are available
 - `depNodes` in `DependenciesTab`  -  update `status` from Jira
 - Collapsible card counts in RAID tab automatically reflect the data
 
-**3i. Story points and velocity forecasting** (mandatory when story points exist)
+**4i. Story points and velocity forecasting** (mandatory when story points exist)
 
 Story points from Jira (`customfield_10016`) drive velocity-based forecasting for unscheduled work.
 
@@ -436,7 +436,7 @@ function useStatusColours() {
 Status colour helper (mandatory  -  use these tokens, never hardcode hex):
 
 ```tsx
-type ItemStatus = "done" | "in-progress" | "pending" | "blocked";
+type ItemStatus = "done" | "in-progress" | "pending" | "blocked" | "conditional";
 
 function useStatusColours() {
   const theme = useHostTheme();
@@ -445,6 +445,7 @@ function useStatusColours() {
     "in-progress": theme.accent.primary, // BLUE  -  not amber, not brown
     pending: theme.fill.tertiary,       // greyed
     blocked: theme.diff.stripRemoved,   // red
+    conditional: theme.fill.secondary,  // light grey
   };
 }
 
@@ -452,6 +453,7 @@ const itemStatusEmoji = (s: ItemStatus): string => {
   if (s === "done") return "🟢";
   if (s === "in-progress") return "🔵";
   if (s === "blocked") return "🔴";
+  if (s === "conditional") return "◐";
   return "○";
 };
 
@@ -459,6 +461,7 @@ const itemStatusLabel = (s: ItemStatus): string => {
   if (s === "done") return "Done";
   if (s === "in-progress") return "In progress";
   if (s === "blocked") return "Blocked";
+  if (s === "conditional") return "Conditional";
   return "Not started";
 };
 ```
@@ -657,9 +660,9 @@ The full reference implementation is `~/.cursor/projects/<workspace>/canvases/sa
 
 ## Ported from the pre-split SKILL.md (Wave 10  -  local extras the router condenses)
 
-### Phase 0 initial canvas  -  what to expect
+### Phase 0 canvas requested by the user  -  what to expect
 
-When invoked at Phase 0 end (hook 5 of the Intake Reviewer skill), the canvas
+When the user explicitly requests a canvas while the initiative is in Phase 0, the canvas
 will be sparse by design. Most tabs will show empty-state Callouts. This is
 **not a failure mode**  -  the empty states explain what each tab will hold and act
 as a roadmap for the user. Tell the user explicitly:
@@ -678,7 +681,7 @@ At Phase 0, the canvas typically contains:
 - **RAID & Tracker**  -  draft RAID from intake, unknowns, assumptions
 
 ### Triple-output contract (with BA Assistant / standalone)
-Invoked when `/canvas` or `/status` is run. The orchestrator passes current initiative context. The canvas is generated/refreshed automatically.
+Invoked when `/canvas` or `/status` is run, or when the user independently asks for a canvas. The orchestrator passes current initiative context. No phase or gate triggers canvas generation automatically.
 
 **`/status` MUST trigger all three outputs:**
 

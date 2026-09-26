@@ -11,6 +11,7 @@ Default is dry-run. Always backs up before --apply.
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import shutil
 import sys
@@ -198,6 +199,21 @@ def seed_workstream(workstream: Path, dry_run: bool) -> list[str]:
     return actions
 
 
+def run_workboard_action_migration(
+    package: Path, workstream: Path, backup_root: Path, home: Path, dry_run: bool
+) -> list[str]:
+    """Reuse the canonical migrate-once implementation from upgrade-workboard."""
+    script = package / "tools" / "upgrade-workboard.py"
+    if not script.exists():
+        return [f"MIGRATE skip: missing canonical workboard upgrader {script}"]
+    spec = importlib.util.spec_from_file_location("ba_upgrade_workboard", script)
+    if spec is None or spec.loader is None:
+        return [f"MIGRATE skip: cannot load canonical workboard upgrader {script}"]
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.migrate_legacy_actions(workstream, backup_root, home, dry_run)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Upgrade BA Assistant to the current package version")
     ap.add_argument("--package", required=True, help="Path to ba-assistant-cursor-skill checkout or extract")
@@ -303,6 +319,7 @@ def main() -> int:
 
     # Workstream seed + migrate
     plan.extend(seed_workstream(workstream, dry_run))
+    plan.extend(run_workboard_action_migration(pkg, workstream, backup_root, home, dry_run))
     plan.extend(migrate_personal_tasks(workstream, dry_run))
 
     # VERSION stamp

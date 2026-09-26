@@ -57,4 +57,4 @@ If none of the bundled sub-skills fit, the **default agent** should still follow
 
 ## MCP
 
-Use configured MCPs (Jira, Confluence, Sumo, Snowflake, etc.) per [workspace-operations.mdc](workspace-operations.mdc) and the user's environment; verify access when the runbook calls for a "blocking check".
+Use configured MCPs (Jira, Confluence, Sumo, Snowflake, etc.) per `skills/ba-assistant/references/workspace-operations.md` and the user's environment; verify access when the runbook calls for a "blocking check".

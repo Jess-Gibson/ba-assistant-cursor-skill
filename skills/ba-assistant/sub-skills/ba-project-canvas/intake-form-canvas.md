@@ -1,5 +1,5 @@
 # Intake Form Canvas (Wave 4 variant)
-<!-- Wave 10: moved verbatim from SKILL.md. Load only when offering or building the Phase 0 intake form. -->
+<!-- Wave 10: moved from SKILL.md. Load only after a direct user request for the Phase 0 intake form. -->
 
 ## Intake Form Canvas (Wave 4  -  NEW)
 
@@ -7,18 +7,10 @@ Some BAs prefer a **form-style UI** for capturing initiative intake rather than 
 
 ### When to generate the intake form canvas
 
-At the very start of Phase 0 (before the chat-style intake conversation), the orchestrator should offer:
-
-```
-> Running: Project Canvas → offering intake form canvas option
-
-How would you like to capture intake context?
-[ ] Chat-style  -  I'll ask you questions one at a time (default, recommended for first-time users)
-[ ] Form canvas  -  I'll generate an interactive form you can fill in beside the chat (faster if you already have most context handy)
-[ ] Both  -  generate the form canvas AND start the chat conversation in parallel
-```
-
-If the user picks form canvas or both, this skill generates `intake-form.canvas.tsx` and tells the user how to use it.
+Generate it only when the user independently and directly asks for an intake
+form canvas. Do not generate or proactively offer it merely because Phase 0 or
+Intake Reviewer has started or completed. `/canvas` and `/status` remain the
+explicit triggers for the normal project canvas.
 
 ### File location
 
@@ -188,4 +180,3 @@ export default function IntakeForm() {
 - Group fields with `Stack` and `Divider`, not nested cards
 
 ---
-

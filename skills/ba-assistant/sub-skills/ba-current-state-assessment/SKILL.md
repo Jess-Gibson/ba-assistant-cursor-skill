@@ -84,7 +84,7 @@ Run these in order. Phase 2 of an initiative begins with these tasks before requ
 
 10. **Update the living tracker**  -  Pain points → potential requirements (flag for Discovery). Tribal knowledge gaps → risks. Compliance assumptions → open questions. Disagreements between sources → open questions or assumptions.
 
-11. **Auto-refresh the canvas**  -  Update the canvas with current state diagrams and pain heatmap (canvas auto-refreshes after major outputs per `ba-project-canvas` rules).
+11. **Prepare canvas-ready updates**  -  Keep current-state diagrams and the pain heatmap ready for the next explicit `/canvas`, `/status`, or direct canvas request. Do not refresh the canvas automatically.
 
 ## Tribal knowledge extraction methods
 

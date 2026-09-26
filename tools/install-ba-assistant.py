@@ -523,6 +523,9 @@ def seed_workstream(cursor_home: Path, package: Path, dry_run: bool) -> None:
     calendar_roll_src = package / "tools" / "roll-calendar-eod.py"
     if calendar_roll_src.exists():
         copy_file(calendar_roll_src, ws / "roll-calendar-eod.py", dry_run)
+    calendar_sample_src = package / "_workstream" / "calendar-feed.sample.json"
+    if calendar_sample_src.exists():
+        copy_file(calendar_sample_src, ws / "calendar-feed.sample.json", dry_run)
     # These three already live under the package's own _workstream/ (not tools/) --
     # copy them by name the same way. Previously only README.md was copied from here;
     # the scripts themselves were referenced everywhere but never actually seeded.
@@ -607,6 +610,11 @@ def install(package: Path, cursor_home: Path, dry_run: bool, hooks_strategy: str
     miro = package / "skills" / "miro-board-analysis"
     if miro.exists():
         copy_tree(miro, cursor_home / "skills" / "miro-board-analysis", dry_run)
+
+    # Optional Confluence publishing companion
+    confluence = package / "skills" / "publish-docs-to-confluence"
+    if confluence.exists():
+        copy_tree(confluence, cursor_home / "skills" / "publish-docs-to-confluence", dry_run)
 
     # Rules
     for name in PACKAGE_RULES:

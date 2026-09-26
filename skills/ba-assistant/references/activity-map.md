@@ -35,6 +35,7 @@ This map replaces the old "Specialist Skills" table in `ba-profile.mdc`. Activit
 
 | Skill | Activity | Invocation |
 |---|---|---|
+| ba-install | Onboarding | Explicit (first install / `/install-ba-assistant`) |
 | ba-setup | Onboarding | Explicit (first run) |
 | ba-new-initiative | Frame | Explicit (project-creation trigger phrases; also invoked when resume finds no matching initiative folder) |
 | ba-intake-reviewer | Frame | Specialist (hands off from ba-new-initiative) |

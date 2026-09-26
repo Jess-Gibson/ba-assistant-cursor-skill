@@ -33,17 +33,17 @@ operation. Split out because it was dead weight on every bootstrap read.
 - **ba-visual-storytelling merged into `references/visual-output-format.md`** (§4 expanded types, §13 storytelling framework, §14 production workflow); all `HK-*-VIS-*` hooks unchanged by name, fulfilled inline against the standard. The sub-skill folder keeps a SUPERSEDED stub for redirect compatibility.
 - **ba-project-canvas split into a router + 5 capability files** (`canvas-generate.md`, `canvas-tab-specs.md`, `intake-form-canvas.md`, `metrics.md`, `status-page-and-data.md`); no hook changes, HK-CANV-DATA-internal and HK-SV-CANV-refresh now point at `status-page-and-data.md`. Metric formulas deduplicated: canonical in `references/canvas-data-model.md` only.
 
-## Non-skill hook change: Miro pre-flight hardened to HARD gate
+## Proposed non-skill hook change: Miro pre-flight hard gate (never shipped)
 
 Not a `ba-*` inter-skill hook (it's a lifecycle hook, `beforeMCPExecution`), but
 logged here because a critical-gates rule set requires a matching hook-contracts update
-on any gate table change. The gate itself is still live, current mechanics are owned
-by a `gate-miro-preflight` script and the critical-gates rule's own table, this entry is the
-history of why it exists.
+on any gate table change. This section records a design proposal only. The
+proposed hook and its script twins were never shipped or registered, so none of
+the mechanics below ever became live package behaviour.
 
-- **What changed:** The Miro 6-pass algorithm / Plan Review Gate requirement, previously a reasoning gate enforced only by a model-invoked Miro-enforcement rule, is now also enforced by a HARD hook, a pre-flight script (with matching PowerShell/shell twins), registered under `beforeMCPExecution` in the harness's hooks config.
+- **What was proposed:** Enforce the Miro 6-pass algorithm / Plan Review Gate with a HARD pre-flight hook and matching platform twins registered under `beforeMCPExecution`.
 - **Why:** Confirmed 3rd+ recurrence of the identical failure (skip Passes 1-4, skip Plan Review Gate, build directly to `layout_create`) across separate initiatives. Per `retrospective-and-learning`'s own pattern-vs-incident rule, 2+ occurrences is a pattern; a reasoning gate that fails on the identical trigger 3 times needs harder enforcement, not a fourth reminder. See the corresponding `established` row in `learnings.md`.
-- **Mechanism:** Denies `layout_create` calls unless either (a) a coordinate-manifest `*.plan.md` file under a `miro-plans` folder (or `plans/*miro*.plan.md`) has been written/modified within a freshness window (default 240 min, configurable via an environment variable) **and** contains `## Board inventory (context_explore)` plus `## Board placement`, or (b) an explicit override environment variable is set for the shell session (manual override, set only after the user has approved the plan). Only gates `layout_create` (new content); `layout_update`, `layout_read`, `context_explore`, `board_list_items` etc. are unaffected.
-- **Hardening:** Added mandatory `context_explore` inventory section after a frame-on-frame overlap incident, hook no longer accepts a generic plan file without board inventory and placement sections.
-- **Fail-open:** hook errors (bad JSON, missing env, etc.) always resolve to `allow`, a bug in the gate script must never block unrelated work.
-- **Anti-Pattern Detector cross-reference:** the existing soft trigger row ("Pre-flight compliance not demonstrated") in `ba-anti-pattern-detector/SKILL.md` stays in place as a narrative/visibility layer; the hook is now the actual enforcement.
+- **Proposed mechanism:** Deny `layout_create` unless a fresh coordinate manifest contains both `## Board inventory (context_explore)` and `## Board placement`, with an explicit manual override after approval.
+- **Proposed hardening:** Require the inventory section after a frame-on-frame overlap incident.
+- **Proposed failure behavior:** Fail open on script errors so unrelated work is not blocked.
+- **What actually shipped:** No gate script, platform twin, registration, or override. Miro pre-flight remains a soft/manual check documented in `rules/critical-gates.mdc` and `miro-board-analysis/algorithm.md`.

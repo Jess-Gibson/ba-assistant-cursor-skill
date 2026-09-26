@@ -1,34 +1,35 @@
 # Blueprints
 
-This is the default project folder for BA Assistant initiatives.
+This folder is retained for compatibility with older installs. New initiatives
+use the configured `BA_INITIATIVES_ROOT`, which defaults to
+`~/.cursor/initiatives`.
 
-When you say "create a new project called X", the BA Assistant will create a folder here following the convention:
+When you say "create a new initiative called X", `ba-setup` Step 3 determines
+the root and `ba-new-initiative` creates:
 
 ```
-blueprints/
-  Project 001 - your-initiative/
-    docs/blueprints/analysis/
-      SESSION-CONTEXT.md
-      initiative-tracker.md
-      Project-hub.md
-      confluence-pages.json
+~/.cursor/initiatives/
+  your-initiative/
+    SESSION-CONTEXT.md
+    initiative-tracker.md
+    Project-hub.md
+    confluence-pages.json
 ```
 
 Each project folder contains the state files that track your initiative's progress, RAID items, decisions, and session context.
 
 ## Folder convention
 
-The default convention is `Project NNN - <slug>`. The assistant will:
-1. Find the next available number
-2. Create the folder structure
-3. Scaffold starter templates for all state files
+The default convention is `$BA_INITIATIVES_ROOT/<slug>`, with
+`BA_INITIATIVES_ROOT=~/.cursor/initiatives`. The assistant creates the folder
+and scaffolds the starter state files.
 
 ## Alternative conventions
 
-If you prefer a different folder structure (e.g. `initiatives/`, `projects/`, or a flat layout), you can:
+If you prefer a different folder structure, you can:
 1. Create your preferred root folder
-2. Update the glob patterns in `SKILL.md` Step 2.5 and Step 2.75
-3. Update the `session-init` hook search paths
-4. Set `BA_INITIATIVES_ROOT` environment variable to point to your root
+2. Configure it in `ba-setup` Step 3
+3. Set `BA_INITIATIVES_ROOT` to that root
+4. Use `SKILL.md` Step 2 for resume lookup
 
 The BA Assistant will detect and follow whatever convention it finds in your workspace.

@@ -1,6 +1,6 @@
 # BA Assistant — User Guide
 
-*Updated: August 2026 — **Version 10** (see CHANGELOG.md). Earlier sections still describe Waves 1–7 foundations.*
+*Current package: **Version 14** (see CHANGELOG.md). This guide was substantially updated in August 2026; earlier sections still describe Waves 1–7 foundations.*
 
 This guide introduces the **BA Assistant**, a multi-skill system for business analysts and product managers that takes an initiative from earliest conception through delivery and post-launch evaluation.
 

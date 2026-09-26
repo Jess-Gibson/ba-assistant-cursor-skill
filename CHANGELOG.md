@@ -11,6 +11,13 @@
 - `/reanchor` re-reads `hook-contracts.md` and runs the bounded readiness pass. Does not invent an initiative.
 - `workstreams.md` remains as an optional M0–M8 glossary; it is not loaded at bootstrap. Activity map is the day-to-day routing model.
 
+### Version 14 QA correction pass
+
+- Aligned resume/new-initiative routing, explicit-only canvas triggers, hook IDs, skill discovery, and manual Miro pre-flight guidance with the slim orchestrator.
+- Removed public Miro identifiers and personal BA-action aliases while preserving a one-time, data-safe workboard migration path.
+- Corrected Windows Downloads fallback, local calendar timezone handling, platform-specific calendar dispatch, and installer coverage for companion skills and the sample calendar feed.
+- Corrected current-facing Version 14 documentation, generic BA identity guidance, status-colour examples, hook history, and README-only author attribution.
+
 ## Version 13 - 2026-09-25
 
 ### Initiative lifecycle bookends + commitment scan (Wave 10)
@@ -69,7 +76,7 @@
 
 ### Fixes from independent QA pass (round 1)
 
-- `tools/generate-workboard-canvas.py`: removed a hardcoded real name (`"Alice"`) that `normalize_stakeholder_raise()` used as a fallback display value for a legacy `alice_raise` workboard key, plus the `alice_raise` key itself (not a documented legacy alias like `jess-actions.json`, just a leftover from one person's own data). Rebuilt `dist/ba-workboard-overlay.zip` from the fixed source so the packaged copy doesn't carry the same leak.
+- `tools/generate-workboard-canvas.py`: removed a hardcoded real name that `normalize_stakeholder_raise()` used as a fallback display value for an undocumented personal workboard key, plus the key itself. Rebuilt `dist/ba-workboard-overlay.zip` from the fixed source so the packaged copy doesn't carry the same leak.
 - `.gitignore`: added `dist/ba-workboard-overlay/` (the unzipped build output of `build-workboard-overlay-zip.py` was untracked and unignored, duplicating whatever source leak existed at build time).
 - `ba-install/SKILL.md`: fixed a leftover "for README / Jess to share" heading.
 - `SKILL.md`: welcome-panel invocation-group arithmetic didn't sum to the stated total (`ba-install` was in the total count but missing from every group); added it as a second "once-ever" skill alongside Setup.

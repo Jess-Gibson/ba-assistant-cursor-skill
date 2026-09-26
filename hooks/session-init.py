@@ -20,7 +20,7 @@ picking one arbitrarily:
     context lines): only session-init.ps1 had these blocks. Ported from the
     .ps1; the Windows-only Outlook-COM get-calendar.ps1 call is replaced below
     with an OS-appropriate best-effort call (get-calendar.ps1 on Windows,
-    get-calendar.mac.sh on Mac/Linux — both optional sample scripts under
+    get-calendar.mac.sh on macOS; other systems skip calendar refresh — both optional sample scripts under
     references/sample-scripts/, silently skipped if not installed under
     ~/.cursor/hooks/, exactly like the .ps1 skipped it when the script was
     missing).
@@ -143,6 +143,38 @@ def tail_text(path: Path, n: int = TAIL_LINES) -> str:
     return "\n".join(lines[-n:] if len(lines) > n else lines)
 
 
+def windows_dir_files(folder: Path) -> list[Path]:
+    """Discover files through cmd when pathlib cannot enumerate Downloads.
+
+    `/b` keeps the output to filenames only, avoiding locale-dependent date,
+    time, and size columns. Recency still comes from Path.stat() below.
+    """
+    try:
+        proc = subprocess.run(
+            ["cmd", "/c", "dir", "/a-d", "/o-d", "/b", str(folder)],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return []
+    if proc.returncode != 0:
+        return []
+    files = []
+    for name in proc.stdout.splitlines():
+        name = name.strip()
+        if not name:
+            continue
+        candidate = folder / name
+        try:
+            if candidate.is_file():
+                files.append(candidate)
+        except OSError:
+            continue
+    return files
+
+
 def scan_downloads(folders: list[str], since_mtime: float) -> tuple[list[dict], list[dict]]:
     new_transcripts: list[dict] = []
     other_new: list[dict] = []
@@ -155,13 +187,13 @@ def scan_downloads(folders: list[str], since_mtime: float) -> tuple[list[dict], 
         if not folder_path.is_dir():
             continue
         try:
-            entries = list(folder_path.iterdir())
+            entries = [entry for entry in folder_path.iterdir() if entry.is_file()]
         except OSError:
-            continue
+            entries = []
+        if sys.platform == "win32" and not entries:
+            entries = windows_dir_files(folder_path)
         for f in entries:
             try:
-                if not f.is_file():
-                    continue
                 st = f.stat()
             except OSError:
                 continue
@@ -206,14 +238,14 @@ def run_calendar_refresh() -> None:
     """
     hooks_dir = Path.home() / ".cursor" / "hooks"
     try:
-        if sys.platform.startswith("win"):
+        if sys.platform == "win32":
             script = hooks_dir / "get-calendar.ps1"
             if script.exists():
                 subprocess.run(
                     ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(script), "-DaysAhead", "2"],
                     capture_output=True, timeout=15, check=False,
                 )
-        else:
+        elif sys.platform == "darwin":
             script = hooks_dir / "get-calendar.mac.sh"
             if script.exists():
                 subprocess.run(["bash", str(script), "2"], capture_output=True, timeout=15, check=False)

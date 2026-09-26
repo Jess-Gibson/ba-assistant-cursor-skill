@@ -118,7 +118,7 @@ Read `ba-actions.json` and `ba-actions.md`. **Surface first** (callout table in 
 | **Overdue** | `due` before closeout date and status still `open` / `in_progress` / `blocked` |
 | **Due today** | `due` equals closeout date and not `done` / `cancelled` |
 | **Remind today** | `remind_on` equals closeout date and status still active |
-| **High + due within 2 working days** | `priority: high` and due soon  -  flag if the BA said she would finish today and has not |
+| **High + due within 2 working days** | `priority: high` and due soon  -  flag if the BA said they would finish today and have not |
 
 Say plainly what is still open that [BA name] committed to by end of day. Do not bury this inside the full list.
 
@@ -134,7 +134,7 @@ Walk **every** action in `ba-actions.json` with status `open`, `in_progress`, or
    - **Cancel**  -  mark `cancelled` with reason in `notes`
    - **No update**  -  leave as-is
 2. Write changes to `ba-actions.json` immediately after each answer (or batch at end of a group if the user prefers speed  -  but never skip the question).
-3. If the user surfaces new actions during the runthrough, insert with next `JA-NNN` via `/todo` rules or direct JSON upsert.
+3. If the user surfaces new actions during the runthrough, insert with next `BA-NNN` via `/todo` rules or direct JSON upsert.
 
 After the runthrough, regenerate `ba-actions.md`, print `Gate: ba-actions-sync: PASS/FAIL`, present a summary table of changes, then proceed to step 6 (promote).
 
@@ -239,4 +239,3 @@ If two files disagree, the canonical source wins:
 7. **Canvas / HTML snapshots** -- derived from status-data.json and ba-actions (display subset), regenerated on demand
 
 When in doubt: tracker > status-data > SESSION-CONTEXT > everything else.
-

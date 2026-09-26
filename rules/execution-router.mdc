@@ -21,8 +21,8 @@ Load BA skills **only** from `~/.cursor/skills/ba-assistant/` (or this package's
 
 | Class | Signals | Required reads (Read tool) | Then |
 |-------|---------|---------------------------|------|
-| **BA-resume** | continue, resume, #2, initiative name, Sample Initiative/NP, `/next` `/status` | `SESSION-CONTEXT.md`, `initiative-tracker.md`, `Project-hub.md` | Run Step 2.75 resume — **act on recommended next**, do not status-dump only |
-| **BA-new** | new initiative, Phase 0, intake | `instructions.md` only | BA welcome panel + intake |
+| **BA-resume** | continue, resume, #2, initiative name, Sample Initiative/NP, `/next` `/status` | `SESSION-CONTEXT.md`, `initiative-tracker.md`, `Project-hub.md` | Run `SKILL.md` Step 2 (resume / `/reanchor`). **Act on the recommended next action**, do not status-dump only. No welcome panel. |
+| **BA-new** | new initiative, Phase 0, intake | `instructions.md` only | Run `ba-new-initiative`, then `SKILL.md` Step 3 (Intake Reviewer). No welcome panel, no draft-depth quiz, no automatic canvas. |
 | **Sync/publish-risk** | sync, push, team repo, harness, `/sync-team-repo` | `TEAM-REPO-HANDOFF.md` (**no bundled `sync-team-repo` skill** — see CUSTOMIZATION.md §11 to build one) | Present file table. **No write/push until "sync now"** (see Harness sync path below) |
 | **BA-tooling** | improve BA assistant, new skill/sub-skill/rule/command/hook, workboard package, "for another BA", change routing/orchestrator, edit `ba-assistant-cursor-skill` skills/rules/commands | `local-first packaging rule (if installed)` (always on — re-read if unsure) | **Edit `~/.cursor/` first.** No writes to `ba-assistant-cursor-skill/skills|rules|commands|hooks` until local exists and [BA name] has confirmed sync (packaging zips are distribution only — see that rule). |
 | **Non-BA** | debug code, syntax, generic explain | Project README/AGENTS only | Skip BA orchestrator |
@@ -37,7 +37,7 @@ Also classify the **activity** (Frame / Discover / Shape / Deliver / Run — see
 2. List every file with action: share | exclude | update-first
 3. Hash-compare modified files against local master
 4. Explicit **"sync now"** from user
-5. Set env `CURSOR_HARNESS_SYNC_OK=1` for that shell session only, then push (hook allows)
+5. Do not push until the user explicitly says to. The shared-repo guard protects against working-file leaks on commit/push; no harness-sync hook or override variable exists.
 
 Bulk copy (`Copy-Item -Recurse`, copying whole folders) to the harness is **forbidden** — sync file-by-file with review.
 
@@ -57,7 +57,7 @@ The Anti-Pattern Detector flags drift symptoms and offers `/reanchor` proactivel
 
 **Bootstrap (BA only):** per `ba-assistant/SKILL.md` Step 1. That file is the single owner of the bootstrap file list, not restated here — this rule and the skill body used to be two copies of the same instruction with no benefit to duplicating it.
 
-**Routing:** on a BA or matched intent, **Read** `skills-routing.mdc` (agent-requested; not always injected). Load **one primary** skill for the turn. Load a **second** only when intents are clearly complementary (e.g. workshop design + Miro board analysis). Prefer the more specific row on conflicts. **Never** read all BA sub-skills before the first reply. **Never** skip Step 2.75 file reads on a resume thread.
+**Routing:** on a BA or matched intent, **Read** `skills-routing.mdc` (agent-requested; not always injected). Load **one primary** skill for the turn. Load a **second** only when intents are clearly complementary (e.g. workshop design + Miro board analysis). Prefer the more specific row on conflicts. **Never** read all BA sub-skills before the first reply. **Never** skip `SKILL.md` Step 2 file reads on a resume thread.
 
 **Report loads inline:** every skill load/invocation gets a one-line header — `> **Skill loaded:** [name] — [reason]`. Skip for internal tool calls.
 

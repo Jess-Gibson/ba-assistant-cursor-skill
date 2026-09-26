@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Upgrade BA Assistant to Version 10
+# Upgrade BA Assistant to the current package version
 # Dry-run:  ./tools/upgrade-ba-assistant.sh /path/to/ba-assistant-cursor-skill
 # Apply:    ./tools/upgrade-ba-assistant.sh /path/to/ba-assistant-cursor-skill --apply
 set -euo pipefail

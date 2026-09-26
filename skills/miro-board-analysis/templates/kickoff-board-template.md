@@ -1,6 +1,6 @@
 # Kickoff Board Template  -  Miro DSL Reference
 
-> Extracted from the verified D2 Kickoff template (`Copy of D2 Kickoff template`, frame `3458764674058246371` on board `uXjVHLY2mE4=`).
+> Extracted from the verified D2 Kickoff template (`Copy of D2 Kickoff template`, frame `<widgetId>` on board `<boardId>`).
 > 112 items, ~26,300 x 2,750px single frame.
 
 ## Frame structure

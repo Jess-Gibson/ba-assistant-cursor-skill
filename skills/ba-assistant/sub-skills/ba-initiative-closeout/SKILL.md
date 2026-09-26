@@ -19,9 +19,7 @@ calls, walk the folder once, move it, and stop tracking it daily.
 ## Standards used
 
 - `references/workboard-format.md`  -  status enum (§1), `workboard.json` fields
-  (§4), canvas display rules (§5). **Note:** at time of writing this standard's
-  status enum does not yet include `archived` (see step 7) — add it there in the
-  same change that wires this skill in.
+  (§4), canvas display rules (§5).
 - `references/workspace-operations.md`  -  initiative folder convention,
   `BA_INITIATIVES_ROOT`
 
@@ -223,5 +221,5 @@ to be wrong, fix it here, don't improvise per-initiative.
 | HK-CLOSE-SV-postmove | State_Validator | Step 8, after archive move | Old path, new path | Divergence report | Block — closing gate |
 | HK-CLOSE-COMD-supersede | Communication_Drafter | Step 3, if pages need a supersede banner | Page list | Supersede banner content | Warn — manual fallback |
 
-Add these three rows to `hook-contracts.md` under a new
-"Initiative Closeout — outbound" section when this skill is wired in.
+These rows are registered in `hook-contracts.md` under
+"Initiative Closeout — outbound".

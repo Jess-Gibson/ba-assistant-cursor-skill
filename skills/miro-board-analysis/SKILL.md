@@ -72,7 +72,7 @@ Present to the user with frame dimensions, section list, full coordinate manifes
 
 **Wait for approval before Pass 5.**
 
-The pre-flight hook **denies** `layout_create` if either section is missing. Chat memory does not count; the plan file does.
+Before `layout_create`, manually confirm both sections are present. Chat memory does not count; the plan file does. No Miro pre-flight hook ships in this package.
 
 ---
 
@@ -178,7 +178,7 @@ Three Miro MCP servers may be available. Check what's listed before calling:
 2. If "Unauthorized" or server not listed: ask user to re-auth the Miro plugin in Cursor.
 3. After re-auth, the server may re-appear or may only work via `user-miro-desktop`.
 4. If only `user-miro-desktop` is available: use it. One call per item is slower but functional. Key differences:
-   - Uses `boardId` param (e.g. `"uXjVHDIdgWg="`) not `miro_url`
+   - Uses `boardId` param (e.g. `"<boardId>"`) not `miro_url`
    - Uses `parentId` (frame ID string) not `parent=` DSL alias
    - `create_shape` supports `shape`, `content`, `fillColor`, `borderColor`, `x`, `y`, `width`, `height`, `parentId`
    - `create_text` supports `content` (HTML), `x`, `y`, `width`, `fontSize`, `parentId`

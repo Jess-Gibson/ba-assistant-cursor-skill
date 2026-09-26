@@ -30,7 +30,7 @@ Based on two established workshop board templates (Solo Money kickoff Feb 2025, 
 
 ## Dimensional Reference Table
 
-Hard pixel values derived from verified reference frame (D2 Kickoff template, board uXjVHDIdgWg=, frame 3458764676276313558). All dimensions in pixels.
+Hard pixel values derived from a verified D2 Kickoff reference frame (board `<boardId>`, frame `<widgetId>`). All dimensions in pixels.
 
 ### Element Dimensions
 
@@ -147,7 +147,7 @@ Two patterns. **Default for narrative panels (Purpose, asks, summaries, briefs):
 
 ### Pattern A: Accent Card (DEFAULT for narrative  -  Aug 2026)
 
-[BA name] gold-standard reference: board `uXjVHz3VP9I=`, widget `3458764680340520413` ("What we need from you").
+[BA name] gold-standard reference: board `<boardId>`, widget `<widgetId>` ("What we need from you").
 
 ```
 ┌──────────────────────────────────────┐
@@ -204,7 +204,7 @@ text_x  = card_left + rail_w + 44 + text_w/2
 
 ### Accent Card sizing algorithm (width + height from text)
 
-**Gold calibration (10 Aug 2026):** [BA name]-fixed clone [`3458764680341236141`](https://miro.com/app/board/uXjVHz3VP9I=/?moveToWidget=3458764680341236141) vs agent card `3458764680341042233`. Prefer [BA name] geometry when they diverge.
+**Gold calibration (10 Aug 2026):** [BA name]-fixed clone [`<widgetId>`](https://miro.com/app/board/{boardId}/?moveToWidget={widgetId}) vs agent card `<widgetId>`. Prefer [BA name] geometry when they diverge.
 
 **Order matters:** pick width first (wrap depends on it), then height from rendered text. Never pick a fixed tall card and hope.
 

@@ -340,7 +340,7 @@ don't promote to patterns yet  -  a single run doesn't establish a pattern.
 
 | Caller | Why |
 |---|---|
-| Session resume flow (Step 2.75 in SKILL.md) | Step 1 of resume  -  catch drift before resuming work |
+| Session resume flow (`SKILL.md` Step 2) | Step 1 of resume  -  catch drift before resuming work |
 | `/publish-status` command | Pre-publish gate  -  never publish stale derivatives |
 | End-of-session checkpoint | Offered when the session modified canonical state |
 | Requirements Interrogator (In-flight mode) | When a requirement changes, run the validator to catch downstream artefacts that need updating |

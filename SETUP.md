@@ -1,8 +1,7 @@
 # BA Assistant for Cursor — Setup Guide
 
-**Version 13** - see [CHANGELOG.md](CHANGELOG.md) and [README.md](README.md).
+**Version 14** - see [CHANGELOG.md](CHANGELOG.md) and [README.md](README.md).
 
-> Originally designed and built by Jess Gibson, Senior BA (2025–2026).
 > Built iteratively across real BA initiatives using agent-assisted development.
 
 ---

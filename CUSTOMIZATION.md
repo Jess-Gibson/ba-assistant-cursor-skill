@@ -67,7 +67,7 @@ Delete routing rows for skills you haven't installed. The BA Assistant degrades 
 
 ---
 
-## 3. Workspace Operations (`rules/workspace-operations.mdc`)
+## 3. Workspace Operations (`skills/ba-assistant/references/workspace-operations.md`)
 
 ### Downloads path
 
@@ -90,6 +90,10 @@ Update the MCP tool list to match your configured servers:
 ---
 
 ## 4. Hooks
+
+Optional chat-organisation guidance lives in
+`skills/ba-assistant/references/chat-profiles.md`. It is discoverable reference
+material only and is not loaded during `SKILL.md` Step 1 bootstrap.
 
 ### Session init hook
 
@@ -145,21 +149,22 @@ You don't need to seed this file — it populates naturally through the `/retro`
 
 ## 8. Project Folder Convention
 
-The BA Assistant scaffolds project folders when you say "create a new project called X". The default convention is:
+The BA Assistant scaffolds initiative folders when you say "create a new initiative called X". `ba-setup` Step 3 owns the convention. The default is:
 
 ```
-<workspace>/blueprints/Project NNN - <slug>/
-  docs/blueprints/analysis/
-    SESSION-CONTEXT.md
-    confluence-pages.json
-    initiative-tracker.md
-    Project-hub.md
+BA_INITIATIVES_ROOT=~/.cursor/initiatives
+
+~/.cursor/initiatives/<slug>/
+  SESSION-CONTEXT.md
+  confluence-pages.json
+  initiative-tracker.md
+  Project-hub.md
 ```
 
 To change this convention:
-1. Edit the glob patterns in `SKILL.md` (Step 2.5) to match your folder structure
-2. Update `session-init` hook search paths
-3. Update `execution-router.mdc` resume glob patterns
+1. Run `/setup` and configure the initiatives root in `ba-setup` Step 3
+2. Set `BA_INITIATIVES_ROOT` to the same root
+3. Verify `SKILL.md` Step 2 can resume an initiative from that location
 
 ---
 
@@ -171,7 +176,7 @@ If canvas generation fails, check that the Cursor Canvas skill is installed in y
 
 ---
 
-## 10. Cross-initiative Workboard (inline — Version 10)
+## 10. Cross-initiative Workboard
 
 Recommended if you run more than one initiative at once. `/workboard` follows `references/workboard-procedure.md` (not a sub-skill). First use creates `_workstream/workboard.json` and pairs with `_workstream/ba-actions.json`.
 
@@ -189,9 +194,9 @@ Copy into `~/.cursor/hooks/` and wire `sessionStart` only if you want automation
 
 `rules/todo-quick-capture.mdc` writes to `ba-actions.json` (not legacy `personal_tasks[]`).
 
-### If you don't use the initiative-blueprint convention
+### If you use a custom initiative convention
 
-`/workboard` cross-references `blueprints/<slug>/SESSION-CONTEXT.md` when available. If your initiatives don't live in that structure, describe state conversationally and skip file cross-referencing steps.
+`/workboard` cross-references initiative state under `BA_INITIATIVES_ROOT`. If your initiatives use a different structure, configure that root in `ba-setup` Step 3 before relying on file cross-references.
 
 ---
 

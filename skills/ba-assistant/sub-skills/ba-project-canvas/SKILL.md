@@ -14,8 +14,8 @@ This file is the router: non-negotiables, when to fire, and which capability fil
 
 | Task | Read (in order) |
 |---|---|
-| Generate or refresh the canvas + HTML (`/canvas`, `/status`, phase gates, decision refresh) | `canvas-generate.md` → `canvas-tab-specs.md` |
-| Offer / build the intake form canvas (Phase 0) | `intake-form-canvas.md` |
+| Generate or refresh the canvas + HTML (`/canvas`, `/status`, or direct user request) | `canvas-generate.md` → `canvas-tab-specs.md` |
+| Build an intake form canvas after a direct user request | `intake-form-canvas.md` |
 | Compute or display quality metrics (`/metrics`, `/status` metrics section, retro feed) | `metrics.md` (+ `references/canvas-data-model.md §Metric computation rules` for formulas) |
 | Update status-data.json, publish a status page (`/publish-status`), data validation | `status-page-and-data.md` (+ `references/status-page-format.md`) |
 | Schema questions (field names, state values, scope objects) | `references/canvas-data-model.md` |
@@ -70,12 +70,8 @@ Sticky, full width, dismissible only when `status === 'approved'`. If `pmApprova
 ## When to invoke
 
 - User runs `/canvas`, or asks for a "project canvas", "project dashboard", "visual status"
-- **At Phase 0 intake completion (auto, mandatory)**  -  sparse, empty-state-heavy canvas is by design; it's the visual roadmap. Tell the user so.
-- At Phase 1 kickoff completion (auto)  -  populated with stakeholders, scope, RAID
-- After any phase gate (refresh)
-- **After any material tracker change (refresh):** decision logged 📌, risk logged or re-rated 🧨, dependency added/resolved 🚧, sign-off captured ✅, slice confirmed/deferred, solution option selected. Not after every reply  -  only material changes.
 - User runs `/status`  -  canvas + HTML refresh are mandatory side-effects (triple output: chat + canvas + HTML, never fewer)
-- First time a new user runs the skill on an existing project
+- User independently and directly requests a project canvas, dashboard, visual status, or intake-form canvas
 
 ## Canvas location and naming
 
@@ -98,7 +94,7 @@ If any check fails, fix the data before rendering. The full pre-delivery self-ch
 
 ## Integration (summary)
 
-- **Callers:** orchestrator (`/canvas`, `/status`, phase gates), Intake Reviewer (HK-INTK-CANV-init), State Validator (HK-SV-CANV-refresh  -  refresh status-data from tracker before validation).
+- **Callers:** orchestrator (`/canvas`, `/status`, or direct user request). State Validator may refresh `status-data.json` from the tracker before validation, but does not generate a canvas.
 - **Calls:** `ba-jira-sync` before any ticket-data use (HK-CANV-JIRA-sync); Risk & Tracker for RAID data (HK-CANV-RT-read); Visual Storytelling standard for embedded diagrams (HK-CANV-VIS-embedded → `references/visual-output-format.md`); internal Data Model section (HK-CANV-DATA-internal → `status-page-and-data.md`).
 - Hook contracts live in `hook-contracts.md`; this table is a summary, not the API.
 

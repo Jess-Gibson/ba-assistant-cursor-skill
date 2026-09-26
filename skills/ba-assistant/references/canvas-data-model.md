@@ -369,7 +369,7 @@ The 6 confidence scores per the SKILL.md ownership table. Each carries current v
       "current": "high",      // "unknown" | "low" | "medium" | "high"
       "evidence": {
         "type": "data",        // "data" | "qualitative" | "not-yet-assessed"
-        "source": "warehouse: ANALYTICS_MART.FEATURE_EVENTS, validated against product analytics (see HK-INTK-BDI-baseline)"
+        "source": "warehouse: ANALYTICS_MART.FEATURE_EVENTS, validated against product analytics (see HK-NEWI-BDI-baseline)"
                                 // null when type is "qualitative" or "not-yet-assessed"
       },
       "history": [

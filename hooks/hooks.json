@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "_comment": "Every hook script is a single cross-platform hooks/*.py file. The 'python' interpreter token in each command is a template: tools/install-ba-assistant.py (and the upgrader) rewrite it to `py` (Windows) or `python3` (Mac/Linux) when merging into ~/.cursor/hooks.json. beforeMCPExecution runs the Jira DoR gate with failClosed:true, so a crash of the gate script blocks the call; the installer wraps that command on Mac/Linux so a MISSING interpreter allows the call instead of blocking every MCP tool (on Windows, if the py launcher is not found at install time, the gate is registered with failClosed:false and the installer warns). sessionStart runs session-init.py only (the old prompt-type re-entry hook was removed: prompt hooks are judged by a separate small model and do not drive the assistant; the re-entry card lives in execution-router.mdc). stop can emit followup_message but is off unless `stopFollowup: true` in ba-assistant-config.mdc. beforeSubmitPrompt additional_context is not read by Cursor today (registered for future-proofing only). postToolUse carries the shared-repo warning (afterFileEdit has no output channel).",
+  "_comment": "Every hook script is a single cross-platform hooks/*.py file. The 'python' interpreter token in each command is a template: tools/install-ba-assistant.py (and the upgrader) rewrite it to `py` (Windows) or `python3` (Mac/Linux) when merging into ~/.cursor/hooks.json. beforeMCPExecution runs the Jira DoR gate with failClosed:true, so a crash of the gate script blocks the call; the installer wraps that command on Mac/Linux so a MISSING interpreter allows the call instead of blocking every MCP tool (on Windows, if the py launcher is not found at install time, the gate is registered with failClosed:false and the installer warns). sessionStart runs session-init.py only (the old prompt-type re-entry hook was removed: prompt hooks are judged by a separate small model and do not drive the assistant; the re-entry card lives in execution-router.mdc). stop can emit followup_message but is off unless `stopFollowup: true` in ba-assistant-config.mdc. No beforeSubmitPrompt hook: Cursor does not read additional_context for that event, so the installer removes the old entry. postToolUse carries the shared-repo warning (afterFileEdit has no output channel).",
   "hooks": {
     "sessionStart": [
       {
@@ -46,12 +46,6 @@
         "command": "python ./hooks/shared-repo-guard.py",
         "timeout": 8,
         "failClosed": false
-      }
-    ],
-    "beforeSubmitPrompt": [
-      {
-        "command": "python ./hooks/inject-state-reminder.py",
-        "timeout": 5
       }
     ]
   }

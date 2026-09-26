@@ -25,7 +25,7 @@ This skill detects divergences across canonical state files and downstream artef
 in a single table, and propagates updates on user confirmation. It is **read-mostly** by default,
 never auto-edits without explicit per-divergence approval.
 
-**`/validate-state` writes.** `/validate-state` checks this chat against the current initiative. Write what this chat captured into the right files: `SESSION-CONTEXT.md`, the tracker, and `status-data.json` where those files already exist, and upsert only the BA actions that came from this chat into `~/.cursor/_workstream/ba-actions.json`. Do not refresh the workboard. Do not walk every open action. Do not invent files. If something has no obvious home, say so and ask. Regenerate `ba-actions.md` after the upsert.
+**`/validate-state` writes.** `/validate-state` checks this whole chat against the current initiative files and captures anything missing, so a new chat can pick up with nothing lost. Write what this chat decided, learned or produced into the right files: `SESSION-CONTEXT.md`, the tracker, and `status-data.json` where those files already exist, and upsert the BA actions that came from this chat into `~/.cursor/_workstream/ba-actions.json`. Then re-read those files and confirm they match the chat. Do not refresh the workboard. Do not walk every open action. Do not invent files. If something has no obvious home, say so and ask. Regenerate `ba-actions.md` after the upsert.
 
 The read-mostly default below applies when this skill runs on resume or before a publish, not to `/validate-state`.
 
@@ -376,7 +376,7 @@ The user can defer fixes. But it surfaces drift before it accumulates.
 | Artefact type | Reference standard | Conformance check |
 |---|---|---|
 | Story / spike / bug / enabler ticket | `references/user-story-format.md` | Sections present, INVEST passes, DoR checklist present, scope linked |
-| Story in Jira | + `references/jira-ticket-format.md`, + `jira-templates` | ADF format used, canonical example mirrored, custom fields populated |
+| Story in Jira | + `references/jira-ticket-format.md`, + optional `jira-templates` if installed | ADF format used, canonical example mirrored, custom fields populated |
 | RAID entry (R / A / I / DEP / D / OQ) | `references/raid-format.md` | Required fields present, status in valid set, age-based flags |
 | Requirement entry | `references/requirement-format.md` | Required fields present, interrogator output linked for confirmed, acceptance for met present |
 | MoSCoW matrix | `references/requirement-format.md` | Per-scope coverage, override decisions linked |

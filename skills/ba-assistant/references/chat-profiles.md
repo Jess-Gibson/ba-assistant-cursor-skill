@@ -16,7 +16,7 @@ Long threads cause orchestrator drift. Use **new chats** for distinct job types 
 
 - **Same initiative, new task** → new chat + first message: `BA resume  -  [task]` (or the initiative name  -  triggers `SKILL.md` Step 2)
 - **Mid-thread drift** → `/reanchor` or new chat (prefer new chat if >30 turns)
-- **Never** rely on conversation summary alone  -  the sessionStart hook injects the SESSION-CONTEXT tail; the agent must still Read the full file on BA-resume
+- **Never** rely on conversation summary alone  -  the sessionStart hook injects the SESSION-CONTEXT tail only when it can name this chat's initiative (else it lists them and you ask); the agent must still Read the full file on BA-resume
 
 ## Workspace note
 

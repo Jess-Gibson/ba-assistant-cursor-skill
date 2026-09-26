@@ -73,7 +73,7 @@ The Risk and Tracker Management skill is responsible for maintaining the living 
    - Risk burndown (count of open risks over time, trend up or down)
    - Overdue items (any item past its needed-by date)
 
-   This dashboard is surfaced on `/snapshot` and `/summary` commands.
+   This dashboard is surfaced on `/snapshot` and `/status`.
 
 9. **Highlight what changed since last snapshot** – Maintain a "what changed" view that shows items added, items closed, and items that shifted status since the previous snapshot. This prevents the tracker becoming a wall of static text where users can't see what's moved.
 

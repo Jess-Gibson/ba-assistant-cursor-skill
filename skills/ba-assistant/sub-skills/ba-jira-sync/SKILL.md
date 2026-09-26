@@ -84,4 +84,4 @@ The skill needs:
 
 ## MCP tool reference
 
-Use the **Common tools** table in `references/runlayer-atlassian-mcp.md` for `getJiraIssue`'s exact `tool_name` and required arguments (`cloudId`, `issueIdOrKey`; optional `fields`, `expand`). Do not read a cached `mcps/user-atlassian-*` schema file  -  those go stale after any MCP migration; call `search_tools` instead if the argument shape is uncertain.
+Use the **Common tools** table in `references/runlayer-atlassian-mcp.md` for `getJiraIssue`'s exact `tool_name` and required arguments (`cloudId`, `issueIdOrKey`; optional `fields`, `expand`). Do not rely on cached schema files from an older direct Atlassian MCP  -  those go stale; call `search_tools` instead if the argument shape is uncertain.

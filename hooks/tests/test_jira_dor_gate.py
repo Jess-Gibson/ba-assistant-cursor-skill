@@ -335,6 +335,28 @@ def main():
             home=home13,
         )
 
+        # --- Case 14: active initiative (A) has no pass; another initiative (B) under the
+        # same home has a pass for an IDENTICAL title -> DENY. Only A counts.
+        home14 = os.path.join(tmp, "home14")
+        a14 = os.path.join(home14, ".cursor", "initiatives", "initiative-a")
+        b14 = os.path.join(home14, ".cursor", "initiatives", "initiative-b")
+        os.makedirs(a14)
+        os.makedirs(b14)
+        with open(os.path.join(a14, "status-data.json"), "w", encoding="utf-8") as f:
+            json.dump({"dorChecks": []}, f)
+        with open(os.path.join(b14, "status-data.json"), "w", encoding="utf-8") as f:
+            json.dump({"dorChecks": [{"storyTitle": "Shared title across two initiatives", "result": "pass"}]}, f)
+        ctx14 = os.path.join(a14, "SESSION-CONTEXT.md")
+        with open(ctx14, "w", encoding="utf-8") as f:
+            f.write("# dummy\n")
+        case(
+            "14. pass exists only in another initiative, same title -> DENY",
+            "deny",
+            create_payload("Shared title across two initiatives"),
+            ctx14,
+            home=home14,
+        )
+
     # --- Report ---
     print()
     print(f"{'Case':<70} {'Expect':<7} {'Got':<7} {'Result'}")

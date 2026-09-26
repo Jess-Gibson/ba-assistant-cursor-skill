@@ -23,16 +23,17 @@ The Story Writing skill converts the shaped solution and feature slices into a d
 
 Before drafting any tickets or epics, this skill MUST confirm:
 
-1. **Which Jira project** will the tickets be created in? (e.g., PROJ, SW)
-   - **Wave 4**  -  first read from `status-data.json → initiative.jiraProjectKey` (captured at intake). If present, use it without re-asking; only ask if missing.
+0. **Which initiative** this backlog is for. If it has not been named in this chat, ask. Do not draft against a guessed initiative.
+1. **Which Jira project** will the tickets be created in?
+   - First read `status-data.json → initiative.jiraProjectKey` (captured at intake), else `jira.projectKey` in `~/.cursor/rules/ba-assistant-config.mdc`. Use it without re-asking; only ask if both are missing or still placeholders.
 2. **Which Jira issue type templates** are expected? Some projects use custom templates with specific fields, custom fields, or labels.
    - **Wave 4  -  Jira template story**  -  first read from `status-data.json → initiative.jiraTemplate` (captured at intake). If a template was provided:
      - Use the captured structure (description sections, custom fields, labels) for every new story drafted.
-     - Tell the user: "Using template from PROJ-XXXX (captured at intake). New stories will follow: [list sections]."
+     - Tell the user: "Using template from <template key> (captured at intake). New stories will follow: [list sections]."
      - If user wants a different template, confirm via `AskQuestion`.
    - If no template was captured at intake (user skipped), prompt now: "What template story should I base new tickets on? Paste key, use most recent, or skip and use generic format."
 3. **Which Confluence space** holds the requirements and design documents?
-   - First read from `status-data.json → initiative.confluenceSpace`.
+   - First read from `status-data.json → initiative.confluenceSpace`, else `confluence.spaceKey` in `ba-assistant-config.mdc`.
 4. **What is the parent epic key**, if epics already exist?
 5. **What is the link convention**  -  should stories link to a specific requirements page, a parent epic, or both?
 
@@ -44,9 +45,21 @@ Never assume  -  always ask or confirm.
 
 Before any story is marked as ready, this skill MUST invoke:
 
-1. **Schema Field Validator**  -  for every story that touches a data model,
-   table, or API schema. Stories that propose a field, change a field, or
-   query a field must pass the validator before reaching ready state.
+1. **Schema check** (`HK-DEL-SFV-schema`)  -  for every story that touches a
+   data model, table, or API schema (proposes, changes, or queries a field).
+   If you have your own schema validator skill installed, run it. Otherwise run
+   this internal checklist:
+   - Field already exists (name where), or is new and flagged as new
+   - Name follows the existing naming convention in that model
+   - Type, format, and nullability stated
+   - Owning system / table / API named
+   - Downstream consumers listed (reports, integrations, events), or "none known"
+   - Source cited (schema doc, Confluence page, or query result), not assumed
+
+   Any item unknown: show a visible warning in the story ("Schema check:
+   N items unconfirmed: ...") and ask the BA to confirm before the story goes
+   to review. The BA can accept it as-is; record the open items as OQs.
+   This never blocks on a missing skill.
 
 2. **Requirements Interrogator**  -  for every requirement that a story is
    satisfying. If a story is being written against a requirement that has
@@ -103,8 +116,20 @@ The Delivery Definition skill should produce:
 - **Delivery sequence** – A proposed order for epics and stories, indicating what can be run in parallel, what must be sequential, and where to insert proofs of concept or pilots.  Note critical path considerations.
 - **Definition of ready checklist results** – For each story, summarise the definition of ready (DoR) status (e.g., Requirements ready? Dependencies identified? Acceptance criteria defined? Risks logged? Sign‑offs obtained?).  Highlight any stories that are not ready and what is missing.
 - **Backlog summary** – A brief narrative summarising the backlog contents, sequence rationale, and next steps for engineering and product management.  This summary should be ready to paste into a planning tool or document.
-- **Ready-to-push ticket drafts** – For each story, produce the full ticket text (title, description, acceptance criteria, labels) in the format expected by the confirmed Jira template. Invoke Communication_Drafter if a stakeholder message is needed to accompany the new tickets.
+- **Ready-to-push ticket drafts** – For each story, produce the full ticket text (title, description, acceptance criteria, labels) in the format expected by the confirmed Jira template. These are drafts for the BA's review; see **Jira create** below. Invoke Communication_Drafter if a stakeholder message is needed to accompany the new tickets.
 - **Traceability map** – A table linking every story → slice → requirement → design decision. Each story must trace back to a specific interrogated requirement.
+
+## Jira create (draft → BA approves → create)
+
+Follow `references/jira-ticket-format.md` §2g and §9. In short:
+
+1. Draft every ticket in chat (or a file if the ADF is long) for the BA to review.
+2. AskQuestion: **Create in Jira** / **Edit first** / **Not yet**. No create call before **Create in Jira**.
+3. Create through Runlayer (`references/runlayer-atlassian-mcp.md`: `execute_tool` → `createJiraIssue`; `search_tools` if the schema is unclear). No custom skill is needed.
+4. Stories must have a DoR pass in `status-data.json → dorChecks` first (task 3b below); the `jira-dor-gate` hook blocks the create otherwise. Spikes, bugs, and enablers are not gated.
+5. Write the new keys back to the tracker and `dorChecks.storyKey`.
+
+If Jira is not connected, hand over the approved drafts as copy-paste text.
 
 ## Challenge Rules
 

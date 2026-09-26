@@ -3,13 +3,13 @@
 **Location:** `~/.cursor/skills/ba-assistant/references/workspace-operations.md`  
 **Last reviewed:** 2026-08-03 (Version 10 — cross-platform)
 
-Configurable paths (set in **ba-setup** Step 3):
+Configurable paths. `/setup` (and `/handover` for the shared repo) write them to `~/.cursor/rules/ba-assistant-config.mdc`; setup does not set env vars. Skills use the upper-case names below as shorthand for the config value. An env var with that name, if you set one, overrides it.
 
-| Variable | Purpose | Typical default |
-|---|---|---|
-| `BA_DOWNLOADS_PATH` | Transcripts / downloads inbox | `~/Downloads` |
-| `BA_INITIATIVES_ROOT` | Initiative folders root. Setup stores it as `paths.initiativesRoot` in `ba-assistant-config.mdc` (it does not set an env var); an env var, if you set one, overrides it. Skills use this name for that folder. | `~/.cursor/initiatives` |
-| `BA_SHARED_REPO_ROOT` | Optional override. Normally `/handover` stores the shared delivery repo as `paths.sharedRepoRoot` in `ba-assistant-config.mdc` | (optional) |
+| Name in skills | Config key | Purpose | Default |
+|---|---|---|---|
+| `BA_DOWNLOADS_PATH` | `paths.downloadsPath` | Transcripts / downloads inbox | `~/Downloads` |
+| `BA_INITIATIVES_ROOT` | `paths.initiativesRoot` | Initiative folders root | `~/.cursor/initiatives` |
+| `BA_SHARED_REPO_ROOT` | `paths.sharedRepoRoot` | Shared delivery repo (`/handover`) | (unset until first `/handover`) |
 
 ---
 

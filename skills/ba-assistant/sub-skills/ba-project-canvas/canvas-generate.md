@@ -62,7 +62,7 @@ Only ask if you couldn't determine these from the files you read:
 ```
 getAccessibleAtlassianResources → pick the cloud ID for your Jira site
 ```
-If your-jira-cloud is not in the list, Jira auth is missing for this session  -  fall back to markdown sources and note the gap in the canvas footer.
+If the site from `jira.instanceUrl` (in `ba-assistant-config.mdc`) is not in the list, Jira auth is missing for this session  -  fall back to markdown sources and note the gap in the canvas footer.
 
 **4b. Find the project parent epic(s)**
 The parent epic key should be sourced from (in priority order):
@@ -72,10 +72,12 @@ The parent epic key should be sourced from (in priority order):
 4. Ask the user: `"What is the parent Jira epic or programme key for this initiative?"`
 
 **4c. Fetch all epics under the programme (if programme key exists)**
+
+`<jiraProjectKey>` = `status-data.json → initiative.jiraProjectKey`, else `jira.projectKey` in `ba-assistant-config.mdc`.
 ```
 searchJiraIssuesUsingJql:
-  jql: "project = PROJ AND issueType = Epic AND 'Epic Link' = <programme-key> ORDER BY key ASC"
-  OR: "project = PROJ AND parent = <programme-key> ORDER BY key ASC"
+  jql: "project = <jiraProjectKey> AND issueType = Epic AND 'Epic Link' = <programme-key> ORDER BY key ASC"
+  OR: "project = <jiraProjectKey> AND parent = <programme-key> ORDER BY key ASC"
   fields: [summary, status, assignee, labels, priority, customfield_10016, customfield_10004]
   maxResults: 50
 ```
@@ -119,7 +121,7 @@ For every ticket that will appear on the timeline, fetch it individually with `e
 
 ```
 getJiraIssue:
-  cloudId: <your-jira-cloud-cloud-id>
+  cloudId: <Jira UUID for jira.instanceUrl>
   issueIdOrKey: "PROJ-XXXX"
   expand: "changelog"
   fields: [summary, status, created, updated, assignee]

@@ -42,7 +42,7 @@ Option labels must specify depth/format, not just topic (see AskQuestion authori
 
 **Prefer `AskQuestion` when it keeps work moving, per `agent-behavior.mdc`.** Use it for forks, re-entry cards, runthroughs, closure ceremonies, and non-obvious next steps. Skip only for verbatim artefacts, a single obvious next step, trivial confirmations, or "anything else?" filler.
 
-See `slash-commands-ux.md` for how Cursor renders slash commands and `AskQuestion` chips.
+Slash commands are files in `~/.cursor/commands/`; Cursor pastes the command body into that message (see `references/cursor-runtime-facts.md` §2).
 
 ## Visible skill handoffs
 

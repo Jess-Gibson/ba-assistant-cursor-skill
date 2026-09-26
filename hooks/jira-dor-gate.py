@@ -222,10 +222,12 @@ def initiative_roots():
 
 
 def find_initiative_dirs():
-    dirs = []
+    # When session-init told us which initiative is active and it has a tracker,
+    # check ONLY that initiative: a same-titled pass in another initiative must not count.
     ctx = os.environ.get("CURSOR_SESSION_CONTEXT_PATH", "")
-    if ctx and os.path.isfile(ctx):
-        dirs.append(os.path.dirname(ctx))
+    if ctx and os.path.isfile(ctx) and os.path.isfile(os.path.join(os.path.dirname(ctx), "status-data.json")):
+        return [os.path.dirname(ctx)]
+    dirs = []
     for root in initiative_roots():
         dirs += [os.path.dirname(p) for p in glob.glob(os.path.join(root, "**", "status-data.json"), recursive=True)]
     return dirs

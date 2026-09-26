@@ -111,7 +111,7 @@ WILL UPDATE status-data.json:
 WILL FLAG FOR CONFLUENCE:
   ! Status page is 3 days stale  -  mark for update
 
-PERSONAL TASKS (→ _workstream/workboard.json):
+BA ACTIONS (→ _workstream/ba-actions.json):
   + Chase [person] re: [topic] by [date]
   + Send pre-reads for next session
 
@@ -130,7 +130,7 @@ Use AskQuestion to present options. On "Approve all", execute all writes in sequ
 1. Append to SESSION-CONTEXT.md
 2. Update initiative-tracker.md
 3. Update status-data.json (if changes)
-4. Add personal tasks to `_workstream/workboard.json`
+4. Sync BA actions into `_workstream/ba-actions.json` and regenerate `_workstream/ba-actions.md` (task 10 below; never `workboard.json → personal_tasks[]`)
 5. Trigger sync gate check (per `sync-gates.mdc`)
 6. Offer to draft comms
 
@@ -150,7 +150,7 @@ Sample onboarding initiative updates:
   + RISK-XX: ...
 
 Cross-cutting:
-  + Personal task: ...
+  + BA action: ...
 ```
 
 Each initiative's files are updated separately. The sync gate runs for each affected initiative.
@@ -168,7 +168,7 @@ Each initiative's files are updated separately. The sync gate runs for each affe
 **Command (mandatory when scanning is needed)** — cross-platform, use your platform's Python launcher (`py` on Windows, `python3` on Mac/Linux):
 
 ```
-python3 _workstream/list-downloads-recent.py --path "[Downloads folder - set BA_DOWNLOADS_PATH]" --days 3
+python3 _workstream/list-downloads-recent.py --path "<paths.downloadsPath from ba-assistant-config.mdc>" --days 3
 ```
 
 Lists files modified in the last 3 days, newest first. Typical result: ~10 files, not 100+.

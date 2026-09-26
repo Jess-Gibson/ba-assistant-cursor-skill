@@ -1,7 +1,7 @@
 # Status Page Format Standard
 
 **Location:** `~/.cursor/skills/ba-assistant/references/status-page-format.md`
-**Owner:** ba-status-page-publisher (workflow), this standard (format)
+**Owner:** `ba-project-canvas` (`status-page-and-data.md`, workflow via `/publish-status`), this standard (format)
 **Last reviewed:** 2026-05-30
 
 This file is the canonical source for Confluence status page structure. Any sub-skill publishing or updating a status page MUST conform to this standard. Pulls from `references/canvas-data-model.md` for data structure and `references/raid-format.md` for RAID rendering.

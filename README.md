@@ -85,7 +85,8 @@ The table above uses friendly phase names as a quick skills index. Day-to-day ro
 
 ```text
 Install BA Assistant from https://github.com/Jess-Gibson/ba-assistant-cursor-skill
-into my Cursor home. Copy skills, rules, hooks, and commands, verify the install,
+into my Cursor home. Run tools/install-ba-assistant.py to install skills, rules,
+hooks, and commands (do not copy hooks.json by hand), verify the install,
 then run the personalisation wizard. Default my initiatives folder to
 ~/.cursor/initiatives. When setup finishes, help me with MCP / Runlayer
 connections and offer to set up my workboard or start my first initiative.
@@ -157,6 +158,7 @@ rules/                        # Always-on routing, sync gates, todo capture
 commands/                     # Slash command stubs
 tools/upgrade-ba-assistant.*  # Safe full upgrade
 tools/upgrade-workboard.*     # Workboard capability overlay only
+tests/run_all.py              # Package tests (repo only, not installed)
 dist/ba-workboard-overlay.zip # Friend handoff package
 VERSION                       # 14
 CHANGELOG.md
@@ -164,3 +166,11 @@ SETUP.md
 ```
 
 `_workstream/` is created under `~/.cursor/` on first use (not committed).
+
+## Tests (for people changing this repo)
+
+```
+python3 tests/run_all.py      # Windows: py tests/run_all.py
+```
+
+Runs the Jira DoR gate, hook, and package consistency checks. They are not installed and never run while a BA uses the assistant, so they cost no tokens in normal use.

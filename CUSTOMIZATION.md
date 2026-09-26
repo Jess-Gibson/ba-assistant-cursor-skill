@@ -97,14 +97,16 @@ material only and is not loaded during `SKILL.md` Step 1 bootstrap.
 
 ### Session init hook
 
-The `session-init` hook finds your most recent `SESSION-CONTEXT.md` on session start. Configure it by setting:
+On session start the `session-init` hook looks for initiatives (folders with a `SESSION-CONTEXT.md`) and decides whether it can name the one this chat is for:
 
-- `BA_INITIATIVES_ROOT` — the root folder where your initiative/project folders live
-- The hook searches for `SESSION-CONTEXT.md` files under this root
+- The open workspace is one initiative's folder, or only one initiative exists: it injects that initiative's context.
+- Otherwise it lists the initiatives and the assistant asks which one. It never assumes the most recently modified one.
+
+It reads `paths.initiativesRoot` and `paths.downloadsPath` from `ba-assistant-config.mdc` (what `/setup` writes). `BA_INITIATIVES_ROOT` and `BA_DOWNLOADS_PATH` env vars override them if you set them. Its open-action count comes from `_workstream/ba-actions.json`.
 
 ### Snapshot hook
 
-The `snapshot-before-compact` hook backs up your SESSION-CONTEXT.md before Cursor compacts the conversation. No configuration needed — it uses the path set by the session init hook.
+The `snapshot-before-compact` hook backs up your SESSION-CONTEXT.md before Cursor compacts the conversation. No configuration needed. It uses the initiative the session init hook named; if none was named, it does nothing.
 
 ---
 

@@ -2,6 +2,19 @@
 
 ## Version 14 - 2026-09-25
 
+### Version 14 tight fix set
+
+- **Which initiative (P1):** session start no longer treats the newest `SESSION-CONTEXT.md` as this chat's initiative. It names one only when the open workspace is that initiative's folder or only one exists; otherwise it lists them and the assistant asks. No drafting or writing against a guessed initiative. The stop reminder and pre-compact snapshot do nothing without a named initiative. With none named, the Jira DoR gate checks every initiative.
+- **BA actions only (P2):** debrief's approve path writes `_workstream/ba-actions.json` (never `workboard.json → personal_tasks[]`); the session banner counts open BA actions from `ba-actions.json`.
+- **Jira create (P3):** draft → BA reviews → **Create in Jira** → create via Runlayer. No create before approval. No dependency on an unshipped `jira-templates` skill (optional formatting only).
+- **Schema check (P4):** internal checklist in `ba-story-writing` replaces the unshipped `Schema_Field_Validator`; warn and confirm, never block on a missing skill.
+- **Stop reminder (P5):** comments no longer claim a per-prompt injection; still off unless `stopFollowup: true`.
+- **Downloads (P6):** session start scans `paths.downloadsPath` from `/setup` (env var overrides) plus `~/Downloads`.
+- **Your settings are used:** `execution-router.mdc` maps every placeholder (`[BA name]`, `PROJ`, Jira/Confluence site, paths, domain) to the `/setup` values. New-initiative and intake pre-fill Jira/Confluence from config; research starts from `domainDocs`. Setup now asks for domain docs. Fixed the workboard canvas and calendar EOD scripts reading the wrong config keys and keeping the trailing comment in `name`.
+- **Housekeeping:** user guide skill and command inventory matches the package; dangling names removed (`slash-commands-ux.md`, `agent-memory`, `mcps/`, `/summary`, old status publisher); shared-repo guard compares folders, not string prefixes; resume read order lives only in `SKILL.md` Step 2.
+- **Recheck fixes:** one initiative reached through two roots (`initiatives/` and `Initiatives/` on a case-insensitive Mac disk) now counts once, so the single-initiative case no longer asks. Shared-repo guard shell mode checks the folder the git command runs in (cwd, `cd`, `git -C`), not whether the command text mentions the repo path. User guide no longer claims a skill count.
+- **Tests:** `python3 tests/run_all.py` runs the DoR gate, hook, and package consistency suites. Repo only: never installed, never run while you use the assistant.
+
 ### Orchestrator slim (cost, same working relationship)
 
 - Replaced the 800-line `SKILL.md` ceremony (welcome panel, draft-depth quiz, inline Phase 0 checklist, duplicated learnings/standards/workstreams essays, auto-canvas) with a ~90-line router plus a 5-bullet working-relationship contract.
@@ -22,7 +35,7 @@
 
 **If you already installed:** the upgrader never overwrites your `~/.cursor/rules/ba-profile.mdc`, so edit two rows in its commands table by hand (or copy just those rows from the package's `rules/ba-profile.mdc`):
 - `/wrap`: "Chat checkpoint only. Capture this chat into session context and the tracker. No workboard refresh."
-- `/validate-state`: it now writes what this chat captured into the initiative files and `ba-actions`. It is no longer a read-only report.
+- `/validate-state`: "Check this whole chat against the initiative files, write anything missing (`SESSION-CONTEXT.md`, tracker, `status-data.json` where they exist, and this chat's BA actions in `ba-actions.json`), then confirm a new chat can pick up." It is no longer a read-only report.
 
 - **Jira DoR gate:** Story creates through Runlayer's `execute_tool` (for example `createJiraIssue`) are now checked, not waved through. The gate reads the final `result` of a DoR check, so a story that failed once and then passed is no longer blocked. It also reads the flat `issueTypeName` field, so a Bug that mentions a story is not blocked. If Python is missing, MCP calls are allowed instead of all being blocked. 7 new test cases (20 in total).
 - **DoR writer:** `ba-story-writing` now writes `status-data.json → dorChecks` (`storyTitle`, `storyKey` if known, `result`) at the same time as the tracker register. It no longer relies on a `DoR: PASS` stamp in the Jira description.
@@ -34,6 +47,15 @@
 - **Skills:** every sub-skill has `name`, `description`, and `disable-model-invocation: true`, so they no longer jump into a chat on their own. The orchestrator and slash commands still open them. The personal config template is always-on (`alwaysApply: true`).
 - **Commands** use `~/.cursor/skills/ba-assistant/...` paths. `/reanchor` and bootstrap no longer read all of `hook-contracts.md`.
 - Removed leftover personal product and team names from examples. Two new conformance checks: a mail script that is referenced but missing, and command paths without `~/.cursor/`.
+
+### Version 14 re-review follow-ups
+
+- `/validate-state` now walks the whole chat, writes anything missing, re-reads the files, and ends with "Safe to start a new chat: yes/no".
+- Jira DoR gate: when the active initiative is known, only its own DoR passes count (a same-titled pass in another initiative no longer lets a Story through). New test case (21 in total).
+- Removed the `beforeSubmitPrompt` hook: Cursor ignores its output. Install and upgrade remove the old entry from existing `hooks.json` files.
+- Install prompts now say to run `tools/install-ba-assistant.py` rather than copy files by hand (a hand-copied `hooks.json` has the wrong Python command).
+- Sync gates point at `references/canonical-ownership.md`; diagram routing points at `references/visual-output-format.md` instead of the retired visual-storytelling folder.
+- Conformance check no longer warns about missing sub-skill counts in `SKILL.md` (0 FAIL, 0 WARN).
 
 ## Version 13 - 2026-09-25
 

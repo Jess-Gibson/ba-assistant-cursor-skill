@@ -146,9 +146,9 @@ interviewed.
 
 Capture:
 
-- **Jira project key**  -  e.g. PROJ, SW
+- **Jira project key**  -  default `jira.projectKey` from `ba-assistant-config.mdc`; confirm, don't ask blank
 - **Jira template story** (optional)  -  paste a key (e.g. `PROJ-XXXX`) to use its structure as the template for new stories, or "use most recent" to pick the project's latest, or "skip" (ask again at Delivery Definition). Stored as `initiative.jiraTemplateKey`.
-- **Confluence space + parent page**  -  record page IDs in `confluence-pages.json`
+- **Confluence space + parent page**  -  default `confluence.spaceKey` / `confluence.parentPageUrl` from config; record page IDs in `confluence-pages.json`
 - **All-in-one / intake doc link**  -  Confluence URL, PM brief, BRD, PRD, or pasted text
 - **Repositories**  -  if technical
 - **Slack / Teams channel**  -  where initiative comms happen

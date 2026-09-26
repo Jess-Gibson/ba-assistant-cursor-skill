@@ -23,23 +23,20 @@ Load BA skills **only** from `~/.cursor/skills/ba-assistant/` (or this package's
 |-------|---------|---------------------------|------|
 | **BA-resume** | continue, resume, #2, initiative name, Sample Initiative/NP, `/next` `/status` | `SESSION-CONTEXT.md`, `initiative-tracker.md`, `Project-hub.md` | Run `SKILL.md` Step 2 (resume / `/reanchor`). **Act on the recommended next action**, do not status-dump only. No welcome panel. |
 | **BA-new** | new initiative, Phase 0, intake | `instructions.md` only | Run `ba-new-initiative`, then `SKILL.md` Step 3 (Intake Reviewer). No welcome panel, no draft-depth quiz, no automatic canvas. |
-| **Sync/publish-risk** | sync, push, team repo, harness, `/sync-team-repo` | `TEAM-REPO-HANDOFF.md` (**no bundled `sync-team-repo` skill** — see CUSTOMIZATION.md §11 to build one) | Present file table. **No write/push until "sync now"** (see Harness sync path below) |
-| **BA-tooling** | improve BA assistant, new skill/sub-skill/rule/command/hook, workboard package, "for another BA", change routing/orchestrator, edit `ba-assistant-cursor-skill` skills/rules/commands | `local-first packaging rule (if installed)` (always on — re-read if unsure) | **Edit `~/.cursor/` first.** No writes to `ba-assistant-cursor-skill/skills|rules|commands|hooks` until local exists and [BA name] has confirmed sync (packaging zips are distribution only — see that rule). |
+| **Publish-risk** | hand to devs, publish to the team/delivery repo, push analysis to a shared repo, `/handover` | Route via `skills-routing.mdc` to `ba-dev-handover` | Publish confirmed analysis only. **No write/push until the user explicitly says to** (see Publish guard below). Plain "sync" is not this class: it means `/wrap`, Jira/Confluence status (`ba-jira-sync`, `/publish-status`), or `/validate-state`. Ask once if unclear. |
+| **BA-tooling** | improve BA assistant, new skill/sub-skill/rule/command/hook, workboard package, "for another BA", change routing/orchestrator, edit `ba-assistant-cursor-skill` skills/rules/commands | `local-first packaging rule (if installed)` (always on — re-read if unsure) | **Edit `~/.cursor/` first.** No writes to `ba-assistant-cursor-skill/skills|rules|commands|hooks` until local exists and the BA has confirmed the change (packaging zips are distribution only — see that rule). |
 | **Non-BA** | debug code, syntax, generic explain | Project README/AGENTS only | Skip BA orchestrator |
 | **Ambiguous** | "help me think through something", short message either way | — | Ask once via AskQuestion: BA Assistant (recommended) / Quick chat / Specific skill. "Quick chat" = orchestrator stays off for the thread. |
 | **End-of-session** | wrap up, close out, done for tonight | `SESSION-CONTEXT.md` (tail) | Load **ba-retrospective-and-learning**: Type 1 default; Type 2 if tooling/process failure this session. Update session log. |
 
 Also classify the **activity** (Frame / Discover / Shape / Deliver / Run — see `references/activity-map.md`). Do not print model-tier nudges (Auto-balance handles model selection).
 
-### Harness sync path (publish-risk, mandatory steps)
+### Publish guard (publish-risk)
 
-1. Read `TEAM-REPO-HANDOFF.md`
-2. List every file with action: share | exclude | update-first
-3. Hash-compare modified files against local master
-4. Explicit **"sync now"** from user
-5. Do not push until the user explicitly says to. The shared-repo guard protects against working-file leaks on commit/push; no harness-sync hook or override variable exists.
-
-Bulk copy (`Copy-Item -Recurse`, copying whole folders) to the harness is **forbidden** — sync file-by-file with review.
+1. Publishing to devs goes through `ba-dev-handover` only. It never publishes unconfirmed work.
+2. Do not write or push to a shared repo until the user explicitly says to.
+3. No bulk copy of working notes (`Copy-Item -Recurse`, whole-folder copies) to a shared or team repo. Publish selected confirmed artefacts file by file with review.
+4. When `BA_SHARED_REPO_ROOT` is set, the shared-repo guard hook still applies on commit/push.
 
 ### Mid-thread opt-out
 
@@ -66,7 +63,7 @@ The Anti-Pattern Detector flags drift symptoms and offers `/reanchor` proactivel
 - AskQuestion is used **when it helps the user decide or move** (see agent-behavior), not on every reply.
 - If the user **already answered** the same decision this thread, do not re-ask — offer next-step options only.
 - If AskQuestion times out or fails, proceed from the transcript and state what you are doing.
-- If the user said "sync now" or chose sync in a prior answer, execute — do not ask again.
+- If the user already said to publish or push (or chose it in a prior answer), execute — do not ask again.
 
 ## 5. Continuous monitors (every BA turn, silent unless triggered)
 

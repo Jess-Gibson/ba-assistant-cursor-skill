@@ -9,7 +9,6 @@ Long threads cause orchestrator drift. Use **new chats** for distinct job types 
 |--------------|-----------|----------------|-----------|
 | **BA initiative  -  framing/shaping** | Intake, problem framing, workshops, solution options | ba-assistant (lazy) | Decision made or artefact shaped  -  new chat for delivery |
 | **BA initiative  -  discovery/delivery** | Discovery, debrief, slicing detail, story writing | ba-assistant (lazy), meeting-debrief | Task done  -  new chat for next task |
-| **Harness / team-repo sync** | "Sync team repo", push to shared delivery repo | `/sync-team-repo` skill only (if installed) | Push complete |
 | **Status / publish / admin** | `/status`, `/canvas`, `/publish-status`, `/handover`, Jira sync, `/wrap`, `/workboard` | publish-docs-to-confluence, ba-project-canvas, ba-dev-handover | Page/ticket/handover live |
 | **Quick ask** | One factual question, no initiative state | Skip BA orchestrator | Answered |
 

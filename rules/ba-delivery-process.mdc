@@ -14,8 +14,8 @@ When a task is **BA-heavy** (discovery, requirements, Confluence/Jira, analysis,
 1. **Context first** — Prefer project `AGENTS.md` and linked knowledge; keep them updated when decisions land.  
 2. **Declarative work** — State goals, inputs, and outputs; avoid prescribing implementation before requirements are clear.  
 3. **Stop for human approval** — After discovery summaries, problem definitions, **implementation plans**, prototype reviews, and before destructive or high-risk actions: pause for explicit confirmation (aligns with existing guardrails).  
-4. **Plan then execute** — For multi-step or structural work, produce and get agreement on a plan before large edits (no bundled planning skill ships in this package — see `CUSTOMIZATION.md` §11 if you want one).
-5. **Iterative prototypes** — For exploratory build work, run small cycles and verify assumptions (no bundled prototyping skill ships in this package — see `CUSTOMIZATION.md` §11).
+4. **Plan then execute** — For multi-step or structural work, produce and get agreement on a plan before large edits.
+5. **Iterative spikes** — This package is analysis, not a coded build-and-verify loop. When something needs building to learn, raise a spike request through `/handover` (`ba-dev-handover`).
 6. **Second-order thinking** — Ask what system caused an issue, what dependencies exist, and whether assumptions are explicit (as documented in ba-profile.mdc).  
 7. **Citations** — When using external research, cite sources.  
 8. **Least privilege** — Subagents/tools only as needed; research vs write separation where possible.
@@ -26,7 +26,7 @@ When a task is **BA-heavy** (discovery, requirements, Confluence/Jira, analysis,
 | --- | --- |
 | 1 Discovery & scoping | Brief, research, stakeholders, elicitation, prioritised requirements **→ user review before deep analysis** |
 | 2 Problem analysis | Root cause, dependencies, data validation, risks **→ user approval** |
-| 3 Solution design | Decomposition, **approved plan** before code, prototype loop, Jira/Confluence, early QA on design |
+| 3 Solution design | Decomposition, **approved plan** before code, spikes via `/handover`, Jira/Confluence, early QA on design |
 | 4 Quality & delivery | Gates, human sign-off, documentation updates, deploy/monitor with regression awareness |
 | 5 Retrospective | Lessons learned, propose skill/agent updates, update context files |
 
@@ -39,22 +39,22 @@ When a task is **BA-heavy** (discovery, requirements, Confluence/Jira, analysis,
 - **Context resets** on long or task switches; summarise state; use subagents to reduce bleed.  
 - **Security/privacy** — no plain-text secrets; anonymise where appropriate for analysis.
 
-## Workspace skill mapping (what's actually bundled vs. build-your-own)
+## Workspace skill mapping
 
-Route using [.cursor/rules/skills-routing.mdc](skills-routing.mdc) and `.cursor/skills/`. What ships in this package versus what you'd need to build yourself:
+Route using [.cursor/rules/skills-routing.mdc](skills-routing.mdc) and `.cursor/skills/`. What ships in this package:
 
 - Requirement / AC / discovery → bundled: `ba-assistant/sub-skills/ba-discovery-and-requirements`, `ba-assistant/sub-skills/ba-requirements-interrogator`
-- Diagrams / flows → not bundled (see `CUSTOMIZATION.md` §11)
+- Diagrams / flows → bundled: `ba-assistant/sub-skills/ba-visual-storytelling`, interactive HTML flowchart (`references/visual-output-format.md` + `references/templates/flowchart.html`)
 - Confluence → bundled: `publish-docs-to-confluence` (read its `references/confluence-workflow.md` first)
-- Jira (project-specific patterns) → not bundled as a template skill (`CUSTOMIZATION.md` §11 / §5) — but ticket status sync ships as `ba-assistant/sub-skills/ba-jira-sync`
-- Data / metrics / narrative → bundled: `ba-assistant/sub-skills/ba-data-investigation`
-- Prototyping → not bundled (see `CUSTOMIZATION.md` §11)
-- Quality review of requirements or design → bundled: `ba-assistant/sub-skills/ba-requirements-interrogator`, `ba-assistant/sub-skills/ba-state-validator` (see `CUSTOMIZATION.md` §11 if you want a separate standalone checker)
-- PRD structure → not bundled (see `CUSTOMIZATION.md` §11)
-- Multi-step delivery plans → not bundled (see `CUSTOMIZATION.md` §11)
+- Jira (project-specific patterns) → your own `[your-jira-templates]` (`CUSTOMIZATION.md` §5, §11); ticket status sync ships as `ba-assistant/sub-skills/ba-jira-sync`
+- Data / metrics / narrative → bundled: `ba-assistant/sub-skills/ba-data-investigation` (the only data skill)
+- Spikes / proofs of concept → spike request via `ba-assistant/sub-skills/ba-dev-handover`
+- Quality review of requirements or design → bundled: `ba-assistant/sub-skills/ba-requirements-interrogator`, `ba-assistant/sub-skills/ba-state-validator`, plus `/validate-state` and the `ba-dev-handover` gates
+- Existing PRD / BRD / all-in-one docs → input to `ba-assistant/sub-skills/ba-intake-reviewer`; requirements live in the unified register (`references/requirements-register-unified-template.md`)
+- Handover to devs → `ba-assistant/sub-skills/ba-dev-handover`
 
 If none of the bundled sub-skills fit, the **default agent** should still follow the same **phases, gates, and DoD** described above.
 
 ## MCP
 
-Use configured MCPs (Jira, Confluence, Sumo, Snowflake, etc.) per `skills/ba-assistant/references/workspace-operations.md` and the user's environment; verify access when the runbook calls for a "blocking check".
+Use the BA's configured MCPs (typically Jira and Confluence, plus optional Glean or Outlook, via Runlayer) per `skills/ba-assistant/references/workspace-operations.md` and the user's environment; verify access when the runbook calls for a "blocking check".

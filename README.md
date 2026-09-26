@@ -63,7 +63,7 @@ The table above uses friendly phase names as a quick skills index. Day-to-day ro
 | `/canvas` | Generate/refresh the interactive project dashboard |
 | `/report` | Full structured deep-dive report |
 | `/validate-state` | Mid-session drift check (read-only) |
-| `/wrap` | End-of-session closeout — promote, sync BA actions, refresh workboard |
+| `/wrap` | Chat-scoped checkpoint — capture, promote, sync BA actions changed in this chat (workboard refresh is `/workboard end-of-day`) |
 | `/workboard` | Cross-initiative dashboard |
 | `/todo` | Quick-capture into `ba-actions.json` |
 | `/fast-track` | Condensed BA flow for time-critical initiatives |

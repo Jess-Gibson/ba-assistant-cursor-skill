@@ -95,8 +95,8 @@ If neither applies, skip this skill. Resuming an existing initiative never runs 
    which sources to read in full.
 
    **Regulator gate (mandatory):** if the work touches a regulator or regulatory
-   framework ([regulator], APRA, ACCC, ASIC, OAIC, ATO, AusPayNet, AML/CTF, Privacy
-   Act / APP, CDR, PCI DSS, GDPR, PSD2/PSD3, CCPA, or cues like "regulatory mandate",
+   framework ([regulator], the regulators/standards configured for your jurisdiction
+   per CUSTOMIZATION.md §6, common standards such as PCI DSS, GDPR, PSD2/PSD3, CCPA, or cues like "regulatory mandate",
    "interchange reform", "compliance deadline"), web search is mandatory regardless
    of complexity. Read the regulator's own publication directly, internal Confluence
    summaries are secondary evidence. If WebSearch isn't available, do not proceed

@@ -92,7 +92,7 @@ Every time the orchestrator delegates to a sub-skill, you'll see a header like:
 ```
 > Running: Intake Reviewer → extracting context, building living tracker
 > Running: Requirements Interrogator (Discovery workstream) → problem statement
-> Running: Project Canvas → generating initial 8-tab canvas + HTML snapshot
+> Running: Project Canvas → refreshing 8-tab canvas + HTML snapshot (only when you run /canvas or /status)
 ✓ Intake Reviewer complete  -  3 unknowns logged, complexity = standard
 ```
 
@@ -117,8 +117,8 @@ Slash commands trigger orchestrator-driven flows. Type the slash in chat; if Cur
 | `/reanchor` | Re-read the orchestrator and active project state files. Use when a long thread has drifted  -  skills not firing, status headers missing, workstream model forgotten |
 | `/audit-standards` | Run a conformance check against all reference standards across the live initiative. Reports artefacts that don't conform |
 | `/validate-state` | Mid-session drift report (read-only). Diffs SESSION-CONTEXT vs tracker, checks status-data.json, flags stale Confluence pages, optional Jira delta. Offers fix options but does not auto-write |
-| `/wrap` | End-of-session closeout. Runs `/validate-state` first, then promotes unpromoted items to tracker, refreshes workboard, suggests starting a new chat |
-| `/workboard` | Cross-initiative priorities view. Shows all initiatives, top tasks, today's meetings, sync status |
+| `/wrap` | Chat-scoped checkpoint. Captures this thread's decisions, actions, and outputs, promotes its unpromoted items to the tracker, syncs BA actions changed in this chat, and checkpoints SESSION-CONTEXT. Does not refresh the workboard or reconcile the calendar (that is `/workboard end-of-day`) |
+| `/workboard` | Cross-initiative priorities view. Shows all initiatives, top tasks, today's meetings, sync status. `/workboard end-of-day` is the daily closeout (calendar reconcile, full action runthrough, workboard refresh) |
 
 **Note on Cursor slash menus:** Cursor uses `AskQuestion` with clickable options for decision points (not a separate persistent chip row above the input). Slash commands may or may not appear in the autocomplete menu  -  typing the command word in chat always works because the orchestrator honours them. See `slash-commands-ux.md` for documented patterns.
 
@@ -528,7 +528,7 @@ These get surfaced in `/snapshot` and especially in `/retro` outputs.
 - **Ask for visuals early.** A diagram surfaces dependencies that text hides.
 - **Pay attention to surfaced learnings.** When the assistant says "Learning from previous initiatives...", it's drawing from real patterns  -  consider whether it applies before dismissing.
 - **Run `/validate-state` when you're unsure.** It's read-only and fast  -  tells you if anything has drifted without changing anything.
-- **Use `/wrap` at the end of every session.** It promotes tentative decisions to the tracker, catches unpromoted items, and suggests a fresh chat for the next task.
+- **Use `/wrap` at the end of every chat thread.** It promotes this thread's tentative decisions to the tracker and catches unpromoted items. Run `/workboard end-of-day` once a day for the cross-initiative closeout.
 
 ---
 
@@ -541,7 +541,7 @@ Requirements and scope evolve. When they do:
 - **A stakeholder is surprised?** That's a signal Stakeholder Strategy and Playback need to be refreshed. Update the engagement plan.
 - **A workstream completed for one scope but not another?** That's fine  -  that's dual-track. Just keep the workstream tracker honest. The canvas will show it visually.
 
-- **Something feels out of sync?** Run `/validate-state` for a read-only drift report. It diffs SESSION-CONTEXT vs tracker, checks status-data.json, and flags stale Confluence pages. Run `/wrap` at the end of a session to fix all drift and close out cleanly.
+- **Something feels out of sync?** Run `/validate-state` for a read-only drift report. It diffs SESSION-CONTEXT vs tracker, checks status-data.json, and flags stale Confluence pages. Run `/wrap` to promote what this chat changed, or `/workboard end-of-day` for the daily cross-initiative sweep.
 
 The Assistant doesn't expect a clean linear flow. It expects change.
 

@@ -48,12 +48,12 @@ Before changing a frozen artefact:
 
 Do not treat a general instruction to continue, tidy, reconcile, or publish as approval to alter frozen content. This rule applies to local drafts and published material. A direct request to change a named frozen artefact still requires the diff and an explicit approval to apply it.
 
-## Critical context ([BA name])
+## Critical context (the BA)
 
-- **Not a developer** — can understand concepts but lacks instincts for spotting risky commands or anti-patterns
-- **May approve things she shouldn't** — if something is destructive or unusual, explain risks BEFORE executing, even if already approved
-- **Learns by doing** — uses Cursor for PM documentation, prototyping, exploring codebases, validating ideas (not shipping production code)
-- **You are the guardrails** — flag what she doesn't know she doesn't know
+- **Assume BA, not engineering, instincts** — the BA understands concepts but may not spot risky commands or anti-patterns
+- **Approval is not risk awareness** — if something is destructive or unusual, explain risks BEFORE executing, even if already approved
+- **Analysis, not production code** — Cursor is used for documentation, analysis, exploring codebases, and validating ideas
+- **You are the guardrails** — flag what the BA may not know they don't know
 
 ## Interaction style
 
@@ -63,7 +63,7 @@ Do not treat a general instruction to continue, tidy, reconcile, or publish as a
 - **Verify before assuming** — ask rather than guess; back up claims; simple over clever
 - **Prefer bullet points over paragraphs in summaries and status updates** — nested bullets for sub-items; paragraphs for narrative explanation only
 - **No em dashes in external-facing content.** Written guidance only, not hook-enforced in this package (no `em-dash-guard.py` script ships, and there is no separate `no-em-dashes.mdc` rule file). Do not use the Unicode em dash character in content another person will read or the BA will copy into email, Slack, Teams, Jira, Confluence, Miro, stakeholder status pages, stakeholder Markdown, or other external surfaces. Use commas, full stops, colons, parentheses, or a new sentence instead. Ordinary chat with the BA and internal working files, session notes, and trackers are exempt. Hyphens in compound words (e.g. go-to-market) are fine.
-- **"Propose" means present, not act** — when [BA name] says "propose", "suggest", or "recommend", present the options and STOP. Wait for explicit "do it", "go ahead", "yes" before acting. Applies to file deletions, moves, renames, and any destructive or structural change.
+- **"Propose" means present, not act** — when the BA says "propose", "suggest", or "recommend", present the options and STOP. Wait for explicit "do it", "go ahead", "yes" before acting. Applies to file deletions, moves, renames, and any destructive or structural change.
 
 ## Gate visibility (default-deny for reasoning gates)
 

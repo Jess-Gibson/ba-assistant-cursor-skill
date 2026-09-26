@@ -15,18 +15,12 @@ When a task matches an intent below, **open and follow** the corresponding skill
 
 | Intent | Canonical skill folder | Notes |
 |--------|-------------------------|--------|
-| Diagrams, flows, architecture, journeys, "draw this" (general Mermaid work, beyond the HTML flowchart row below) | *(not bundled — see CUSTOMIZATION.md §11)* | Build your own; Confluence publish still goes to `publish-docs-to-confluence` |
 | "interactive HTML flowchart", "clickable flow diagram", "HTML diagram I can send to stakeholders", "interactive process flow" | `ba-assistant` reference: `references/visual-output-format.md` (§5, §9, §14) + `references/templates/flowchart.html` | Produce an interactive HTML flowchart from the template — design system and detail panel stay as-is; replace header, stats, nodes, edges, and the nodes JS object with real content. Save to `<initiative-folder>/visuals/<slug>.html`. |
 | Draft email, Slack, Teams, Confluence copy in the BA's voice | `[your-voice-and-style rule]` (create your own per CUSTOMIZATION.md) | Load your voice rule when drafting comms or stakeholder-facing prose |
 | Stakeholder `.md` (enablement, comms, debriefs, outputs) | `markdown-readability` rule + ref | Load `rules/markdown-readability.mdc` + `ba-assistant/references/markdown-readability.md` |
 | Confluence publish/update/wiki/docs | `publish-docs-to-confluence` | Read `mcps/` schemas first |
-| Batch sync Confluence from repo Markdown (`confluence-pages.json`, dry-run / `--only`) | *(not bundled — see CUSTOMIZATION.md §11)* | Build your own CLI in your workspace `tools/` directory; use `publish-docs-to-confluence` for one-off MCP pages |
-| Data analysis, metrics, queries, synthesis of findings | *(not bundled — see CUSTOMIZATION.md §11)* | Build your own; nearest bundled analogue is `ba-assistant/sub-skills/ba-data-investigation` |
-| Jira [YOUR-PROJECT] on [your-instance]: Bug / Story / Spike create or format | `[your-jira-templates]` (create your own — see CUSTOMIZATION.md §2, §5, §11) | Read example issues from your project via MCP first; see `references/jira-ticket-format.md` for the generic template structure |
-| Jira production analytics (root-cause charts, problem-card deep-dive) | *(not bundled — see CUSTOMIZATION.md §11)* | Build your own; no mode A/B ships in this package |
-| Sumo logs, troubleshoot production, post-release regression watch | *(not bundled — see CUSTOMIZATION.md §11)* | Build your own; no `sumo-knowledge.md` ships in this package |
-| Full PRD (All-in-One format) | *(not bundled — see CUSTOMIZATION.md §11)* | Build your own; distinct from the requirements-register shape BA Assistant already produces |
-| Creative feature work before implementation | *(not bundled — see CUSTOMIZATION.md §11)* | Check whether your AI environment already ships a generic brainstorming skill before building a BA-specific one |
+| Data analysis, metrics, queries, evidence for a requirement or rating, synthesis of findings | `ba-assistant/sub-skills/ba-data-investigation` | The only data skill in this package. Uses whatever data MCPs the BA has configured. |
+| Jira [YOUR-PROJECT] on [your-instance]: Bug / Story / Spike create or format | `[your-jira-templates]` (create your own — see CUSTOMIZATION.md §2, §5) | Read example issues from your project via MCP first; see `references/jira-ticket-format.md` for the generic template structure |
 | **BA Assistant**, `/ba-assistant`, initiative lifecycle (intake → playback), `/next` `/status` `/report` `/publish-status` | `ba-assistant` | Orchestrator for BA workspaces. Reads specialist `ba-*` skills by path. End with **AskQuestion** at genuine decision points (see agent-behavior); Confluence **read-only** unless user asks to publish |
 | Install BA Assistant from GitHub URL, "set up the BA skill package", `/install-ba-assistant` | `ba-assistant/sub-skills/ba-install` | Then hand off to `ba-setup`. File copy is required before personalisation. |
 | `/setup`, "reconfigure BA assistant", first-run personalisation | `ba-assistant/sub-skills/ba-setup` | Writes `ba-assistant-config.mdc`; free-text in chat, not AskQuestion chips |

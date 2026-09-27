@@ -126,8 +126,8 @@ Follow `references/jira-ticket-format.md` §2g and §9. In short:
 1. Draft every ticket in chat (or a file if the ADF is long) for the BA to review.
 2. AskQuestion: **Create in Jira** / **Edit first** / **Not yet**. No create call before **Create in Jira**.
 3. Create through Runlayer (`references/runlayer-atlassian-mcp.md`: `execute_tool` → `createJiraIssue`; `search_tools` if the schema is unclear). No custom skill is needed.
-4. Stories must have a DoR pass in `status-data.json → dorChecks` first (task 3b below); the `jira-dor-gate` hook blocks the create otherwise. Spikes, bugs, and enablers are not gated.
-5. Write the new keys back to the tracker and `dorChecks.storyKey`.
+4. Stories: run `python3 ~/.cursor/_workstream/dor-check.py --initiative <slug> --title "<summary>" --description-file <draft> --record` first (task 3b below) and show the result. At create time the `external-write-gate` hook re-runs the same check and Cursor asks the BA: "DoR met", or "DoR not met: <missing>. Approve to create anyway as a BA override." Spikes, bugs, and enablers get the normal Jira approval, no DoR check.
+5. If the BA approved a Story whose DoR was not met, record the override as a decision row in the tracker (D-NNN: who, date, story, missing criteria). Write the new keys back to the tracker and `dorChecks.storyKey` (`dor-check.py --key <KEY> --record`).
 
 If Jira is not connected, hand over the approved drafts as copy-paste text.
 
@@ -152,7 +152,7 @@ This section absorbs the former `ba-definition-of-ready` skill. DoR is the gate 
 
 The Definition of Ready ensures that each epic or story in the backlog meets a clear set of criteria before development begins. It verifies that requirements are understood, dependencies are known, acceptance criteria are defined, risks are logged, MoSCoW rating is captured (warn-and-flag), and necessary sign-offs are obtained. DoR acts as a gatekeeper to reduce churn during development and to give engineering teams confidence that work is actionable.
 
-**Where results land:** in the same step, write the result to the tracker's DoR checks register (`references/raid-format.md § Tracker-owned structured registers`) **and** upsert the matching row in `status-data.json → dorChecks`: `storyTitle` (exactly as it will be sent to Jira as the summary), `storyKey` if one already exists, `firstAttempt` (first run only), and `result` (`pass` | `partial` | `fail`, the latest outcome). Do not wait for a canvas refresh. The `jira-dor-gate` hook reads `dorChecks` when the Story is created.
+**Who decides a pass:** a script, not you. `_workstream/dor-check.py` computes readiness from the files every time: a linked requirement that is interrogated or confirmed in the register, Given/When/Then ACs, dependencies listed (even "None"), MoSCoW set for the story's scope, and risks logged (even "None identified"). Never write a `result: pass` row by hand. `--record` writes the row in `status-data.json → dorChecks` for the metrics; write the outcome to the tracker's DoR checks register (`references/raid-format.md § Tracker-owned structured registers`) as well. The hook never reads `dorChecks`: it recomputes.
 
 ### DoR tasks
 
@@ -162,7 +162,7 @@ The Definition of Ready ensures that each epic or story in the backlog meets a c
 
 3. **Track readiness status**  -  Maintain a readiness status (Ready / Not Ready / Partial) for each story and summarise the reasons for items that are not ready. Communicate this to the orchestrator and delivery planning skills.
 
-3b. **Record the pass where the gate can see it.** The `jira-dor-gate` hook denies Story creation in Jira unless `status-data.json → dorChecks` has a row for this story (matched by key, or by title when there is no key yet) with `result: pass`. It ignores any `DoR: PASS` text in the Jira description. A PM override is recorded as a decision (D-NNN) and a `result: pass` row that references it. Spikes, bugs, and enablers are not gated.
+3b. **Run the check, don't assert it.** `python3 ~/.cursor/_workstream/dor-check.py --initiative <slug> --title "<summary exactly as it will go to Jira>" --description-file <draft> --record` (Windows: `py`). It prints each criterion (PASS / MISS) and `Gate: dor-check: PASS` or `NOT READY (...)`. Fix what you can (add ACs, list dependencies, log risks, get MoSCoW set by the PM), then re-run. What you can't fix is the BA's call: at create time the hook asks them, naming the missing criteria, and their approval is the override. Record an approved override as a decision (D-NNN) in the tracker. A `DoR: PASS` line in the ticket text proves nothing. Spikes, bugs, and enablers are not DoR-checked.
 
 4. **Enforce stop-the-line**  -  If a critical DoR criterion is missing (e.g., legal sign-off), warn that proceeding may cause rework or delay. Let the user decide to proceed at risk, and log that decision in the tracker.
 

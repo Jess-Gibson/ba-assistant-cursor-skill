@@ -51,7 +51,7 @@ These run as scripts from `~/.cursor/hooks.json`, whatever skill is loaded. `cri
 
 | Script | Event | Decides | Output |
 |---|---|---|---|
-| `external-write-gate.py` | `beforeMCPExecution` (`failClosed: true`) | Unwraps Runlayer `execute_tool`. Email send / reply / forward / draft: **deny**. Other external writes (Jira, Confluence, calendar, Miro, Slack/Teams): **ask**. Reads: **allow**. Unknown tool: **ask**. Story creates also run the DoR check; the stricter answer wins. | `permission`, `user_message`, `agent_message`; one line per call in `_workstream/audit-log.jsonl` (tool + decision, no payload) |
+| `external-write-gate.py` | `beforeMCPExecution` (`failClosed: true`) | Unwraps Runlayer `execute_tool`. Email send / reply / forward / draft: **deny**. Other external writes (Jira, Confluence, calendar, Miro, Slack/Teams): **ask**. Reads: **allow**. Unknown tool: **ask**. Story creates (type says "story", or type given only by id) also run `_workstream/dor-check.py`, recomputed from the files (a stored pass is never trusted): met = "DoR met", ask; not met = ask naming the missing criteria (approval is a BA override, logged as a tracker decision). | `permission`, `user_message`, `agent_message`; one line per call in `_workstream/audit-log.jsonl` (tool, decision, DoR outcome and story title for Stories; no other payload) |
 | `shared-repo-guard.py` | `postToolUse` (Write), `beforeShellExecution` | Leak links in `paths.sharedRepoRoot` files: warn on edit, deny git commit/push | `additional_context` / `permission` |
 | `session-init.py` | `sessionStart` | Initiative context, new downloads, counts | `additional_context`, `env` |
 | `snapshot-before-compact.py` | `preCompact` | Disk snapshot of the chat's SESSION-CONTEXT | none |

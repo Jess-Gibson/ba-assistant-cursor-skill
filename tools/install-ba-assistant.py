@@ -245,7 +245,7 @@ def seed_learnings(cursor_home: Path, package: Path, dry_run: bool) -> None:
 
 
 # Script extensions recognised when matching a hook entry's `command` to a
-# package-owned script (e.g. "python ./hooks/jira-dor-gate.py" -> "jira-dor-gate.py").
+# package-owned script (e.g. "python ./hooks/external-write-gate.py" -> "external-write-gate.py").
 HOOK_SCRIPT_EXTENSIONS = (".py", ".ps1", ".sh", ".js", ".cjs", ".mjs")
 
 
@@ -665,6 +665,7 @@ WORKSTREAM_PACKAGE_FILES = (
     "capture.py",
     "validate-state.py",
     "compute-metrics.py",
+    "dor-check.py",
 )
 
 

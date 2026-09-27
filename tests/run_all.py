@@ -2,7 +2,7 @@
 Run every package test in one go. For people changing this repo, before a push.
 
 These never run while a BA uses the assistant: the installer does not copy
-tests/ or hooks/tests/, and no skill, rule, hook or command calls them.
+tests/, and no skill, rule, hook or command calls them.
 
 Run:
     python3 tests/run_all.py      (Windows: py tests/run_all.py)
@@ -13,7 +13,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 SUITES = [
-    REPO / "hooks" / "tests" / "test_jira_dor_gate.py",
+    REPO / "tests" / "test_dor_check.py",
     REPO / "tests" / "test_hooks.py",
     REPO / "tests" / "test_external_write_gate.py",
     REPO / "tests" / "test_package_consistency.py",

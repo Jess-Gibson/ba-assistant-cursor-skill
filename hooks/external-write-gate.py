@@ -15,23 +15,25 @@ This hook unwraps that (as the DoR gate always has), then decides:
 Unknown tool names (no verb we recognise) get "ask": the hook is the safety net
 whatever auto-run setting the BA uses.
 
-Story creates in Jira also go through the DoR check; the stricter of the two
-answers wins (deny > ask > allow) and both messages are shown.
+Story creates in Jira also run the Definition of Ready check
+(_workstream/dor-check.py, recomputed from the initiative files every time; a
+stored pass is never trusted). A Story is still a Jira write, so the BA always
+gets the approval dialog: "DoR met" when every criterion passes, otherwise
+"DoR not met: <missing>. Approve to create anyway as a BA override."
 
-Every decision is appended to ~/.cursor/_workstream/audit-log.jsonl (tool name
-and decision only, never the payload).
+Every decision is appended to ~/.cursor/_workstream/audit-log.jsonl: tool name
+and decision, plus the DoR outcome and story title for Story creates. Never the
+rest of the payload.
 
 Never crashes: hooks.json registers this with failClosed:true, so a crash would
 block every MCP call. Any unexpected error answers "ask".
 """
 import datetime
+import importlib.util
 import json
 import os
 import re
-import subprocess
 import sys
-
-RANK = {"allow": 0, "ask": 1, "deny": 2}
 
 READ_VERBS = {
     "get", "search", "list", "fetch", "read", "query", "lookup", "find", "describe",
@@ -117,23 +119,73 @@ def classify(name):
     return "ask", "unrecognised MCP call"
 
 
-def is_story_create(name):
+def is_issue_create(name):
     return bool(re.search(r"create.{0,12}(jira)?.{0,12}issue|jira.{0,12}create", name, re.I))
 
 
-def dor_decision(raw_stdin):
-    """Run the Story DoR check (same folder) on the original payload."""
-    script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "jira-dor-gate.py")
-    if not os.path.isfile(script):
-        return None
+def _walk(obj, parent=""):
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            yield parent, k, v
+            yield from _walk(v, k.lower())
+    elif isinstance(obj, list):
+        for v in obj:
+            yield from _walk(v, parent)
+
+
+def story_fields(args):
+    """(is_story, summary, description, key). A type that says "story" (Story,
+    User Story) or a type given only by id (we can't tell) counts as a Story;
+    Bug/Task/Spike/Enabler by name do not. No type at all: only a summary that
+    says "story". project.key is never taken as the story's key."""
+    itype, type_seen, summary, key, desc = "", False, "", "", None
+    for parent, k, v in _walk(args):
+        lk = k.lower()
+        if lk in ("issuetype", "issuetypename", "issue_type"):
+            type_seen = True
+            if isinstance(v, dict):
+                itype = str(v.get("name") or "").lower()
+            elif isinstance(v, str):
+                itype = v.lower()
+        elif lk == "summary" and isinstance(v, str) and not summary:
+            summary = v
+        elif lk == "description" and desc is None:
+            desc = v
+        elif lk in ("issueidorkey", "issuekey", "key") and isinstance(v, str) and not key and parent != "project":
+            key = v
+    if itype:
+        is_story = "story" in itype
+    elif type_seen:
+        is_story = True
+    else:
+        is_story = bool(re.search(r"\bstory\b", summary, re.I))
+    return is_story, summary, desc, key
+
+
+def load_dor_check():
+    here = os.path.dirname(os.path.abspath(__file__))
+    for path in (os.path.join(here, "..", "_workstream", "dor-check.py"),
+                 os.path.join(os.path.expanduser("~"), ".cursor", "_workstream", "dor-check.py")):
+        if os.path.isfile(path):
+            spec = importlib.util.spec_from_file_location("ba_dor_check", path)
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            return mod
+    return None
+
+
+def dor_outcome(args):
+    """(outcome dict or None, error text). Never raises."""
     try:
-        proc = subprocess.run([sys.executable, script], input=raw_stdin, capture_output=True,
-                              text=True, timeout=6)
-        return json.loads(proc.stdout.strip().splitlines()[-1])
-    except Exception:
-        return {"permission": "ask",
-                "user_message": "The DoR check could not run. Check the story is ready before approving.",
-                "agent_message": "DoR check failed to run; the BA must decide."}
+        mod = load_dor_check()
+        if mod is None:
+            return None, "dor-check.py is not installed"
+        _, summary, desc, key = story_fields(args)
+        home = mod.Path(os.path.expanduser("~")) / ".cursor"
+        init_dir, _how = mod.locate_initiative(home, summary, key, os.environ.get("CURSOR_SESSION_CONTEXT_PATH", ""))
+        return mod.check_story(init_dir, summary, mod.flatten(desc), key), ""
+    except Exception as exc:
+        return None, f"DoR check error: {exc}"
 
 
 def audit(tool, decision, reason, extra=None):
@@ -178,18 +230,30 @@ def main():
         agent = ("This external write needs the BA's approval in Cursor's dialog. Show the final "
                  "payload in chat before calling it; if the BA declines, do not retry.")
 
-    if decision != "deny" and is_story_create(name):
-        dor = dor_decision(raw)
-        if dor and dor.get("permission") in RANK:
-            if RANK[dor["permission"]] > RANK[decision]:
-                decision = dor["permission"]
-                reason = "DoR gate"
-                user = dor.get("user_message") or user
-                agent = dor.get("agent_message") or agent
-            elif dor.get("user_message"):
-                user = f"{user} {dor['user_message']}".strip()
+    extra = None
+    if decision != "deny" and is_issue_create(name) and story_fields(_args)[0]:
+        outcome, err = dor_outcome(_args)
+        decision = "ask"                       # a Story is a Jira write: the BA always decides
+        if outcome is None:
+            reason = "DoR check could not run"
+            user = f"DoR check couldn't run ({err}). Check the story is ready before approving."
+            agent = "The DoR check could not run; the BA must decide. If they approve, log it as a BA decision."
+            extra = {"dor": "error"}
+        elif outcome["result"] == "pass":
+            reason = "DoR met"
+            user = f"DoR met. BA Assistant wants to create the Story \"{outcome['story']}\" in Jira. Approve to create."
+            extra = {"dor": "pass", "story": outcome["story"]}
+        else:
+            reason = "DoR not met"
+            user = ("DoR not met: " + ", ".join(outcome["missing_labels"]) +
+                    ". Approve to create anyway as a BA override.")
+            agent = ("DoR not met for this Story (" + ", ".join(outcome["missing_labels"]) + "). The BA decides in "
+                     "Cursor's dialog. If they approve, record the override as a decision row in the tracker "
+                     "(who, date, story, missing criteria). If they decline, fix the gaps and re-run "
+                     "_workstream/dor-check.py.")
+            extra = {"dor": "fail", "story": outcome["story"], "missing": outcome["missing"]}
 
-    audit(shown, decision, reason)
+    audit(shown, decision, reason, extra)
     emit(decision, user, agent)
 
 

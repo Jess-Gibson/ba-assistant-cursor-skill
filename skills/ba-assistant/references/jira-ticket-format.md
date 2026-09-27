@@ -94,7 +94,7 @@ No `createJiraIssue` (and no material `editJiraIssue`) until the BA has **seen t
 2. Show the complete draft in chat (or in a file for long ADF): project key, issue type, summary, description, AC, labels, parent/links.
 3. AskQuestion: **Create in Jira** / **Edit first** / **Not yet**.
 4. Only on **Create in Jira**: create through Runlayer (`execute_tool` → `createJiraIssue`; use `search_tools` if the live schema is unclear). Report the new key back.
-5. Stories still need a DoR pass in `status-data.json → dorChecks`; the `jira-dor-gate` hook blocks the create otherwise.
+5. Stories also get the DoR check (`_workstream/dor-check.py`, re-run by the `external-write-gate` hook at create time). Not met: the BA's approval dialog names the missing criteria, and an approval is a BA override to log as a tracker decision.
 
 Approval covers the draft as shown. If anything material changes after approval, show it again and re-ask. Several tickets can be approved in one AskQuestion only if every draft was shown.
 

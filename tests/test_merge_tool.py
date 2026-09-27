@@ -109,8 +109,10 @@ def personalised_layout_scenario(tmp, v14):
     init = cursor / folder / "payments"
     init.mkdir(parents=True)
     (init / "SESSION-CONTEXT.md").write_text("# Payments\n", encoding="utf-8")
-    (init / "status-data.json").write_text(json.dumps({"dorChecks": [
-        {"storyKey": "PROJ-9", "storyTitle": "Export the monthly report", "result": "pass"}]}), encoding="utf-8")
+    (init / "status-data.json").write_text(json.dumps({"stories": [{"title": "Export the monthly report", "scope": "feature_export", "moscow": "must",
+                          "linkedRequirements": ["REQ-1"], "dependsOn": []}],
+             "raid": {"risks": [{"id": "R-1", "title": "Large files time out", "scope": "feature_export"}]}}), encoding="utf-8")
+    (init / "requirements-register.md").write_text("### REQ-1 · Monthly export\n**Status:** Confirmed\n", encoding="utf-8")
     shutil.rmtree(cursor / "initiatives", ignore_errors=True)
     ws = cursor / "_workstream"
     (ws / "sam-actions.json").write_text(json.dumps({"actions": []}), encoding="utf-8")
@@ -210,9 +212,10 @@ def personalised_layout_scenario(tmp, v14):
     payload = tmp / "dor.json"
     payload.write_text(json.dumps({"hook_event_name": "beforeMCPExecution", "tool_name": "createJiraIssue",
                                    "tool_input": json.dumps({"fields": {"summary": "Export the monthly report",
+                                                                        "description": "Given a month with transactions When I export Then I get one CSV row per transaction",
                                                                         "issuetype": {"name": "Story"}}})}), encoding="utf-8")
-    code, out = run([TOOL, "run", "--session", session, "--stdin", payload, "--", PY, stage / "hooks" / "jira-dor-gate.py"], home)
-    check("Layout: DoR gate run in staging finds the recorded pass", '"permission": "allow"' in out, out[-400:])
+    code, out = run([TOOL, "run", "--session", session, "--stdin", payload, "--", PY, stage / "hooks" / "external-write-gate.py"], home)
+    check("Layout: DoR check run in staging finds the ready story", '"permission": "ask"' in out and "DoR met" in out, out[-400:])
     code, out = run([TOOL, "run", "--session", session, "--", PY, stage / "_workstream" / "generate-initiative-snapshots.py"], home)
 
     # Jess's route: no config file, initiatives root written into the renamed profile.

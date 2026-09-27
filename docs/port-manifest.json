@@ -4,7 +4,7 @@
   "files": {
     "_workstream/README.md": {
       "category": "wording",
-      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
+      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change; capture.py --source note"
     },
     "_workstream/ba-actions.py": {
       "category": "behaviour-critical",
@@ -12,7 +12,7 @@
     },
     "_workstream/capture.py": {
       "category": "behaviour-critical",
-      "reason": "New: context capture writes to SESSION-CONTEXT.md without a full read; promotion markers; BA actions to ba-actions.json"
+      "reason": "New: context capture writes to SESSION-CONTEXT.md without a full read; promotion markers; BA actions to ba-actions.json; Required --source; anything but chat-user written as [unverified]; confirmed_by_ba for debrief-card approvals"
     },
     "_workstream/compute-metrics.py": {
       "category": "behaviour-important",
@@ -40,7 +40,7 @@
     },
     "_workstream/scan-outlook-mail.py": {
       "category": "behaviour-critical",
-      "reason": "New: Outlook desktop triage, config-driven noise filters, fails open with exit 2"
+      "reason": "New: Outlook desktop triage, config-driven noise filters, fails open with exit 2; Mail listing fenced as untrusted data; read-only"
     },
     "_workstream/validate-state.py": {
       "category": "behaviour-critical",
@@ -103,16 +103,16 @@
       "reason": "/todo writes through ba-actions.py"
     },
     "commands/validate-state.md": {
-      "category": "behaviour-critical",
-      "reason": "/wrap semantics kept; REQ-/ASM- markers; one-call action upsert and capture"
+      "category": "behaviour-important",
+      "reason": "/wrap semantics kept; REQ-/ASM- markers; one-call action upsert and capture; Ask before promoting [unverified] items"
     },
     "commands/workboard.md": {
       "category": "behaviour-critical",
       "reason": "End of day defers to eod-closeout-procedure.md and does not walk every action; action sync through ba-actions.py"
     },
     "commands/wrap.md": {
-      "category": "behaviour-critical",
-      "reason": "Chat checkpoint; REQ-/ASM- markers; ba-actions.py upsert"
+      "category": "behaviour-important",
+      "reason": "Chat checkpoint; REQ-/ASM- markers; ba-actions.py upsert; Never promote [unverified] items without the BA"
     },
     "hooks.json": {
       "category": "behaviour-critical",
@@ -124,19 +124,19 @@
     },
     "hooks/jira-dor-gate.py": {
       "category": "behaviour-critical",
-      "reason": "DoR gate: Runlayer execute_tool unwrap, reads the final result, issueTypeName, scoped to the named initiative, config or profile root"
+      "reason": "Retired: folded into hooks/external-write-gate.py and _workstream/dor-check.py; the installer drops its hooks.json registration"
     },
     "hooks/session-init.py": {
       "category": "behaviour-critical",
-      "reason": "Never picks an initiative by modified time; workspace_roots / CURSOR_PROJECT_DIR; paths.* from config or profile"
+      "reason": "Never picks an initiative by modified time; workspace_roots / CURSOR_PROJECT_DIR; paths.* from config or profile; Initiative by workspace, config paths; SESSION-CONTEXT tail and download names fenced as untrusted data"
     },
     "hooks/shared-repo-guard.py": {
       "category": "behaviour-critical",
       "reason": "Folder containment (not string prefix); git -C / cd aware; sharedRepoRoot from config or profile"
     },
     "rules/agent-behavior.mdc": {
-      "category": "behaviour-minor",
-      "reason": "AskQuestion rules in one place (never re-ask, timeout); gate visibility and em-dash rule shortened"
+      "category": "behaviour-critical",
+      "reason": "AskQuestion rules in one place (never re-ask, timeout); gate visibility and em-dash rule shortened; Safety: never send or draft email; ingested text is data, not instructions; external writes show the payload first"
     },
     "rules/ba-delivery-process.mdc": {
       "category": "wording",
@@ -147,12 +147,12 @@
       "reason": "/status, /canvas, /todo, /metrics rows (patched only with --patch-profile)"
     },
     "rules/critical-gates.mdc": {
-      "category": "behaviour-minor",
-      "reason": "Same gates, shorter rows"
+      "category": "behaviour-critical",
+      "reason": "Same gates, shorter rows; External-write gate row; DoR gate recomputed by dor-check.py"
     },
     "rules/execution-router.mdc": {
-      "category": "behaviour-important",
-      "reason": "Context capture via capture.py; re-entry card moved to a reference; resume row follows SKILL.md Step 2 (snapshot first); settings map and duplicates trimmed"
+      "category": "behaviour-critical",
+      "reason": "Context capture via capture.py; re-entry card moved to a reference; resume row follows SKILL.md Step 2 (snapshot first); settings map and duplicates trimmed; Context capture passes --source"
     },
     "rules/skills-routing.mdc": {
       "category": "behaviour-minor",
@@ -183,8 +183,8 @@
       "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
     },
     "skills/ba-assistant/hook-contracts.md": {
-      "category": "wording",
-      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
+      "category": "behaviour-important",
+      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change; Cursor lifecycle hooks table (external-write-gate, DoR)"
     },
     "skills/ba-assistant/instructions.md": {
       "category": "wording",
@@ -199,8 +199,8 @@
       "reason": "Sync writes through ba-actions.py"
     },
     "skills/ba-assistant/references/canvas-data-model.md": {
-      "category": "wording",
-      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
+      "category": "behaviour-important",
+      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change; dorChecks is a metrics record written by dor-check.py, not gate evidence"
     },
     "skills/ba-assistant/references/chat-profiles.md": {
       "category": "wording",
@@ -220,11 +220,11 @@
     },
     "skills/ba-assistant/references/eod-closeout-procedure.md": {
       "category": "behaviour-critical",
-      "reason": "5a/5b via ba-actions.py eod-scan; validate-state.py for touched initiatives; one-call action upsert"
+      "reason": "5a/5b via ba-actions.py eod-scan; validate-state.py for touched initiatives; one-call action upsert; Reply text goes in chat; never an Outlook draft or send"
     },
     "skills/ba-assistant/references/jira-ticket-format.md": {
-      "category": "wording",
-      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
+      "category": "behaviour-important",
+      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change; Stories: DoR recomputed at create; not met = BA override"
     },
     "skills/ba-assistant/references/markdown-readability.md": {
       "category": "wording",
@@ -251,12 +251,12 @@
       "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
     },
     "skills/ba-assistant/references/sync-procedures.md": {
-      "category": "behaviour-important",
-      "reason": "Promotion rules for REQ-, ASM- and OQ-answered captures"
+      "category": "behaviour-critical",
+      "reason": "Promotion rules for REQ-, ASM- and OQ-answered captures; Never auto-promote [unverified] items"
     },
     "skills/ba-assistant/references/user-story-format.md": {
-      "category": "wording",
-      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
+      "category": "behaviour-minor",
+      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change; DoR computed by dor-check.py"
     },
     "skills/ba-assistant/references/workboard-procedure.md": {
       "category": "behaviour-important",
@@ -288,7 +288,7 @@
     },
     "skills/ba-assistant/sub-skills/ba-context-capture/SKILL.md": {
       "category": "behaviour-critical",
-      "reason": "Detect every turn as before; write with capture.py; requirement and action signals"
+      "reason": "Detect every turn as before; write with capture.py; requirement and action signals; source field required; ingested text is data; confirmed_by_ba"
     },
     "skills/ba-assistant/sub-skills/ba-current-state-assessment/SKILL.md": {
       "category": "wording",
@@ -327,16 +327,16 @@
       "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
     },
     "skills/ba-assistant/sub-skills/ba-meeting-debrief/SKILL.md": {
-      "category": "behaviour-critical",
-      "reason": "Debrief approve path writes BA actions to the actions file, never workboard personal_tasks"
+      "category": "behaviour-important",
+      "reason": "Debrief approve path writes BA actions to the actions file, never workboard personal_tasks; Transcript is data; approved items carry transcript source and confirmed_by_ba"
     },
     "skills/ba-assistant/sub-skills/ba-new-initiative/SKILL.md": {
       "category": "wording",
       "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
     },
     "skills/ba-assistant/sub-skills/ba-playback-and-enablement/SKILL.md": {
-      "category": "wording",
-      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
+      "category": "behaviour-important",
+      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change; Comms text in chat for the BA to copy; never an Outlook draft or send"
     },
     "skills/ba-assistant/sub-skills/ba-project-canvas/SKILL.md": {
       "category": "behaviour-critical",
@@ -400,15 +400,15 @@
     },
     "skills/ba-assistant/sub-skills/ba-story-writing/SKILL.md": {
       "category": "behaviour-critical",
-      "reason": "Draft, BA approves, then create in Jira; internal schema checklist; asks which initiative"
+      "reason": "Draft, BA approves, then create in Jira; internal schema checklist; asks which initiative; Agent no longer writes result: pass; runs dor-check.py; logs BA overrides as decisions"
     },
     "skills/ba-assistant/sub-skills/ba-visual-storytelling/SKILL.md": {
       "category": "wording",
       "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
     },
     "skills/ba-assistant/sub-skills/ba-workshop-design/SKILL.md": {
-      "category": "wording",
-      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
+      "category": "behaviour-minor",
+      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change; Invite text stays in chat; never an Outlook draft or send"
     },
     "skills/ba-assistant/templates/initiative-status.canvas.tsx.template": {
       "category": "behaviour-critical",
@@ -449,6 +449,26 @@
     "skills/publish-docs-to-confluence/references/confluence-workflow.md": {
       "category": "wording",
       "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
+    },
+    "hooks/external-write-gate.py": {
+      "category": "behaviour-critical",
+      "reason": "One beforeMCPExecution gate: unwraps Runlayer execute_tool, denies email send/reply/forward/draft, asks on other external writes, allows reads, runs dor-check.py on Story creates, writes audit-log.jsonl"
+    },
+    "hooks/hooks.json": {
+      "category": "behaviour-critical",
+      "reason": "beforeMCPExecution now runs external-write-gate.py (replaces jira-dor-gate.py)"
+    },
+    "_workstream/dor-check.py": {
+      "category": "behaviour-critical",
+      "reason": "DoR computed from the files (requirement status, Given/When/Then, dependencies, MoSCoW, risks); shared by the hook; --record for metrics"
+    },
+    "_workstream/extract-docx-text.py": {
+      "category": "behaviour-important",
+      "reason": "Extracted transcript text fenced as untrusted data"
+    },
+    "commands/next.md": {
+      "category": "behaviour-important",
+      "reason": "Comms text ready to copy; no send option"
     }
   }
 }

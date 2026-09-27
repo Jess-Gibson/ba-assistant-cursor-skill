@@ -157,7 +157,7 @@ Steps:
    If a finding says there is no config file, ask whether to set create_config. After apply-staging, fill in the created <session>/stage-home/.cursor/rules/ba-assistant-config.mdc with me (name, Jira, Confluence, paths, and the optional workboard and mail keys). Lift my old hard-coded values (meeting highlights, mail noise subjects, ignored folders, repo names) from my current _workstream scripts into those keys, and show me what you are adding.
 8. Run apply-staging. Then test in staging, always through `run --session <session> -- <command>` (S below is <session>/stage-home/.cursor):
    - session start: `run -- py S/hooks/session-init.py`. It must list my initiatives (not "No SESSION-CONTEXT.md found"). With several, it must ask rather than guess.
-   - DoR gate: write a createJiraIssue Story payload for a story that has a recorded DoR pass to a temp file and `run --stdin <file> -- py S/hooks/jira-dor-gate.py`. It must allow.
+   - DoR gate: write a createJiraIssue Story payload for one of my ready stories (ACs, dependencies, risks, MoSCoW, confirmed requirement) to a temp file and `run --stdin <file> -- py S/hooks/external-write-gate.py`. It must answer `ask` with "DoR met". A `send_mail` payload must answer `deny`.
    - end of day: `run -- py S/_workstream/generate-workboard-canvas.py --cursor-home S --canvas <temp file>` (no --eod-roll) and show me the End of Day prompt. It must point at eod-closeout-procedure.md and roll the calendar once.
    - snapshots: `run -- py S/_workstream/generate-initiative-snapshots.py`, then `--ensure <one of my slugs>`. Must say FRESH or REFRESHED.
    - actions: `run -- py S/_workstream/ba-actions.py list`. It must list my open actions (read-only).

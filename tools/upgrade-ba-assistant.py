@@ -298,15 +298,24 @@ def plan_profile_patch(profile: Path, pkg: Path) -> tuple[list[str], str | None]
     return patch_profile_text(profile.read_bytes().decode("utf-8"), pkg)
 
 
+# Package hook scripts that no longer ship (Version 15: jira-dor-gate.py was folded
+# into external-write-gate.py + _workstream/dor-check.py). Their .py and any
+# .sh/.ps1 wrapper are package leftovers, not the BA's own hooks.
+RETIRED_HOOK_STEMS = {"jira-dor-gate"}
+
+
 def leftover_hook_wrappers(home: Path, pkg: Path) -> list[Path]:
-    """.sh/.ps1 files in ~/.cursor/hooks whose .py twin the package ships."""
+    """.sh/.ps1 files in ~/.cursor/hooks whose .py twin the package ships, and any
+    file of a retired package hook."""
     hooks_dir = home / "hooks"
     if not hooks_dir.exists():
         return []
     py_stems = {p.stem.lower() for p in (pkg / "hooks").glob("*.py")}
     return sorted(
         p for p in hooks_dir.iterdir()
-        if p.is_file() and p.suffix.lower() in (".sh", ".ps1") and p.stem.lower() in py_stems
+        if p.is_file() and (
+            (p.suffix.lower() in (".sh", ".ps1") and p.stem.lower() in py_stems)
+            or (p.suffix.lower() in (".py", ".sh", ".ps1") and p.stem.lower() in RETIRED_HOOK_STEMS))
     )
 
 

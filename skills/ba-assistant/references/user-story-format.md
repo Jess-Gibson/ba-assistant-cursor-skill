@@ -239,7 +239,7 @@ Format: `Enabler: [technical change] so [downstream capability]`
 - [ ] Compliance / security implications assessed (or marked N/A with reason)
 ```
 
-A story that passes DoR on first attempt is a `pass` in the tracker's DoR checks register (raid-format.md); the canvas mirrors this to `status-data.json → dorChecks` on refresh. Partial passes (1-2 missing) are `partial`. Multiple missing items make it `fail`.
+`_workstream/dor-check.py` computes this (it is also what the Jira create hook runs). A story that passes DoR on first attempt is a `pass` in the tracker's DoR checks register (raid-format.md); `dor-check.py --record` keeps `status-data.json → dorChecks` for the metrics. Partial passes (1-2 missing) are `partial`. Multiple missing items make it `fail`.
 
 ---
 

@@ -1,7 +1,7 @@
 """
 Regression tests for the hook scripts and the config readers in tools/.
 
-Standalone (no pytest), same style as hooks/tests/test_jira_dor_gate.py. Every
+Standalone (no pytest), same style as tests/test_dor_check.py. Every
 case runs against a throwaway HOME, so nothing on the machine running the tests
 is read or written. These run in the package repo only: the installer copies
 top-level hooks/*.py, never tests, so they cost nothing when a BA uses the
@@ -158,16 +158,20 @@ def main():
         check("V15 session start finds initiatives via ba-profile.mdc when no config file exists",
               out["env"]["CURSOR_SESSION_CONTEXT_PATH"].endswith(os.path.join("only-one", "SESSION-CONTEXT.md")),
               out["additional_context"][:300])
-        # DoR gate, black box: no session context, a pass recorded only in an
-        # initiative under the ba-profile.mdc root -> the gate must find it and allow.
-        (own_root / "only-one" / "status-data.json").write_text(json.dumps({"dorChecks": [
-            {"storyKey": "PROJ-9", "storyTitle": "Export the monthly report", "result": "pass"}]}), encoding="utf-8")
+        # DoR gate, black box: no session context, a ready story recorded only in an
+        # initiative under the ba-profile.mdc root -> the gate must find it: "DoR met", BA approves.
+        (own_root / "only-one" / "status-data.json").write_text(json.dumps({"stories": [{"title": "Export the monthly report", "scope": "feature_export", "moscow": "must",
+                          "linkedRequirements": ["REQ-1"], "dependsOn": []}],
+             "raid": {"risks": [{"id": "R-1", "title": "Large files time out", "scope": "feature_export"}]}}), encoding="utf-8")
+        (own_root / "only-one" / "requirements-register.md").write_text(
+            "### REQ-1 · Monthly export\n**Status:** Confirmed\n", encoding="utf-8")
         payload = {"hook_event_name": "beforeMCPExecution", "tool_name": "createJiraIssue",
                    "tool_input": json.dumps({"fields": {"summary": "Export the monthly report",
+                                                        "description": "Given a month with transactions When I export Then I get one CSV row per transaction",
                                                         "issuetype": {"name": "Story"}}})}
-        gate = run_hook("jira-dor-gate.py", prof_home, stdin=json.dumps(payload))
-        check("V15 DoR gate finds a pass under the initiatives root from ba-profile.mdc",
-              gate.get("permission") == "allow", str(gate)[:300])
+        gate = run_hook("external-write-gate.py", prof_home, stdin=json.dumps(payload))
+        check("V15 DoR check finds a ready story under the initiatives root from ba-profile.mdc",
+              gate.get("permission") == "ask" and gate.get("user_message", "").startswith("DoR met"), str(gate)[:300])
         (prof_home / ".cursor" / "rules" / "ba-assistant-config.mdc").write_text(
             'paths:\n  initiativesRoot: "~/.cursor/initiatives"\n', encoding="utf-8")
         out = session_init(prof_home)

@@ -102,6 +102,12 @@ NOT_INITIATIVE_DIRS = {"extensions", "projects", "ai-tracking", "worktrees", "pl
 CTX: dict = {"extra_home_dirs": (), "personal_files": set(PERSONAL_FILES)}
 
 
+
+# Package hook scripts that no longer ship (Version 15: jira-dor-gate.py was folded
+# into external-write-gate.py + _workstream/dor-check.py). An old .sh/.ps1 wrapper
+# of one is a package leftover, not the BA's own hook.
+RETIRED_HOOK_STEMS = {"jira-dor-gate"}
+
 def home_includes() -> tuple[str, ...]:
     return HOME_INCLUDE + tuple(d for d in CTX["extra_home_dirs"] if d not in HOME_INCLUDE)
 
@@ -846,7 +852,8 @@ def cmd_classify(args) -> int:
         elif is_personal(path):
             cls = "P"
         elif (not in_pkg and path.startswith("hooks/") and path.lower().endswith((".sh", ".ps1"))
-              and f"hooks/{PurePosixPath(path).stem}.py" in new_map):
+              and (f"hooks/{PurePosixPath(path).stem}.py" in new_map
+                   or PurePosixPath(path).stem.lower() in RETIRED_HOOK_STEMS)):
             cls = "F"
             note = "old package hook wrapper, replaced by the .py hook; moved aside unless hooks.json still uses it"
         elif not in_pkg:

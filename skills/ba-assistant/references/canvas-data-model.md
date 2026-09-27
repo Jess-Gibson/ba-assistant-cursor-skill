@@ -581,7 +581,7 @@ signOffCycleTime = approvedDate - requestedDate (in working days)
 
 ### `dorChecks` array
 
-**Mirror of the tracker register, written at DoR time:** canonical in the tracker's DoR checks register (`raid-format.md § Tracker-owned structured registers`). `ba-story-writing` upserts the matching row here in the same step it writes the register, because the Jira DoR gate hook reads this array at create time (often before a Jira key exists). A canvas refresh re-derives it from the register and must keep `storyTitle` and `result`.
+**Metrics record, written by `_workstream/dor-check.py --record`:** one row per story checked (feeds the DoR hit-rate in `compute-metrics.py`). It is **not** the gate's evidence: the `external-write-gate` hook recomputes DoR from the files at create time and never reads this array. Never hand-write a `result: pass` row. A canvas refresh must keep `storyTitle`, `firstAttempt` and `result`.
 
 ```jsonc
 {

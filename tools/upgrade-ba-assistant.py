@@ -7,6 +7,17 @@ Usage:
   python upgrade-ba-assistant.py --package "..." --apply
 
 Default is dry-run. Always backs up before --apply.
+
+Version 15 safety defaults:
+  - _workstream data is never changed unless you pass --migrate-legacy. Without
+    it, legacy data that an older release would have migrated (personal_tasks[]
+    in workboard.json, a legacy <name>-actions.json) is reported as WARN and left
+    byte-identical.
+  - ba-profile.mdc is never overwritten. Old /wrap and /validate-state rows are
+    reported as WARN with the exact replacement; --patch-profile replaces only
+    those rows (after a backup).
+  - Leftover .sh/.ps1 hook wrappers are moved to the backup only when hooks.json
+    no longer references them.
 """
 from __future__ import annotations
 
@@ -213,12 +224,128 @@ def run_workboard_action_migration(
     return module.migrate_legacy_actions(workstream, backup_root, home, dry_run)
 
 
+PROFILE_ROW_COMMANDS = ("/validate-state", "/wrap")
+# Phrases only the pre-Version 14 rows used. A row that has been personalised
+# in some other way is left alone and reported, never rewritten.
+OLD_PROFILE_ROW_MARKERS = {
+    "/validate-state": "Read-only drift report",
+    "/wrap": "End-of-session closeout",
+}
+
+
+def profile_row_prefix(command: str) -> str:
+    return f"| `{command}` |"
+
+
+def package_profile_rows(pkg: Path) -> dict[str, str]:
+    src = pkg / "rules" / "ba-profile.mdc"
+    rows: dict[str, str] = {}
+    if not src.exists():
+        return rows
+    for line in src.read_text(encoding="utf-8").splitlines():
+        for command in PROFILE_ROW_COMMANDS:
+            if line.startswith(profile_row_prefix(command)):
+                rows[command] = line
+    return rows
+
+
+def plan_profile_patch(profile: Path, pkg: Path) -> tuple[list[str], str | None]:
+    """(plan lines, patched text or None). Only rows still carrying the old
+    wording are replaced; everything else in the file is untouched."""
+    if not profile.exists():
+        return [], None
+    new_rows = package_profile_rows(pkg)
+    raw = profile.read_bytes()
+    text = raw.decode("utf-8")
+    newline = "\r\n" if b"\r\n" in raw else "\n"
+    lines = text.split(newline)
+    plan: list[str] = []
+    changed = False
+    for i, line in enumerate(lines):
+        for command in PROFILE_ROW_COMMANDS:
+            if not line.startswith(profile_row_prefix(command)):
+                continue
+            replacement = new_rows.get(command)
+            if not replacement or line == replacement:
+                continue
+            if OLD_PROFILE_ROW_MARKERS[command] in line:
+                plan.append(f"WARN ba-profile.mdc {command} row describes the old behaviour")
+                plan.append(f"     old: {line}")
+                plan.append(f"     new: {replacement}")
+                lines[i] = replacement
+                changed = True
+            else:
+                plan.append(f"NOTE ba-profile.mdc {command} row is personalised; left as is")
+    return plan, (newline.join(lines) if changed else None)
+
+
+def leftover_hook_wrappers(home: Path, pkg: Path) -> list[Path]:
+    """.sh/.ps1 files in ~/.cursor/hooks whose .py twin the package ships."""
+    hooks_dir = home / "hooks"
+    if not hooks_dir.exists():
+        return []
+    py_stems = {p.stem.lower() for p in (pkg / "hooks").glob("*.py")}
+    return sorted(
+        p for p in hooks_dir.iterdir()
+        if p.is_file() and p.suffix.lower() in (".sh", ".ps1") and p.stem.lower() in py_stems
+    )
+
+
+def retire_hook_wrappers(home: Path, pkg: Path, backup_root: Path, dry_run: bool) -> list[str]:
+    plan: list[str] = []
+    hooks_json = home / "hooks.json"
+    referenced = hooks_json.read_text(encoding="utf-8") if hooks_json.exists() else ""
+    for wrapper in leftover_hook_wrappers(home, pkg):
+        if wrapper.name in referenced:
+            plan.append(f"KEEP hooks/{wrapper.name} (still referenced in hooks.json)")
+            continue
+        dest = backup_root / "hooks-retired" / wrapper.name
+        plan.append(f"RETIRE hooks/{wrapper.name} -> {dest} (no longer referenced)")
+        if not dry_run:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(wrapper), str(dest))
+    return plan
+
+
+def detect_legacy_workstream(workstream: Path) -> list[str]:
+    """What --migrate-legacy would act on. Read-only."""
+    found: list[str] = []
+    wb = workstream / "workboard.json"
+    if wb.exists():
+        try:
+            data = json.loads(wb.read_text(encoding="utf-8-sig"))
+            open_pts = [
+                p for p in data.get("personal_tasks") or []
+                if isinstance(p, dict) and p.get("status") in (None, "open", "in_progress", "blocked")
+            ]
+            if open_pts:
+                found.append(f"{len(open_pts)} open personal_tasks in workboard.json")
+        except (json.JSONDecodeError, OSError):
+            pass
+    if workstream.exists():
+        for legacy in sorted(workstream.glob("*-actions.json")) + sorted(workstream.glob("*-actions.md")):
+            if legacy.name.startswith("ba-actions"):
+                continue
+            found.append(f"legacy actions file {legacy.name}")
+    return found
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Upgrade BA Assistant to the current package version")
     ap.add_argument("--package", required=True, help="Path to ba-assistant-cursor-skill checkout or extract")
     ap.add_argument("--apply", action="store_true", help="Apply changes (default is dry-run)")
     ap.add_argument("--force-personal", action="store_true", help="Allow overwriting ba-profile.mdc (dangerous)")
     ap.add_argument("--cursor-home", default=None, help="Cursor home (default: ~/.cursor)")
+    ap.add_argument(
+        "--migrate-legacy",
+        action="store_true",
+        help="Also run the old personal_tasks / legacy actions-file migrations (changes _workstream data)",
+    )
+    ap.add_argument(
+        "--patch-profile",
+        action="store_true",
+        help="Replace only the old /wrap and /validate-state rows in ba-profile.mdc (backed up first)",
+    )
     args = ap.parse_args()
     dry_run = not args.apply
 
@@ -260,6 +387,18 @@ def main() -> int:
         plan.append(f"FORCE UPDATE {profile}")
         if not dry_run:
             shutil.copy2(rules_pkg / "ba-profile.mdc", profile)
+    if profile.exists() and not args.force_personal:
+        profile_plan, patched = plan_profile_patch(profile, pkg)
+        plan.extend(profile_plan)
+        if patched is not None and args.patch_profile:
+            ts_prof = datetime.now().strftime("%Y%m%d-%H%M%S")
+            profile_backup = profile.with_name(f"ba-profile.mdc.bak-{ts_prof}")
+            plan.append(f"PATCH {profile} (only the rows above; backup {profile_backup})")
+            if not dry_run:
+                shutil.copy2(profile, profile_backup)
+                profile.write_bytes(patched.encode("utf-8"))
+        elif patched is not None:
+            plan.append("WARN re-run with --patch-profile to replace only those rows (backup first)")
     plan.append(f"PROTECT {rules_dest / 'ba-assistant-config.mdc'} (personal config - never touched)")
     plan.append(f"PROTECT {home / 'initiatives'} (initiative data - never touched)")
 
@@ -338,6 +477,11 @@ def main() -> int:
                 shutil.copy2(src, home / "hooks" / src.name)
         plan.append(f"MERGE hooks.json -> {home / 'hooks.json'} (your own hook entries are kept)")
         installer.merge_hooks_json(hooks_pkg / "hooks.json", home / "hooks.json", dry_run)
+        if dry_run:
+            for wrapper in leftover_hook_wrappers(home, pkg):
+                plan.append(f"RETIRE hooks/{wrapper.name} if hooks.json no longer references it after the merge")
+        else:
+            plan.extend(retire_hook_wrappers(home, pkg, backup_root, dry_run))
 
     # Workboard helper scripts (code only; _workstream JSON data is never replaced)
     plan.append(f"UPDATE workboard helper scripts in {workstream}")
@@ -345,8 +489,15 @@ def main() -> int:
 
     # Workstream seed + migrate
     plan.extend(seed_workstream(workstream, dry_run))
-    plan.extend(run_workboard_action_migration(pkg, workstream, backup_root, home, dry_run))
-    plan.extend(migrate_personal_tasks(workstream, dry_run))
+    if args.migrate_legacy:
+        plan.extend(run_workboard_action_migration(pkg, workstream, backup_root, home, dry_run))
+        plan.extend(migrate_personal_tasks(workstream, dry_run))
+    else:
+        legacy = detect_legacy_workstream(workstream)
+        for item in legacy:
+            plan.append(f"WARN legacy data left untouched: {item} (re-run with --migrate-legacy to migrate it)")
+        if not legacy:
+            plan.append("MIGRATE none needed (no legacy workstream data found)")
 
     # VERSION stamp
     plan.append(f"WRITE {skills_dest / 'VERSION'} = {VERSION}")

@@ -287,6 +287,18 @@ def is_package_prompt_entry(entry: dict) -> bool:
     return prompt.startswith(LEGACY_PACKAGE_PROMPT_PREFIXES)
 
 
+LEGACY_WRAPPER_EXTENSIONS = (".sh", ".ps1")
+
+
+def is_legacy_wrapper_of(script_name: str, pkg_py_stems: set[str]) -> bool:
+    """True for foo.sh / foo.ps1 when the package ships foo.py for the same event."""
+    lower = script_name.lower()
+    for ext in LEGACY_WRAPPER_EXTENSIONS:
+        if lower.endswith(ext) and lower[: -len(ext)] in pkg_py_stems:
+            return True
+    return False
+
+
 def merge_hook_event(event_name: str, user_entries: list, pkg_entries: list) -> tuple[list, list[str]]:
     """Merge one hooks.<event> array.
 
@@ -297,12 +309,18 @@ def merge_hook_event(event_name: str, user_entries: list, pkg_entries: list) -> 
     """
     pkg_names = {hook_entry_script_name(e) for e in pkg_entries}
     pkg_names.discard(None)
+    pkg_py_stems = {n[:-3].lower() for n in pkg_names if n.lower().endswith(".py")}
     kept: list = []
     logs: list[str] = []
     for entry in user_entries:
         name = hook_entry_script_name(entry)
         if name is not None and name in pkg_names:
             logs.append(f"DROP hooks.{event_name} stale user entry ({name}, superseded by package)")
+            continue
+        if name is not None and is_legacy_wrapper_of(name, pkg_py_stems):
+            # Pre-Version 13 .sh/.ps1 twin of a package .py hook: keeping it
+            # would run the same hook twice on this event.
+            logs.append(f"DROP hooks.{event_name} legacy wrapper entry ({name}, replaced by the .py hook)")
             continue
         if is_package_prompt_entry(entry):
             logs.append(f"DROP hooks.{event_name} old package prompt entry (replaced, not stacked)")

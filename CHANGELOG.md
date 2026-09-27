@@ -4,6 +4,15 @@
 
 Version 14 QA fixes (from the fork review) plus the fixes below.
 
+### Safety and control (independent review, author's addendum)
+
+- **One gate for every Runlayer call** (`hooks/external-write-gate.py`, `beforeMCPExecution`, fail-closed). Reads run without prompts. Every other external write (Jira, Confluence, calendar, Miro, Slack/Teams) asks you first. **Email is never sent, replied to, forwarded or drafted**: the text goes in chat for you to copy. Each decision is logged to `_workstream/audit-log.jsonl`.
+- **Definition of Ready is computed, not claimed.** `_workstream/dor-check.py` checks the story against the files (confirmed requirement, Given/When/Then, dependencies, MoSCoW for its scope, risks). The assistant no longer writes its own pass rows. At Jira create the approval dialog says "DoR met", or names what's missing so your approval is a recorded override. `hooks/jira-dor-gate.py` is retired.
+- **Ingested text is data, not instructions.** Transcripts, emails, tickets and old notes can't change a status or approval by saying so. `capture.py` needs a `--source`, and anything not said by you in chat lands as `[unverified]` until you confirm it. Session start, the mail scan and extracted transcripts are fenced as untrusted.
+- **Undo for initiative folders.** Each initiative keeps a private local history (no remote). It saves around captures, debriefs, `/wrap`, end of day and after each reply. `/undo` shows recent changes in plain English and puts files back; an undo can itself be undone.
+- **Passive capture waits for the debrief card.**
+- Quick wins: transcripts stay listed until debriefed; session start can't be killed by a slow calendar refresh; the no-op `afterFileEdit` hook is removed; install, upgrade and conformance flag hook scripts that `hooks.json` runs but are missing; optional auto-run guidance in SETUP.md; sprint field from config; code questions use Cursor's codebase search first.
+
 ### End of day
 
 - **One calendar roll.** The canvas End of Day button used to run `roll-calendar-eod.py` and then `generate-workboard-canvas.py --eod-roll`, which rolled the calendar twice (Wed to Fri). End of day now has one command: `generate-workboard-canvas.py --eod-roll --closeout-date <date being closed out>`.

@@ -3,8 +3,8 @@
 Every installed file that changed between Version 14 (`750a6c5`) and Version 15, grouped by what the change is.
 The same data, machine-readable, is `docs/port-manifest.json`; `tools/ba-merge-upgrade.py` uses it.
 
-- **Tested code commit:** `ec2035fc01db20ccd8ab4c7c1e446e242fefca0a` (all code and tests, including the review addendum: external-write gate, untrusted content, DoR check, undo; every later Version 15 release-candidate commit changes documentation only).
-- **Release commit:** pin the branch head you were given for the upgrade, and check that `git diff ec2035f <release> --stat` lists only `.md` files.
+- **Tested code commit:** `a71db3c0be65048ca4ff710a61643e4d4e1cf0e8` (all code and tests, including the review addendum: external-write gate, untrusted content, DoR check, undo, and the governance follow-up: gate verb precedence, Story Readiness Preflight, decimal HLR IDs; every later Version 15 release-candidate commit changes documentation only).
+- **Release commit:** pin the branch head you were given for the upgrade, and check that `git diff a71db3c <release> --stat` lists only `.md` files.
 - **Fallback versions:** tag `v14.0` (`750a6c5`, Version 14 as released) and tag `v15.0-rc1` (`49f11e5`, Version 15 before the review addendum). See `SETUP.md` → "Go back to an older version".
 
 | Category | Files | What happens to a personalised install |

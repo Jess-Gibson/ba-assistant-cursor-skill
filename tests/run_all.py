@@ -16,6 +16,7 @@ SUITES = [
     REPO / "hooks" / "tests" / "test_jira_dor_gate.py",
     REPO / "tests" / "test_hooks.py",
     REPO / "tests" / "test_package_consistency.py",
+    REPO / "tests" / "test_eod.py",
 ]
 
 

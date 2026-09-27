@@ -11,7 +11,7 @@ This folder lives in your Cursor **user profile** — `~/.cursor/_workstream/` �
 | `ba-actions.md` | Regenerated from JSON | Human view of open/closed BA actions (do not hand-edit) |
 | `regenerate-ba-actions-md.py` | After any `ba-actions.json` write | Full MD derive — run `python3 _workstream/regenerate-ba-actions-md.py` (Windows: `py`) |
 | `generate-workboard-canvas.py` | `/workboard` refresh | Generates the portable interactive canvas from this BA's data |
-| `roll-calendar-eod.py` | `/workboard end-of-day` step 7b | Rolls `calendar-feed.json` + `workboard.json` meetings to the next working day (mandatory at EOD; run once, never alongside `generate-workboard-canvas.py --eod-roll` — that flag already calls it) |
+| `roll-calendar-eod.py` | Called by `generate-workboard-canvas.py --eod-roll` at `/workboard end-of-day` | Rolls `calendar-feed.json` + `workboard.json` meetings to the next working day. At EOD it runs once, through `--eod-roll`; do not also call it directly. Always pass `--closeout-date`. A repeat for the same date prints SKIPPED and writes nothing |
 | `calendar-feed.json` | Your calendar script (optional) | Feeds the workboard Today tab and EOD meeting reconciliation |
 | `calendar-feed.sample.json` | Reference | Example shape for optional calendar feed |
 

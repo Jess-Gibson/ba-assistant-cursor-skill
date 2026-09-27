@@ -42,8 +42,9 @@ by modified time" as the chat's initiative. It names one only when the open
 workspace sits inside exactly one initiative folder, or when only one initiative
 exists. Otherwise it lists the candidates, tells the model to ask, and leaves
 CURSOR_SESSION_CONTEXT_PATH empty (the DoR gate then checks every initiative).
-Workspace folders come from the hook's stdin JSON (`workspace_roots`); if Cursor
-does not send them, the workspace step is skipped.
+Workspace folders come from the hook's stdin JSON (`workspace_roots`), else the
+CURSOR_PROJECT_DIR environment variable (Version 15); if Cursor sends neither,
+the workspace step is skipped.
 
 Downloads folder (P6): BA_DOWNLOADS_PATH if set, else paths.downloadsPath from
 ba-assistant-config.mdc, and always ~/Downloads as well.
@@ -201,9 +202,18 @@ def read_hook_input() -> dict:
 
 
 def workspace_roots(hook_input: dict) -> list[Path]:
+    """Open workspace folders: stdin workspace_roots first, CURSOR_PROJECT_DIR second.
+
+    Both are documented Cursor hook inputs. The env var is only a fallback so a
+    multi-root stdin list is never overridden by a single env value.
+    """
     roots = hook_input.get("workspace_roots") or []
     if isinstance(roots, str):
         roots = [roots]
+    if not roots:
+        env_dir = os.environ.get("CURSOR_PROJECT_DIR", "").strip()
+        if env_dir:
+            roots = [env_dir]
     return [Path(os.path.expanduser(str(r))) for r in roots if r]
 
 

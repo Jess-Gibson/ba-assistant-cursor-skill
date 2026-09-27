@@ -31,7 +31,7 @@ def check(name, ok, detail=""):
 
 def run_hook(script, home, stdin="{}", args=(), env_extra=None):
     env = {k: v for k, v in os.environ.items()
-           if not k.startswith("BA_") and k != "CURSOR_SESSION_CONTEXT_PATH"}
+           if not k.startswith("BA_") and k not in ("CURSOR_SESSION_CONTEXT_PATH", "CURSOR_PROJECT_DIR")}
     env.update({"HOME": str(home), "USERPROFILE": str(home), "XDG_RUNTIME_DIR": str(home / "tmp"),
                 "TMPDIR": str(home / "tmp"), "LOCALAPPDATA": str(home / "tmp")})
     env.update(env_extra or {})
@@ -59,8 +59,8 @@ def make_home(tmp, initiatives=("alpha", "beta"), config="", actions=None, workb
     return home
 
 
-def session_init(home, stdin="{}"):
-    return run_hook("session-init.py", home, stdin=stdin)
+def session_init(home, stdin="{}", env_extra=None):
+    return run_hook("session-init.py", home, stdin=stdin, env_extra=env_extra)
 
 
 def load_module(path, name):
@@ -117,6 +117,28 @@ def main():
         out = session_init(prefix_home, stdin=json.dumps({"workspace_roots": [str(ws)]}))
         check("P1 workspace 'payroll' does not also match 'pay'",
               out["env"]["CURSOR_SESSION_CONTEXT_PATH"] == str(ws / "SESSION-CONTEXT.md"))
+
+        # --- Version 15: CURSOR_PROJECT_DIR fallback, mtime trap still holds ---
+        trap = make_home(tmp)
+        alpha_ctx = trap / ".cursor" / "initiatives" / "alpha" / "SESSION-CONTEXT.md"
+        beta_dir = trap / ".cursor" / "initiatives" / "beta"
+        os.utime(alpha_ctx, (2_000_000_000, 2_000_000_000))  # alpha is far newer
+        out = session_init(trap)
+        check("V15 mtime trap: newest (alpha) is not picked with no workspace info",
+              out["env"]["CURSOR_SESSION_CONTEXT_PATH"] == ""
+              and "NO INITIATIVE SELECTED" in out["additional_context"])
+        out = session_init(trap, env_extra={"CURSOR_PROJECT_DIR": str(beta_dir)})
+        check("V15 CURSOR_PROJECT_DIR=beta selects beta even though alpha is newer",
+              out["env"]["CURSOR_SESSION_CONTEXT_PATH"] == str(beta_dir / "SESSION-CONTEXT.md"),
+              out["env"]["CURSOR_SESSION_CONTEXT_PATH"])
+        alpha_dir = alpha_ctx.parent
+        out = session_init(trap, stdin=json.dumps({"workspace_roots": [str(alpha_dir)]}),
+                           env_extra={"CURSOR_PROJECT_DIR": str(beta_dir)})
+        check("V15 stdin workspace_roots wins over CURSOR_PROJECT_DIR",
+              out["env"]["CURSOR_SESSION_CONTEXT_PATH"] == str(alpha_ctx))
+        out = session_init(trap, env_extra={"CURSOR_PROJECT_DIR": str(trap / "somewhere-else")})
+        check("V15 CURSOR_PROJECT_DIR outside every initiative still asks",
+              out["env"]["CURSOR_SESSION_CONTEXT_PATH"] == "")
 
         # --- P6: downloads folder from /setup config ---
         cfg = 'paths:\n  initiativesRoot: "~/.cursor/initiatives"\n  downloadsPath: "~/Work/Transcripts"   # from setup\n'

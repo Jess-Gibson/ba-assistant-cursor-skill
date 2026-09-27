@@ -101,8 +101,8 @@ These commands are always available in any BA Assistant session:
 | Command | What it does |
 |---|---|
 | `/next` | Top 3 next actions by urgency across all active workstreams |
-| `/status` | Full current state — triple output: chat + canvas + HTML snapshot |
-| `/canvas` | Generate or refresh the interactive project canvas |
+| `/status` | Full current state in chat, with quality metrics. Offers `/canvas` |
+| `/canvas` | On demand: render the interactive project canvas and HTML snapshot |
 | `/report` | Full structured report — all outputs in one document |
 | `/snapshot` | Living tracker snapshot |
 | `/publish-status` | Publish status page to Confluence |

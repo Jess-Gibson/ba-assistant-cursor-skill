@@ -8,7 +8,7 @@ this checkout. Proves:
   - personal config, BA data, initiatives and local-only files are byte-identical
   - legacy migrations do not fire unless --migrate-legacy is passed
   - the user's own hook survives, and no hook runs twice
-  - --patch-profile changes only the old /wrap and /validate-state rows
+  - --patch-profile changes only the old /wrap, /validate-state, /status and /todo rows
 
 It also REPORTS (and pins) what the upgrader does to package files the BA
 edited: skills, commands and package rules are overwritten by design. That is
@@ -201,8 +201,10 @@ def main():
         new_lines = keep["profile"].read_text(encoding="utf-8").splitlines()
         changed = [i for i, (a, b) in enumerate(zip(old_lines, new_lines)) if a != b]
         check("Patch profile: same line count", len(old_lines) == len(new_lines))
-        check("Patch profile: exactly the /validate-state and /wrap rows changed",
-              len(changed) == 2 and all(new_lines[i].startswith(("| `/validate-state`", "| `/wrap`")) for i in changed),
+        rows = ("| `/validate-state`", "| `/wrap`", "| `/status`", "| `/todo`")
+        check("Patch profile: only the old /validate-state, /wrap, /status and /todo rows changed",
+              2 <= len(changed) <= 4 and all(new_lines[i].startswith(rows) for i in changed)
+              and any(new_lines[i].startswith("| `/wrap`") for i in changed),
               str([new_lines[i][:40] for i in changed]))
         check("Patch profile: personal tone section kept", "Dry, short, no fluff." in "\n".join(new_lines))
         check("Patch profile: backup written", any(keep["profile"].parent.glob("ba-profile.mdc.bak-*")))

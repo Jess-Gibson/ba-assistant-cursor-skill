@@ -1,4 +1,4 @@
 ---
-description: BA Assistant — generate or refresh the interactive project canvas
+description: BA Assistant — render the interactive project canvas and HTML snapshot (on demand only)
 ---
-Run the BA Assistant /canvas command (~/.cursor/skills/ba-assistant/sub-skills/ba-project-canvas): read the capability file per its load map, then produce BOTH outputs (8-tab .canvas.tsx + status-snapshot.html) from current tracker + Jira state.
+Run the BA Assistant /canvas command (`~/.cursor/skills/ba-assistant/sub-skills/ba-project-canvas/SKILL.md`, "Generate or refresh" row). In short: confirm the initiative, bring `status-data.json` up to date from the tracker and Jira, then run `python3 ~/.cursor/_workstream/render-initiative-canvas.py --initiative <slug>` (Windows: `py`). It writes the 8-tab `.canvas.tsx` and `status-snapshot.html`. Do not read every project file and do not hand-write canvas code. Report the paths and any tabs the script says are empty.

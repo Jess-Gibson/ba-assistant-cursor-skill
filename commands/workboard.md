@@ -23,7 +23,7 @@ Then:
 3. For each initiative, refresh phase, milestone, blocker, risk, next action, and status from canonical files. Score status using `workboard-format.md`.
 4. Downloads: use the platform-appropriate listing from `workspace-operations.md` and `BA_DOWNLOADS_PATH`. Triage files newer than `last_refreshed`. Skip installers, zips, lnk, ini.
 5. Jira movement for initiatives with `jira_project`. If Jira is unavailable, record unable to check and continue.
-6. Run `sync-ba-actions` only if a debrief or tracker added BA-owned actions, then `python3 _workstream/regenerate-ba-actions-md.py`.
+6. Run `sync-ba-actions` only if a debrief or tracker added BA-owned actions: one `python3 _workstream/ba-actions.py upsert --json -` call (it regenerates `ba-actions.md`; fall back to `regenerate-ba-actions-md.py` after a hand edit if the script is missing).
 7. Write the snapshot to `_workstream/workboard.json` (including `ba_actions_summary`, downloads, `last_refreshed`). Keep **Today** as a read-only ordered day plan with staging checkboxes. Editable status, due, and notes belong only on **Open actions**.
 8. Generate the canvas from the portable template (preserves Update and End of Day prompts):
    `python3 _workstream/generate-workboard-canvas.py --canvas "<absolute path>/canvases/ba-workboard.canvas.tsx"`

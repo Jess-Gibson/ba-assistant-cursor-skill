@@ -111,6 +111,8 @@ Commands below use `python3` (Mac/Linux); on Windows, substitute `py`.
 
 Run after **every meeting debrief write**, **`/todo` capture**, **`/wrap` step 6b**, and **`/done`** status change.
 
+**Write with the script.** `_workstream/ba-actions.py` implements 3.2 and 3.3 (id allocation, match order, priority defaults, never reopening closed rows, full MD regenerate, gate lines). You still collect the candidates (3.1) and word each task; then send them in one call: `python3 _workstream/ba-actions.py upsert --json -` with a JSON list of `{task, initiative, due, priority, remind_on, reminder, notes, tracker_ref, source: {type, label, file, date}}` on stdin. Single items: `add`, `set`, `done`. End of day 5a/5b: `eod-scan --closeout-date <date>`. Hand-edit the JSON only if the script is missing.
+
 ### 3.1 Collect candidates (same calendar day + unpromoted backlog)
 
 For each active initiative touched:

@@ -93,8 +93,13 @@ When a sync gate fires and detects unpromoted items (Step 1), the agent SHOULD a
 1. **Decisions** (`DEC-` or items under `## Decisions`)  -  copy to the tracker's decisions table with the timestamp from SESSION-CONTEXT. If no timestamp exists, use the file modification time.
 2. **Risks** (`RISK-` or `## New Risks`)  -  add to tracker's risk table.
 3. **Open questions** (`OQ-` or `## Open Questions`)  -  add to tracker's unknowns section.
-4. **Actions** (`ACT-`)  -  add to tracker's actions section.
+4. **Actions** (`ACT-`)  -  add to tracker's actions section. BA-owned ones also go to `ba-actions.json` (`capture.py` does this when the item was marked `mine`).
 5. **Dependencies** (`DEP-`)  -  add to tracker's dependencies section.
+6. **Requirements** (`REQ-`)  -  add to the requirements register (`references/requirement-format.md`) as `proposed`, and flag for `ba-requirements-interrogator` if not yet challenged.
+7. **Assumptions** (`ASM-`)  -  add to tracker's assumptions section.
+8. **Answered questions** (`OQ-answered`)  -  mark the matching open question answered in the tracker with the resolution; if it settles a choice, also log the decision.
+
+`capture.py` writes these markers as `DEC-new:`, `REQ-new:`, `OQ-answered:` and so on. `SCOPE-`, `STK-`, `FACT-`, `DATE-` and `FIX-` lines are context: promote them where they change a tracker fact (a date, an owner, scope), otherwise they stay in SESSION-CONTEXT.
 
 After promotion, add a `[promoted]` tag to the item in SESSION-CONTEXT so it is not promoted again.
 

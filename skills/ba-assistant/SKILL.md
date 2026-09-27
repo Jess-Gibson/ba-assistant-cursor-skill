@@ -72,10 +72,10 @@ Default initiatives root when setup runs: `~/.cursor/initiatives` (`paths.initia
 Signals: `/reanchor`, continue, resume, named initiative, or an analysis folder that already exists. Do not re-run Phase 0. If no initiative exists, say so and point at `ba-new-initiative`. Do not invent a resume.
 
 1. **Which initiative.** Use, in order: the initiative the user named in this chat (or `/reanchor <name>`); the one the session banner says the open workspace belongs to (`INITIATIVE CONTEXT`); otherwise list the initiatives under `paths.initiativesRoot` and AskQuestion which one. **Never** treat the most recently modified `SESSION-CONTEXT.md` as this chat's initiative. Do not draft, write, or create anything (artefact, tracker row, Jira ticket) against an initiative until it is named or confirmed. Folder lookup: `references/workspace-operations.md`. Do not glob the `.cursor` root.
-2. Run `ba-state-validator` silently; surface drift if any. Clean: brief "state aligned".
-3. **Resume read order** (this list is the only copy; `/reanchor` and `execution-router.mdc` point here). If `_workstream/generate-initiative-snapshots.py` exists, run it with `--check <slug>` (Windows `py`, else `python3`). On `FRESH`, read `_workstream/snapshots/<slug>.json` first and open the files below only for what you need to cite or change (the files win over the snapshot). On `STALE`, `MISSING` or `MALFORMED`, say so in one line and read the files. The snapshot never decides which initiative this is. If the script is missing, say the snapshot shortcut is absent and read: `SESSION-CONTEXT.md`, `status-data.json`, `initiative-tracker.md`, then `Project-hub.md`, `confluence-pages.json`, `superseded-pages.json` if present, `learnings.md` (runtime copy may live at `_workstream/learnings.md`).
+2. Quick state check: `_workstream/validate-state.py --initiative <slug>` (`ba-state-validator` quick mode; no Jira, no Confluence). Drift: show its table and offer to fix. Clean: brief "state aligned".
+3. **Resume read order** (this list is the only copy; `/reanchor` and `execution-router.mdc` point here). If `_workstream/generate-initiative-snapshots.py` exists, run it with `--ensure <slug>` (Windows `py`, else `python3`): it uses the snapshot when `FRESH` and rebuilds it first when not (`REFRESHED`). Read `_workstream/snapshots/<slug>.json` first and open the files below only for what you need to cite or change (the files win over the snapshot). If it exits non-zero (initiative not in `workboard.json`, unreadable files), say so in one line and read the files. The snapshot never decides which initiative this is. If the script is missing, say the snapshot shortcut is absent and read: `SESSION-CONTEXT.md`, `status-data.json`, `initiative-tracker.md`, then `Project-hub.md`, `confluence-pages.json`, `superseded-pages.json` if present, `learnings.md` (runtime copy may live at `_workstream/learnings.md`).
 4. Downloads check: `references/workspace-operations.md` over the downloads folder (`paths.downloadsPath`; 7-day list; skip on `/debrief`).
-5. Re-entry card: `execution-router.mdc` §7. Then the readiness pass if one cheap artefact is grounded.
+5. Re-entry card: `references/re-entry-card.md` (pointer in `execution-router.mdc` §7). Then the readiness pass if one cheap artefact is grounded.
 6. Pre-populate Anti-Pattern Detector from SESSION-CONTEXT and matching learnings.
 7. AskQuestion: continue recommended / different focus / `/status` / validate / canvas.
 8. Drop into the active work. Help progress it in this conversation; do not stop at a status dump.
@@ -88,7 +88,7 @@ After `ba-new-initiative` has scaffolded, invoke `sub-skills/ba-intake-reviewer/
 
 ## Canvas, `/status`, `/next`
 
-- **Canvas:** on demand only via `ba-project-canvas` on `/canvas` or `/status`. Never auto at Phase 0, gates, or decisions.
+- **Canvas:** on demand only via `ba-project-canvas` on `/canvas` (rendered by `render-initiative-canvas.py`). `/status` offers it but never renders it. Never auto at Phase 0, gates, or decisions.
 - **`/status`:** `~/.cursor/commands/status.md`
 - **`/next`:** `~/.cursor/commands/next.md`
 - **`/reanchor`:** `~/.cursor/commands/reanchor.md`, then this Step 2.

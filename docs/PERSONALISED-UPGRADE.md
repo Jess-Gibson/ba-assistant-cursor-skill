@@ -152,7 +152,7 @@ Steps:
    - Other D files: read my version, the old version and the new version. Explain in plain English what I changed and what the new version changed. Recommend one of: take_new (and why my change is not needed), keep_mine (and what I miss from the new version), or merged. For merged, write the merged file in MY naming to <session>/merged/<path> and show me a short summary of the result before I approve it.
    - A-review, E (possible missing naming rule), G: explain and recommend.
    Use AskQuestion. Group low-risk ones. Update decisions.json with my answers.
-7. Ask whether to patch the two old /wrap and /validate-state rows in my profile (patch_profile). Show the old and new rows.
+7. Ask whether to patch the old /wrap, /validate-state, /status and /todo rows in my profile (patch_profile). Show the old and new rows.
    If a finding says there is no config file, ask whether to set create_config. After apply-staging, fill in the created <session>/stage-home/.cursor/rules/ba-assistant-config.mdc with me (name, Jira, Confluence, paths, and the optional workboard and mail keys). Lift my old hard-coded values (meeting highlights, mail noise subjects, ignored folders, repo names) from my current _workstream scripts into those keys, and show me what you are adding.
 8. Run apply-staging. Then test in staging, always through `run --session <session> -- <command>` (S below is <session>/stage-home/.cursor):
    - session start: `run -- py S/hooks/session-init.py`. It must list my initiatives (not "No SESSION-CONTEXT.md found"). With several, it must ask rather than guess.

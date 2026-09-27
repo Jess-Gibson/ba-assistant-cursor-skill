@@ -9,7 +9,7 @@
 # to "newest SESSION-CONTEXT.md by modified time".
 #
 # What it computes (cheap, local-file-only, <50ms):
-#   1. Unpromoted DEC-/RISK-/OQ-/ACT-/DEP- lines (no [promoted] tag) -> promote / run /wrap.
+#   1. Unpromoted DEC-/REQ-/RISK-/OQ-/ASM-/ACT-/DEP- lines (no [promoted] tag) -> promote / run /wrap.
 #   2. status-data.json older than initiative-tracker.md by >1h -> staleness note.
 # Silence when state is clean.
 
@@ -55,10 +55,10 @@ if sc:
     try:
         text = open(sc, encoding="utf-8", errors="ignore").read()
         unpromoted = [l for l in text.splitlines()
-                      if re.match(r'\s*[-*]?\s*(DEC|RISK|OQ|ACT|DEP)-', l.strip())
+                      if re.match(r'\s*[-*]?\s*(DEC|REQ|RISK|OQ|ASM|ACT|DEP)-', l.strip())
                       and "[promoted]" not in l]
         if len(unpromoted) >= 3:
-            notes.append(f"{len(unpromoted)} unpromoted items in SESSION-CONTEXT (decisions/risks/OQs). "
+            notes.append(f"{len(unpromoted)} unpromoted items in SESSION-CONTEXT (decisions/requirements/risks/OQs). "
                          f"Promote to the tracker or suggest /wrap before the session ends.")
         d = os.path.dirname(sc)
         tracker, sd = os.path.join(d, "initiative-tracker.md"), os.path.join(d, "status-data.json")

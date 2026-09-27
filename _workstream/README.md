@@ -12,6 +12,12 @@ This folder lives in your Cursor **user profile** — `~/.cursor/_workstream/` �
 | `regenerate-ba-actions-md.py` | After any `ba-actions.json` write | Full MD derive — run `python3 _workstream/regenerate-ba-actions-md.py` (Windows: `py`) |
 | `generate-workboard-canvas.py` | `/workboard` refresh | Generates the portable interactive canvas from this BA's data |
 | `roll-calendar-eod.py` | Called by `generate-workboard-canvas.py --eod-roll` at `/workboard end-of-day` | Rolls `calendar-feed.json` + `workboard.json` meetings to the next working day. At EOD it runs once, through `--eod-roll`; do not also call it directly. Always pass `--closeout-date`. A repeat for the same date prints SKIPPED and writes nothing |
+| `ba-actions.py` | `/todo`, `/done`, action sync, end of day 5a/5b | Writes `ba-actions.json` (ids, duplicate check, no reopening done rows) and regenerates `ba-actions.md`. `eod-scan` lists what end of day walks |
+| `capture.py` | Context capture, every BA turn that has something to keep | Appends decisions, requirements, actions, answered questions and more to `SESSION-CONTEXT.md` without a full read; tags lines for promotion |
+| `validate-state.py` | Resume (quick), end of day, before publish | Read-only local drift scan for one initiative; prints the divergence table |
+| `compute-metrics.py` | `/metrics`, `/status`, retros | The four BA quality metrics from `status-data.json`, cached in `metrics-cache.json` |
+| `render-initiative-canvas.py` | `/canvas` | Renders the 8-tab initiative canvas and `status-snapshot.html` from `status-data.json` |
+| `generate-initiative-snapshots.py` | Resume (`--ensure`), end of day | Compact resume snapshot per initiative; stays fresh until that initiative changes |
 | `calendar-feed.json` | Your calendar script (optional) | Feeds the workboard Today tab and EOD meeting reconciliation |
 | `calendar-feed.sample.json` | Reference | Example shape for optional calendar feed |
 

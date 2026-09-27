@@ -6,9 +6,21 @@
       "category": "wording",
       "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
     },
+    "_workstream/ba-actions.py": {
+      "category": "behaviour-critical",
+      "reason": "New: /todo, action sync and end of day 5a/5b write ba-actions.json through one script (ids, dedupe, no reopen, MD regenerate)"
+    },
+    "_workstream/capture.py": {
+      "category": "behaviour-critical",
+      "reason": "New: context capture writes to SESSION-CONTEXT.md without a full read; promotion markers; BA actions to ba-actions.json"
+    },
+    "_workstream/compute-metrics.py": {
+      "category": "behaviour-important",
+      "reason": "New: the four quality metrics computed from status-data.json with trend and n/a streak"
+    },
     "_workstream/generate-initiative-snapshots.py": {
       "category": "behaviour-critical",
-      "reason": "New: resume snapshots with --check FRESH/STALE; never used for initiative selection"
+      "reason": "Resume snapshots: freshness hashes only this initiative's slice of workstream files; --ensure rebuilds when stale"
     },
     "_workstream/generate-workboard-canvas.py": {
       "category": "behaviour-critical",
@@ -18,6 +30,10 @@
       "category": "behaviour-important",
       "reason": "Windows fallback when pathlib misses files in Downloads"
     },
+    "_workstream/render-initiative-canvas.py": {
+      "category": "behaviour-critical",
+      "reason": "New: initiative canvas + HTML snapshot rendered from status-data.json"
+    },
     "_workstream/roll-calendar-eod.py": {
       "category": "behaviour-critical",
       "reason": "One roll per closeout date (repeat is a no-op, partial roll fails closed); real timezone; config highlights; null duration fix"
@@ -26,13 +42,17 @@
       "category": "behaviour-critical",
       "reason": "New: Outlook desktop triage, config-driven noise filters, fails open with exit 2"
     },
+    "_workstream/validate-state.py": {
+      "category": "behaviour-critical",
+      "reason": "New: local drift scan (state validator steps 3-5) for resume and end of day"
+    },
     "commands/audit-standards.md": {
       "category": "behaviour-minor",
       "reason": "Command points at the installed ~/.cursor/ path, so it works from any workspace"
     },
     "commands/canvas.md": {
-      "category": "behaviour-minor",
-      "reason": "Command points at the installed ~/.cursor/ path, so it works from any workspace"
+      "category": "behaviour-critical",
+      "reason": "/canvas renders with the script; no read-every-file, no hand-written canvas"
     },
     "commands/close.md": {
       "category": "behaviour-minor",
@@ -54,6 +74,10 @@
       "category": "behaviour-minor",
       "reason": "Command points at the installed ~/.cursor/ path, so it works from any workspace"
     },
+    "commands/metrics.md": {
+      "category": "behaviour-important",
+      "reason": "/metrics runs compute-metrics.py"
+    },
     "commands/publish-status.md": {
       "category": "behaviour-minor",
       "reason": "Command points at the installed ~/.cursor/ path, so it works from any workspace"
@@ -71,24 +95,24 @@
       "reason": "Command points at the installed ~/.cursor/ path, so it works from any workspace"
     },
     "commands/status.md": {
-      "category": "behaviour-minor",
-      "reason": "Command points at the installed ~/.cursor/ path, so it works from any workspace"
+      "category": "behaviour-critical",
+      "reason": "/status is chat + metrics script; offers /canvas instead of rendering it"
     },
     "commands/todo.md": {
-      "category": "behaviour-minor",
-      "reason": "Command points at the installed ~/.cursor/ path, so it works from any workspace"
+      "category": "behaviour-important",
+      "reason": "/todo writes through ba-actions.py"
     },
     "commands/validate-state.md": {
       "category": "behaviour-critical",
-      "reason": "/validate-state writes what this chat captured (was read-only)"
+      "reason": "/wrap semantics kept; REQ-/ASM- markers; one-call action upsert and capture"
     },
     "commands/workboard.md": {
       "category": "behaviour-critical",
-      "reason": "End of day defers to eod-closeout-procedure.md and does not walk every action"
+      "reason": "End of day defers to eod-closeout-procedure.md and does not walk every action; action sync through ba-actions.py"
     },
     "commands/wrap.md": {
       "category": "behaviour-critical",
-      "reason": "/wrap is a chat-only checkpoint; no workboard refresh"
+      "reason": "Chat checkpoint; REQ-/ASM- markers; ba-actions.py upsert"
     },
     "hooks.json": {
       "category": "behaviour-critical",
@@ -96,7 +120,7 @@
     },
     "hooks/inject-state-reminder.py": {
       "category": "behaviour-critical",
-      "reason": "Stop reminder never guesses an initiative; off unless stopFollowup: true"
+      "reason": "Stop hook counts REQ- and ASM- captures as unpromoted too"
     },
     "hooks/jira-dor-gate.py": {
       "category": "behaviour-critical",
@@ -118,17 +142,21 @@
       "category": "wording",
       "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
     },
+    "rules/ba-profile.mdc": {
+      "category": "behaviour-important",
+      "reason": "/status, /canvas, /todo, /metrics rows (patched only with --patch-profile)"
+    },
     "rules/critical-gates.mdc": {
       "category": "behaviour-important",
       "reason": "Stop reminder documented as off by default; shared repo from config"
     },
     "rules/execution-router.mdc": {
       "category": "behaviour-important",
-      "reason": "Separate routes for chat checkpoint (/wrap), end of day and retro"
+      "reason": "Context capture writes through capture.py; re-entry card moved to a reference"
     },
     "rules/skills-routing.mdc": {
-      "category": "wording",
-      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
+      "category": "behaviour-minor",
+      "reason": "Canvas is on demand only, not triggered by /status"
     },
     "rules/sync-gates.mdc": {
       "category": "behaviour-important",
@@ -136,7 +164,7 @@
     },
     "rules/todo-quick-capture.mdc": {
       "category": "behaviour-important",
-      "reason": "/wrap syncs only this chat's actions; no workboard refresh"
+      "reason": "/todo, /done and lists use ba-actions.py"
     },
     "skills/ba-assistant/BA_Assistant_User_Guide.md": {
       "category": "wording",
@@ -144,11 +172,11 @@
     },
     "skills/ba-assistant/SKILL.md": {
       "category": "behaviour-important",
-      "reason": "Resume order uses snapshot --check; /wrap routing; hook-contracts read on demand"
+      "reason": "Resume: quick validate-state.py, snapshot --ensure, re-entry card reference; canvas on demand"
     },
     "skills/ba-assistant/ba-profile.template.mdc": {
-      "category": "behaviour-important",
-      "reason": "Config template: paths.*, sharedRepoRoot, optional workboard and mail keys"
+      "category": "behaviour-minor",
+      "reason": "/status and /canvas rows"
     },
     "skills/ba-assistant/hook-contracts-history.md": {
       "category": "wording",
@@ -168,7 +196,7 @@
     },
     "skills/ba-assistant/references/ba-actions-format.md": {
       "category": "behaviour-important",
-      "reason": "End of day and /wrap rows; 5b filter instead of walking every action"
+      "reason": "Sync writes through ba-actions.py"
     },
     "skills/ba-assistant/references/canvas-data-model.md": {
       "category": "wording",
@@ -182,13 +210,17 @@
       "category": "wording",
       "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
     },
+    "skills/ba-assistant/references/cursor-runtime-facts.md": {
+      "category": "wording",
+      "reason": "Re-entry card location"
+    },
     "skills/ba-assistant/references/dev-handover-format.md": {
       "category": "wording",
       "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
     },
     "skills/ba-assistant/references/eod-closeout-procedure.md": {
       "category": "behaviour-critical",
-      "reason": "Single calendar-roll command, mail order script > MCP > unable, snapshots step, 5b action filter"
+      "reason": "5a/5b via ba-actions.py eod-scan; validate-state.py for touched initiatives; one-call action upsert"
     },
     "skills/ba-assistant/references/jira-ticket-format.md": {
       "category": "wording",
@@ -201,6 +233,10 @@
     "skills/ba-assistant/references/raid-format.md": {
       "category": "behaviour-critical",
       "reason": "DoR table gains Story key and Result columns the DoR gate reads"
+    },
+    "skills/ba-assistant/references/re-entry-card.md": {
+      "category": "behaviour-important",
+      "reason": "New: re-entry card moved out of the always-on router"
     },
     "skills/ba-assistant/references/requirements-register-unified-template.md": {
       "category": "wording",
@@ -216,7 +252,7 @@
     },
     "skills/ba-assistant/references/sync-procedures.md": {
       "category": "behaviour-important",
-      "reason": "/wrap and /validate-state semantics; end of day moved out"
+      "reason": "Promotion rules for REQ-, ASM- and OQ-answered captures"
     },
     "skills/ba-assistant/references/user-story-format.md": {
       "category": "wording",
@@ -251,8 +287,8 @@
       "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
     },
     "skills/ba-assistant/sub-skills/ba-context-capture/SKILL.md": {
-      "category": "wording",
-      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
+      "category": "behaviour-critical",
+      "reason": "Detect every turn as before; write with capture.py; requirement and action signals"
     },
     "skills/ba-assistant/sub-skills/ba-current-state-assessment/SKILL.md": {
       "category": "wording",
@@ -303,20 +339,24 @@
       "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
     },
     "skills/ba-assistant/sub-skills/ba-project-canvas/SKILL.md": {
-      "category": "wording",
-      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
+      "category": "behaviour-critical",
+      "reason": "Canvas rendered by script, on demand only"
     },
     "skills/ba-assistant/sub-skills/ba-project-canvas/canvas-generate.md": {
-      "category": "wording",
-      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
+      "category": "behaviour-critical",
+      "reason": "Procedure is now: refresh status-data.json, run the renderer"
     },
     "skills/ba-assistant/sub-skills/ba-project-canvas/canvas-tab-specs.md": {
       "category": "wording",
-      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
+      "reason": "Marked as the template design reference"
     },
     "skills/ba-assistant/sub-skills/ba-project-canvas/intake-form-canvas.md": {
       "category": "wording",
       "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
+    },
+    "skills/ba-assistant/sub-skills/ba-project-canvas/metrics.md": {
+      "category": "behaviour-minor",
+      "reason": "Metrics come from compute-metrics.py"
     },
     "skills/ba-assistant/sub-skills/ba-requirements-interrogator/SKILL.md": {
       "category": "wording",
@@ -351,8 +391,8 @@
       "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
     },
     "skills/ba-assistant/sub-skills/ba-state-validator/SKILL.md": {
-      "category": "behaviour-important",
-      "reason": "/validate-state writes; read-mostly default only on resume or publish"
+      "category": "behaviour-critical",
+      "reason": "Steps 3-5 run validate-state.py; quick mode on resume, full mode before publish"
     },
     "skills/ba-assistant/sub-skills/ba-story-writing/SKILL.md": {
       "category": "behaviour-critical",
@@ -365,6 +405,10 @@
     "skills/ba-assistant/sub-skills/ba-workshop-design/SKILL.md": {
       "category": "wording",
       "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
+    },
+    "skills/ba-assistant/templates/initiative-status.canvas.tsx.template": {
+      "category": "behaviour-critical",
+      "reason": "New: 8-tab initiative canvas template the renderer fills"
     },
     "skills/miro-board-analysis/SKILL.md": {
       "category": "wording",

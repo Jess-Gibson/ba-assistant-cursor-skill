@@ -49,9 +49,23 @@ Version 14 QA fixes (from the fork review) plus the fixes below.
 - Merge tool: one sign-off for auto-merged files, stale decisions refused, a warning for initiative folders outside `.cursor`, and `changed-since-deploy` for a safe first sync.
 - CI runs the tests on Ubuntu, macOS and Windows.
 
+### Scripts do the repeatable work (fewer tokens, same thinking)
+
+The model keeps the judgement (what to capture, how to word it, what to propagate, what to ask). Steps that come out the same every time now run as scripts in `_workstream/`, so they are cheaper and cannot drift between runs.
+
+- **Context capture:** still detects decisions, requirements, actions, answered questions, assumptions, risks, blockers and facts on every BA turn, and still writes them in the same turn with a 📝 line. The write is now one `capture.py` call: no full read and re-edit of `SESSION-CONTEXT.md`, duplicates skipped, and every line tagged (`DEC-`, `REQ-`, `OQ-answered`, `ASM-`, `RISK-`, `ACT-`, `DEP-`) so `/wrap`, `/validate-state`, end of day and the stop hook see it until it is promoted. Requirements and actions are now named signal types; the BA's own actions also go to `ba-actions.json` in the same call.
+- **Actions:** `ba-actions.py` does `/todo`, `/done`, lists, batch upserts from debriefs and `/wrap`, and the end-of-day critical scan and walk list (`eod-scan`). It allocates ids, applies the duplicate rules and priority defaults, never reopens a done row without `--reopen`, and regenerates `ba-actions.md`.
+- **Canvas:** `/canvas` renders the 8-tab canvas and HTML snapshot from `status-data.json` with `render-initiative-canvas.py` and a packaged template. The old procedure read every file in the initiative and had the model hand-write a large `.canvas.tsx` from about 117k characters of spec; the spec is now a template design reference only. Empty tabs say what data they need. `/status` no longer renders the canvas; it offers it.
+- **State validation:** `validate-state.py` does the fact registry, scan and divergence table for local files (tracker vs `status-data.json`, render freshness, names, milestone dates, README status, unpromoted captures). Resume runs this quick mode only (no Jira sync, no Confluence fetch); the full mode with Confluence runs before `/publish-status` or on request. End of day runs it for touched initiatives.
+- **Metrics:** `compute-metrics.py` computes the four quality metrics with a 7-day trend and the n/a streak, for `/metrics` and `/status`.
+- **Resume snapshots actually get used:** freshness now hashes only this initiative's slice of `workboard.json`, `ba-actions.json` and `calendar-feed.json`, so a calendar refresh or another initiative's `/todo` no longer makes every snapshot stale. `--ensure <slug>` rebuilds a stale one instead of falling back to reading every file.
+- **Always-on router slimmer:** the re-entry card templates moved to `references/re-entry-card.md`, read on resume only.
+- **Profile rows:** `--patch-profile` (and the merge tool's `patch_profile`) also replaces the old `/status` (triple output) and `/todo` (workboard) rows.
+- `skills/ba-assistant/VERSION` now says 15 (it still said 14).
+
 ### Tests
 
-- `python3 tests/run_all.py` adds end-of-day (roll and canvas prompt), install and upgrade (installs Version 14, personalises it, upgrades, and pins what is kept), and merge-tool (full flow on a personalised install with its own naming) suites.
+- `python3 tests/run_all.py` adds end-of-day (roll and canvas prompt), install and upgrade (installs Version 14, personalises it, upgrades, and pins what is kept), and merge-tool (full flow on a personalised install with its own naming) suites, and `test_efficiency_scripts.py` (actions, capture, drift scan, metrics, canvas render, snapshot slices, and doc checks that nothing tells the agent to read every file for a canvas).
 
 ## Version 14 - 2026-09-25
 

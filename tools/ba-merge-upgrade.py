@@ -1000,7 +1000,7 @@ def cmd_classify(args) -> int:
             "_help": "Set each 'ask' to take_new, keep_mine, or merged (merged = you wrote the result, in your "
                      "own naming, to <session>/merged/<path>). For class G, take_new restores the package file; "
                      "keep_mine leaves it missing. For class F, remove moves your copy aside at deploy. "
-                     "patch_profile true replaces only the old /wrap and /validate-state rows in ba-profile.mdc.",
+                     "patch_profile true replaces only the old /wrap, /validate-state, /status and /todo rows in ba-profile.mdc.",
             "classification_id": classification_id,
             "auto_merged_reviewed": False,
             "patch_profile": False,
@@ -1232,7 +1232,7 @@ def cmd_apply_staging(args) -> int:
         applied.append("CONFIG     rules/ba-assistant-config.mdc created from the template: FILL IT IN (in staging) "
                        "before deploy-plan")
 
-    # Profile: only the old /wrap and /validate-state rows, in your naming.
+    # Profile: only the old /wrap, /validate-state, /status and /todo rows, in your naming.
     profile = staging / loc.path("rules/ba-profile.mdc")
     if decisions.get("patch_profile") and profile.exists():
         raw = profile.read_bytes()

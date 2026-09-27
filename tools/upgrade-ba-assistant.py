@@ -13,7 +13,7 @@ Version 15 safety defaults:
     it, legacy data that an older release would have migrated (personal_tasks[]
     in workboard.json, a legacy <name>-actions.json) is reported as WARN and left
     byte-identical.
-  - ba-profile.mdc is never overwritten. Old /wrap and /validate-state rows are
+  - ba-profile.mdc is never overwritten. Old /wrap, /validate-state, /status and /todo rows are
     reported as WARN with the exact replacement; --patch-profile replaces only
     those rows (after a backup).
   - Leftover .sh/.ps1 hook wrappers are moved to the backup only when hooks.json
@@ -224,12 +224,14 @@ def run_workboard_action_migration(
     return module.migrate_legacy_actions(workstream, backup_root, home, dry_run)
 
 
-PROFILE_ROW_COMMANDS = ("/validate-state", "/wrap")
+PROFILE_ROW_COMMANDS = ("/validate-state", "/wrap", "/status", "/todo")
 # Phrases only the pre-Version 14 rows used. A row that has been personalised
 # in some other way is left alone and reported, never rewritten.
 OLD_PROFILE_ROW_MARKERS = {
     "/validate-state": "Read-only drift report",
     "/wrap": "End-of-session closeout",
+    "/status": "triple-output: chat + canvas + HTML",
+    "/todo": "Quick-capture a personal task into the workboard",
 }
 
 
@@ -345,7 +347,7 @@ def main() -> int:
     ap.add_argument(
         "--patch-profile",
         action="store_true",
-        help="Replace only the old /wrap and /validate-state rows in ba-profile.mdc (backed up first)",
+        help="Replace only the old /wrap, /validate-state, /status and /todo rows in ba-profile.mdc (backed up first)",
     )
     args = ap.parse_args()
     dry_run = not args.apply

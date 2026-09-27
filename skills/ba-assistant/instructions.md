@@ -32,7 +32,7 @@ Run without being asked:
 
 - **Anti-Pattern Detector** - flags anti-patterns as they appear, including skipped mandatory hooks.
 - **Requirements Interrogator** - fires when a requirement is becoming a design decision, or a design is justified by an uninterrogated requirement.
-- **Context Capture** - logs new facts, decisions, blockers, OQs, scope changes, and corrections to `SESSION-CONTEXT.md` with an inline `📝`. Surfaces `learnings.md` at inflection points (see that skill).
+- **Context Capture** - every BA turn, spots new decisions, requirements, actions, answered questions, assumptions, risks, blockers, scope changes and corrections, and writes them to `SESSION-CONTEXT.md` the same turn with `_workstream/capture.py` and an inline `📝`. Surfaces `learnings.md` at inflection points (see that skill).
 
 ## Self-Critique
 

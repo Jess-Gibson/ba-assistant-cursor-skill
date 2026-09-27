@@ -18,6 +18,7 @@ SUITES = [
     REPO / "tests" / "test_package_consistency.py",
     REPO / "tests" / "test_eod.py",
     REPO / "tests" / "test_scripts.py",
+    REPO / "tests" / "test_efficiency_scripts.py",
     REPO / "tests" / "test_install_upgrade.py",
     REPO / "tests" / "test_merge_tool.py",
 ]

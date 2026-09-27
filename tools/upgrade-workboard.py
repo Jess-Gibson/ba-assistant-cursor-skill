@@ -23,6 +23,8 @@ OVERLAY_FILES = [
     ("skills/ba-assistant/references/workboard-format.md", "skills/ba-assistant/references/workboard-format.md"),
     ("tools/generate-workboard-canvas.py", "_workstream/generate-workboard-canvas.py"),
     ("tools/roll-calendar-eod.py", "_workstream/roll-calendar-eod.py"),
+    # End of day 5a/5b and /todo call this; it is package code, not BA data.
+    ("_workstream/ba-actions.py", "_workstream/ba-actions.py"),
 ]
 
 OPTIONAL_COMMANDS = [

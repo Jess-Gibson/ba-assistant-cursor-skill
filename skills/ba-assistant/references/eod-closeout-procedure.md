@@ -16,7 +16,7 @@ Canonical store: `_workstream/ba-actions.json`. Human view: `_workstream/ba-acti
 
 ### 5a. EOD critical scan (before one-by-one walk)
 
-Read `ba-actions.json` and `ba-actions.md`. **Surface first** (callout table in chat, before AskQuestion):
+Run `python3 _workstream/ba-actions.py eod-scan --closeout-date <closeout YYYY-MM-DD>` (Windows: `py`). It prints the four buckets below, the 5b walk list in order, and the count left out; present those rather than re-deriving them from the JSON. If the script is missing, read `ba-actions.json` and apply the rules yourself. **Surface first** (callout table in chat, before AskQuestion):
 
 | Bucket | Rule |
 |--------|------|
@@ -43,7 +43,7 @@ For each action walked:
    - **Started today** (optional, when user actually began work) — set `started_on` to today; keep status `open` unless also Done
 
    Do **not** offer generic **In progress**, **Follow up**, or **Move deadline** as separate chips — they duplicate Skip / Move to tomorrow / Pick another date in practice.
-2. Write changes to `ba-actions.json` immediately after each answer (or batch at end of a group if the user prefers speed, but never skip the question).
+2. Write changes immediately after each answer with `ba-actions.py done <id>` / `set <id> --due ... --remind-on ... --reminder ...` / `set <id> --status cancelled --notes "<reason>"` (or batch a group with `upsert` if the user prefers speed, but never skip the question).
 3. If the user surfaces new actions during the runthrough, insert with next `BA-NNN` via `/todo` rules or direct JSON upsert.
 
 **Proactive focus-block offer.** After the walk, if two or more due-today/overdue items still have no scheduled focus block, don't wait for the user to pick the chip per item — offer once: "You've got N action items due/overdue with no time blocked. Want me to find a free slot and book them in?" Use the same Outlook mechanism as the per-item option above.
@@ -70,14 +70,15 @@ procedure. It runs these steps in order:
    a. **Skip if `status: closed` or `status: archived`** (e.g. Legacy Initiative). No read at all. `archived` additionally means: don't rescore, don't touch `last_validated` — it's fully out of the loop until unarchived.
    b. **Skip if `last_session` is not today.** Nothing changed since the last time this initiative was validated — don't open the file to check.
    c. **Otherwise, delta-read `SESSION-CONTEXT.md`.** Read `last_validated` for this initiative from `workboard.json` (treat missing as "never"). Find every `### <date> — ...` heading in the file dated **after** `last_validated` and read only those sections (the static preamble sections above the dated log — Quick context, Workspace context, PM approval state, etc. — don't need re-reading; they're reference, not a daily log). **Fallback:** if the file has no parseable `### <date>` headings, or `last_validated` is missing/unparseable, read the entire file this one time and say so in the drift report ("full read — no prior checkpoint" or "full read — unparseable date headers").
-   d. **Check the tracker by targeted lookup, not full read.** For each `DEC-`/`RISK-`/`OQ-`/`ACT-`/`DEP-` marker found in the delta, grep `initiative-tracker.md` for that specific ID to confirm it was promoted. Do not read the tracker top to bottom — it isn't organised by date (a large initiative's tracker can be hundreds of thousands of characters of thematic RAID tables, not a daily log) and a targeted ID lookup answers the only question that matters here: did this specific item make it in.
+   d. **Check the tracker by targeted lookup, not full read.** For each `DEC-`/`REQ-`/`RISK-`/`OQ-`/`ASM-`/`ACT-`/`DEP-` marker found in the delta, grep `initiative-tracker.md` for that specific ID to confirm it was promoted. Do not read the tracker top to bottom — it isn't organised by date (a large initiative's tracker can be hundreds of thousands of characters of thematic RAID tables, not a daily log) and a targeted ID lookup answers the only question that matters here: did this specific item make it in.
    e. `status-data.json` is small and structured — keep reading it in full, no delta needed there.
-   f. After validating, write today's closeout date to `last_validated` for this initiative in `workboard.json`.
+   f. Run `python3 _workstream/validate-state.py --initiative <slug>` for the same touched initiative (read-only, local files only). Fold any DRIFT rows into the report below; do not fix them unasked.
+   g. After validating, write today's closeout date to `last_validated` for this initiative in `workboard.json`.
 
    Report drift with specific item IDs and counts (this is a deeper pass than `sync-procedures.md`'s Quick sync check, which only scans for sync markers). **This replaces full-file reads for the common case** (a large initiative's SESSION-CONTEXT.md and tracker together can be hundreds of thousands of tokens; a typical day's delta should be a few hundred lines). `/validate-state all` (on-demand) remains the full deep-sweep safety net for whenever the user wants one — suggest it occasionally rather than forcing it into every EOD.
 5. **Action runthrough** — as described above.
 6. **Promote unpromoted items** — copy decisions/risks/open questions/actions/dependencies already logged in SESSION-CONTEXT.md (from today's captures) into the initiative-tracker.md so the tracker stays the single source of truth, per `sync-procedures.md`'s Automated state cascade rules, tagging each with `[promoted]` so it isn't copied again.
-6b. **Sync actions** — run `sync-ba-actions` per `references/ba-actions-format.md` §3: upsert user-owned rows from today's debriefs, SESSION-CONTEXT captures, and initiative tracker action registers; then **`python3 _workstream/regenerate-ba-actions-md.py`** (full MD derive from JSON, never hand-edit MD); print `Gate: ba-actions-sync: PASS/FAIL`. This step closes the debrief→tracker→action-list gap.
+6b. **Sync actions** — run `sync-ba-actions` per `references/ba-actions-format.md` §3: collect user-owned rows from today's debriefs, SESSION-CONTEXT captures, and initiative tracker action registers, then upsert them in one call with **`python3 _workstream/ba-actions.py upsert --json -`** (it dedupes, regenerates `ba-actions.md` and prints `Gate: ba-actions-sync: PASS/FAIL`). This step closes the debrief→tracker→action-list gap.
 7. **Refresh `_workstream/workboard.json`** — initiative status updates (score per `references/workboard-format.md`, do not default to `on-track`), milestone `days_out` recalculated from today's date, `last_refreshed` updated, today's meetings marked done. Personal task counts come from `ba-actions.json`, not legacy `personal_tasks[]`.
 7a. **Refresh initiative snapshots (optional, fail-open).** If `_workstream/generate-initiative-snapshots.py` exists, run it once (no arguments) so tomorrow's resume can use a fresh snapshot. A failure here never stops end of day.
 7b+8. **Roll calendar once, then generate canvas (mandatory at EOD).** After step 7 marks today's meetings done, advance the board to the next working day with this **one** command, run **once**:

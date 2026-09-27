@@ -16,12 +16,16 @@ The Context Capture skill runs **passively and continuously** during every BA As
 
 This skill runs continuously, not on-demand. After every user message, perform a fast scan for new capturable information. The scan is **silent when nothing is found**  -  no visible output unless something worth capturing is detected.
 
-When something is detected, surface it briefly and write it. Do not interrupt the flow of conversation  -  append a short capture confirmation at the end of the response, not as a separate interruption.
+When something is detected, surface it briefly and write it **in the same turn** (never batch captures for later: a chat can end at any point). Do not interrupt the flow of conversation  -  append a short capture confirmation at the end of the response, not as a separate interruption.
+
+**Detection is yours, the write is the script's.** Spotting the signal, deciding it is worth keeping, and wording it well is the valuable part and stays with you every turn. The file write is mechanical: `_workstream/capture.py` appends to today's captures section without you reading or re-editing the whole `SESSION-CONTEXT.md`, skips anything already there, and tags each line so `/wrap`, `/validate-state`, end of day and the stop hook see it as unpromoted. One call per turn, however many items.
 
 ## What to capture (signal types)
 
 | Signal type | Pattern to detect | Example |
 |---|---|---|
+| **Requirement (new or changed)** | User states something the solution must do, a rule, a threshold, an acceptance condition | "Refunds over $500 need a second approver" |
+| **Action** | Someone commits to do something ("I'll", "can you ask", "Priya will send") | "I'll send the AC draft to Priya by Wednesday" |
 | **Decision (informal)** | User states a choice, confirms a direction, says "let's go with X", "we decided", "I spoke to [person] and they said Y" | "Yeah we're going with option B for the API" |
 | **Blocker (new or resolved)** | User mentions something is stuck, waiting, blocked, or conversely says something is now unblocked | "Still waiting on legal for that sign-off" / "Legal came back, we're good" |
 | **Open question (new)** | User raises something they don't know yet, asks "do we know if…", "I need to find out…", "not sure about…" | "I don't actually know if the legacy system supports that" |
@@ -44,9 +48,30 @@ When something is detected, surface it briefly and write it. Do not interrupt th
 
 ## How to capture
 
-### Format in SESSION-CONTEXT.md
+### Write it with the script
 
-Append to the relevant section. If no matching section exists, create one.
+```text
+python3 ~/.cursor/_workstream/capture.py --initiative <slug> --json -      (Windows: py)
+```
+
+with a JSON list on stdin, one object per item:
+
+| Field | Use |
+|---|---|
+| `type` | `decision`, `requirement`, `action`, `question`, `answered` (a logged question now resolved), `assumption`, `risk`, `blocker`, `dependency`, `scope`, `stakeholder`, `fact`, `date`, `correction` |
+| `text` | The item in one plain sentence (the landing point, not the journey) |
+| `context` | Optional one line on why it matters |
+| `resolution` | For `answered`: the answer and who gave it |
+| `status` | Optional: `new`, `resolved`, `confirmed`, `corrected` |
+| `owner`, `due` | For actions and questions |
+| `mine` | `true` on an action the BA owns: it is also upserted into `ba-actions.json` in the same call |
+| `route` | Optional skill to route to at the next natural break (see Routing) |
+
+The script prints `Capture: PASS (N written, M already there)`. Use that for the 📝 line. If it prints `FAIL` (no initiative named, file missing), say so in the 📝 line and write the items with a normal edit instead. Never drop a capture silently. If the script is not installed, append by hand in the format below.
+
+### Format in SESSION-CONTEXT.md (what the script writes)
+
+Items land under `## Mid-session captures - YYYY-MM-DD`, in the sub-section for their type, each line tagged with a promotion marker (`DEC-new`, `REQ-new`, `ACT-new`, `OQ-new`, `OQ-answered`, `ASM-new`, `RISK-new`, `RISK-blocker`, `DEP-new`, and `SCOPE-`/`STK-`/`FACT-`/`DATE-`/`FIX-` notes) and a time. Promotion adds `[promoted]` to the line. The older layout below is still read everywhere:
 
 ```markdown
 ## Mid-session captures  -  [today's date]
@@ -97,9 +122,9 @@ If multiple items were captured in one turn:
 ### Corrections
 
 When the user corrects a previously captured fact:
-1. Find the original entry in SESSION-CONTEXT.md
+1. Find the original entry in SESSION-CONTEXT.md (Grep for it; do not read the whole file)
 2. Strike it (prefix with `~~` or mark as `[CORRECTED]`)
-3. Add the corrected version with `[corrected from: original]`
+3. Add the corrected version with `capture.py`, type `correction`, text including `[corrected from: original]`
 4. Confirm: "📝 *Corrected: [what changed]*"
 
 ## Routing (when capture implies action)
@@ -138,7 +163,7 @@ At the end-of-session checkpoint, all mid-session captures are reviewed:
 
 - **Don't over-capture**  -  if a user is rambling or exploring ideas, don't log every sentence. Capture the landing point, not the journey.
 - **Don't capture without the user seeing**  -  every capture gets the inline `📝` confirmation. No silent writes.
-- **Don't duplicate**  -  before writing, scan SESSION-CONTEXT.md for whether this fact already exists. If it does and hasn't changed, skip.
+- **Don't duplicate**  -  the script skips an item whose text is already in SESSION-CONTEXT.md. If the fact changed, capture the new version (a `correction` when it replaces an old one).
 - **Don't block the conversation**  -  capture is a suffix to your response, never a separate interruption. The user's question/task always comes first.
 - **Don't guess attribution**  -  if the user says "someone mentioned X", log it as unattributed. Don't invent a source.
 - **Don't promote mid-session**  -  SESSION-CONTEXT.md is the landing zone. Promotion to tracker happens at session end (end-of-session checkpoint). Exception: if the user explicitly says "add that to the tracker"  -  then promote immediately.

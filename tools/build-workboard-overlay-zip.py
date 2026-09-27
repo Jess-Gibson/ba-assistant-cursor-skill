@@ -21,6 +21,7 @@ COPY_PATHS = [
     "skills/ba-assistant/references/workboard-procedure.md",
     "skills/ba-assistant/references/workboard-format.md",
     "_workstream/regenerate-ba-actions-md.py",
+    "_workstream/ba-actions.py",
     "skills/ba-assistant/references/ba-actions-format.md",
     "skills/ba-assistant/references/eod-closeout-procedure.md",
     "tools/workboard-overlay-docs/INSTALL-WORKBOARD.md",

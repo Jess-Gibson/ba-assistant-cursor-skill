@@ -646,7 +646,7 @@ def seed_workstream(cursor_home: Path, package: Path, dry_run: bool) -> None:
 
 # Package-owned helper scripts under _workstream/ (code, not BA data). Install and
 # upgrade both refresh these; JSON data files are never touched here.
-WORKSTREAM_TOOL_SCRIPTS = ("generate-workboard-canvas.py", "roll-calendar-eod.py")
+WORKSTREAM_TOOL_SCRIPTS = ("generate-workboard-canvas.py", "roll-calendar-eod.py", "render-initiative-canvas.py")
 WORKSTREAM_PACKAGE_FILES = (
     "README.md",
     "calendar-feed.sample.json",
@@ -655,6 +655,10 @@ WORKSTREAM_PACKAGE_FILES = (
     "list-downloads-recent.py",
     "scan-outlook-mail.py",
     "generate-initiative-snapshots.py",
+    "ba-actions.py",
+    "capture.py",
+    "validate-state.py",
+    "compute-metrics.py",
 )
 
 

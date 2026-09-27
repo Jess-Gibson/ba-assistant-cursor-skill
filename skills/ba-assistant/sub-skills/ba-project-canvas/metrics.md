@@ -13,7 +13,7 @@ Canonical formulas, sources, and thresholds live in `references/canvas-data-mode
 
 ### Computation invocation
 
-Compute these:
+`_workstream/compute-metrics.py --initiative <slug>` computes all four from `status-data.json`, writes `metrics-cache.json` (with a 7-day trend and the n/a streak) and prints the table. Show its output; do not work the formulas by hand. Run it:
 - Before every `/status` output (after Jira sync, before the chat status text is generated)
 - Before every retro (Type 2 / Type 3  -  the retro skill reads them)
 - Before every `/snapshot`

@@ -34,7 +34,7 @@ Most of the BA orchestrator's load discipline is **soft**. Treat duplicate instr
 
 - `.cursor/commands/*.md` (e.g. `/reanchor`, `/debrief`) inject their **full command body** into that user message.
 - Always-on rules (router, profile, gates) stay in context. Invoking a command does **not** suppress the orchestrator.
-- Design assumption that is now safe: `execution-router.mdc` §7 owns the re-entry **card**; a command should only add **deltas** (e.g. a Downloads check), not a second full resume script.
+- Design assumption that is now safe: `references/re-entry-card.md` (pointed to from `execution-router.mdc` §7) owns the re-entry **card**; a command should only add **deltas** (e.g. a Downloads check), not a second full resume script.
 - Cursor's `/migrate-to-skills` converts commands to skills with `disable-model-invocation: true`. A repo's BA verbs are still classic command files unless migrated.
 
 ### 3. No automatic partial file inject

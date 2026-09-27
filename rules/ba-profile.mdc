@@ -57,16 +57,16 @@ A low business priority item may still need early action due to long lead times.
 | Command | What it does |
 |---------|-------------|
 | `/next` | Top 3 next actions by urgency and value. End with an **AskQuestion** when it helps decide or move (forks, runthroughs, re-entry). |
-| `/status` | Full current state (triple-output: chat + canvas + HTML). End with an **AskQuestion** when it helps decide or move (forks, runthroughs, re-entry). |
+| `/status` | Full current state in chat, with the quality metrics (`compute-metrics.py`). Offers `/canvas`; never renders it itself. End with an **AskQuestion** when it helps decide or move (forks, runthroughs, re-entry). |
 | `/report` | Full structured deep-dive. |
 | `/publish-status` | Status page to Confluence per `references/status-page-format.md` — check `confluence-pages.json` first; update existing page, only create if none. |
-| `/canvas` | Generate/refresh the project canvas (invokes `ba-project-canvas`). |
+| `/canvas` | On demand only: refresh `status-data.json`, then render the canvas + HTML snapshot with `render-initiative-canvas.py` (invokes `ba-project-canvas`). |
 | `/handover` | Publish confirmed analysis to the delivery repo (invokes `ba-dev-handover`; gated). |
 | `/validate-state` | Check this whole chat against the initiative files, write anything missing (`SESSION-CONTEXT.md`, tracker, `status-data.json` where they exist, and this chat's BA actions in `ba-actions.json`), then confirm a new chat can pick up. No workboard refresh, no walk of every action. |
 | `/wrap` | Chat checkpoint only. Capture this chat into session context and the tracker. No workboard refresh. |
 | `/workboard` | Cross-initiative priorities view: all initiatives, top tasks, today's meetings, sync status (inline procedure). |
-| `/todo` | Quick-capture a personal task into the workboard (via `todo-quick-capture`). |
-| `/metrics` | The 4 BA quality metrics (via `ba-project-canvas`). |
+| `/todo` | Quick-capture a personal task into `ba-actions.json` with `ba-actions.py` (via `todo-quick-capture`). |
+| `/metrics` | The 4 BA quality metrics (`compute-metrics.py`, via `ba-project-canvas`). |
 | `/fast-track` | Condensed phase structure for time-critical initiatives; log activation as a decision. |
 | `/reanchor` | Re-read orchestrator + state. End with an **AskQuestion** when it helps decide or move (forks, runthroughs, re-entry). |
 | `/retro` | Retrospective (phase / mid-initiative / closure) via `ba-retrospective-and-learning`. Follow with an **AskQuestion** on which actions to implement. |

@@ -1,4 +1,4 @@
 ---
-description: BA Assistant — full status: chat + canvas + HTML (triple output)
+description: BA Assistant — full status in chat, with quality metrics (canvas is separate: /canvas)
 ---
-Run the BA Assistant /status command per `~/.cursor/rules/ba-profile.mdc` and `~/.cursor/skills/ba-assistant/SKILL.md`: sync Jira first, then produce all three outputs (chat status with workstream grid and tracker, canvas refresh, status-snapshot.html). Never produce the chat status alone. If no BA initiative is active in this workspace, say so — do not invent one.
+Run the BA Assistant /status command per `~/.cursor/rules/ba-profile.mdc` and `~/.cursor/skills/ba-assistant/SKILL.md`: sync Jira first, then give the chat status (workstream grid, critical path, blockers, living tracker). For the metrics section run `python3 ~/.cursor/_workstream/compute-metrics.py --initiative <slug>` (Windows: `py`) and show its table; do not compute the formulas by hand. Do not render the canvas or HTML snapshot here: end by offering `/canvas` if the user wants the visual. If no BA initiative is active in this workspace, say so — do not invent one.

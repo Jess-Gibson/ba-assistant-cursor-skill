@@ -25,11 +25,16 @@ Multiple tasks in one message are fine — process each.
 
 ### 2. Write to ba-actions.json
 
-Read `_workstream/ba-actions.json` (create from the schema in `ba-actions-format.md` if missing). Allocate the next `BA-NNN` (or continue the store's `next_id` / id scheme). Upsert each new action with status `open`. When the user says "remind me ...", set `remind_on` and `reminder` (not only `notes`). During action status updates, same rule.
+Use the script, not a hand edit of the JSON. It allocates the next `BA-NNN`, skips duplicates (`ba-actions-format.md` §3.2), never reopens a done/cancelled row, regenerates `ba-actions.md`, and prints both gate lines (Windows: `py` for `python3`):
+
+```text
+python3 ~/.cursor/_workstream/ba-actions.py add --task "Chase data export" --initiative <slug> --due 2026-10-02 --priority high
+python3 ~/.cursor/_workstream/ba-actions.py add --task "Prep steering pack" --remind-on 2026-10-01 --reminder "Start first thing"
+```
+
+Several tasks in one message: one `upsert --json -` call with a list of `{task, initiative, due, priority, remind_on, reminder, notes}` rows on stdin. Resolve relative dates ("Friday", "next week") to ISO yourself; the script only accepts dates, `today` and `tomorrow`. When the user says "remind me ...", set `--remind-on` and `--reminder` (not only `--notes`). If the script is missing, fall back to editing `ba-actions.json` per `ba-actions-format.md` and running `regenerate-ba-actions-md.py`.
 
 **Do not** append to legacy `workboard.json → personal_tasks[]`.
-
-After JSON write, regenerate `_workstream/ba-actions.md` (full derive from JSON — never hand-edit MD). Print `Gate: ba-actions-md-regen: PASS` when done.
 
 ### 3. Confirm (compact)
 
@@ -51,15 +56,15 @@ If any task is ambiguous (can't determine initiative), ask one clarifying questi
 
 User can also say:
 - `/done BA-013` or "BA-013 is done" or "completed the handover meeting booking"
-- Agent sets `status: "done"` and regenerates MD.
+- Run `ba-actions.py done BA-013` (several ids allowed: `done BA-013 BA-014`). Other changes: `ba-actions.py set BA-013 --status blocked --blocker-notes "..."`, `--due`, `--remind-on`, `--reminder`. Reopening a done/cancelled row needs `--reopen`, only after the user confirms.
 
 Multiple completions: `/done BA-013 BA-014`
 
 ### 5. Listing tasks
 
-- `/todo list` or "show my to-dos" → list from `ba-actions.json` (open / in_progress / blocked), sorted by urgency
-- `/todo list #<slug>` → filter to one initiative
-- `/todo overdue` → overdue items only
+- `/todo list` or "show my to-dos" → `ba-actions.py list` (open / in_progress / blocked, sorted by urgency)
+- `/todo list #<slug>` → `ba-actions.py list --initiative <slug>`
+- `/todo overdue` → `ba-actions.py list --overdue`
 
 ## Related
 

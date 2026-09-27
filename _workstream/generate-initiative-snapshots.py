@@ -9,6 +9,7 @@ Snapshots never decide which initiative a chat is for.
   python3 _workstream/generate-initiative-snapshots.py               # all initiatives in workboard.json
   python3 _workstream/generate-initiative-snapshots.py --slug <slug>  # one initiative
   python3 _workstream/generate-initiative-snapshots.py --check <slug> # FRESH (exit 0) or STALE/MISSING/MALFORMED (exit 1)
+  python3 _workstream/generate-initiative-snapshots.py --ensure <slug> # resume: FRESH as is, or rebuilt (REFRESHED); exit 1 if it cannot be built
 
 Windows: use `py` instead of `python3`.
 
@@ -109,9 +110,39 @@ def file_info(path: Path) -> dict:
     }
 
 
-# Workstream files a snapshot reads (actions, status, meetings). A change to any
-# of them makes the snapshot STALE, same as a change to the initiative's files.
+# Workstream files a snapshot reads (actions, status, meetings). Only this
+# initiative's slice of each counts: its workboard row, its actions (any
+# status) and its matching meetings. A /todo for another initiative or a
+# calendar refresh that does not touch this initiative's meetings leaves the
+# snapshot FRESH; a change to anything the snapshot shows makes it STALE.
 WORKSTREAM_INPUTS = ("workboard.json", "ba-actions.json", "calendar-feed.json")
+
+
+def meeting_terms(slug: str, initiative: dict) -> set[str]:
+    terms = {slug.lower()}
+    terms.update(word.lower() for word in str(initiative.get("name") or "").split() if len(word) > 4)
+    return terms
+
+
+def workstream_slices(workstream: Path, slug: str) -> dict[str, object]:
+    workboard = load_json(workstream / "workboard.json", {})
+    initiative = next((i for i in workboard.get("initiatives", []) if i.get("slug") == slug), None)
+    actions = load_json(workstream / "ba-actions.json", {}).get("actions", [])
+    calendar = load_json(workstream / "calendar-feed.json", {})
+    terms = meeting_terms(slug, initiative or {})
+    return {
+        "workboard.json": initiative,
+        "ba-actions.json": [a for a in actions if a.get("initiative") == slug],
+        "calendar-feed.json": [m for m in calendar.get("meetings", []) if any(t in str(m).lower() for t in terms)],
+    }
+
+
+def slice_sha256(value: object) -> str:
+    return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
+
+
+def slice_info(path: Path, value: object) -> dict:
+    return {"path": str(path), "exists": path.exists(), "slice": "this initiative only", "sha256": slice_sha256(value)}
 
 
 def snapshot(initiatives_root: Path, initiative: dict, actions: list[dict], calendar: dict,
@@ -126,8 +157,7 @@ def snapshot(initiatives_root: Path, initiative: dict, actions: list[dict], cale
         for item in actions
         if item.get("initiative") == slug and item.get("status") in {"open", "in_progress", "blocked"}
     ][:8]
-    terms = {slug.lower()}
-    terms.update(word.lower() for word in str(initiative.get("name") or "").split() if len(word) > 4)
+    terms = meeting_terms(slug, initiative)
     meetings = [
         {"subject": item.get("subject"), "start": item.get("start"), "end": item.get("end")}
         for item in calendar.get("meetings", [])
@@ -135,8 +165,8 @@ def snapshot(initiatives_root: Path, initiative: dict, actions: list[dict], cale
     ][:5]
     sources = {name: file_info(root / name) for name in SOURCE_FILES}
     if workstream is not None:
-        for name in WORKSTREAM_INPUTS:
-            sources[f"_workstream/{name}"] = file_info(workstream / name)
+        for name, value in workstream_slices(workstream, slug).items():
+            sources[f"_workstream/{name}"] = slice_info(workstream / name, value)
     return {
         "schemaVersion": 1,
         "role": "retrieval-index",
@@ -159,9 +189,10 @@ def snapshot(initiatives_root: Path, initiative: dict, actions: list[dict], cale
 
 
 def check_snapshot(snapshots: Path, initiatives_root: Path, slug: str, workstream: Path) -> tuple[str, str]:
-    """FRESH only when the snapshot parses and every file it was built from is
-    byte-identical (SHA-256) to when it was made, including files that have
-    appeared or disappeared since. Anything else: read the source files."""
+    """FRESH only when the snapshot parses, every initiative file it was built
+    from is byte-identical (SHA-256) to when it was made (including files that
+    have appeared or disappeared since), and this initiative's slice of each
+    workstream file is unchanged. Anything else: refresh it or read the files."""
     path = snapshots / f"{slug}.json"
     if not path.exists():
         return "MISSING", f"no snapshot at {path}"
@@ -173,13 +204,19 @@ def check_snapshot(snapshots: Path, initiatives_root: Path, slug: str, workstrea
     except (ValueError, KeyError, TypeError, AttributeError):
         return "MALFORMED", f"cannot read {path}"
     root = initiatives_root / slug
-    expected = {name: root / name for name in SOURCE_FILES}
-    expected.update({f"_workstream/{name}": workstream / name for name in WORKSTREAM_INPUTS})
-    for name, src in expected.items():
+    current = {name: file_sha256(root / name) for name in SOURCE_FILES}
+    try:
+        slices = workstream_slices(workstream, slug)
+    except (ValueError, AttributeError, TypeError):
+        return "STALE", "a workstream file could not be read"
+    current.update({f"_workstream/{name}": slice_sha256(value) for name, value in slices.items()})
+    for name, digest in current.items():
         entry = recorded.get(name)
         if not isinstance(entry, dict) or "sha256" not in entry:
             return "STALE", f"snapshot does not record {name} (made by an older version)"
-        if file_sha256(src) != entry.get("sha256"):
+        if name.startswith("_workstream/") and entry.get("slice") is None:
+            return "STALE", f"snapshot hashed all of {name} (made by an older version)"
+        if digest != entry.get("sha256"):
             return "STALE", f"{name} changed after the snapshot was made"
     return "FRESH", str(path)
 
@@ -188,6 +225,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Compact, source-linked initiative snapshots (resume shortcut only)")
     parser.add_argument("--slug", help="generate one initiative snapshot")
     parser.add_argument("--check", metavar="SLUG", help="report FRESH / STALE / MISSING / MALFORMED for one initiative")
+    parser.add_argument("--ensure", metavar="SLUG", help="resume: use the snapshot if FRESH, otherwise rebuild it first (REFRESHED)")
     parser.add_argument("--cursor-home", default=str(Path.home() / ".cursor"))
     args = parser.parse_args()
     home = Path(os.path.expanduser(args.cursor_home))
@@ -199,6 +237,13 @@ def main() -> int:
         state, detail = check_snapshot(snapshots, initiatives_root, args.check, workstream)
         print(f"Snapshot: {state} ({detail})")
         return 0 if state == "FRESH" else 1
+
+    if args.ensure:
+        state, detail = check_snapshot(snapshots, initiatives_root, args.ensure, workstream)
+        if state == "FRESH":
+            print(f"Snapshot: FRESH ({detail})")
+            return 0
+        args.slug = args.ensure
 
     workboard = load_json(workstream / "workboard.json", {})
     actions = load_json(workstream / "ba-actions.json", {}).get("actions", [])
@@ -216,7 +261,7 @@ def main() -> int:
             json.dumps(snapshot(initiatives_root, initiative, actions, calendar, workstream), indent=2) + "\n",
             encoding="utf-8",
         )
-        print(f"Snapshot: {output}")
+        print(f"Snapshot: {'REFRESHED' if args.ensure else 'written'} ({output})")
     return 0
 
 

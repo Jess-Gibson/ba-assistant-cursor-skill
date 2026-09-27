@@ -15,6 +15,10 @@ This guide introduces the **BA Assistant**, a multi-skill system for business an
 | **Initiative snapshots** | Resume can start from a compact snapshot when it is fresh; it never decides which initiative you are in |
 | **Your settings found in more places** | Session start and the Jira DoR gate read folder paths from `ba-assistant-config.mdc`, then your profile |
 | **Safer upgrades** | Your data is left alone unless you ask for a migration. Personalised installs can use `tools/ba-merge-upgrade.py` to keep their own edits and naming |
+| **Scripts do the repeatable work** | The same steps now run as small scripts in `_workstream/`, so the assistant spends its effort on thinking, not bookkeeping: `ba-actions.py` (`/todo`, action sync, end of day scan), `capture.py` (mid-chat captures), `validate-state.py` (drift check on resume and at end of day), `compute-metrics.py` (`/metrics`, `/status`), `render-initiative-canvas.py` (`/canvas`) |
+| **Captures work the same, cost less** | Decisions, requirements, actions, answered questions, assumptions and risks are still spotted every turn and written straight away with a 📝 line. The write no longer needs the assistant to re-read your whole `SESSION-CONTEXT.md` |
+| **Canvas is on demand and rendered** | `/canvas` renders the 8-tab canvas and HTML snapshot from `status-data.json`. It no longer reads every file in the initiative, and `/status` no longer renders it (it offers it) |
+| **Resume is lighter** | Resume runs the local drift check only (Confluence is checked before `/publish-status`), and the snapshot shortcut now stays fresh unless something about that initiative changed |
 
 ## What changed in Version 10
 
@@ -102,7 +106,7 @@ Every time the orchestrator delegates to a sub-skill, you'll see a header like:
 ```
 > Running: Intake Reviewer → extracting context, building living tracker
 > Running: Requirements Interrogator (Discovery workstream) → problem statement
-> Running: Project Canvas → refreshing 8-tab canvas + HTML snapshot (only when you run /canvas or /status)
+> Running: Project Canvas → rendering 8-tab canvas + HTML snapshot (only when you run /canvas)
 ✓ Intake Reviewer complete  -  3 unknowns logged, complexity = standard
 ```
 
@@ -124,11 +128,11 @@ Slash commands trigger orchestrator-driven flows. Type the slash in chat; if Cur
 | `/close` | Close out and archive a finished initiative |
 | `/fast-track` | Condensed phase structure for time-critical initiatives |
 | `/next` | Top 3 next actions across all active workstreams and scopes, ranked by urgency, unblock potential, and critical-path criticality |
-| `/status` | Full current state  -  workstream grid, feature status, critical path, blockers, living tracker, MoSCoW coverage, confidence scores. Triple-output: chat + canvas + HTML snapshot |
+| `/status` | Full current state in chat  -  workstream grid, feature status, critical path, blockers, living tracker, quality metrics, confidence scores. Offers `/canvas` for the visual |
 | `/publish-status` | Generate and publish the formal status page (Confluence + HTML snapshot) |
 | `/report` | Full comprehensive report  -  all major outputs in a single document, ready to share |
 | `/snapshot` | Living tracker snapshot  -  high-risk items, unresolved unknowns, what changed since last view |
-| `/canvas` | Generate or refresh the interactive project canvas (8 tabs) |
+| `/canvas` | Render the interactive project canvas (8 tabs) and HTML snapshot from `status-data.json` |
 | `/retro` | Trigger a retrospective  -  workstream-completion (quick), mid-initiative (deeper), or closure (comprehensive) |
 | `/metrics` | Pull and display all four metrics with per-scope breakdown and trend. Quick check-in without the full status output |
 | `/reanchor <initiative>` | Pick an initiative back up, or re-read its state when a long thread has drifted. Without a name it lists your initiatives and asks |
@@ -176,14 +180,13 @@ Above the tabs is a scope navigator: choose `Initiative`, `Feature: <name>`, `Co
 
 ### How it works
 
-The canvas gathers context from your project's blueprint folder (`SESSION-CONTEXT.md`, `initiative-tracker.md`, solution options, `status-data.json`), plus Jira and Confluence if available. All data is embedded directly in the canvas file  -  no external calls at runtime.
+The assistant brings `status-data.json` up to date from your tracker and Jira, then `render-initiative-canvas.py` draws the canvas and the HTML snapshot from it, the same way every time. All data is embedded directly in the canvas file  -  no external calls at runtime. Tabs without data yet show what to add. To change a value, change `status-data.json` (or ask the assistant to) and run `/canvas` again; never edit the canvas file.
 
 ### When it generates
 
-- When you run `/canvas` (explicit)
-- When you run `/status` (canvas refreshes alongside the chat status and HTML snapshot)
+- Only when you run `/canvas` (or ask for a project canvas / dashboard)
 
-Canvas is on demand only. It is not auto-generated at Phase 0, workstream gates, or when a decision is logged.
+Canvas is on demand only. It is not generated by `/status`, at Phase 0, at workstream gates, or when a decision is logged.
 
 ### Self-bootstrapping
 
@@ -302,7 +305,7 @@ You don't need to invoke skills by name. The orchestrator picks them from what y
 | Skill | Purpose |
 |---|---|
 | `ba-risk-and-tracker` | The living tracker: RAID, decisions, OQs |
-| `ba-project-canvas` | Initiative canvas and `status-data.json` (`/canvas`, `/status`) |
+| `ba-project-canvas` | Initiative canvas and `status-data.json` (`/canvas`; metrics for `/status`) |
 | `ba-state-validator` | Checks files agree with each other and with this chat (`/validate-state`) |
 | `ba-commitment-scan` | Read-only scan of mail/chat for what you promised (`/workboard end-of-day`) |
 | `ba-retrospective-and-learning` | Retros on request (`/retro`), learnings |

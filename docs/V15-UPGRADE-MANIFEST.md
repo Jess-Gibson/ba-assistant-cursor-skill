@@ -9,9 +9,18 @@ The same data, machine-readable, is `docs/port-manifest.json`; `tools/ba-merge-u
 | Category | Files | What happens to a personalised install |
 |---|---:|---|
 | Behaviour, critical | 27 | Taken, or three-way merged with your edits |
-| Behaviour, important | 15 | Taken, or three-way merged with your edits |
-| Behaviour, minor | 12 | Taken, or three-way merged with your edits |
+| Behaviour, important | 14 | Taken, or three-way merged with your edits |
+| Behaviour, minor | 14 | Taken, or three-way merged with your edits |
 | Wording | 57 | Your version kept |
+
+## Your own always-on files
+
+`ba-profile.mdc` and `ba-assistant-config.mdc` are yours, so no tool overwrites them. Two one-off tidy-ups cut what they cost on every message:
+
+- **Profile:** `--patch-profile` (plain upgrade) or `patch_profile: true` (merge tool) replaces only the old command table with a pointer to `~/.cursor/commands/`, keeping rows for your own commands, after a backup.
+- **Config:** trim it to values only with the prompt in `docs/PERSONALISED-UPGRADE.md` → "Trim your config file".
+
+Then run the smoke test in `docs/PERSONALISED-UPGRADE.md` → "After you deploy".
 
 ## Behaviour, critical
 
@@ -26,7 +35,7 @@ The same data, machine-readable, is `docs/port-manifest.json`; `tools/ba-merge-u
 | `_workstream/scan-outlook-mail.py` | New: Outlook desktop triage, config-driven noise filters, fails open with exit 2 |
 | `_workstream/validate-state.py` | New: local drift scan (state validator steps 3-5) for resume and end of day |
 | `commands/canvas.md` | /canvas renders with the script; no read-every-file, no hand-written canvas |
-| `commands/status.md` | /status is chat + metrics script; offers /canvas instead of rendering it |
+| `commands/status.md` | /status is chat + metrics script; offers /canvas instead of rendering it; no longer depends on the profile table |
 | `commands/validate-state.md` | /wrap semantics kept; REQ-/ASM- markers; one-call action upsert and capture |
 | `commands/workboard.md` | End of day defers to eod-closeout-procedure.md and does not walk every action; action sync through ba-actions.py |
 | `commands/wrap.md` | Chat checkpoint; REQ-/ASM- markers; ba-actions.py upsert |
@@ -55,8 +64,7 @@ The same data, machine-readable, is `docs/port-manifest.json`; `tools/ba-merge-u
 | `commands/reanchor.md` | Asks which initiative instead of picking the most recent |
 | `commands/todo.md` | /todo writes through ba-actions.py |
 | `rules/ba-profile.mdc` | /status, /canvas, /todo, /metrics rows (patched only with --patch-profile) |
-| `rules/critical-gates.mdc` | Stop reminder documented as off by default; shared repo from config |
-| `rules/execution-router.mdc` | Context capture writes through capture.py; re-entry card moved to a reference |
+| `rules/execution-router.mdc` | Context capture via capture.py; re-entry card moved to a reference; resume row follows SKILL.md Step 2 (snapshot first); settings map and duplicates trimmed |
 | `rules/sync-gates.mdc` | /wrap follows commands/wrap.md; end of day is its own procedure |
 | `rules/todo-quick-capture.mdc` | /todo, /done and lists use ba-actions.py |
 | `skills/ba-assistant/SKILL.md` | Resume: quick validate-state.py, snapshot --ensure, re-entry card reference; canvas on demand |
@@ -77,9 +85,11 @@ The same data, machine-readable, is `docs/port-manifest.json`; `tools/ba-merge-u
 | `commands/install-ba-assistant.md` | Command points at the installed ~/.cursor/ path, so it works from any workspace |
 | `commands/publish-status.md` | Command points at the installed ~/.cursor/ path, so it works from any workspace |
 | `commands/report.md` | Command points at the installed ~/.cursor/ path, so it works from any workspace |
-| `commands/retro.md` | Command points at the installed ~/.cursor/ path, so it works from any workspace |
+| `commands/retro.md` | Ends with an AskQuestion on which actions to implement (was only in the profile table) |
+| `rules/agent-behavior.mdc` | AskQuestion rules in one place (never re-ask, timeout); gate visibility and em-dash rule shortened |
+| `rules/critical-gates.mdc` | Same gates, shorter rows |
 | `rules/skills-routing.mdc` | Canvas is on demand only, not triggered by /status |
-| `skills/ba-assistant/ba-profile.template.mdc` | /status and /canvas rows |
+| `skills/ba-assistant/ba-profile.template.mdc` | Values only; command table and prose removed |
 | `skills/ba-assistant/sub-skills/ba-project-canvas/metrics.md` | Metrics come from compute-metrics.py |
 
 ## Wording only
@@ -87,7 +97,6 @@ The same data, machine-readable, is `docs/port-manifest.json`; `tools/ba-merge-u
 Public-repo wording, genericisation or doc tidy-ups. No behaviour change. A personalised install keeps its own version.
 
 - `_workstream/README.md`
-- `rules/agent-behavior.mdc`
 - `rules/ba-delivery-process.mdc`
 - `skills/ba-assistant/BA_Assistant_User_Guide.md`
 - `skills/ba-assistant/hook-contracts-history.md`
@@ -124,6 +133,7 @@ Public-repo wording, genericisation or doc tidy-ups. No behaviour change. A pers
 - `skills/ba-assistant/sub-skills/ba-playback-and-enablement/SKILL.md`
 - `skills/ba-assistant/sub-skills/ba-project-canvas/canvas-tab-specs.md`
 - `skills/ba-assistant/sub-skills/ba-project-canvas/intake-form-canvas.md`
+- `skills/ba-assistant/sub-skills/ba-project-canvas/status-page-and-data.md`
 - `skills/ba-assistant/sub-skills/ba-requirements-interrogator/SKILL.md`
 - `skills/ba-assistant/sub-skills/ba-retrospective-and-learning/SKILL.md`
 - `skills/ba-assistant/sub-skills/ba-risk-and-tracker/SKILL.md`

@@ -1000,7 +1000,7 @@ def cmd_classify(args) -> int:
             "_help": "Set each 'ask' to take_new, keep_mine, or merged (merged = you wrote the result, in your "
                      "own naming, to <session>/merged/<path>). For class G, take_new restores the package file; "
                      "keep_mine leaves it missing. For class F, remove moves your copy aside at deploy. "
-                     "patch_profile true replaces only the old /wrap, /validate-state, /status and /todo rows in ba-profile.mdc.",
+                     "patch_profile true replaces only the old command table in ba-profile.mdc with a pointer to ~/.cursor/commands/.",
             "classification_id": classification_id,
             "auto_merged_reviewed": False,
             "patch_profile": False,
@@ -1232,22 +1232,14 @@ def cmd_apply_staging(args) -> int:
         applied.append("CONFIG     rules/ba-assistant-config.mdc created from the template: FILL IT IN (in staging) "
                        "before deploy-plan")
 
-    # Profile: only the old /wrap, /validate-state, /status and /todo rows, in your naming.
+    # Profile: only the old command table (repeats ~/.cursor/commands/ every turn), in your naming.
     profile = staging / loc.path("rules/ba-profile.mdc")
     if decisions.get("patch_profile") and profile.exists():
-        raw = profile.read_bytes()
-        newline = "\r\n" if b"\r\n" in raw else "\n"
-        lines = raw.decode("utf-8").split(newline)
-        new_rows = {k: loc.apply(v)[0] for k, v in upg.package_profile_rows(new).items()}
-        changed = 0
-        for i, line in enumerate(lines):
-            for command, marker in upg.OLD_PROFILE_ROW_MARKERS.items():
-                if line.startswith(upg.profile_row_prefix(command)) and marker in line and command in new_rows:
-                    lines[i] = new_rows[command]
-                    changed += 1
-        if changed:
-            profile.write_bytes(newline.join(lines).encode("utf-8"))
-        applied.append(f"PATCH      rules/ba-profile.mdc ({changed} row(s))")
+        _, patched = upg.patch_profile_text(profile.read_bytes().decode("utf-8"), new,
+                                            transform=lambda line: loc.apply(line)[0])
+        if patched is not None:
+            profile.write_bytes(patched.encode("utf-8"))
+        applied.append(f"PATCH      rules/ba-profile.mdc ({'command table replaced' if patched is not None else 'nothing to patch'})")
 
     # Version stamp.
     version = (new / "VERSION").read_text(encoding="utf-8").strip() if (new / "VERSION").exists() else "unknown"

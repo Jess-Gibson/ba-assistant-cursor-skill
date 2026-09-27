@@ -131,7 +131,7 @@ def personalised_layout_scenario(tmp, v14):
     wb_text = wb_cmd.read_text(encoding="utf-8")
     line = next(l for l in wb_text.splitlines() if "When invoked as `/workboard end-of-day`" in l)
     wb_cmd.write_text(wb_text.replace(line, line + " SAM CONFLICTING EDIT"), encoding="utf-8")
-    ab = rules_dir / "agent-behavior.mdc"
+    ab = rules_dir / "ba-delivery-process.mdc"
     ab.write_text(ab.read_text(encoding="utf-8") + "\nSAM WORDING KEPT\n", encoding="utf-8")
     data_hash = sha(init / "status-data.json")
 
@@ -168,7 +168,7 @@ def personalised_layout_scenario(tmp, v14):
     check("Layout: overlapping edit on a behaviour file becomes a question with a conflict file",
           wb_row["decision"] == "ask" and conflict.exists() and "<<<<<<<" in conflict.read_text(encoding="utf-8"), str(wb_row))
     check("Layout: wording-only change keeps the BA's version",
-          rows["rules/agent-behavior.mdc"]["decision"] == "keep_mine", str(rows["rules/agent-behavior.mdc"]))
+          rows["rules/ba-delivery-process.mdc"]["decision"] == "keep_mine", str(rows["rules/ba-delivery-process.mdc"]))
 
     dec_path = session / "decisions.json"
     dec = json.loads(dec_path.read_text(encoding="utf-8"))
@@ -236,7 +236,7 @@ def personalised_layout_scenario(tmp, v14):
     code, out = run([TOOL, "changed-since-deploy", "--session", session, "--out", allow], home)
     listed = allow.read_text(encoding="utf-8").split()
     check("Layout: sync allowlist has the edited rule and no data or untouched wording files",
-          listed == ["rules/agent-behavior.mdc"], str(listed))
+          listed == ["rules/ba-delivery-process.mdc"], str(listed))
 
 
 def main():
@@ -360,8 +360,8 @@ def main():
         check("Staging: hook script uses the BA's actions file", "sam-actions.json" in hook and "ba-actions.json" not in hook)
         check("Staging: D file kept as the BA's (keep_mine)", "SAM EDIT D" in (staging / d_file.relative_to(cursor)).read_text(encoding="utf-8"))
         prof = (staging / "rules" / "ba-profile.mdc").read_text(encoding="utf-8")
-        check("Staging: profile patched only in the two rows, tone kept",
-              "Sam's tone: dry." in prof and "Chat checkpoint only" in prof and "End-of-session closeout" not in prof)
+        check("Staging: profile command table replaced by the pointer, tone kept",
+              "Sam's tone: dry." in prof and "Slash commands live in" in prof and "End-of-session closeout" not in prof)
 
         # ---- deploy plan, drift, deploy ----
         code, out = run([TOOL, "deploy-plan", "--session", session], home)

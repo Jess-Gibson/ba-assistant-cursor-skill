@@ -1,6 +1,6 @@
 # Re-entry card (BA-resume reply)
 
-Moved out of the always-on `execution-router.mdc` (Version 15) so it is read only on resume, not on every turn. `execution-router.mdc` §7 points here; commands such as `/reanchor`, `/next`, `/workboard` add only their deltas on top of this card.
+Read only on resume, not on every turn; the router points here. Commands such as `/reanchor`, `/next`, `/workboard` add only their deltas on top of this card.
 
 ### Pre-card actions (silent)
 

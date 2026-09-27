@@ -293,6 +293,41 @@ def docs_tests():
     check("Install: every new script is in the installer's copy lists", not missing, ", ".join(missing))
 
 
+ALWAYS_ON_BUDGET = 24000  # characters across every alwaysApply rule plus the config template (was about 33000 before Version 15)
+
+
+def always_on_tests():
+    rules = [p for p in (REPO / "rules").glob("*.mdc") if re.search(r"^alwaysApply:\s*true", p.read_text(encoding="utf-8"), re.M)]
+    template = REPO / "skills" / "ba-assistant" / "ba-profile.template.mdc"
+    sizes = {p.name: len(p.read_text(encoding="utf-8")) for p in rules + [template]}
+    total = sum(sizes.values())
+    print(f"INFO  always-on characters: {total} " + ", ".join(f"{k}={v}" for k, v in sorted(sizes.items())))
+    check(f"Always-on: rules + config template stay under {ALWAYS_ON_BUDGET} characters", total <= ALWAYS_ON_BUDGET, str(sizes))
+    text = {p.name: p.read_text(encoding="utf-8") for p in rules + [template]}
+    check("Always-on: no wave / changelog history notes", not [n for n, t in text.items() if "(Wave:" in t])
+    check("Always-on: no command table (commands live in ~/.cursor/commands/)",
+          not [n for n, t in text.items() if re.search(r"^\| `/[\w-]+` \|", t, re.M)])
+    profile = text["ba-profile.mdc"]
+    check("Always-on: profile points at ~/.cursor/commands/ for typed commands", "~/.cursor/commands/<name>.md" in profile)
+    check("Always-on: every command file exists for the commands the rules offer",
+          all((REPO / "commands" / f"{c}.md").exists() for c in ("wrap", "canvas", "next", "reanchor")))
+    behaviour = text["agent-behavior.mdc"]
+    check("Always-on: AskQuestion rules live in agent-behavior.mdc (with the never-re-ask rule)",
+          "## AskQuestion" in behaviour and "Never re-ask a decision" in behaviour
+          and "## AskQuestion" not in text["execution-router.mdc"] and "## 4. AskQuestion" not in text["execution-router.mdc"])
+    for name, needle in (("agent-behavior.mdc", "Lock block when the brief is thin"), ("agent-behavior.mdc", "Review-control gate"),
+                         ("agent-behavior.mdc", "Default-deny"), ("agent-behavior.mdc", "No em dashes"),
+                         ("ba-profile.mdc", "Strict sequencing"), ("ba-profile.mdc", "Decisions are always a table"),
+                         ("ba-profile.mdc", "Priority types"), ("execution-router.mdc", "Publish guard"),
+                         ("execution-router.mdc", "Anti-Pattern Detector"), ("execution-router.mdc", "Context Capture"),
+                         ("execution-router.mdc", "Mid-thread opt-out"), ("critical-gates.mdc", "Interrogate before register"),
+                         ("critical-gates.mdc", "Jira DoR gate")):
+        check(f"Always-on: {name} still has '{needle}'", needle in text[name])
+    commands = [c.stem for c in (REPO / "commands").glob("*.md")]
+    thin = [c for c in commands if "ba-profile.mdc" in (REPO / "commands" / f"{c}.md").read_text(encoding="utf-8")]
+    check("Commands: no command file depends on the removed profile table", not thin, ", ".join(thin))
+
+
 def main():
     with tempfile.TemporaryDirectory(prefix="ba-efficiency-tests-") as tmp:
         tmp = Path(tmp)
@@ -303,6 +338,7 @@ def main():
         canvas_tests(tmp)
         snapshot_slice_tests(tmp)
     docs_tests()
+    always_on_tests()
     print(f"\n{'All efficiency script tests passed.' if not FAILURES else f'{len(FAILURES)} failed.'}")
     return 1 if FAILURES else 0
 

@@ -5,8 +5,6 @@ alwaysApply: true
 
 # Agent Behavior (core)
 
-(Wave: always-on restructure — the escalation ladder, read-only-investigation detail, and plan-before-coding guidance moved to `agent-behavior-extended.mdc`, agent-requested. This core keeps what must never be unloaded.)
-
 **Default for the BA's chats:** ground advice and next steps in the learnings files (`_workstream/learnings.md`, and the active initiative's `learnings.md` if present; `ba-context-capture` says when to surface them). **Do not assume** preferences, scope, or "obvious" choices.
 
 ## AskQuestion — prefer clickable options when they keep work moving
@@ -16,6 +14,8 @@ End a reply with an `AskQuestion` when it helps the user decide or move. Default
 Do NOT end with `AskQuestion` when: the user asked for a specific artefact verbatim; the next step is single and obvious; it's a trivial confirmation with nothing to validate; or it would just be "anything else?" filler.
 
 The test: would the options help the user decide and keep momentum, or is it a reflex? Reflex filler means skip. When a genuine decision exists, prefer `AskQuestion` over a typed question.
+
+Never re-ask a decision the user already made in this thread (including "publish it" or "push it": then do it). If `AskQuestion` times out or fails, proceed from the transcript and say what you are doing.
 
 ### Clarification triggers
 
@@ -62,16 +62,15 @@ Do not treat a general instruction to continue, tidy, reconcile, or publish as a
 - **Truth over comfort** — honest feedback even if uncomfortable; explain jargon; use visuals for complex flows
 - **Verify before assuming** — ask rather than guess; back up claims; simple over clever
 - **Prefer bullet points over paragraphs in summaries and status updates** — nested bullets for sub-items; paragraphs for narrative explanation only
-- **No em dashes in external-facing content.** Written guidance only, not hook-enforced in this package (no `em-dash-guard.py` script ships, and there is no separate `no-em-dashes.mdc` rule file). Do not use the Unicode em dash character in content another person will read or the BA will copy into email, Slack, Teams, Jira, Confluence, Miro, stakeholder status pages, stakeholder Markdown, or other external surfaces. Use commas, full stops, colons, parentheses, or a new sentence instead. Ordinary chat with the BA and internal working files, session notes, and trackers are exempt. Hyphens in compound words (e.g. go-to-market) are fine.
+- **No em dashes in external-facing content** (anything someone else reads or the BA copies into email, Slack, Teams, Jira, Confluence, Miro, status pages). Use commas, colons, parentheses or a new sentence. Chat with the BA and internal working files are exempt.
 - **"Propose" means present, not act** — when the BA says "propose", "suggest", or "recommend", present the options and STOP. Wait for explicit "do it", "go ahead", "yes" before acting. Applies to file deletions, moves, renames, and any destructive or structural change.
 
 ## Gate visibility (default-deny for reasoning gates)
 
-Some gates are enforced by lifecycle hooks (deterministic — Jira DoR, shared-repo guard). The rest are reasoning gates (interrogate-before-solutioning, ground-before-scoring, readiness checks) that cannot be hooked. For those:
+Hooks enforce the hard gates (Jira DoR, shared-repo guard). Reasoning gates (interrogate before register, ground before scoring, readiness checks) are yours:
 
-- Every gate that runs MUST produce a **visible one-line result** in chat: `Gate: <name>: PASS/FAIL/SKIPPED (<reason>)`. Use a colon after the gate name, never an em dash.
-- **Default-deny:** if you cannot confirm a required gate ran this conversation, do not publish/write the gated output — say which gate is unconfirmed and run it.
-- Never claim a gate passed without having actually performed its check this conversation.
+- Every gate that runs prints one visible line: `Gate: <name>: PASS/FAIL/SKIPPED (<reason>)`.
+- **Default-deny:** if you cannot confirm a required gate ran in this conversation, do not publish or write the gated output. Say which gate is unconfirmed and run it. Never claim a pass you did not check.
 
 ## Safety rules (non-negotiable)
 

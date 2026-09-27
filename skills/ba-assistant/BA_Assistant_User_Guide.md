@@ -18,6 +18,7 @@ This guide introduces the **BA Assistant**, a multi-skill system for business an
 | **Scripts do the repeatable work** | The same steps now run as small scripts in `_workstream/`, so the assistant spends its effort on thinking, not bookkeeping: `ba-actions.py` (`/todo`, action sync, end of day scan), `capture.py` (mid-chat captures), `validate-state.py` (drift check on resume and at end of day), `compute-metrics.py` (`/metrics`, `/status`), `render-initiative-canvas.py` (`/canvas`) |
 | **Captures work the same, cost less** | Decisions, requirements, actions, answered questions, assumptions and risks are still spotted every turn and written straight away with a 📝 line. The write no longer needs the assistant to re-read your whole `SESSION-CONTEXT.md` |
 | **Canvas is on demand and rendered** | `/canvas` renders the 8-tab canvas and HTML snapshot from `status-data.json`. It no longer reads every file in the initiative, and `/status` no longer renders it (it offers it) |
+| **Less sent with every message** | The always-on rules are about a third smaller. Commands are read from their own files. If you upgraded a personalised install, see `docs/PERSONALISED-UPGRADE.md` to trim your profile and config too |
 | **Resume is lighter** | Resume runs the local drift check only (Confluence is checked before `/publish-status`), and the snapshot shortcut now stays fresh unless something about that initiative changed |
 
 ## What changed in Version 10

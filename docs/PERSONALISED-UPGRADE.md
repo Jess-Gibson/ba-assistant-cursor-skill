@@ -152,19 +152,54 @@ Steps:
    - Other D files: read my version, the old version and the new version. Explain in plain English what I changed and what the new version changed. Recommend one of: take_new (and why my change is not needed), keep_mine (and what I miss from the new version), or merged. For merged, write the merged file in MY naming to <session>/merged/<path> and show me a short summary of the result before I approve it.
    - A-review, E (possible missing naming rule), G: explain and recommend.
    Use AskQuestion. Group low-risk ones. Update decisions.json with my answers.
-7. Ask whether to patch the old /wrap, /validate-state, /status and /todo rows in my profile (patch_profile). Show the old and new rows.
+7. Ask whether to patch my profile (patch_profile): it replaces only the command table in ba-profile.mdc with a one-line pointer to ~/.cursor/commands/ (every command already has its own file there, so the table just costs tokens on every turn). Rows for commands the package does not ship (my own) are kept. Show me the table that goes and any rows that stay.
+   Then offer to trim my config (see "Trim your config file" in docs/PERSONALISED-UPGRADE.md): after apply-staging, show me <session>/stage-home/.cursor/rules/ba-assistant-config.mdc next to a trimmed version laid out like the package's ba-profile.template.mdc. Keep every value I have set, including any keys the template does not have. Drop only the prose sections. Write it in staging only when I say yes.
    If a finding says there is no config file, ask whether to set create_config. After apply-staging, fill in the created <session>/stage-home/.cursor/rules/ba-assistant-config.mdc with me (name, Jira, Confluence, paths, and the optional workboard and mail keys). Lift my old hard-coded values (meeting highlights, mail noise subjects, ignored folders, repo names) from my current _workstream scripts into those keys, and show me what you are adding.
 8. Run apply-staging. Then test in staging, always through `run --session <session> -- <command>` (S below is <session>/stage-home/.cursor):
    - session start: `run -- py S/hooks/session-init.py`. It must list my initiatives (not "No SESSION-CONTEXT.md found"). With several, it must ask rather than guess.
    - DoR gate: write a createJiraIssue Story payload for a story that has a recorded DoR pass to a temp file and `run --stdin <file> -- py S/hooks/jira-dor-gate.py`. It must allow.
    - end of day: `run -- py S/_workstream/generate-workboard-canvas.py --cursor-home S --canvas <temp file>` (no --eod-roll) and show me the End of Day prompt. It must point at eod-closeout-procedure.md and roll the calendar once.
-   - snapshots: `run -- py S/_workstream/generate-initiative-snapshots.py`, then `--check <one of my slugs>`. Must say FRESH.
+   - snapshots: `run -- py S/_workstream/generate-initiative-snapshots.py`, then `--ensure <one of my slugs>`. Must say FRESH or REFRESHED.
+   - actions: `run -- py S/_workstream/ba-actions.py list`. It must list my open actions (read-only).
+   - drift check: `run -- py S/_workstream/validate-state.py --initiative <one of my slugs>`. It must end with a `Gate: state-validation:` line (read-only).
+   - canvas: `run -- py S/_workstream/render-initiative-canvas.py --initiative <slug> --canvas <temp file> --html <temp file>`. It must print `Gate: canvas-render: PASS` (temp outputs, so nothing in my initiative changes).
    - mail: `run -- py S/_workstream/scan-outlook-mail.py`. It must either print a triage or one "Mail: unable to check" line, never a traceback.
    - read my profile, tone rules and one of my own skills in staging and confirm they are intact.
 9. Run deploy-plan. Show me the counts and any "personal" or "generated" rows. Wait for my go.
 10. Run deploy with the plan id. Show me the result.
-11. Tell me to open a new chat and run /ba-assistant, then /workboard. Remind me of the rollback command and where the session folder is.
+11. Walk me through the smoke test in "After you deploy" in docs/PERSONALISED-UPGRADE.md, one step at a time, in new chats. Remind me of the rollback command and where the session folder is.
 ```
+
+## Trim your config file
+
+`ba-assistant-config.mdc` is always on: Cursor sends all of it with every message. From Version 15 it should hold values only. Older setups also wrote a command table, the status page format, Jira notes, a customisation section and a long explanation of draft depth. None of that is needed there (commands have their own files, the rest lives in references), so it is paid for on every turn for nothing.
+
+Do it as part of the upgrade (step 7 of the prompt above) or any time on its own. On its own, paste this into a Cursor chat:
+
+```text
+Trim my ~/.cursor/rules/ba-assistant-config.mdc to values only.
+1. Copy it to ba-assistant-config.mdc.bak-<today> in the same folder first.
+2. Show me a trimmed version laid out like ~/.cursor/skills/ba-assistant/ba-profile.template.mdc: the frontmatter (keep alwaysApply: true), then the YAML blocks.
+3. Keep every value I have set, exactly, including keys the template does not have (list them for me). Keep short # comments.
+4. Drop only prose: the Commands table, Status page format, Jira integration notes, Customisation, and explanations.
+5. Show me the before and after size and the diff. Write it only when I say yes.
+```
+
+Afterwards the file should be about 2,000 characters. If a script or hook stops finding a value, restore the backup and tell the maintainer which key it was.
+
+## After you deploy: smoke test in Cursor
+
+The package tests cover the scripts, the installer and the upgrade. They cannot run Cursor itself, so check the behaviour once in a real BA workspace. Each step is a new chat unless it says otherwise.
+
+1. **Resume:** say "resume <initiative>". Expect a one-line state check (`state aligned` or a drift table), the re-entry card and an AskQuestion. It should not read every file in the initiative.
+2. **Capture (same chat):** say something that is a decision, e.g. "we're going with option B". Expect a `📝 Captured:` line, and a `DEC-new:` line under today's heading in that initiative's `SESSION-CONTEXT.md`.
+3. **Actions (same chat):** `/todo chase the data export by Friday`. Expect `Added: BA-...` and the gate lines; `ba-actions.md` updated.
+4. **Status:** `/status`. Expect chat status with the metrics table and an offer of `/canvas`, and no canvas written.
+5. **Canvas:** `/canvas`. Expect `Gate: canvas-render: PASS` and the canvas opening with 8 tabs, then check the HTML snapshot in a browser.
+6. **Wrap (same chat as 2):** `/wrap`. Expect the captured decision promoted to the tracker and tagged `[promoted]`.
+7. **Typed command:** type `/next` as plain text in a new chat without picking it from the menu. It should still run the `/next` behaviour (the profile tells the agent to read the command file).
+
+Anything that fails: note the step and the reply, and roll back if it blocks your day.
 
 ## Your first sync back to the repo
 

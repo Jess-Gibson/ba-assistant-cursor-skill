@@ -34,7 +34,7 @@ Most of the BA orchestrator's load discipline is **soft**. Treat duplicate instr
 
 - `.cursor/commands/*.md` (e.g. `/reanchor`, `/debrief`) inject their **full command body** into that user message.
 - Always-on rules (router, profile, gates) stay in context. Invoking a command does **not** suppress the orchestrator.
-- Design assumption that is now safe: `references/re-entry-card.md` (pointed to from `execution-router.mdc` §7) owns the re-entry **card**; a command should only add **deltas** (e.g. a Downloads check), not a second full resume script.
+- Design assumption that is now safe: `references/re-entry-card.md` (pointed to from the router) owns the re-entry **card**; a command should only add **deltas** (e.g. a Downloads check), not a second full resume script.
 - Cursor's `/migrate-to-skills` converts commands to skills with `disable-model-invocation: true`. A repo's BA verbs are still classic command files unless migrated.
 
 ### 3. No automatic partial file inject
@@ -69,13 +69,13 @@ Ordered by impact vs effort. Do local (`~/.cursor/`) first; sync to a public rep
 ### P0  -  Stop duplicate instructions (cheap, high leverage)
 
 1. **Single bootstrap owner.** Keep the "read `instructions.md` + `hook-contracts.md`" list in **one** place (`execution-router.mdc` §3 **or** `SKILL.md` Step 1). The other becomes a one-line pointer. Removes double-`Read` risk.
-2. **Commands = delta on §7.** For `/reanchor`, `/next`, `/workboard`, `/status`, etc.: command file states only extras beyond the router re-entry card. Delete restated "read SESSION-CONTEXT, build the card" blocks from commands if §7 already owns them.
+2. **Commands = delta on the re-entry card.** For `/reanchor`, `/next`, `/workboard`, `/status`, etc.: command file states only extras beyond the router re-entry card. Delete restated "read SESSION-CONTEXT, build the card" blocks from commands if §7 already owns them.
 3. **Trim skill `description` fields.** Short; **trigger phrases first** (survive truncation). Apply to all skills in the catalog, not only this one. Prefer `/skill-name` or slash commands for must-run flows.
 
 ### P1  -  Cut bootstrap weight
 
 4. **Split `hook-contracts.md`.** Keep active contracts + conventions in the bootstrap file. Move changelogs, deprecation narratives, and historical summaries to a separate history file (read only when editing hooks or auditing waves).
-5. **Keep `SKILL.md` lean.** Point to references; do not restate router §7 or full command lists inside the skill body.
+5. **Keep `SKILL.md` lean.** Point to references; do not restate the re-entry card or full command lists inside the skill body.
 
 ### P2  -  Discipline and discovery
 

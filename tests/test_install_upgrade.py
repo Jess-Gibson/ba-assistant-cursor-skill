@@ -8,7 +8,7 @@ this checkout. Proves:
   - personal config, BA data, initiatives and local-only files are byte-identical
   - legacy migrations do not fire unless --migrate-legacy is passed
   - the user's own hook survives, and no hook runs twice
-  - --patch-profile changes only the old /wrap, /validate-state, /status and /todo rows
+  - --patch-profile replaces only the old command table (own rows kept)
 
 It also REPORTS (and pins) what the upgrader does to package files the BA
 edited: skills, commands and package rules are overwritten by design. That is
@@ -157,7 +157,7 @@ def main():
         after_dry = {p: sha(p) for p in cursor.rglob("*") if p.is_file()}
         check("Dry run: exits 0", code == 0, out[-800:])
         check("Dry run: no file created, changed or removed", snapshot == after_dry)
-        check("Dry run: warns about the old profile rows", "WARN ba-profile.mdc /wrap" in out, out[-1500:])
+        check("Dry run: warns about the old command table in the profile", "WARN ba-profile.mdc command table" in out, out[-1500:])
         check("Dry run: warns about legacy data instead of migrating",
               "WARN legacy data left untouched" in out and "sam-actions.json" in out, out[-1500:])
 
@@ -194,18 +194,24 @@ def main():
               any("SAM-EDIT-SKILL" in p.read_text(encoding="utf-8", errors="replace")
                   for p in (cursor / "ba-assistant-backups").rglob("SKILL.md")))
 
-        # --- --patch-profile changes only the two rows ---
-        old_lines = keep["profile"].read_text(encoding="utf-8").splitlines()
+        # --- --patch-profile changes only the command table ---
+        # A row for the BA's own command (not shipped by the package) must survive.
+        lines = keep["profile"].read_text(encoding="utf-8").splitlines()
+        last_row = max(i for i, line in enumerate(lines) if line.startswith("| `/"))
+        lines.insert(last_row + 1, "| `/my-standup` | Sam's own standup notes. |")
+        keep["profile"].write_text("\n".join(lines) + "\n", encoding="utf-8")
+        old_text = keep["profile"].read_text(encoding="utf-8")
         code, out = run([REPO / "tools" / "upgrade-ba-assistant.py", "--package", REPO, "--cursor-home", cursor,
                          "--apply", "--patch-profile"], home)
-        new_lines = keep["profile"].read_text(encoding="utf-8").splitlines()
-        changed = [i for i, (a, b) in enumerate(zip(old_lines, new_lines)) if a != b]
-        check("Patch profile: same line count", len(old_lines) == len(new_lines))
-        rows = ("| `/validate-state`", "| `/wrap`", "| `/status`", "| `/todo`")
-        check("Patch profile: only the old /validate-state, /wrap, /status and /todo rows changed",
-              2 <= len(changed) <= 4 and all(new_lines[i].startswith(rows) for i in changed)
-              and any(new_lines[i].startswith("| `/wrap`") for i in changed),
-              str([new_lines[i][:40] for i in changed]))
+        new_text = keep["profile"].read_text(encoding="utf-8")
+        new_lines = new_text.splitlines()
+        check("Patch profile: package command rows gone, pointer in",
+              "| `/wrap` |" not in new_text and "| `/status` |" not in new_text and "Slash commands live in" in new_text, new_text[-1200:])
+        before_cmds, after_cmds = old_text.split("## Commands")[0], new_text.split("## Commands")[0]
+        check("Patch profile: everything before the command table unchanged", before_cmds == after_cmds)
+        check("Patch profile: the BA's own command row is kept", "| `/my-standup` | Sam's own standup notes. |" in new_text)
+        check("Patch profile: everything after the command table unchanged",
+              old_text.split("## Communication style")[1] == new_text.split("## Communication style")[1])
         check("Patch profile: personal tone section kept", "Dry, short, no fluff." in "\n".join(new_lines))
         check("Patch profile: backup written", any(keep["profile"].parent.glob("ba-profile.mdc.bak-*")))
         code, out = run([REPO / "tools" / "upgrade-ba-assistant.py", "--package", REPO, "--cursor-home", cursor], home)

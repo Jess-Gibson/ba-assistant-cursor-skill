@@ -13,9 +13,10 @@ Version 15 safety defaults:
     it, legacy data that an older release would have migrated (personal_tasks[]
     in workboard.json, a legacy <name>-actions.json) is reported as WARN and left
     byte-identical.
-  - ba-profile.mdc is never overwritten. Old /wrap, /validate-state, /status and /todo rows are
-    reported as WARN with the exact replacement; --patch-profile replaces only
-    those rows (after a backup).
+  - ba-profile.mdc is never overwritten. An old command table (which repeats
+    ~/.cursor/commands/ on every turn) is reported as WARN; --patch-profile
+    replaces only that table with a one-line pointer (after a backup), keeping
+    rows for your own commands.
   - Leftover .sh/.ps1 hook wrappers are moved to the backup only when hooks.json
     no longer references them.
 """
@@ -24,6 +25,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import re
 import shutil
 import sys
 from datetime import datetime, timezone
@@ -224,61 +226,76 @@ def run_workboard_action_migration(
     return module.migrate_legacy_actions(workstream, backup_root, home, dry_run)
 
 
-PROFILE_ROW_COMMANDS = ("/validate-state", "/wrap", "/status", "/todo")
-# Phrases only the pre-Version 14 rows used. A row that has been personalised
-# in some other way is left alone and reported, never rewritten.
-OLD_PROFILE_ROW_MARKERS = {
-    "/validate-state": "Read-only drift report",
-    "/wrap": "End-of-session closeout",
-    "/status": "triple-output: chat + canvas + HTML",
-    "/todo": "Quick-capture a personal task into the workboard",
-}
+# Version 15 moved the command table out of the always-on persona: each command
+# already has its own file in ~/.cursor/commands/, so the table only cost tokens
+# on every turn. --patch-profile removes the package's command rows from an
+# existing ba-profile.mdc and puts in the one-line pointer. Rows for commands the
+# package does not ship (the BA's own) are kept. Nothing else in the file changes.
+COMMANDS_HEADING = "## Commands"
+COMMANDS_POINTER_MARKER = "Slash commands live in"
 
 
-def profile_row_prefix(command: str) -> str:
-    return f"| `{command}` |"
+def package_commands(pkg: Path) -> set[str]:
+    return {f"/{p.stem}" for p in (pkg / "commands").glob("*.md")}
 
 
-def package_profile_rows(pkg: Path) -> dict[str, str]:
+def section_bounds(lines: list[str], heading: str) -> tuple[int, int] | None:
+    start = next((i for i, line in enumerate(lines) if line.strip() == heading), None)
+    if start is None:
+        return None
+    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
+    return start, end
+
+
+def package_commands_section(pkg: Path) -> list[str]:
     src = pkg / "rules" / "ba-profile.mdc"
-    rows: dict[str, str] = {}
     if not src.exists():
-        return rows
-    for line in src.read_text(encoding="utf-8").splitlines():
-        for command in PROFILE_ROW_COMMANDS:
-            if line.startswith(profile_row_prefix(command)):
-                rows[command] = line
-    return rows
+        return []
+    lines = src.read_text(encoding="utf-8").splitlines()
+    bounds = section_bounds(lines, COMMANDS_HEADING)
+    return lines[bounds[0]:bounds[1]] if bounds else []
+
+
+def row_command(line: str) -> str | None:
+    match = re.match(r"^\|\s*`(/[\w-]+)`\s*\|", line)
+    return match.group(1) if match else None
+
+
+def patch_profile_text(text: str, pkg: Path, transform=lambda line: line) -> tuple[list[str], str | None]:
+    """(plan lines, patched text or None). Only the ## Commands section changes."""
+    newline = "\r\n" if "\r\n" in text else "\n"
+    lines = text.split(newline)
+    bounds = section_bounds(lines, COMMANDS_HEADING)
+    replacement = [transform(line) for line in package_commands_section(pkg)]
+    if bounds is None or not replacement:
+        return [], None
+    start, end = bounds
+    section = lines[start:end]
+    if any(COMMANDS_POINTER_MARKER in line for line in section):
+        return [], None
+    shipped = package_commands(pkg)
+    rows = [line for line in section if row_command(line)]
+    package_rows = [line for line in rows if row_command(line) in shipped]
+    own_rows = [line for line in rows if row_command(line) not in shipped]
+    if not package_rows:
+        return [], None
+    plan = [f"WARN ba-profile.mdc command table: {len(package_rows)} row(s) repeat ~/.cursor/commands/ on every turn"]
+    new_section = list(replacement)
+    if own_rows:
+        plan.append(f"     your own command rows kept: {', '.join(row_command(r) for r in own_rows)}")
+        while new_section and not new_section[-1].strip():
+            new_section.pop()
+        new_section += ["", "Your own commands:", "", "| Command | What it does |", "|---|---|", *own_rows, ""]
+    plan.append("     --patch-profile replaces the table with a one-line pointer to ~/.cursor/commands/")
+    return plan, newline.join(lines[:start] + new_section + lines[end:])
 
 
 def plan_profile_patch(profile: Path, pkg: Path) -> tuple[list[str], str | None]:
-    """(plan lines, patched text or None). Only rows still carrying the old
-    wording are replaced; everything else in the file is untouched."""
+    """(plan lines, patched text or None). Only the command table is replaced;
+    everything else in the file is untouched."""
     if not profile.exists():
         return [], None
-    new_rows = package_profile_rows(pkg)
-    raw = profile.read_bytes()
-    text = raw.decode("utf-8")
-    newline = "\r\n" if b"\r\n" in raw else "\n"
-    lines = text.split(newline)
-    plan: list[str] = []
-    changed = False
-    for i, line in enumerate(lines):
-        for command in PROFILE_ROW_COMMANDS:
-            if not line.startswith(profile_row_prefix(command)):
-                continue
-            replacement = new_rows.get(command)
-            if not replacement or line == replacement:
-                continue
-            if OLD_PROFILE_ROW_MARKERS[command] in line:
-                plan.append(f"WARN ba-profile.mdc {command} row describes the old behaviour")
-                plan.append(f"     old: {line}")
-                plan.append(f"     new: {replacement}")
-                lines[i] = replacement
-                changed = True
-            else:
-                plan.append(f"NOTE ba-profile.mdc {command} row is personalised; left as is")
-    return plan, (newline.join(lines) if changed else None)
+    return patch_profile_text(profile.read_bytes().decode("utf-8"), pkg)
 
 
 def leftover_hook_wrappers(home: Path, pkg: Path) -> list[Path]:
@@ -347,7 +364,7 @@ def main() -> int:
     ap.add_argument(
         "--patch-profile",
         action="store_true",
-        help="Replace only the old /wrap, /validate-state, /status and /todo rows in ba-profile.mdc (backed up first)",
+        help="Replace only the old command table in ba-profile.mdc with a pointer to ~/.cursor/commands/ (backed up first)",
     )
     args = ap.parse_args()
     dry_run = not args.apply
@@ -396,12 +413,12 @@ def main() -> int:
         if patched is not None and args.patch_profile:
             ts_prof = datetime.now().strftime("%Y%m%d-%H%M%S")
             profile_backup = profile.with_name(f"ba-profile.mdc.bak-{ts_prof}")
-            plan.append(f"PATCH {profile} (only the rows above; backup {profile_backup})")
+            plan.append(f"PATCH {profile} (command table only; backup {profile_backup})")
             if not dry_run:
                 shutil.copy2(profile, profile_backup)
                 profile.write_bytes(patched.encode("utf-8"))
         elif patched is not None:
-            plan.append("WARN re-run with --patch-profile to replace only those rows (backup first)")
+            plan.append("WARN re-run with --patch-profile to replace only the command table (backup first)")
     plan.append(f"PROTECT {rules_dest / 'ba-assistant-config.mdc'} (personal config - never touched)")
     plan.append(f"PROTECT {home / 'initiatives'} (initiative data - never touched)")
 

@@ -37,8 +37,8 @@ LAYER 1  -  Entry points (appear in slash menu)
 LAYER 2  -  Intent routing (always-on rule)
   ~/.cursor/rules/skills-routing.mdc         → "run BA assistant", "/ba-assistant" → load this skill
 
-LAYER 3  -  Command semantics (always-on rule)
-  ~/.cursor/rules/ba-profile.mdc        → defines /next, /status, /report, /publish-status, /retro, /canvas semantics
+LAYER 3  -  Command semantics (one file per command)
+  ~/.cursor/commands/<name>.md          → defines /next, /status, /report, /publish-status, /retro, /canvas, ...
 
 LAYER 4  -  Orchestrator
   ~/.cursor/skills/ba-assistant/SKILL.md
@@ -52,8 +52,8 @@ LAYER 5  -  Specialist execution
 **What this means in practice:**
 
 - `/ba-assistant` works reliably from the slash menu  -  it's a real entry point.
-- `/next`, `/status`, `/canvas`, `/retro`, `/report`, `/publish-status` are **in-session verbs**, not standalone slash commands. They are defined in `ba-profile.mdc` and the orchestrator honours them whenever the user types them in a BA Assistant chat. They may or may not appear in the slash autocomplete  -  that's outside our control.
-- If the slash menu doesn't autocomplete the verb, **typing the word still works** because the always-on rule teaches the agent what they mean.
+- Every command, including `/next`, `/status`, `/canvas`, `/retro`, `/report` and `/publish-status`, has its own file in `~/.cursor/commands/`, so it appears in the slash menu.
+- If the user types the word without picking it from the menu, the always-on `ba-profile.mdc` tells the agent to read `~/.cursor/commands/<name>.md` and follow it.
 
 ---
 
@@ -123,9 +123,9 @@ Track these for future waves:
 
 When adding a new BA Assistant sub-skill that needs a user-facing verb:
 
-1. Define the verb semantics in `~/.cursor/rules/ba-profile.mdc` (always-on, so the orchestrator honours it).
+1. Define the verb in `commands/<verb>.md` (installed to `~/.cursor/commands/`). Do not add a row to an always-on rule: that costs tokens on every turn.
 2. List the verb in the BA Assistant User Guide's command table.
 3. Have the orchestrator offer the verb as an `AskQuestion` option when contextually relevant  -  don't rely on the user remembering it.
-4. **Don't** create a standalone `.cursor/commands/<verb>.md` file unless the verb is a true entry point that should work outside a BA Assistant session.
+4. Keep the command file self-contained: everything the command needs, or a pointer to the skill that owns it.
 
 This keeps the slash menu clean, makes verbs discoverable via `AskQuestion`, and avoids cluttering the user's command palette with 20 BA-only verbs.

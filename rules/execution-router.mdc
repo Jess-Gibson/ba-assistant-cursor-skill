@@ -1,11 +1,11 @@
 ---
-description: Turn classification, default-agent behaviour, and skill routing for BA workspaces — the single always-on router (absorbs ba-assistant-default, session-start-protocol, and legacy project-context twins)
+description: Turn classification, default-agent behaviour, and skill routing for BA workspaces (the single always-on router)
 alwaysApply: true
 ---
 
 # Execution router
 
-The one rule that decides **what to load and whether to act**. Runs before responding to the first user message in any conversation, including resumes. (Wave: always-on restructure — this file absorbed `session-start-protocol.mdc`; the repo twins `ba-assistant-default.mdc` and older project-context rules are also folded in.)
+The one rule that decides **what to load and whether to act**. Runs before responding to the first user message in any conversation, including resumes.
 
 ## 0. Workspace detection and default agent
 
@@ -13,18 +13,16 @@ The BA Assistant orchestrator is the **default agent** in any workspace containi
 
 ## 1. Project context (first chat in a workspace)
 
-If the open workspace root has `AGENTS.md`, read it as primary context; else `README.md`. If another project agent guide exists at the root, honour it too. (The sessionStart hook also injects this instruction — belt and braces.) Do not assume a specific product; infer from the open project.
-
-Load BA skills **only** from `~/.cursor/skills/ba-assistant/` (or this package's `skills/ba-assistant/` when installing). Do not search other skill folders on the machine.
+Read the workspace root's `AGENTS.md` as primary context, else `README.md`. Do not assume a specific product. Load BA skills **only** from `~/.cursor/skills/ba-assistant/` (or this package's `skills/ba-assistant/` when installing); never search other skill folders.
 
 ## 2. Classify the turn (first action, silent)
 
 | Class | Signals | Required reads (Read tool) | Then |
 |-------|---------|---------------------------|------|
-| **BA-resume** | continue, resume, #2, initiative name, Sample Initiative, `/next` `/status` | `SESSION-CONTEXT.md`, `initiative-tracker.md`, `Project-hub.md` | Run `SKILL.md` Step 2 (resume / `/reanchor`). **Act on the recommended next action**, do not status-dump only. No welcome panel. |
+| **BA-resume** | continue, resume, #2, initiative name, `/next` `/status` | `SKILL.md` Step 2 read order (snapshot first) | Run `SKILL.md` Step 2 (resume / `/reanchor`). **Act on the recommended next action**, do not status-dump only. No welcome panel. |
 | **BA-new** | new initiative, Phase 0, intake | `instructions.md` only | Run `ba-new-initiative`, then `SKILL.md` Step 3 (Intake Reviewer). No welcome panel, no draft-depth quiz, no automatic canvas. |
 | **Publish-risk** | hand to devs, publish to the team/delivery repo, push analysis to a shared repo, `/handover` | Route via `skills-routing.mdc` to `ba-dev-handover` | Publish confirmed analysis only. **No write/push until the user explicitly says to** (see Publish guard below). Plain "sync" is not this class: it means `/wrap`, Jira/Confluence status (`ba-jira-sync`, `/publish-status`), or `/validate-state`. Ask once if unclear. |
-| **BA-tooling** | improve BA assistant, new skill/sub-skill/rule/command/hook, workboard package, "for another BA", change routing/orchestrator, edit `ba-assistant-cursor-skill` skills/rules/commands | `local-first packaging rule (if installed)` (always on — re-read if unsure) | **Edit `~/.cursor/` first.** No writes to `ba-assistant-cursor-skill/skills|rules|commands|hooks` until local exists and the BA has confirmed the change (packaging zips are distribution only — see that rule). |
+| **BA-tooling** | improve BA assistant, new skill/sub-skill/rule/command/hook, workboard package, "for another BA", change routing/orchestrator, edit `ba-assistant-cursor-skill` skills/rules/commands | Your local-first packaging rule, if you have one | **Edit `~/.cursor/` first.** No writes to the package repo's skills/rules/commands/hooks until the local change exists and the BA has confirmed it. |
 | **Non-BA** | debug code, syntax, generic explain | Project README/AGENTS only | Skip BA orchestrator |
 | **Ambiguous** | "help me think through something", short message either way | — | Ask once via AskQuestion: BA Assistant (recommended) / Quick chat / Specific skill. "Quick chat" = orchestrator stays off for the thread. |
 | **Chat checkpoint** | wrap up, close out this chat, checkpoint, `/wrap` | `~/.cursor/commands/wrap.md` | Run `/wrap`: chat-only checkpoint into `SESSION-CONTEXT.md` and the tracker. Not a retro, not end of day. |
@@ -44,46 +42,23 @@ Also classify the **activity** (Frame / Discover / Shape / Deliver / Run — see
 
 "Skip the BA assistant", "just answer my question", "no orchestrator", "drop out of BA Assistant" → suspend the orchestrator for the rest of the thread, acknowledge briefly. Re-engage only on explicit "run BA assistant" / "back to BA Assistant".
 
-### Mid-thread re-anchor (`/reanchor`)
+### Mid-thread re-anchor
 
-1. Re-read `ba-assistant/SKILL.md` and `instructions.md`
-2. Confirm the initiative and re-read its files per `SKILL.md` Step 2 (items 1 and 3 own the rule and the read order)
-3. Resume from current state; confirm: "Re-anchored. Current workstream: <X>. Continue with: <Y>?"
-
-The Anti-Pattern Detector flags drift symptoms and offers `/reanchor` proactively.
+`/reanchor` follows `~/.cursor/commands/reanchor.md`. The Anti-Pattern Detector flags drift and offers it proactively.
 
 ## 2b. Use the BA's settings (`ba-assistant-config.mdc`)
 
-`/setup` writes `~/.cursor/rules/ba-assistant-config.mdc`; it is always in context. Use its values everywhere. Never ask for one that is already set, and never write a placeholder into an output when the real value is there.
-
-| Package text says | Use |
-|---|---|
-| `[BA name]`, "the BA" in drafts and headers | `name` (and `role`, `team`) |
-| Jira site, `your-jira...`, `PROJ` / `[YOUR-PROJECT]` in instructions or JQL | `jira.instanceUrl`, `jira.projectKey` (an initiative's `status-data.json → initiative.jiraProjectKey` overrides) |
-| Confluence site / space / parent page | `confluence.spaceKey`, `confluence.parentPageUrl` (initiative's `confluence-pages.json` / `initiative.confluenceSpace` overrides) |
-| Domain context, "related domains" | `domain` and `domainDocs`: shape intake questions, research queries, and examples to this domain |
-| Initiatives folder, `BA_INITIATIVES_ROOT` | `paths.initiativesRoot` |
-| Downloads / transcripts folder, `BA_DOWNLOADS_PATH` | `paths.downloadsPath` |
-| Shared delivery repo, `BA_SHARED_REPO_ROOT` | `paths.sharedRepoRoot` |
-
-An env var with the upper-case name overrides the config value. A value still in `[brackets]` or `[Configure later]` counts as unset: ask once, then offer to save the answer to the config. `PROJ-1234` style keys in package examples are illustrations only.
+`/setup` writes `~/.cursor/rules/ba-assistant-config.mdc` (always in context). Use its values everywhere instead of package placeholders, and never ask for one that is set: `[BA name]` → `name` (plus `role`, `team`); Jira → `jira.instanceUrl`, `jira.projectKey`; Confluence → `confluence.spaceKey`, `confluence.parentPageUrl`; domain → `domain`, `domainDocs` (shape questions, research and examples); folders → `paths.initiativesRoot`, `paths.downloadsPath`, `paths.sharedRepoRoot`. An initiative's `status-data.json` / `confluence-pages.json` overrides Jira and Confluence values; an upper-case env var (`BA_INITIATIVES_ROOT` etc.) overrides the config. A value still in `[brackets]` counts as unset: ask once, then offer to save it. `PROJ-1234` keys in package examples are illustrations.
 
 ## 3. Skill loading — one primary, not bulk
 
-**Bootstrap (BA only):** per `ba-assistant/SKILL.md` Step 1. That file is the single owner of the bootstrap file list, not restated here — this rule and the skill body used to be two copies of the same instruction with no benefit to duplicating it.
+**Bootstrap (BA only):** per `ba-assistant/SKILL.md` Step 1.
 
 **Routing:** on a BA or matched intent, **Read** `skills-routing.mdc` (agent-requested; not always injected). Load **one primary** skill for the turn. Load a **second** only when intents are clearly complementary (e.g. workshop design + Miro board analysis). Prefer the more specific row on conflicts. **Never** read all BA sub-skills before the first reply. **Never** skip `SKILL.md` Step 2 file reads on a resume thread.
 
 **Report loads inline:** every skill load/invocation gets a one-line header — `> **Skill loaded:** [name] — [reason]`. Skip for internal tool calls.
 
-## 4. AskQuestion + prior decisions
-
-- AskQuestion is used **when it helps the user decide or move** (see agent-behavior), not on every reply.
-- If the user **already answered** the same decision this thread, do not re-ask — offer next-step options only.
-- If AskQuestion times out or fails, proceed from the transcript and state what you are doing.
-- If the user already said to publish or push (or chose it in a prior answer), execute — do not ask again.
-
-## 5. Continuous monitors (every BA turn, silent unless triggered)
+## 4. Continuous monitors (every BA turn, silent unless triggered)
 
 ### Anti-Pattern Detector (quick scan)
 
@@ -114,10 +89,10 @@ After every user message in a BA thread, scan for decisions, requirements, actio
 | "playback", "sign-off", "presentation to" | ba-playback-and-enablement |
 | "hand to devs", "spike request", "ADR request" | ba-dev-handover |
 
-## 6. Report (one line)
+## 5. Report (one line)
 
 > **Session context:** [class] | Activity: [activity] | Skills: [loaded] | BA: [active/skipped]
 
-## 7. Required visible outputs (BA-resume reply) — the Re-entry Card
+## 6. Required visible outputs (BA-resume reply) — the Re-entry Card
 
 On a BA-resume reply, read `~/.cursor/skills/ba-assistant/references/re-entry-card.md` and show that card (one screen: where we are, next action, today's meetings, new transcripts, Jira delta, sync status), then AskQuestion with the recommended next action first. "Resume" with no initiative named: the cross-initiative mini-workboard in the same file. Non-negotiables: read state files before the card (never from memory), always include the next action, always include the AskQuestion, Jira delta is best-effort.

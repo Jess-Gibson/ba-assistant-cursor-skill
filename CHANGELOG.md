@@ -59,8 +59,15 @@ The model keeps the judgement (what to capture, how to word it, what to propagat
 - **State validation:** `validate-state.py` does the fact registry, scan and divergence table for local files (tracker vs `status-data.json`, render freshness, names, milestone dates, README status, unpromoted captures). Resume runs this quick mode only (no Jira sync, no Confluence fetch); the full mode with Confluence runs before `/publish-status` or on request. End of day runs it for touched initiatives.
 - **Metrics:** `compute-metrics.py` computes the four quality metrics with a 7-day trend and the n/a streak, for `/metrics` and `/status`.
 - **Resume snapshots actually get used:** freshness now hashes only this initiative's slice of `workboard.json`, `ba-actions.json` and `calendar-feed.json`, so a calendar refresh or another initiative's `/todo` no longer makes every snapshot stale. `--ensure <slug>` rebuilds a stale one instead of falling back to reading every file.
-- **Always-on router slimmer:** the re-entry card templates moved to `references/re-entry-card.md`, read on resume only.
-- **Profile rows:** `--patch-profile` (and the merge tool's `patch_profile`) also replaces the old `/status` (triple output) and `/todo` (workboard) rows.
+- **Always-on rules trimmed from about 33k to about 23k characters** (roughly 2,500 fewer tokens on every message, BA or not), with no behaviour removed:
+  - The command table left `ba-profile.mdc` and the config template: every command already has its own file in `~/.cursor/commands/`. The profile keeps a one-line pointer so a command typed as plain text still reads its file. `/retro` and `/status` command files gained the AskQuestion lines the table used to carry.
+  - The config template is values only (the status page format, Jira notes, customisation and draft-depth prose are gone; they live in references).
+  - AskQuestion rules live once, in `agent-behavior.mdc` (the router's copy is gone; its never-re-ask and timeout lines moved there).
+  - Wave history notes, the em-dash hook disclaimer and duplicated `/reanchor` steps removed; `critical-gates.mdc` and the router's settings map compressed.
+  - The re-entry card templates moved to `references/re-entry-card.md`, read on resume only.
+  - Fixed: the router's resume row still said to read SESSION-CONTEXT, the tracker and Project-hub in full, which bypassed the snapshot-first order in `SKILL.md` Step 2.
+  - `test_efficiency_scripts.py` caps the always-on size at 24k characters and checks the key rules are still there.
+- **Profile patch:** `--patch-profile` (and the merge tool's `patch_profile`) now replaces the old command table in your `ba-profile.mdc` with the one-line pointer, keeping rows for your own commands. Nothing else in the profile changes. Your `ba-assistant-config.mdc` is never touched by the tools: `docs/PERSONALISED-UPGRADE.md` has a prompt to trim it to values only.
 - `skills/ba-assistant/VERSION` now says 15 (it still said 14).
 
 ### Tests

@@ -92,11 +92,11 @@
     },
     "commands/retro.md": {
       "category": "behaviour-minor",
-      "reason": "Command points at the installed ~/.cursor/ path, so it works from any workspace"
+      "reason": "Ends with an AskQuestion on which actions to implement (was only in the profile table)"
     },
     "commands/status.md": {
       "category": "behaviour-critical",
-      "reason": "/status is chat + metrics script; offers /canvas instead of rendering it"
+      "reason": "/status is chat + metrics script; offers /canvas instead of rendering it; no longer depends on the profile table"
     },
     "commands/todo.md": {
       "category": "behaviour-important",
@@ -135,8 +135,8 @@
       "reason": "Folder containment (not string prefix); git -C / cd aware; sharedRepoRoot from config or profile"
     },
     "rules/agent-behavior.mdc": {
-      "category": "wording",
-      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
+      "category": "behaviour-minor",
+      "reason": "AskQuestion rules in one place (never re-ask, timeout); gate visibility and em-dash rule shortened"
     },
     "rules/ba-delivery-process.mdc": {
       "category": "wording",
@@ -147,12 +147,12 @@
       "reason": "/status, /canvas, /todo, /metrics rows (patched only with --patch-profile)"
     },
     "rules/critical-gates.mdc": {
-      "category": "behaviour-important",
-      "reason": "Stop reminder documented as off by default; shared repo from config"
+      "category": "behaviour-minor",
+      "reason": "Same gates, shorter rows"
     },
     "rules/execution-router.mdc": {
       "category": "behaviour-important",
-      "reason": "Context capture writes through capture.py; re-entry card moved to a reference"
+      "reason": "Context capture via capture.py; re-entry card moved to a reference; resume row follows SKILL.md Step 2 (snapshot first); settings map and duplicates trimmed"
     },
     "rules/skills-routing.mdc": {
       "category": "behaviour-minor",
@@ -176,7 +176,7 @@
     },
     "skills/ba-assistant/ba-profile.template.mdc": {
       "category": "behaviour-minor",
-      "reason": "/status and /canvas rows"
+      "reason": "Values only; command table and prose removed"
     },
     "skills/ba-assistant/hook-contracts-history.md": {
       "category": "wording",
@@ -272,7 +272,7 @@
     },
     "skills/ba-assistant/slash-commands-ux.md": {
       "category": "wording",
-      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
+      "reason": "Commands are defined in commands/*.md, not an always-on table"
     },
     "skills/ba-assistant/sub-skills/ba-anti-pattern-detector/SKILL.md": {
       "category": "wording",
@@ -357,6 +357,10 @@
     "skills/ba-assistant/sub-skills/ba-project-canvas/metrics.md": {
       "category": "behaviour-minor",
       "reason": "Metrics come from compute-metrics.py"
+    },
+    "skills/ba-assistant/sub-skills/ba-project-canvas/status-page-and-data.md": {
+      "category": "wording",
+      "reason": "Status page format reference points at status-page-format.md"
     },
     "skills/ba-assistant/sub-skills/ba-requirements-interrogator/SKILL.md": {
       "category": "wording",

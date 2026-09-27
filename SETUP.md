@@ -1,6 +1,6 @@
 # BA Assistant for Cursor — Setup Guide
 
-**Version 14** - see [CHANGELOG.md](CHANGELOG.md) and [README.md](README.md).
+**Version 15** - see [CHANGELOG.md](CHANGELOG.md) and [README.md](README.md).
 
 > Built iteratively across real BA initiatives using agent-assisted development.
 
@@ -98,6 +98,8 @@ Then in a new Cursor chat: `/setup` (or `/ba-assistant`).
 python tools/upgrade-ba-assistant.py --package /path/to/ba-assistant-cursor-skill
 python tools/upgrade-ba-assistant.py --package /path/to/ba-assistant-cursor-skill --apply
 ```
+
+Personalised install (edited skills or rules, your own naming)? Use `tools/ba-merge-upgrade.py` instead: see [docs/PERSONALISED-UPGRADE.md](docs/PERSONALISED-UPGRADE.md).
 
 ---
 

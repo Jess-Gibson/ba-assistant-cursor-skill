@@ -5,7 +5,7 @@ opens this workspace, or pastes the install prompt, your job is to **install the
 files**, then run the personalisation wizard. Do not only chat about setup.
 
 After installation, behaviour comes from `skills/ba-assistant/SKILL.md` (the
-Version 14 router), not from this install guide.
+Version 15 router), not from this install guide.
 
 ## Paste-this prompt (share with new BAs)
 

@@ -23,7 +23,7 @@ in YOUR naming, file names included. Your data files are never touched.
 Everything is standard-library Python and runs on Windows, macOS and Linux.
 Windows: use `py` instead of `python3`, or tools/ba-merge-upgrade.ps1.
 
-Steps (see docs/V15-WORK-LAPTOP.md for the full walkthrough):
+Steps (see docs/PERSONALISED-UPGRADE.md for the full walkthrough):
 
   python3 tools/ba-merge-upgrade.py backup
       Hash manifest + zip + zip test + restore rehearsal of your install.
@@ -983,7 +983,7 @@ def cmd_apply_staging(args) -> int:
     (session / "staging-log.txt").write_text("\n".join(applied) + "\n", encoding="utf-8")
     say(f"Built version {version} in staging: {len(applied)} step(s). Log: {session / 'staging-log.txt'}")
     say("Your data in staging is byte-identical to the backup.")
-    say("Next: test in staging (see docs/V15-WORK-LAPTOP.md), then deploy-plan.")
+    say("Next: test in staging (see docs/PERSONALISED-UPGRADE.md), then deploy-plan.")
     return 0
 
 

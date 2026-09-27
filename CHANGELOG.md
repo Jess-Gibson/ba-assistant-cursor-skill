@@ -1,5 +1,37 @@
 # Changelog
 
+## Version 15 - 2026-09-27
+
+Version 14 QA fixes (from the fork review) plus the fixes below.
+
+### End of day
+
+- **One calendar roll.** The canvas End of Day button used to run `roll-calendar-eod.py` and then `generate-workboard-canvas.py --eod-roll`, which rolled the calendar twice (Wed to Fri). End of day now has one command: `generate-workboard-canvas.py --eod-roll --closeout-date <date being closed out>`.
+- **Safe to re-run.** A second roll for the same closeout date prints `Gate: calendar-roll: SKIPPED` and writes nothing. Roll markers that disagree (a partial roll) print `FAIL` and write nothing. Leaving out `--closeout-date` after a roll fails instead of guessing. The closeout date is the day being closed, so a morning catch-up can close yesterday. A meeting with `duration_min: null` no longer crashes the roll.
+- **Canvas End of Day prompt** now points at `eod-closeout-procedure.md` instead of a moved section of `sync-procedures.md`, and follows its action filter (not every open action).
+- **Mail check order:** `_workstream/scan-outlook-mail.py` if installed, then the Outlook MCP connector, then "Mail: unable to check". Never blocks end of day.
+
+### Initiative selection
+
+- Session start also reads `CURSOR_PROJECT_DIR` when Cursor sends no `workspace_roots`. Still never picks an initiative by modified time.
+
+### Upgrading
+
+- **Your data is left alone by default.** The upgrader no longer runs the old data migrations unless you pass `--migrate-legacy`. Before, it could move a legacy actions file into a backup and copy it over `ba-actions.json`. Now it reports what it found and leaves it byte-identical.
+- **`--patch-profile`** replaces only the old `/wrap` and `/validate-state` rows in your `ba-profile.mdc` (backup first). Without it, the upgrader shows the exact new rows. Rows you have personalised are never rewritten.
+- **No hook runs twice.** Old `.sh`/`.ps1` hook wrappers are dropped from `hooks.json` when the package ships the `.py` hook, and moved into the backup once nothing references them.
+- **New: `tools/ba-merge-upgrade.py`** for personalised installs (edited skills, your own rules and skills, your own naming). Backup with restore rehearsal, staging, a three-way comparison, your decisions, a reviewed deploy plan, a drift check, hash-verified deploy with automatic rollback. New files are written in your own naming (for example `jess-actions`, not `ba-actions`). See `docs/PERSONALISED-UPGRADE.md`.
+
+### Upgrading from 14
+
+- Plain install: `python3 tools/upgrade-ba-assistant.py --package <this checkout> --apply --patch-profile`.
+- Personalised install: follow `docs/PERSONALISED-UPGRADE.md`.
+- Your profile, config, own rules, own skills, actions, workboard, calendar feed and initiatives are not changed by either path.
+
+### Tests
+
+- `python3 tests/run_all.py` adds end-of-day (roll and canvas prompt), install and upgrade (installs Version 14, personalises it, upgrades, and pins what is kept), and merge-tool (full flow on a personalised install with its own naming) suites.
+
 ## Version 14 - 2026-09-25
 
 ### Version 14 tight fix set

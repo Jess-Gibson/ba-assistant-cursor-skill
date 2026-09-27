@@ -89,6 +89,27 @@ EXCLUDE_FILE_SUFFIXES = (".pyc",)
 BACKUP_NAME_RE = re.compile(r"\.bak-\d{8}-\d{6}$")
 
 PERSONAL_FILES = {"rules/ba-profile.mdc", "rules/ba-assistant-config.mdc"}
+# Top-level folders never searched for initiatives (Cursor's own, or huge).
+NOT_INITIATIVE_DIRS = {"extensions", "projects", "ai-tracking", "worktrees", "plugins", "logs"}
+
+# Filled from session.json: extra top-level folders of the Cursor home that
+# hold initiatives (for example a folder not called "initiatives"). They are
+# backed up, staged and treated as data, never deployed.
+CTX: dict = {"extra_home_dirs": (), "personal_files": set(PERSONAL_FILES)}
+
+
+def home_includes() -> tuple[str, ...]:
+    return HOME_INCLUDE + tuple(d for d in CTX["extra_home_dirs"] if d not in HOME_INCLUDE)
+
+
+def staging_home(session: Path) -> Path:
+    """Staging is a whole fake user home, so tools can run against it with
+    HOME/USERPROFILE pointed here (see the run command)."""
+    return session / "stage-home"
+
+
+def staging_dir(session: Path) -> Path:
+    return staging_home(session) / ".cursor"
 VOICE_HINTS = ("voice", "tone")
 GENERATED_FILES = {"canvases/ba-workboard.canvas.tsx"}
 DATA_SUFFIXES = (".json", ".md", ".txt", ".csv")
@@ -173,21 +194,59 @@ def write_json(path: Path, data) -> None:
 
 
 def read_config_value(cursor_home: Path, key: str) -> str:
-    cfg = cursor_home / "rules" / "ba-assistant-config.mdc"
-    if not cfg.exists():
+    """First `key:` found in ba-assistant-config.mdc, then any other rule file
+    (a profile may hold it under a personal file name)."""
+    rules = cursor_home / "rules"
+    if not rules.exists():
         return ""
-    for line in cfg.read_text(encoding="utf-8", errors="replace").splitlines():
-        m = re.match(rf"^\s*{re.escape(key)}\s*:\s*(.+?)\s*$", line)
-        if m:
-            value = m.group(1).split(" #", 1)[0].strip().strip("\"'")
-            return value
+    files = [rules / "ba-assistant-config.mdc"] + sorted(p for p in rules.glob("*.mdc") if p.name != "ba-assistant-config.mdc")
+    for cfg in files:
+        if not cfg.exists():
+            continue
+        for line in cfg.read_text(encoding="utf-8", errors="replace").splitlines():
+            m = re.match(rf"^\s*{re.escape(key)}\s*:\s*(.+?)\s*$", line)
+            if m:
+                value = m.group(1).split(" #", 1)[0].strip().strip("\"'")
+                if value and not value.startswith("["):
+                    return value
     return ""
+
+
+def detect_initiative_dirs(cursor_home: Path) -> list[str]:
+    """Top-level folders of the Cursor home (other than the standard ones) that
+    contain a SESSION-CONTEXT.md within three levels. No names are assumed."""
+    found = []
+    for top in sorted(cursor_home.iterdir()) if cursor_home.exists() else []:
+        if not top.is_dir() or top.is_symlink() or top.name in HOME_INCLUDE or top.name in NOT_INITIATIVE_DIRS:
+            continue
+        if top.name in EXCLUDE_DIR_NAMES or top.name.startswith("."):
+            continue
+        base_depth = len(top.parts)
+        for dirpath, dirnames, filenames in os.walk(top):
+            if "SESSION-CONTEXT.md" in filenames:
+                found.append(top.name)
+                break
+            if len(Path(dirpath).parts) - base_depth >= 3:
+                dirnames[:] = []
+            else:
+                dirnames[:] = [d for d in dirnames if d not in EXCLUDE_DIR_NAMES]
+    configured = read_config_value(cursor_home, "initiativesRoot")
+    if configured:
+        p = Path(os.path.expanduser(configured))
+        try:
+            rel = p.resolve().relative_to(cursor_home.resolve())
+            if rel.parts and rel.parts[0] not in HOME_INCLUDE and rel.parts[0] not in found:
+                found.append(rel.parts[0])
+        except (ValueError, OSError):
+            pass
+    return found
 
 
 def load_session(session: Path) -> dict:
     meta = load_json(session / "session.json")
     if not meta:
         die(f"{session} is not a ba-merge-upgrade session folder (no session.json). Run backup first.")
+    CTX["extra_home_dirs"] = tuple(meta.get("extra_home_dirs") or ())
     return meta
 
 
@@ -220,11 +279,11 @@ def collect_roots(cursor_home: Path, extra: list[str]) -> dict[str, Path]:
 
 
 def root_files(label: str, root: Path) -> tuple[dict[str, Path], list[str]]:
-    """Manifest keys are '<label>/<path>'. For home, only HOME_INCLUDE entries."""
+    """Manifest keys are '<label>/<path>'. For home, only the included entries."""
     files: dict[str, Path] = {}
     skipped: list[str] = []
     if label == "home":
-        for entry in HOME_INCLUDE:
+        for entry in home_includes():
             p = root / entry
             if p.is_symlink():
                 skipped.append(f"home/{entry}")
@@ -257,12 +316,15 @@ def cmd_backup(args) -> int:
     session.mkdir(parents=True, exist_ok=True)
 
     roots = collect_roots(cursor_home, args.extra)
+    CTX["extra_home_dirs"] = tuple(detect_initiative_dirs(cursor_home))
     say("Backing up (explicit include list):")
     for label, root in roots.items():
         if label == "home":
-            present = [e for e in HOME_INCLUDE if (root / e).exists()]
+            present = [e for e in home_includes() if (root / e).exists()]
             say(f"  {label}: {root}")
             say(f"      includes: {', '.join(present)}")
+            if CTX["extra_home_dirs"]:
+                say(f"      initiative folders found (kept as data, never changed): {', '.join(CTX['extra_home_dirs'])}")
         else:
             say(f"  {label}: {root} (initiatives or extra folder outside the Cursor home)")
     say(f"  excludes: {', '.join(sorted(EXCLUDE_DIR_NAMES))}, *.pyc, *.bak-<timestamp> files,"
@@ -317,6 +379,7 @@ def cmd_backup(args) -> int:
         "created": datetime.now().isoformat(timespec="seconds"),
         "cursor_home": str(cursor_home),
         "roots": {k: str(v) for k, v in roots.items()},
+        "extra_home_dirs": list(CTX["extra_home_dirs"]),
     })
     write_rollback_doc(session, roots)
 
@@ -354,7 +417,7 @@ def write_rollback_doc(session: Path, roots: dict[str, Path]) -> None:
     ]
     for label, root in roots.items():
         if label == "home":
-            lines += [f"   - `{root / e}`" for e in HOME_INCLUDE if (root / e).exists()]
+            lines += [f"   - `{root / e}`" for e in home_includes() if (root / e).exists()]
         else:
             lines.append(f"   - `{root}`")
     lines += [
@@ -377,11 +440,13 @@ def cmd_stage(args) -> int:
     session = Path(os.path.expanduser(args.session)).resolve()
     load_session(session)
     src = session / "snapshot" / "home"
-    staging = session / "staging"
-    if staging.exists():
+    staging = staging_dir(session)
+    if staging_home(session).exists():
         if not args.fresh:
             die(f"{staging} already exists. Pass --fresh to rebuild it from the snapshot.")
-        shutil.rmtree(staging)
+        shutil.rmtree(staging_home(session))
+        (session / "staging-result.json").unlink(missing_ok=True)
+    staging.parent.mkdir(parents=True)
     shutil.copytree(src, staging)
     manifest = load_json(session / "manifest.json")["files"]
     bad = [k for k, m in manifest.items() if k.startswith("home/")
@@ -390,7 +455,31 @@ def cmd_stage(args) -> int:
         die(f"staging copy does not match the backup: {bad[:5]}")
     say(f"Staging ready: {staging}")
     say("It is a full copy of your install. Nothing in your real Cursor home was touched.")
+    say(f'Test tools against it with: run --session "{session}" -- <command>')
     return 0
+
+
+def cmd_run(args) -> int:
+    """Run a command with HOME / USERPROFILE pointed at the staging home, so
+    hooks and scripts read staging's rules, workstream and initiatives."""
+    session = Path(os.path.expanduser(args.session)).resolve()
+    load_session(session)
+    home = staging_home(session)
+    if not (home / ".cursor").exists():
+        die("no staging folder. Run stage first.")
+    cmd = list(args.command)
+    if cmd and cmd[0] == "--":
+        cmd = cmd[1:]
+    if not cmd:
+        die("nothing to run. Example: run --session S -- py stage-home/.cursor/hooks/session-init.py")
+    env = dict(os.environ)
+    env.update({"HOME": str(home), "USERPROFILE": str(home)})
+    env.pop("BA_INITIATIVES_ROOT", None)
+    env.pop("CURSOR_SESSION_CONTEXT_PATH", None)
+    say(f"[staging home: {home}]")
+    # Hooks read stdin until it closes, so always give them input (empty by default).
+    feed = Path(args.stdin).read_text(encoding="utf-8") if args.stdin else ""
+    return subprocess.run(cmd, env=env, input=feed, text=True).returncode
 
 
 # --------------------------------------------------------------------------
@@ -534,7 +623,7 @@ def same(a: str | None, b: str | None, is_json: bool) -> bool:
 
 
 def is_personal(path: str) -> bool:
-    if path in PERSONAL_FILES:
+    if path in PERSONAL_FILES or path in CTX["personal_files"]:
         return True
     if path.startswith("rules/") and any(h in path.lower() for h in VOICE_HINTS):
         return True
@@ -542,7 +631,7 @@ def is_personal(path: str) -> bool:
 
 
 def is_immutable_data(path: str) -> bool:
-    if path.startswith("initiatives/"):
+    if path.startswith("initiatives/") or path.split("/", 1)[0] in CTX["extra_home_dirs"]:
         return True
     if path.startswith("canvases/"):
         return path not in GENERATED_FILES
@@ -608,6 +697,80 @@ def hook_registrations(text: str | None) -> list[str]:
     return regs
 
 
+def load_port_manifest(path: Path | None) -> dict:
+    """{generic installed path: {"category": ..., "reason": ...}} or {}."""
+    if not path or not path.exists():
+        return {}
+    data = load_json(path, {}) or {}
+    return data.get("files") or {}
+
+
+def merge3(mine: str, base: str, theirs: str) -> tuple[str | None, int | None]:
+    """Line-based three-way merge with git merge-file. Returns (text, conflicts);
+    (None, None) when git is not available. Conflicted text carries markers."""
+    git = shutil.which("git")
+    if not git:
+        return None, None
+    with tempfile.TemporaryDirectory(prefix="ba-merge3-") as tmp:
+        paths = []
+        for name, text in (("yours", mine), ("old", base), ("new", theirs)):
+            f = Path(tmp) / name
+            f.write_text(text.replace("\r\n", "\n"), encoding="utf-8")
+            paths.append(str(f))
+        proc = subprocess.run([git, "merge-file", "-p", "--diff3", "-L", "yours", "-L", "old version",
+                               "-L", "new version", *paths], capture_output=True, text=True, encoding="utf-8")
+    if proc.returncode < 0 or proc.returncode > 127:
+        return None, None
+    return proc.stdout, proc.returncode
+
+
+def hook_entry_key(event: str, entry: dict) -> tuple[str, str]:
+    cmd = str(entry.get("command") or "")
+    for token in reversed(cmd.split()):
+        token = token.strip("\"'").replace("\\", "/").rsplit("/", 1)[-1]
+        if "." in token:
+            return event, token
+    if entry.get("type") == "prompt":
+        return event, "prompt: " + str(entry.get("prompt", ""))[:40]
+    return event, cmd[:40] or "?"
+
+
+def simulate_hooks_merge(new: Path, local_text: str | None, loc) -> dict:
+    """What the package merge would do to YOUR hooks.json: dropped, added and
+    changed registrations (failClosed, matcher, timeout)."""
+    inst = load_module(new / "tools" / "install-ba-assistant.py", "sim_installer")
+    pkg_file = new / "hooks" / "hooks.json"
+    if inst is None or not pkg_file.exists() or not local_text:
+        return {}
+    try:
+        pkg = json.loads(loc.apply(pkg_file.read_text(encoding="utf-8"))[0])
+        existing = json.loads(local_text).get("hooks") or {}
+    except (ValueError, AttributeError):
+        return {"error": "your hooks.json is not valid JSON; it will not be merged"}
+    pkg_hooks = pkg.get("hooks") or {}
+    inst.rewrite_package_python_interpreters(pkg_hooks)
+    inst.guard_dor_gate_interpreter(pkg_hooks)
+    merged, _ = inst.merge_hooks_object(pkg_hooks, existing)
+
+    def index(hooks: dict) -> dict:
+        out = {}
+        for event, entries in hooks.items():
+            for e in entries if isinstance(entries, list) else []:
+                if isinstance(e, dict):
+                    out[hook_entry_key(event, e)] = {k: e.get(k) for k in ("failClosed", "matcher", "timeout")}
+        return out
+
+    before, after = index(existing), index(merged)
+    dropped = sorted(f"{k[0]}: {k[1]}" for k in before if k not in after)
+    added = sorted(f"{k[0]}: {k[1]}" for k in after if k not in before)
+    changed = sorted(
+        f"{k[0]}: {k[1]} {field} {before[k][field]!r} -> {after[k][field]!r}"
+        for k in before if k in after
+        for field in ("failClosed", "matcher", "timeout") if before[k][field] != after[k][field]
+    )
+    return {"dropped": dropped, "added": added, "changed": changed}
+
+
 def cmd_classify(args) -> int:
     session = Path(os.path.expanduser(args.session)).resolve()
     load_session(session)
@@ -619,12 +782,20 @@ def cmd_classify(args) -> int:
     local_root = session / "snapshot" / "home"
     rules_path = Path(os.path.expanduser(args.rules)).resolve() if args.rules else None
     loc = Localiser(rules_path)
+    CTX["personal_files"] = {loc.path(p) for p in PERSONAL_FILES}
+    manifest_path = Path(os.path.expanduser(args.port_manifest)).resolve() if args.port_manifest else new / "docs" / "port-manifest.json"
+    port = load_port_manifest(manifest_path)
 
     new_layout = package_layout(new)
     base_layout = package_layout(base, fallback=new_layout)
     # Package files mapped to where they sit in YOUR install (your naming).
-    base_map = {loc.path(k): v for k, v in package_map(base, base_layout).items()}
-    new_map = {loc.path(k): v for k, v in package_map(new, new_layout).items()}
+    base_generic = package_map(base, base_layout)
+    new_generic = package_map(new, new_layout)
+    base_map = {loc.path(k): v for k, v in base_generic.items()}
+    new_map = {loc.path(k): v for k, v in new_generic.items()}
+    generic_of = {loc.path(k): k for k in list(base_generic) + list(new_generic)}
+    merged_dir = session / "merged"
+    hooks_review: dict = {}
     local_files, _ = walk_files(local_root)
 
     def pkg_text(src: Path | None, record: bool = False) -> tuple[str | None, set[int]]:
@@ -654,6 +825,7 @@ def cmd_classify(args) -> int:
             cls = "M"
             mine = sorted(set(hook_registrations(l)) - set(hook_registrations(b)) - set(hook_registrations(n)))
             note = ("your own hook registrations (kept by the merge): " + "; ".join(mine)) if mine else "no hooks of your own"
+            hooks_review = simulate_hooks_merge(new, l, loc)
         elif path in GENERATED_FILES:
             cls = "GEN"
         elif is_immutable_data(path) and not in_pkg:
@@ -718,6 +890,41 @@ def cmd_classify(args) -> int:
         row = {"path": path, "class": cls, "decision": DEFAULT_DECISION[cls], "note": note}
         if cls == "F" and note.startswith("old package hook wrapper"):
             row["decision"] = "remove"
+        entry = port.get(generic_of.get(path, path)) if port else None
+        if entry:
+            row["category"] = entry.get("category")
+            row["why"] = entry.get("reason", "")
+        if cls == "M" and (hooks_review.get("dropped") or hooks_review.get("changed") or hooks_review.get("error")):
+            row["decision"] = "ask"
+            row["hooks_review"] = hooks_review
+        elif cls == "M" and hooks_review:
+            row["hooks_review"] = hooks_review
+        if port and cls in ("A", "A-review", "D", "G") and (not entry or entry.get("category") == "wording"):
+            # Only behaviour changes are ported into a personalised install.
+            row["decision"] = "keep_mine"
+            row["note"] = ("wording only in the new version; yours kept" if entry
+                           else "not in the port manifest; yours kept")
+        elif port and cls == "D" and entry and str(entry.get("category", "")).startswith("behaviour"):
+            text, conflicts = merge3(l, b, n) if (l is not None and b is not None and n is not None) else (None, None)
+            target = merged_dir / path
+            if text is None:
+                row["decision"] = "ask"
+                row["note"] = "behaviour change; no git for an automatic merge, merge by hand"
+            elif conflicts == 0:
+                target.parent.mkdir(parents=True, exist_ok=True)
+                raw = lp.read_bytes() if lp else b""
+                out = text.replace("\n", "\r\n") if b"\r\n" in raw else text
+                target.write_bytes(out.encode("utf-8"))
+                row["decision"] = "merged"
+                row["auto_merged"] = True
+                row["note"] = "auto-merged: your changes and the new version's do not overlap; review it"
+            else:
+                conflict_file = target.with_name(target.name + ".conflict")
+                conflict_file.parent.mkdir(parents=True, exist_ok=True)
+                conflict_file.write_text(text, encoding="utf-8")
+                row["decision"] = "ask"
+                row["note"] = (f"{conflicts} overlapping section(s); resolve {conflict_file.name} into "
+                               f"merged/{path} and set merged")
         if path in new_map:
             row["new_src"] = str(new_map[path])
         if (b_used | n_used) and cls in ("A", "A-review", "E", "D", "C"):
@@ -735,9 +942,32 @@ def cmd_classify(args) -> int:
     for r in rows:
         by_class.setdefault(r["class"], []).append(r)
 
+    findings = []
+    if not (local_root / "rules" / "ba-assistant-config.mdc").exists():
+        root_value = read_config_value(local_root, "initiativesRoot")
+        findings.append(
+            "No rules/ba-assistant-config.mdc. Session start, the Jira DoR gate and the shared-repo guard read "
+            "paths.* from it (then from your profile). "
+            + ("Your initiatives root was found in another rule file, so they will work. "
+               if root_value else "No paths.initiativesRoot was found anywhere, so they would look only in "
+               "~/.cursor/initiatives. ")
+            + "Set create_config true in decisions.json to add one from the template, then fill it in staging.")
+    for d in CTX["extra_home_dirs"]:
+        root_value = read_config_value(local_root, "initiativesRoot")
+        if not root_value or d not in root_value:
+            findings.append(f"Initiatives found in the folder '{d}', but no paths.initiativesRoot points at it. "
+                            f"Add initiativesRoot: \"~/.cursor/{d}\" to your config so session start and the DoR "
+                            "gate find them.")
+    if port:
+        findings.append(f"Port manifest used: {manifest_path.name}. Only behaviour changes are brought in; "
+                        "wording-only changes keep your version.")
+
     write_json(session / "classification.json", {
         "base": str(base), "new": str(new), "rules": str(rules_path) if rules_path else None,
         "new_commit": git_head(new), "base_commit": git_head(base),
+        "personal_files": sorted(CTX["personal_files"]),
+        "findings": findings,
+        "hooks_review": hooks_review,
         "rows": rows,
     })
     decisions_path = session / "decisions.json"
@@ -750,10 +980,11 @@ def cmd_classify(args) -> int:
                      "keep_mine leaves it missing. For class F, remove moves your copy aside at deploy. "
                      "patch_profile true replaces only the old /wrap and /validate-state rows in ba-profile.mdc.",
             "patch_profile": False,
+            "create_config": False,
             "files": {r["path"]: {"class": r["class"], "decision": r["decision"]} for r in rows
                       if r["class"] not in ("U", "DATA", "H")},
         })
-    write_report(session, rows, by_class, loc, base, new)
+    write_report(session, rows, by_class, loc, base, new, findings, hooks_review)
     say(f"Classified {len(rows)} files.")
     for cls in ("D", "A-review", "G", "F", "E", "A", "B", "C", "P", "M", "H", "GEN", "DATA", "U"):
         if cls in by_class:
@@ -761,6 +992,11 @@ def cmd_classify(args) -> int:
     localised = sum(1 for r in rows if r.get("localised"))
     if loc.rules:
         say(f"  {localised} new-version file(s) will be written in your naming.")
+    auto = sum(1 for r in rows if r.get("auto_merged"))
+    if port:
+        say(f"  {auto} behaviour file(s) auto-merged (review them); wording-only changes keep your version.")
+    for f in findings:
+        say(f"FINDING {f}")
     asks = sum(1 for r in rows if r["decision"] == "ask")
     say(f"Report: {session / 'report.md'}")
     say(f"Decisions to make: {asks} (in {decisions_path})")
@@ -801,7 +1037,8 @@ def git_head(path: Path) -> str | None:
         return None
 
 
-def write_report(session: Path, rows, by_class, loc: Localiser, base: Path, new: Path) -> None:
+def write_report(session: Path, rows, by_class, loc: Localiser, base: Path, new: Path,
+                 findings: list[str] | None = None, hooks_review: dict | None = None) -> None:
     lines = [
         "# Upgrade classification report",
         "",
@@ -821,6 +1058,23 @@ def write_report(session: Path, rows, by_class, loc: Localiser, base: Path, new:
     for cls in order:
         if cls in by_class:
             lines.append(f"| {cls} | {len(by_class[cls])} | {CLASS_HELP[cls]} |")
+    if findings:
+        lines += ["", "## Findings", ""] + [f"- {f}" for f in findings]
+    if hooks_review:
+        lines += ["", "## hooks.json: what the merge would change", ""]
+        if hooks_review.get("error"):
+            lines.append(f"- {hooks_review['error']}")
+        for label in ("dropped", "changed", "added"):
+            for item in hooks_review.get(label) or []:
+                lines.append(f"- {label}: {item}")
+        if not any(hooks_review.get(k) for k in ("dropped", "changed", "added", "error")):
+            lines.append("- nothing changes")
+    decided = [r for r in rows if r.get("auto_merged")]
+    if decided:
+        lines += ["", "## Auto-merged (review these)", ""]
+        for r in decided:
+            why = f": {r['why']}" if r.get("why") else ""
+            lines.append(f"- `{r['path']}` ({r.get('category', '')}){why}")
     if loc.rules:
         lines += ["", "## Naming rules (generic package name -> your name)", ""]
         for r in sorted(loc.rules, key=lambda r: r["n"]):
@@ -864,7 +1118,7 @@ def cmd_apply_staging(args) -> int:
     """
     session = Path(os.path.expanduser(args.session)).resolve()
     load_session(session)
-    staging = session / "staging"
+    staging = staging_dir(session)
     if not staging.exists():
         die("no staging folder. Run stage first.")
     if (session / "staging-result.json").exists():
@@ -879,6 +1133,7 @@ def cmd_apply_staging(args) -> int:
         die(f"{len(pending)} decision(s) still 'ask' in decisions.json, e.g. {pending[:5]}")
     new = Path(cls_data["new"])
     loc = Localiser(Path(cls_data["rules"]) if cls_data.get("rules") else None)
+    CTX["personal_files"] = set(cls_data.get("personal_files") or PERSONAL_FILES)
     rows = {r["path"]: r for r in cls_data["rows"]}
     upg = load_module(new / "tools" / "upgrade-ba-assistant.py", "new_upgrader")
     inst = load_module(new / "tools" / "install-ba-assistant.py", "new_installer")
@@ -934,8 +1189,21 @@ def cmd_apply_staging(args) -> int:
         else:
             die(f"unknown decision {decision!r} for {path}")
 
+    # Config file from the template, when the install has none and you asked for it.
+    config = staging / "rules" / "ba-assistant-config.mdc"
+    if decisions.get("create_config") and not config.exists():
+        template = new / "skills" / "ba-assistant" / "ba-profile.template.mdc"
+        text = loc.apply(template.read_text(encoding="utf-8"))[0]
+        extra = list(CTX["extra_home_dirs"])
+        if len(extra) == 1 and not read_config_value(staging, "initiativesRoot"):
+            text = re.sub(r'(^\s*initiativesRoot:\s*)"[^"]*"', rf'\g<1>"~/.cursor/{extra[0]}"', text, count=1, flags=re.M)
+        config.parent.mkdir(parents=True, exist_ok=True)
+        config.write_text(text, encoding="utf-8")
+        applied.append("CONFIG     rules/ba-assistant-config.mdc created from the template: FILL IT IN (in staging) "
+                       "before deploy-plan")
+
     # Profile: only the old /wrap and /validate-state rows, in your naming.
-    profile = staging / "rules" / "ba-profile.mdc"
+    profile = staging / loc.path("rules/ba-profile.mdc")
     if decisions.get("patch_profile") and profile.exists():
         raw = profile.read_bytes()
         newline = "\r\n" if b"\r\n" in raw else "\n"
@@ -977,6 +1245,10 @@ def cmd_apply_staging(args) -> int:
             p = staging / rel
             if not p.exists() or sha256_file(p) != meta["sha256"]:
                 changed_data.append(rel)
+        elif rel.split("/", 1)[0] in CTX["extra_home_dirs"]:
+            p = staging / rel
+            if not p.exists() or sha256_file(p) != meta["sha256"]:
+                changed_data.append(rel)
     if changed_data:
         die(f"your data changed in staging, which must not happen: {changed_data[:10]}")
     write_json(session / "staging-result.json", {"applied": applied, "version": version})
@@ -992,10 +1264,10 @@ def cmd_apply_staging(args) -> int:
 # --------------------------------------------------------------------------
 
 def build_plan(session: Path) -> dict:
-    staging = session / "staging"
+    staging = staging_dir(session)
     snapshot = session / "snapshot" / "home"
     staged = {}
-    for entry in HOME_INCLUDE:
+    for entry in home_includes():
         p = staging / entry
         if p.is_file():
             staged[entry] = p
@@ -1003,7 +1275,7 @@ def build_plan(session: Path) -> dict:
             sub, _ = walk_files(p)
             staged.update({f"{entry}/{k}": v for k, v in sub.items()})
     orig = {}
-    for entry in HOME_INCLUDE:
+    for entry in home_includes():
         p = snapshot / entry
         if p.is_file():
             orig[entry] = p
@@ -1011,7 +1283,9 @@ def build_plan(session: Path) -> dict:
             sub, _ = walk_files(p)
             orig.update({f"{entry}/{k}": v for k, v in sub.items()})
 
-    classes = {r["path"]: r["class"] for r in (load_json(session / "classification.json", {}) or {}).get("rows", [])}
+    cls_data = load_json(session / "classification.json", {}) or {}
+    classes = {r["path"]: r["class"] for r in cls_data.get("rows", [])}
+    CTX["personal_files"] = set(cls_data.get("personal_files") or PERSONAL_FILES)
     entries = []
     problems = []
     for path in sorted(set(staged) | set(orig)):
@@ -1021,8 +1295,8 @@ def build_plan(session: Path) -> dict:
         if sh == oh:
             continue
         cls = classes.get(path)
-        if path in GENERATED_FILES:
-            kind = "canvas"
+        if path in GENERATED_FILES or path.startswith("_workstream/snapshots/"):
+            kind = "generated"  # rebuilt by the tools; only deployed with --include-generated
         elif cls not in (None, "DATA") and not is_personal(path):
             kind = "package"  # package-owned file that happens to live under _workstream/
         elif is_immutable_data(path):
@@ -1061,8 +1335,8 @@ def cmd_deploy_plan(args) -> int:
     for e in plan["entries"]:
         lines.append(f"| {e['action']} | {e['kind']} | `{e['path']}` |")
     lines += ["", "Kinds: package = BA Assistant code; personal = your profile/config (edited in staging, "
-              "check it); seed = a new data file that did not exist; canvas = the generated workboard "
-              "(only deployed with --include-canvas). Removals are moved aside, never deleted.",
+              "check it); seed = a new data file that did not exist; generated = the workboard canvas or "
+              "initiative snapshots rebuilt in staging (only deployed with --include-generated). Removals are moved aside, never deleted.",
               "", "Your data files are not in this plan and are never written."]
     (session / "deploy-plan.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     counts: dict[str, int] = {}
@@ -1120,14 +1394,14 @@ def cmd_deploy(args) -> int:
         die("nothing deployed. Close other Cursor windows, then start again from backup with a new session.")
 
     home = Path(meta["cursor_home"])
-    staging = session / "staging"
+    staging = staging_dir(session)
     ts = datetime.now().strftime("%Y%m%d-%H%M%S")
     removed_dir = session / f"removed-{ts}"
     done = []
     try:
         for e in plan["entries"]:
-            if e["kind"] == "canvas" and not args.include_canvas:
-                say(f"SKIP canvas {e['path']} (pass --include-canvas to deploy it)")
+            if e["kind"] == "generated" and not args.include_generated:
+                say(f"SKIP generated {e['path']} (pass --include-generated to deploy it)")
                 continue
             target = home / e["path"]
             if e["action"] == "remove":
@@ -1189,7 +1463,7 @@ def do_rollback(session: Path) -> int:
     aside = session / f"rolled-back-{ts}"
     for label, root in roots.items():
         if label == "home":
-            for entry in HOME_INCLUDE:
+            for entry in home_includes():
                 p = root / entry
                 if p.exists() or p.is_symlink():
                     dest = aside / label / entry
@@ -1267,11 +1541,19 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--new", required=True, help="new package checkout (pinned commit)")
     p.add_argument("--rules", help='rules.json: {"rules": [{"local": "alex-actions", "generic": "ba-actions"}]}')
     p.add_argument("--overwrite-decisions", action="store_true")
+    p.add_argument("--port-manifest", help="which new-version changes are behaviour vs wording "
+                   "(default: docs/port-manifest.json in the new checkout, if present)")
     p.set_defaults(func=cmd_classify)
 
     p = sub.add_parser("apply-staging", help="build the upgraded install in staging from decisions.json")
     p.add_argument("--session", required=True)
     p.set_defaults(func=cmd_apply_staging)
+
+    p = sub.add_parser("run", help="run a command with HOME pointed at the staging home")
+    p.add_argument("--session", required=True)
+    p.add_argument("--stdin", help="file to feed the command on stdin (for hooks)")
+    p.add_argument("command", nargs=argparse.REMAINDER)
+    p.set_defaults(func=cmd_run)
 
     p = sub.add_parser("deploy-plan", help="list the exact files deploy would change")
     p.add_argument("--session", required=True)
@@ -1280,7 +1562,8 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("deploy", help="drift check, copy planned files, verify, auto-rollback on failure")
     p.add_argument("--session", required=True)
     p.add_argument("--plan-sha", required=True, help="the id printed by deploy-plan")
-    p.add_argument("--include-canvas", action="store_true")
+    p.add_argument("--include-generated", "--include-canvas", dest="include_generated", action="store_true",
+                   help="also deploy the regenerated workboard canvas and initiative snapshots")
     p.set_defaults(func=cmd_deploy)
 
     p = sub.add_parser("drift", help="has the real install changed since the backup?")

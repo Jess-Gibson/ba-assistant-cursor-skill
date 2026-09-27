@@ -39,7 +39,25 @@ or by Cursor with you approving each file.
 | P | Profile, config, tone rules | never touched except an approved profile-row patch |
 | M | `hooks.json` | merged hook by hook, your own hooks kept |
 | DATA | Actions, workboard, calendar, initiatives | never touched |
-| GEN | Generated workboard canvas | deployed only with `--include-canvas` |
+| GEN | Generated workboard canvas | deployed only with `--include-generated` |
+
+### Only behaviour changes, when the new version ships a port manifest
+
+`docs/port-manifest.json` in the new version says which changes are behaviour
+(`behaviour-critical`, `behaviour-important`, `behaviour-minor`) and which are
+wording (public tidy-ups, genericisation). With it, `classify`:
+
+- keeps your version of every wording-only file, even ones you never edited
+- three-way merges behaviour files you edited (`git merge-file`): where your edits
+  and the new version's don't overlap, the result is written to `merged/` for you to
+  review; where they overlap, you get a `.conflict` file and a question
+- reports what the `hooks.json` merge would drop or change (for example a
+  `failClosed` setting), and asks before taking it
+- reports a missing `ba-assistant-config.mdc`, or initiatives in a folder no
+  config points at. Set `create_config` to true to add the config from the template.
+
+Your initiative folders are found automatically, wherever they sit inside
+`.cursor`, and treated as data: backed up, staged, never deployed.
 
 ## Your naming: `rules.json`
 
@@ -84,8 +102,11 @@ python3 ba-new/tools/ba-merge-upgrade.py classify --session <session> --base ba-
 # 4. Decide: edit <session>/decisions.json (every "ask"). For a merge, write the merged
 #    file (in your naming) to <session>/merged/<same path> and set "merged".
 
-# 5. Build the upgraded install in staging, then test it there
+# 5. Build the upgraded install in staging, then test it there. Staging is a whole
+#    fake home (<session>/stage-home/.cursor); "run" points HOME at it, so hooks and
+#    scripts read staging's config, workstream and initiatives, never your real ones.
 python3 ba-new/tools/ba-merge-upgrade.py apply-staging --session <session>
+python3 ba-new/tools/ba-merge-upgrade.py run --session <session> -- python3 <session>/stage-home/.cursor/hooks/session-init.py
 
 # 6. See exactly what would change in your real install
 python3 ba-new/tools/ba-merge-upgrade.py deploy-plan --session <session>
@@ -116,21 +137,28 @@ Rules:
 - Never use em dashes.
 
 Steps:
-1. Verify the new checkout is at <RELEASE_SHA> (git rev-parse HEAD). Stop if not.
+1. Verify the new checkout is at <RELEASE_SHA> (git rev-parse HEAD). Stop if not. Check git is installed (the automatic merges need it).
 2. Run backup. Show me the summary and the session folder.
 3. Run stage.
 4. Build rules.json in the session folder: read my sync-to-repo skill (if I have one) and list every local-to-generic name pair it uses, plus any of my file names that are renamed package files. Show me the pairs as a table with values masked (first 3 characters, then ***) and ask me to confirm.
-5. Run classify with --rules. Show me the class counts.
+5. Run classify with --rules. Show me the class counts, the Findings section of report.md, and the hooks.json section.
 6. Go through every "ask" in decisions.json with me, highest-risk first:
-   - D: read my version, the old version and the new version. Explain in plain English what I changed and what the new version changed. Recommend one of: take_new (and why my change is not needed), keep_mine (and what I miss from the new version), or merged. For merged, write the merged file in MY naming to <session>/merged/<path> and show me a short summary of the result before I approve it.
+   - Auto-merged files: they are already in merged/ with decision "merged". For each, show me a two-line summary of what changed from my version. Critical ones first.
+   - Conflicts (a .conflict file next to the path in merged/): resolve each into merged/<path> in MY naming, keeping my intent and the new version's behaviour fix, show me the result, then set "merged".
+   - hooks.json: explain each dropped or changed registration. Recommend take_new, or merged (write the merged hooks.json yourself) if I want to keep a setting such as failClosed.
+   - Other D files: read my version, the old version and the new version. Explain in plain English what I changed and what the new version changed. Recommend one of: take_new (and why my change is not needed), keep_mine (and what I miss from the new version), or merged. For merged, write the merged file in MY naming to <session>/merged/<path> and show me a short summary of the result before I approve it.
    - A-review, E (possible missing naming rule), G: explain and recommend.
    Use AskQuestion. Group low-risk ones. Update decisions.json with my answers.
 7. Ask whether to patch the two old /wrap and /validate-state rows in my profile (patch_profile). Show the old and new rows.
-8. Run apply-staging. Then test in staging (<session>/staging):
-   - run <session>/staging/hooks/session-init.py with empty input (it only reads my real install). Confirm it runs and asks which initiative, rather than guessing. Then run it again with CURSOR_PROJECT_DIR set to one of my initiative folders and confirm it names that one.
-   - run <session>/staging/_workstream/generate-workboard-canvas.py --cursor-home <session>/staging --canvas <a temp file> (no --eod-roll) and show me the End of Day prompt. It must point at eod-closeout-procedure.md and roll the calendar once.
+   If a finding says there is no config file, ask whether to set create_config. After apply-staging, fill in the created <session>/stage-home/.cursor/rules/ba-assistant-config.mdc with me (name, Jira, Confluence, paths, and the optional workboard and mail keys). Lift my old hard-coded values (meeting highlights, mail noise subjects, ignored folders, repo names) from my current _workstream scripts into those keys, and show me what you are adding.
+8. Run apply-staging. Then test in staging, always through `run --session <session> -- <command>` (S below is <session>/stage-home/.cursor):
+   - session start: `run -- py S/hooks/session-init.py`. It must list my initiatives (not "No SESSION-CONTEXT.md found"). With several, it must ask rather than guess.
+   - DoR gate: write a createJiraIssue Story payload for a story that has a recorded DoR pass to a temp file and `run --stdin <file> -- py S/hooks/jira-dor-gate.py`. It must allow.
+   - end of day: `run -- py S/_workstream/generate-workboard-canvas.py --cursor-home S --canvas <temp file>` (no --eod-roll) and show me the End of Day prompt. It must point at eod-closeout-procedure.md and roll the calendar once.
+   - snapshots: `run -- py S/_workstream/generate-initiative-snapshots.py`, then `--check <one of my slugs>`. Must say FRESH.
+   - mail: `run -- py S/_workstream/scan-outlook-mail.py`. It must either print a triage or one "Mail: unable to check" line, never a traceback.
    - read my profile, tone rules and one of my own skills in staging and confirm they are intact.
-9. Run deploy-plan. Show me the counts and any "personal" or "canvas" rows. Wait for my go.
+9. Run deploy-plan. Show me the counts and any "personal" or "generated" rows. Wait for my go.
 10. Run deploy with the plan id. Show me the result.
 11. Tell me to open a new chat and run /ba-assistant, then /workboard. Remind me of the rollback command and where the session folder is.
 ```

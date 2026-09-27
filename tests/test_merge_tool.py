@@ -27,6 +27,7 @@ import io
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -90,6 +91,131 @@ def localise_install(cursor):
     hj = cursor / "hooks.json"
     if hj.exists():
         hj.write_text(hj.read_text(encoding="utf-8").replace("ba-actions", "sam-actions"), encoding="utf-8")
+
+
+def personalised_layout_scenario(tmp, v14):
+    """An install shaped like a long-lived personal one: own naming, a profile
+    under its own name, no ba-assistant-config.mdc, initiatives in a folder that
+    is not called initiatives/, an own hook, the DoR gate set to fail open, one
+    behaviour edit that merges cleanly and one that conflicts."""
+    home = tmp / "home2"
+    cursor = home / ".cursor"
+    code, out = run([v14 / "tools" / "install-ba-assistant.py", "--package", v14, "--cursor-home", cursor, "--apply"], home)
+    localise_install(cursor)
+    rules_dir = cursor / "rules"
+    (rules_dir / "ba-profile.mdc").rename(rules_dir / "sam-ba-profile.mdc")
+    (rules_dir / "ba-assistant-config.mdc").unlink(missing_ok=True)
+    folder = "-- my analysis --"
+    init = cursor / folder / "payments"
+    init.mkdir(parents=True)
+    (init / "SESSION-CONTEXT.md").write_text("# Payments\n", encoding="utf-8")
+    (init / "status-data.json").write_text(json.dumps({"dorChecks": [
+        {"storyKey": "PROJ-9", "storyTitle": "Export the monthly report", "result": "pass"}]}), encoding="utf-8")
+    shutil.rmtree(cursor / "initiatives", ignore_errors=True)
+    ws = cursor / "_workstream"
+    (ws / "sam-actions.json").write_text(json.dumps({"actions": []}), encoding="utf-8")
+    for stray in ("ba-actions.json", "ba-actions.md"):
+        (ws / stray).unlink(missing_ok=True)
+
+    (cursor / "hooks" / "em-dash-guard.py").write_text("print('{}')\n", encoding="utf-8")
+    hj = cursor / "hooks.json"
+    data = json.loads(hj.read_text(encoding="utf-8"))
+    for e in data["hooks"]["beforeMCPExecution"]:
+        e["failClosed"] = False
+    data["hooks"].setdefault("afterFileEdit", []).append({"command": "python3 ./hooks/em-dash-guard.py"})
+    hj.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+    eod = cursor / "skills" / "ba-assistant" / "references" / "eod-closeout-procedure.md"
+    eod.write_text("<!-- SAM LOCAL NOTE -->\n" + eod.read_text(encoding="utf-8"), encoding="utf-8")
+    wb_cmd = cursor / "commands" / "workboard.md"
+    wb_text = wb_cmd.read_text(encoding="utf-8")
+    line = next(l for l in wb_text.splitlines() if "When invoked as `/workboard end-of-day`" in l)
+    wb_cmd.write_text(wb_text.replace(line, line + " SAM CONFLICTING EDIT"), encoding="utf-8")
+    ab = rules_dir / "agent-behavior.mdc"
+    ab.write_text(ab.read_text(encoding="utf-8") + "\nSAM WORDING KEPT\n", encoding="utf-8")
+    data_hash = sha(init / "status-data.json")
+
+    rules = tmp / "rules2.json"
+    rules.write_text(json.dumps({"rules": [{"local": "sam-actions", "generic": "ba-actions"},
+                                           {"local": "sam-ba-profile.mdc", "generic": "ba-profile.mdc"}]}), encoding="utf-8")
+    session = tmp / "session2"
+    code, out = run([TOOL, "backup", "--cursor-home", cursor, "--session", session], home)
+    manifest = json.loads((session / "manifest.json").read_text(encoding="utf-8"))
+    check("Layout: initiatives in a non-standard folder are found and backed up",
+          code == 0 and folder in out and f"home/{folder}/payments/status-data.json" in manifest["files"], out[-600:])
+    run([TOOL, "stage", "--session", session], home)
+    code, out = run([TOOL, "classify", "--session", session, "--base", v14, "--new", REPO, "--rules", rules], home)
+    cls_data = json.loads((session / "classification.json").read_text(encoding="utf-8"))
+    rows = {r["path"]: r for r in cls_data["rows"]}
+    check("Layout: classify OK", code == 0, out[-800:])
+    check("Layout: missing config and unconfigured initiatives folder are reported",
+          any("No rules/ba-assistant-config.mdc" in f for f in cls_data["findings"])
+          and any(folder in f for f in cls_data["findings"]), str(cls_data["findings"]))
+    check("Layout: own-named profile is personal", rows.get("rules/sam-ba-profile.mdc", {}).get("class") == "P")
+    hr = rows["hooks.json"].get("hooks_review", {})
+    check("Layout: hooks.json failClosed change is surfaced and needs a decision",
+          rows["hooks.json"]["decision"] == "ask" and any("jira-dor-gate.py failClosed False -> True" in c for c in hr.get("changed", [])),
+          str(hr))
+    check("Layout: own hook is not dropped by the merge", not any("em-dash-guard" in d for d in hr.get("dropped", [])), str(hr))
+    eod_row = rows["skills/ba-assistant/references/eod-closeout-procedure.md"]
+    merged_eod = session / "merged" / "skills/ba-assistant/references/eod-closeout-procedure.md"
+    check("Layout: behaviour file with a separate local edit is auto-merged",
+          eod_row.get("auto_merged") and "SAM LOCAL NOTE" in merged_eod.read_text(encoding="utf-8")
+          and "--eod-roll --closeout-date" in merged_eod.read_text(encoding="utf-8")
+          and "sam-actions" in merged_eod.read_text(encoding="utf-8"), str(eod_row))
+    wb_row = rows["commands/workboard.md"]
+    conflict = session / "merged" / "commands" / "workboard.md.conflict"
+    check("Layout: overlapping edit on a behaviour file becomes a question with a conflict file",
+          wb_row["decision"] == "ask" and conflict.exists() and "<<<<<<<" in conflict.read_text(encoding="utf-8"), str(wb_row))
+    check("Layout: wording-only change keeps the BA's version",
+          rows["rules/agent-behavior.mdc"]["decision"] == "keep_mine", str(rows["rules/agent-behavior.mdc"]))
+
+    dec_path = session / "decisions.json"
+    dec = json.loads(dec_path.read_text(encoding="utf-8"))
+    resolved = (session / "merged" / "commands" / "workboard.md")
+    new_wb = (REPO / "commands" / "workboard.md").read_text(encoding="utf-8").replace("ba-actions", "sam-actions")
+    resolved.write_text(new_wb + "\nSAM CONFLICTING EDIT (resolved)\n", encoding="utf-8")
+    for path, d in dec["files"].items():
+        if path == "commands/workboard.md":
+            d["decision"] = "merged"
+        elif path == "hooks.json":
+            d["decision"] = "take_new"
+        elif d["decision"] == "ask":
+            d["decision"] = "keep_mine"
+    dec["create_config"] = True
+    dec_path.write_text(json.dumps(dec, indent=2), encoding="utf-8")
+    code, out = run([TOOL, "apply-staging", "--session", session], home)
+    stage = session / "stage-home" / ".cursor"
+    cfg = stage / "rules" / "ba-assistant-config.mdc"
+    check("Layout: apply-staging OK", code == 0, out[-800:])
+    check("Layout: config created from the template, pointing at the found folder",
+          cfg.exists() and f'initiativesRoot: "~/.cursor/{folder}"' in cfg.read_text(encoding="utf-8"))
+
+    code, out = run([TOOL, "run", "--session", session, "--", PY, stage / "hooks" / "session-init.py"], home)
+    last = [l for l in out.splitlines() if l.startswith("{")]
+    ctx_path = json.loads(last[-1])["env"]["CURSOR_SESSION_CONTEXT_PATH"] if last else ""
+    check("Layout: session start run in staging finds the initiative", ctx_path.endswith(os.path.join("payments", "SESSION-CONTEXT.md")), out[-600:])
+    payload = tmp / "dor.json"
+    payload.write_text(json.dumps({"hook_event_name": "beforeMCPExecution", "tool_name": "createJiraIssue",
+                                   "tool_input": json.dumps({"fields": {"summary": "Export the monthly report",
+                                                                        "issuetype": {"name": "Story"}}})}), encoding="utf-8")
+    code, out = run([TOOL, "run", "--session", session, "--stdin", payload, "--", PY, stage / "hooks" / "jira-dor-gate.py"], home)
+    check("Layout: DoR gate run in staging finds the recorded pass", '"permission": "allow"' in out, out[-400:])
+    code, out = run([TOOL, "run", "--session", session, "--", PY, stage / "_workstream" / "generate-initiative-snapshots.py"], home)
+    code, out = run([TOOL, "deploy-plan", "--session", session], home)
+    plan = json.loads((session / "deploy-plan.json").read_text(encoding="utf-8"))
+    kinds = {e["path"]: e["kind"] for e in plan["entries"]}
+    check("Layout: new config is planned as a personal file", kinds.get("rules/ba-assistant-config.mdc") == "personal", str(kinds.get("rules/ba-assistant-config.mdc")))
+    check("Layout: initiatives folder is never in the plan", not any(p.startswith(folder) for p in kinds))
+    m = re.search(r"--plan-sha (\w+)", out)
+    code, out = run([TOOL, "deploy", "--session", session, "--plan-sha", m.group(1)], home)
+    check("Layout: deploy OK", code == 0, out[-800:])
+    check("Layout: initiative data untouched after deploy", sha(init / "status-data.json") == data_hash)
+    live_hooks = (cursor / "hooks.json").read_text(encoding="utf-8")
+    check("Layout: own hook still registered after deploy", "em-dash-guard.py" in live_hooks)
+    check("Layout: snapshots made while testing staging are not deployed",
+          not (cursor / "_workstream" / "snapshots").exists())
+    check("Layout: wording edit survived", "SAM WORDING KEPT" in ab.read_text(encoding="utf-8"))
 
 
 def main():
@@ -202,7 +328,7 @@ def main():
 
         code, out = run([TOOL, "apply-staging", "--session", session], home)
         check("Apply-staging: OK", code == 0, out[-1500:])
-        staging = session / "staging"
+        staging = session / "stage-home" / ".cursor"
         check("Staging: no generic ba-actions file anywhere",
               not [p for p in staging.rglob("*") if "ba-actions" in p.name], "")
         eod = staging / "skills" / "ba-assistant" / "references" / "eod-closeout-procedure.md"
@@ -253,6 +379,8 @@ def main():
         check("Rollback: files the upgrade added are gone", not any((cursor / p).exists() for p in added), str(added[:3]))
         code, out = run([TOOL, "drift", "--session", session], home)
         check("Rollback: install matches the backup exactly (no drift)", code == 0, out[-800:])
+
+        personalised_layout_scenario(tmp, v14)
 
     print(f"\n{'All merge tool tests passed.' if not FAILURES else f'{len(FAILURES)} failed.'}")
     return 1 if FAILURES else 0

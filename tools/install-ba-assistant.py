@@ -604,6 +604,18 @@ def migrate_legacy_actions(cursor_home: Path, package: Path, dry_run: bool) -> N
         log(line)
 
 
+def warn_legacy_actions(cursor_home: Path, package: Path) -> None:
+    """Version 15: report, never move, a legacy action store (see --migrate-legacy)."""
+    script = package / "tools" / "upgrade-workboard.py"
+    spec = importlib.util.spec_from_file_location("ba_upgrade_workboard_warn", script) if script.exists() else None
+    if spec is None or spec.loader is None:
+        return
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    for line in module.legacy_actions_warnings(cursor_home / "_workstream"):
+        log(line)
+
+
 def seed_workstream(cursor_home: Path, package: Path, dry_run: bool) -> None:
     ws = cursor_home / "_workstream"
     ensure_dir(ws, dry_run)
@@ -692,7 +704,8 @@ def write_install_marker(cursor_home: Path, package: Path, dry_run: bool) -> Non
         marker.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
-def install(package: Path, cursor_home: Path, dry_run: bool, hooks_strategy: str = "merge") -> int:
+def install(package: Path, cursor_home: Path, dry_run: bool, hooks_strategy: str = "merge",
+            migrate_legacy: bool = False) -> int:
     log(f"Package: {package}")
     log(f"Cursor home: {cursor_home}")
     log(f"Mode: {'DRY-RUN' if dry_run else 'APPLY'}")
@@ -767,7 +780,10 @@ def install(package: Path, cursor_home: Path, dry_run: bool, hooks_strategy: str
         merge_hooks_json(hooks_dir / "hooks.json", cursor_home / "hooks.json", dry_run, strategy=hooks_strategy)
 
     seed_workstream(cursor_home, package, dry_run)
-    migrate_legacy_actions(cursor_home, package, dry_run)
+    if migrate_legacy:
+        migrate_legacy_actions(cursor_home, package, dry_run)
+    else:
+        warn_legacy_actions(cursor_home, package)
     initiatives = seed_initiatives(cursor_home, dry_run)
     write_install_marker(cursor_home, package, dry_run)
 
@@ -808,6 +824,11 @@ def main() -> int:
             "an existing file is always backed up first regardless of strategy."
         ),
     )
+    ap.add_argument(
+        "--migrate-legacy",
+        action="store_true",
+        help="Also migrate a legacy actions file into ba-actions (changes _workstream data; off by default)",
+    )
     args = ap.parse_args()
 
     package = (args.package or package_root_from_script()).resolve()
@@ -816,7 +837,8 @@ def main() -> int:
     if args.dry_run:
         dry_run = True
 
-    return install(package, cursor_home, dry_run, hooks_strategy=args.hooks_strategy)
+    return install(package, cursor_home, dry_run, hooks_strategy=args.hooks_strategy,
+                   migrate_legacy=args.migrate_legacy)
 
 
 if __name__ == "__main__":

@@ -101,6 +101,10 @@ def _markdown_empty(path: Path) -> bool:
         return False
 
 
+# Pre-Version 10 action store names. Only ever touched with --migrate-legacy.
+LEGACY_ACTION_FILES = ("jess-actions.json", "jess-actions.md")
+
+
 def migrate_legacy_actions(
     workstream: Path, backup_root: Path, home: Path, dry_run: bool
 ) -> list[str]:
@@ -114,8 +118,8 @@ def migrate_legacy_actions(
     """
     actions: list[str] = []
     pairs = (
-        (workstream / "jess-actions.json", workstream / "ba-actions.json", _json_actions_empty),
-        (workstream / "jess-actions.md", workstream / "ba-actions.md", _markdown_empty),
+        (workstream / LEGACY_ACTION_FILES[0], workstream / "ba-actions.json", _json_actions_empty),
+        (workstream / LEGACY_ACTION_FILES[1], workstream / "ba-actions.md", _markdown_empty),
     )
     for legacy, current, current_is_empty in pairs:
         if not legacy.exists():
@@ -142,6 +146,19 @@ def migrate_legacy_actions(
     return actions
 
 
+def legacy_actions_warnings(workstream: Path) -> list[str]:
+    """Version 15: report legacy action files instead of moving them. A BA who
+    deliberately named their store this way must never lose it to an upgrade."""
+    found = []
+    for name in LEGACY_ACTION_FILES:
+        if (workstream / name).exists():
+            found.append(
+                f"WARN legacy data left untouched: {name}. If it is your live actions file, leave it "
+                "and do NOT pass --migrate-legacy (that copies it into ba-actions and archives it)"
+            )
+    return found
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Workboard overlay upgrade (capability files only)")
     ap.add_argument("--package", required=True, help="Path to ba-assistant-cursor-skill checkout or extracted zip")
@@ -151,6 +168,11 @@ def main() -> int:
     ap.add_argument("--preview-canvas", action="store_true", default=True, help="After apply, generate ba-workboard-overlay-preview.canvas.tsx (default on)")
     ap.add_argument("--no-preview-canvas", dest="preview_canvas", action="store_false", help="Skip preview canvas generation")
     ap.add_argument("--cursor-home", type=Path, default=None, help="Override ~/.cursor path")
+    ap.add_argument(
+        "--migrate-legacy",
+        action="store_true",
+        help="Also copy a legacy actions file into ba-actions and archive it (changes _workstream data)",
+    )
     args = ap.parse_args()
     dry_run = not args.apply
 
@@ -170,7 +192,10 @@ def main() -> int:
     backup_root = home / "ba-assistant-backups" / f"workboard-overlay-{ts}"
     plan.append(f"BACKUP -> {backup_root}")
 
-    plan.extend(migrate_legacy_actions(home / "_workstream", backup_root, home, dry_run))
+    if args.migrate_legacy:
+        plan.extend(migrate_legacy_actions(home / "_workstream", backup_root, home, dry_run))
+    else:
+        plan.extend(legacy_actions_warnings(home / "_workstream"))
 
     for name in PROTECTED_WORKSTREAM:
         plan.append(f"PROTECT {home / '_workstream' / name} (never overwrite)")

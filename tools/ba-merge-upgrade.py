@@ -15,7 +15,7 @@ Files that both you and the new version changed are listed for a person (or
 Cursor, with you approving) to merge by hand into <session>/merged/.
 
 Your naming is kept. The public package is generic (ba-actions, [BA name]);
-your install may use your own names (for example jess-actions). Give classify a
+your install may use your own names (for example alex-actions). Give classify a
 rules.json of {"local": "...", "generic": "..."} pairs (the same pairs your
 sync-to-repo skill uses) and every file taken from the new version is written
 in YOUR naming, file names included. Your data files are never touched.
@@ -489,7 +489,7 @@ def canon(text: str, is_json: bool) -> str:
 class Localiser:
     """Turns generic package text into the BA's own naming (generic -> local).
 
-    rules.json: {"rules": [{"local": "jess-actions", "generic": "ba-actions"}, ...]}
+    rules.json: {"rules": [{"local": "alex-actions", "generic": "ba-actions"}, ...]}
     ("find"/"replace" are accepted as local/generic, the direction a
     sync-to-repo skill uses.) Longest generic strings are applied first so
     "ba-actions-format" is not half-replaced by a shorter rule. Hits are
@@ -1265,7 +1265,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--session", required=True)
     p.add_argument("--base", required=True, help="old package checkout (the version you installed)")
     p.add_argument("--new", required=True, help="new package checkout (pinned commit)")
-    p.add_argument("--rules", help='rules.json: {"rules": [{"local": "jess-actions", "generic": "ba-actions"}]}')
+    p.add_argument("--rules", help='rules.json: {"rules": [{"local": "alex-actions", "generic": "ba-actions"}]}')
     p.add_argument("--overwrite-decisions", action="store_true")
     p.set_defaults(func=cmd_classify)
 

@@ -2,7 +2,7 @@
 
 Use this when you have changed your installed BA Assistant: edited skills or
 rules, added your own skills or rules, a tone-of-voice rule, or your own names
-for things (for example `jess-actions` instead of `ba-actions`). The plain
+for things (for example `alex-actions` instead of `ba-actions`). The plain
 upgrader (`tools/upgrade-ba-assistant.py`) replaces package files with the new
 version. This flow keeps your changes.
 
@@ -50,8 +50,8 @@ files, just written down:
 ```json
 {
   "rules": [
-    {"local": "jess-actions", "generic": "ba-actions"},
-    {"local": "sync-jess-actions", "generic": "sync-ba-actions"}
+    {"local": "alex-actions", "generic": "ba-actions"},
+    {"local": "sync-alex-actions", "generic": "sync-ba-actions"}
   ]
 }
 ```

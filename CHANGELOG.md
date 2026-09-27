@@ -17,10 +17,10 @@ Version 14 QA fixes (from the fork review) plus the fixes below.
 
 ### Upgrading
 
-- **Your data is left alone by default.** The upgrader no longer runs the old data migrations unless you pass `--migrate-legacy`. Before, it could move a legacy actions file into a backup and copy it over `ba-actions.json`. Now it reports what it found and leaves it byte-identical.
+- **Your data is left alone by default.** The upgrader, the installer (when re-run on an existing install) and the workboard overlay no longer run the old data migrations unless you pass `--migrate-legacy`. Before, any of them could move a live actions file with the old pre-Version 10 name into a backup. Now they report what they found and leave it byte-identical.
 - **`--patch-profile`** replaces only the old `/wrap` and `/validate-state` rows in your `ba-profile.mdc` (backup first). Without it, the upgrader shows the exact new rows. Rows you have personalised are never rewritten.
 - **No hook runs twice.** Old `.sh`/`.ps1` hook wrappers are dropped from `hooks.json` when the package ships the `.py` hook, and moved into the backup once nothing references them.
-- **New: `tools/ba-merge-upgrade.py`** for personalised installs (edited skills, your own rules and skills, your own naming). Backup with restore rehearsal, staging, a three-way comparison, your decisions, a reviewed deploy plan, a drift check, hash-verified deploy with automatic rollback. New files are written in your own naming (for example `jess-actions`, not `ba-actions`). See `docs/PERSONALISED-UPGRADE.md`.
+- **New: `tools/ba-merge-upgrade.py`** for personalised installs (edited skills, your own rules and skills, your own naming). Backup with restore rehearsal, staging, a three-way comparison, your decisions, a reviewed deploy plan, a drift check, hash-verified deploy with automatic rollback. New files are written in your own naming (for example `alex-actions`, not `ba-actions`). See `docs/PERSONALISED-UPGRADE.md`.
 
 ### Upgrading from 14
 

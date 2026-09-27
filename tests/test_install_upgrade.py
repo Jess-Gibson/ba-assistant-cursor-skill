@@ -218,6 +218,27 @@ def main():
         check("Migrate legacy: the flag switches the migration code on (dry run)",
               code == 0 and "MIGRATE" in out and "WARN legacy data left untouched" not in out, out[-800:])
 
+        # --- A live store under the old legacy name is never moved by default ---
+        legacy_home = tmp / "legacy"
+        lc = legacy_home / ".cursor"
+        code, out = run([REPO / "tools" / "install-ba-assistant.py", "--package", REPO, "--cursor-home", lc,
+                         "--apply"], legacy_home)
+        live = lc / "_workstream" / "jess-actions.json"
+        live.write_text(json.dumps({"actions": [{"id": "BA-001", "task": "live"}]}), encoding="utf-8")
+        live_sha = sha(live)
+        code1, out1 = run([REPO / "tools" / "install-ba-assistant.py", "--package", REPO, "--cursor-home", lc,
+                           "--apply"], legacy_home)
+        code2, out2 = run([REPO / "tools" / "upgrade-workboard.py", "--package", REPO, "--cursor-home", lc,
+                           "--apply", "--no-preview-canvas"], legacy_home)
+        code3, out3 = run([REPO / "tools" / "upgrade-ba-assistant.py", "--package", REPO, "--cursor-home", lc,
+                           "--apply"], legacy_home)
+        check("Legacy-named live actions file survives re-install, workboard upgrade and upgrade",
+              code1 == code2 == code3 == 0 and live.exists() and sha(live) == live_sha,
+              (out1 + out2 + out3)[-1200:])
+        check("Legacy-named live actions file: each tool warns instead of moving it",
+              "WARN legacy data left untouched" in out1 and "WARN legacy data left untouched" in out2
+              and "do NOT pass --migrate-legacy" in out3)
+
         # --- Fresh install of this checkout passes conformance ---
         fresh = tmp / "fresh"
         code, out = run([REPO / "tools" / "install-ba-assistant.py", "--package", REPO, "--cursor-home",

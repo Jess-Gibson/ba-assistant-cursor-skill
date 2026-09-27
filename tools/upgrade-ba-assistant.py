@@ -326,7 +326,8 @@ def detect_legacy_workstream(workstream: Path) -> list[str]:
         for legacy in sorted(workstream.glob("*-actions.json")) + sorted(workstream.glob("*-actions.md")):
             if legacy.name.startswith("ba-actions"):
                 continue
-            found.append(f"legacy actions file {legacy.name}")
+            found.append(f"actions file {legacy.name} (if it is your live actions file, leave it: "
+                         "do NOT pass --migrate-legacy)")
     return found
 
 

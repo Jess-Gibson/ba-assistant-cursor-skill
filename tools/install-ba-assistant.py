@@ -653,6 +653,8 @@ WORKSTREAM_PACKAGE_FILES = (
     "regenerate-ba-actions-md.py",
     "extract-docx-text.py",
     "list-downloads-recent.py",
+    "scan-outlook-mail.py",
+    "generate-initiative-snapshots.py",
 )
 
 

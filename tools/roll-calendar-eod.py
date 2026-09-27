@@ -89,17 +89,30 @@ def parse_rule_value(text: str, key: str) -> str | None:
     return None
 
 
-def load_ba_name(workstream: Path) -> str | None:
-    """Read the configured BA name the same way generate-workboard-canvas.py does,
-    so a solo focus block (empty subject, single required attendee) can be
-    recognised without hardcoding any one person's name."""
+def load_rules_text(workstream: Path) -> str:
     home = workstream.parent
     text = ""
     for name in ("ba-assistant-config.mdc", "ba-profile.mdc"):
         path = home / "rules" / name
         if path.exists():
             text += path.read_text(encoding="utf-8") + "\n"
+    return text
+
+
+def load_ba_name(workstream: Path) -> str | None:
+    """Read the configured BA name the same way generate-workboard-canvas.py does,
+    so a solo focus block (empty subject, single required attendee) can be
+    recognised without hardcoding any one person's name."""
+    text = load_rules_text(workstream)
     return parse_rule_value(text, "ba_name") or parse_rule_value(text, "name")
+
+
+def load_highlight_substrings(workstream: Path) -> tuple[str, ...]:
+    """Optional `calendar_highlight_substrings: Weekly 1:1, Steering` in config.
+    A meeting whose subject contains any of them is highlighted, in addition to
+    meetings the calendar feed already marks with "highlight": true."""
+    raw = parse_rule_value(load_rules_text(workstream), "calendar_highlight_substrings") or ""
+    return tuple(part.strip() for part in raw.split(",") if part.strip())
 
 
 def next_working_day(d: date) -> date:
@@ -138,7 +151,7 @@ def end_time(start: str, dur: int | None) -> str:
     return f"{total // 60:02d}:{total % 60:02d}"
 
 
-def build_workboard_meeting(raw: dict, ba_name: str | None) -> dict:
+def build_workboard_meeting(raw: dict, ba_name: str | None, highlight_substrings: tuple[str, ...] = ()) -> dict:
     subj = raw.get("subject") or ""
     required = str(raw.get("required", "")).strip()
     if not subj.strip() and required and (ba_name is None or required.lower() == ba_name.lower()):
@@ -152,11 +165,10 @@ def build_workboard_meeting(raw: dict, ba_name: str | None) -> dict:
         "organizer": raw.get("organizer", ""),
         "done": False,
         "canceled": "cancel" in subj.lower(),
-        # Highlighting is data-driven from calendar-feed.json (matches
-        # generate-workboard-canvas.py's own reading of raw.get("highlight")),
-        # not a hardcoded keyword list -- whatever produces the feed marks
-        # the meetings that matter for this BA.
-        "highlight": bool(raw.get("highlight")),
+        # Highlighting is data-driven: the feed's own "highlight" flag, plus the
+        # BA's optional calendar_highlight_substrings in config. Never a
+        # keyword list in code.
+        "highlight": bool(raw.get("highlight")) or any(h.lower() in subj.lower() for h in highlight_substrings),
         "is_online": raw.get("is_online", True),
     }
 
@@ -247,6 +259,7 @@ def roll_calendar_eod(workstream: Path, closeout_date: date | None = None) -> di
     today = next_working_day(closeout)
     tomorrow = next_working_day(today)
     ba_name = load_ba_name(workstream)
+    highlights = load_highlight_substrings(workstream)
 
     all_meetings = cal.get("meetings") or []
     today_raw = [m for m in all_meetings if meeting_date(m.get("start", "")) == today]
@@ -283,10 +296,10 @@ def roll_calendar_eod(workstream: Path, closeout_date: date | None = None) -> di
         f.write("\n")
 
     meetings_today = [
-        build_workboard_meeting(m, ba_name) for m in sorted(today_raw, key=lambda x: x.get("start", ""))
+        build_workboard_meeting(m, ba_name, highlights) for m in sorted(today_raw, key=lambda x: x.get("start", ""))
     ]
     meetings_tomorrow = [
-        build_workboard_meeting(m, ba_name) for m in sorted(tomorrow_raw, key=lambda x: x.get("start", ""))
+        build_workboard_meeting(m, ba_name, highlights) for m in sorted(tomorrow_raw, key=lambda x: x.get("start", ""))
     ]
 
     wb["meetings_date"] = today.isoformat()

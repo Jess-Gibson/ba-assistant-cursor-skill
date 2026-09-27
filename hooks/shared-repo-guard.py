@@ -37,11 +37,14 @@ def repo_root():
     env = os.environ.get("BA_SHARED_REPO_ROOT", "")
     if env:
         return env
-    cfg = os.path.expanduser(os.path.join("~", ".cursor", "rules", "ba-assistant-config.mdc"))
-    try:
-        text = open(cfg, encoding="utf-8", errors="ignore").read()
-    except Exception:
-        return ""
+    # Older or hand-built installs keep paths.* in ba-profile.mdc; config wins.
+    text = ""
+    for name in ("ba-assistant-config.mdc", "ba-profile.mdc"):
+        cfg = os.path.expanduser(os.path.join("~", ".cursor", "rules", name))
+        try:
+            text += open(cfg, encoding="utf-8", errors="ignore").read() + "\n"
+        except Exception:
+            pass
     m = re.search(r'^\s*sharedRepoRoot\s*:\s*["\']?([^"\'#\n]+)', text, re.M)
     val = m.group(1).strip() if m else ""
     if not val or val.startswith("["):   # unset or still a template placeholder

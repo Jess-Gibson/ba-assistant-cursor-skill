@@ -107,12 +107,14 @@ def write_last_session_time(timestamp_file: Path) -> None:
 
 def config_path_value(key: str) -> str:
     """A paths.* value from ba-assistant-config.mdc (setup writes it there;
-    it does not set an environment variable). Empty string when unset."""
-    cfg = Path.home() / ".cursor" / "rules" / "ba-assistant-config.mdc"
-    try:
-        text = cfg.read_text(encoding="utf-8", errors="ignore")
-    except OSError:
-        return ""
+    it does not set an environment variable), else from ba-profile.mdc (older
+    or hand-built installs). Empty string when unset."""
+    text = ""
+    for name in ("ba-assistant-config.mdc", "ba-profile.mdc"):
+        try:
+            text += (Path.home() / ".cursor" / "rules" / name).read_text(encoding="utf-8", errors="ignore") + "\n"
+        except OSError:
+            pass
     m = re.search(r'^\s*' + re.escape(key) + r'\s*:\s*["\']?([^"\'#\n]*)', text, re.M)
     value = m.group(1).strip() if m else ""
     return os.path.expanduser(value) if value else ""

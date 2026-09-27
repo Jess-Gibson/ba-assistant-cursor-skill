@@ -246,11 +246,6 @@ def main():
         check("Fresh install: exits 0", code == 0, out[-800:])
         code, out = run([REPO / "tools" / "conformance-check.py", "--root", REPO], fresh)
         fails = [line for line in out.splitlines() if line.startswith("FAIL")]
-        # PENDING until scan-outlook-mail.py ships in Version 15 phase B: the EOD
-        # procedure already references it (optional, fail-open).
-        if not (REPO / "_workstream" / "scan-outlook-mail.py").exists() and not (REPO / "tools" / "scan-outlook-mail.py").exists():
-            fails = [line for line in fails if "mail-script" not in line]
-            print("PENDING  mail-script conformance (scan-outlook-mail.py not added yet)")
         check("Conformance: package root has no FAIL", not fails, "\n".join(fails))
 
     print(f"\n{'All install/upgrade tests passed.' if not FAILURES else f'{len(FAILURES)} failed.'}")

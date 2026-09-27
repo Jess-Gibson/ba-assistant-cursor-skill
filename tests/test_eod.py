@@ -163,7 +163,8 @@ def main():
         check("Procedure 7b+8: one canonical command, no two-step alternative",
               step.count("--eod-roll") == 1 and "Or two steps" not in step)
         mail_step = proc_text[proc_text.index("1. **Mail check"):proc_text.index("1b. **Commitment scan")]
-        m = mail_step.find("scan-outlook-mail.py"), mail_step.find("MCP"), mail_step.find("Mail: unable to check")
+        # the last "unable to check" is the final fallback; (b) may quote the script's own message
+        m = mail_step.find("scan-outlook-mail.py"), mail_step.find("MCP"), mail_step.rfind("Mail: unable to check")
         check("Procedure step 1: mail order is script, then MCP, then unable to check",
               -1 not in m and m[0] < m[1] < m[2], str(m))
         cmd_text = (REPO / "commands" / "workboard.md").read_text(encoding="utf-8")

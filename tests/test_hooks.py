@@ -118,6 +118,34 @@ def main():
         check("P1 workspace 'payroll' does not also match 'pay'",
               out["env"]["CURSOR_SESSION_CONTEXT_PATH"] == str(ws / "SESSION-CONTEXT.md"))
 
+        # --- Version 15: paths.* found in ba-profile.mdc when there is no config file ---
+        prof_home = Path(tempfile.mkdtemp(dir=tmp))
+        own_root = prof_home / ".cursor" / "my analysis folder"
+        (own_root / "only-one").mkdir(parents=True)
+        (own_root / "only-one" / "SESSION-CONTEXT.md").write_text("# x\n", encoding="utf-8")
+        (prof_home / ".cursor" / "rules").mkdir(parents=True)
+        (prof_home / ".cursor" / "rules" / "ba-profile.mdc").write_text(
+            f'paths:\n  initiativesRoot: "{own_root.as_posix()}"\n', encoding="utf-8")
+        out = session_init(prof_home)
+        check("V15 session start finds initiatives via ba-profile.mdc when no config file exists",
+              out["env"]["CURSOR_SESSION_CONTEXT_PATH"].endswith(os.path.join("only-one", "SESSION-CONTEXT.md")),
+              out["additional_context"][:300])
+        # DoR gate, black box: no session context, a pass recorded only in an
+        # initiative under the ba-profile.mdc root -> the gate must find it and allow.
+        (own_root / "only-one" / "status-data.json").write_text(json.dumps({"dorChecks": [
+            {"storyKey": "PROJ-9", "storyTitle": "Export the monthly report", "result": "pass"}]}), encoding="utf-8")
+        payload = {"hook_event_name": "beforeMCPExecution", "tool_name": "createJiraIssue",
+                   "tool_input": json.dumps({"fields": {"summary": "Export the monthly report",
+                                                        "issuetype": {"name": "Story"}}})}
+        gate = run_hook("jira-dor-gate.py", prof_home, stdin=json.dumps(payload))
+        check("V15 DoR gate finds a pass under the initiatives root from ba-profile.mdc",
+              gate.get("permission") == "allow", str(gate)[:300])
+        (prof_home / ".cursor" / "rules" / "ba-assistant-config.mdc").write_text(
+            'paths:\n  initiativesRoot: "~/.cursor/initiatives"\n', encoding="utf-8")
+        out = session_init(prof_home)
+        check("V15 ba-assistant-config.mdc wins over ba-profile.mdc",
+              out["env"]["CURSOR_SESSION_CONTEXT_PATH"] == "")
+
         # --- Version 15: CURSOR_PROJECT_DIR fallback, mtime trap still holds ---
         trap = make_home(tmp)
         alpha_ctx = trap / ".cursor" / "initiatives" / "alpha" / "SESSION-CONTEXT.md"

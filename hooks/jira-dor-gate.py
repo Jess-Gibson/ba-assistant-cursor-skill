@@ -194,14 +194,22 @@ def row_matches_story(chk, story_key, summary):
     return longer.startswith(shorter)
 
 
+def config_text():
+    # Setup writes paths.* into ~/.cursor/rules/ba-assistant-config.mdc. Older or
+    # hand-built installs keep them in ba-profile.mdc; config wins when both exist.
+    text = ""
+    for name in ("ba-assistant-config.mdc", "ba-profile.mdc"):
+        cfg = os.path.expanduser(os.path.join("~", ".cursor", "rules", name))
+        try:
+            text += open(cfg, encoding="utf-8", errors="ignore").read() + "\n"
+        except Exception:
+            pass
+    return text
+
+
 def config_initiatives_root():
-    # Setup writes paths.initiativesRoot into ~/.cursor/rules/ba-assistant-config.mdc.
     # It does not set an environment variable.
-    cfg = os.path.expanduser(os.path.join("~", ".cursor", "rules", "ba-assistant-config.mdc"))
-    try:
-        text = open(cfg, encoding="utf-8", errors="ignore").read()
-    except Exception:
-        return ""
+    text = config_text()
     m = re.search(r'^\s*initiativesRoot\s*:\s*["\']?([^"\'#\n]+)', text, re.M)
     return os.path.expanduser(m.group(1).strip()) if m else ""
 

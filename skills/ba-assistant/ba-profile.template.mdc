@@ -62,6 +62,18 @@ paths:
   sharedRepoRoot: ""   # set by /handover the first time you say where confirmed analysis goes
 ```
 
+## Workboard and end of day (optional)
+
+Leave any of these empty to switch it off. Comma-separated. These live here, not in
+the scripts, so upgrades never wipe them.
+
+```yaml
+calendar_highlight_substrings: ""   # e.g. Weekly 1:1, Steering. Meetings whose subject contains one are highlighted
+mail_noise_subjects: ""             # e.g. Weekly numbers, Build report. Mail subjects treated as noise at end of day
+mail_ignore_folders: ""             # e.g. Newsletters. Outlook folders whose mail is treated as noise
+mail_noise_repos: ""                # e.g. team-repo. Repo notification mail treated as noise unless you are @-mentioned
+```
+
 ---
 
 ## Output preferences

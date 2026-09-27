@@ -16,6 +16,7 @@ SUITES = [
     REPO / "tests" / "test_dor_check.py",
     REPO / "tests" / "test_hooks.py",
     REPO / "tests" / "test_external_write_gate.py",
+    REPO / "tests" / "test_history.py",
     REPO / "tests" / "test_package_consistency.py",
     REPO / "tests" / "test_eod.py",
     REPO / "tests" / "test_scripts.py",

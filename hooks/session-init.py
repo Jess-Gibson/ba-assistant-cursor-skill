@@ -376,6 +376,23 @@ def workboard_block() -> str:
     return ""
 
 
+def history_snapshot_all() -> None:
+    """Save a version of every initiative that already has a history, so whatever
+    this chat changes can be undone (_workstream/initiative-history.py). Never
+    starts a new history here (that could be slow on a big folder); time-boxed
+    well inside this hook's timeout; silent."""
+    script = Path.home() / ".cursor" / "_workstream" / "initiative-history.py"
+    if not script.exists():
+        script = Path(__file__).resolve().parent.parent / "_workstream" / "initiative-history.py"
+    if not script.exists():
+        return
+    try:
+        subprocess.run([sys.executable, str(script), "snapshot", "--all", "--existing-only",
+                        "--label", "Start of chat"], capture_output=True, text=True, timeout=3)
+    except (OSError, subprocess.SubprocessError):
+        pass
+
+
 def run_calendar_refresh() -> None:
     """Best-effort calendar feed refresh, mirroring session-init.ps1's call to
     ~/.cursor/hooks/get-calendar.ps1 — but OS-appropriate. Neither sample
@@ -508,6 +525,7 @@ def main() -> int:
         )
 
     # --- 3 & 4. Workboard + calendar ---
+    history_snapshot_all()
     wb_block = workboard_block()
     run_calendar_refresh()
     cal_block = calendar_block()

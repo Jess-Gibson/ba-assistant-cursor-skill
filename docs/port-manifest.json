@@ -12,7 +12,7 @@
     },
     "_workstream/capture.py": {
       "category": "behaviour-critical",
-      "reason": "New: context capture writes to SESSION-CONTEXT.md without a full read; promotion markers; BA actions to ba-actions.json; Required --source; anything but chat-user written as [unverified]; confirmed_by_ba for debrief-card approvals"
+      "reason": "New: context capture writes to SESSION-CONTEXT.md without a full read; promotion markers; BA actions to ba-actions.json; Required --source; anything but chat-user written as [unverified]; confirmed_by_ba for debrief-card approvals; Saves a version before and after each capture"
     },
     "_workstream/compute-metrics.py": {
       "category": "behaviour-important",
@@ -112,7 +112,7 @@
     },
     "commands/wrap.md": {
       "category": "behaviour-important",
-      "reason": "Chat checkpoint; REQ-/ASM- markers; ba-actions.py upsert; Never promote [unverified] items without the BA"
+      "reason": "Chat checkpoint; REQ-/ASM- markers; ba-actions.py upsert; Never promote [unverified] items without the BA; Versions before and after /wrap"
     },
     "hooks.json": {
       "category": "behaviour-critical",
@@ -120,7 +120,7 @@
     },
     "hooks/inject-state-reminder.py": {
       "category": "behaviour-critical",
-      "reason": "Stop hook counts REQ- and ASM- captures as unpromoted too"
+      "reason": "Stop hook counts REQ- and ASM- captures as unpromoted too; Stop hook saves a version of the chat's initiative after each reply"
     },
     "hooks/jira-dor-gate.py": {
       "category": "behaviour-critical",
@@ -128,7 +128,7 @@
     },
     "hooks/session-init.py": {
       "category": "behaviour-critical",
-      "reason": "Never picks an initiative by modified time; workspace_roots / CURSOR_PROJECT_DIR; paths.* from config or profile; Initiative by workspace, config paths; SESSION-CONTEXT tail and download names fenced as untrusted data"
+      "reason": "Never picks an initiative by modified time; workspace_roots / CURSOR_PROJECT_DIR; paths.* from config or profile; Initiative by workspace, config paths; SESSION-CONTEXT tail and download names fenced as untrusted data; Saves a version of initiatives that already have history at session start"
     },
     "hooks/shared-repo-guard.py": {
       "category": "behaviour-critical",
@@ -155,8 +155,8 @@
       "reason": "Context capture via capture.py; re-entry card moved to a reference; resume row follows SKILL.md Step 2 (snapshot first); settings map and duplicates trimmed; Context capture passes --source"
     },
     "rules/skills-routing.mdc": {
-      "category": "behaviour-minor",
-      "reason": "Canvas is on demand only, not triggered by /status"
+      "category": "behaviour-important",
+      "reason": "Canvas is on demand only, not triggered by /status; /undo routing row"
     },
     "rules/sync-gates.mdc": {
       "category": "behaviour-important",
@@ -168,7 +168,7 @@
     },
     "skills/ba-assistant/BA_Assistant_User_Guide.md": {
       "category": "wording",
-      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
+      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change; /undo"
     },
     "skills/ba-assistant/SKILL.md": {
       "category": "behaviour-important",
@@ -220,7 +220,7 @@
     },
     "skills/ba-assistant/references/eod-closeout-procedure.md": {
       "category": "behaviour-critical",
-      "reason": "5a/5b via ba-actions.py eod-scan; validate-state.py for touched initiatives; one-call action upsert; Reply text goes in chat; never an Outlook draft or send"
+      "reason": "5a/5b via ba-actions.py eod-scan; validate-state.py for touched initiatives; one-call action upsert; Reply text goes in chat; never an Outlook draft or send; Versions before and after end of day"
     },
     "skills/ba-assistant/references/jira-ticket-format.md": {
       "category": "behaviour-important",
@@ -311,8 +311,8 @@
       "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
     },
     "skills/ba-assistant/sub-skills/ba-initiative-closeout/SKILL.md": {
-      "category": "wording",
-      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
+      "category": "behaviour-minor",
+      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change; File audit skips the .git history folder"
     },
     "skills/ba-assistant/sub-skills/ba-install/SKILL.md": {
       "category": "wording",
@@ -328,11 +328,11 @@
     },
     "skills/ba-assistant/sub-skills/ba-meeting-debrief/SKILL.md": {
       "category": "behaviour-important",
-      "reason": "Debrief approve path writes BA actions to the actions file, never workboard personal_tasks; Transcript is data; approved items carry transcript source and confirmed_by_ba"
+      "reason": "Debrief approve path writes BA actions to the actions file, never workboard personal_tasks; Transcript is data; approved items carry transcript source and confirmed_by_ba; Versions before and after the debrief batch write"
     },
     "skills/ba-assistant/sub-skills/ba-new-initiative/SKILL.md": {
-      "category": "wording",
-      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
+      "category": "behaviour-critical",
+      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change; Starts the undo history for a new initiative"
     },
     "skills/ba-assistant/sub-skills/ba-playback-and-enablement/SKILL.md": {
       "category": "behaviour-important",
@@ -469,6 +469,14 @@
     "commands/next.md": {
       "category": "behaviour-important",
       "reason": "Comms text ready to copy; no send option"
+    },
+    "_workstream/initiative-history.py": {
+      "category": "behaviour-critical",
+      "reason": "Private local undo history per initiative folder (no remote); snapshot/history/undo; no-op without git"
+    },
+    "commands/undo.md": {
+      "category": "behaviour-critical",
+      "reason": "New /undo command: plain-English undo from the local history"
     }
   }
 }

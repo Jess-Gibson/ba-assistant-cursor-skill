@@ -60,7 +60,9 @@ This pattern works because:
 
 The Action runthrough above and `sync-procedures.md`'s quick sync check cover the
 core of the full closeout. The workboard canvas's End of Day button triggers this
-procedure. It runs these steps in order:
+procedure. Before step 1 and after the last step, save a version of every initiative
+(silent): `python3 ~/.cursor/_workstream/initiative-history.py snapshot --all --label "Before end of day"` / `--label "End of day <date>"`
+(Windows: `py`). The BA can undo the day's closeout with `/undo`. It runs these steps in order:
 
 1. **Mail check (light).** Try these in order and stop at the first that works: (a) if `_workstream/scan-outlook-mail.py` exists, run it (`python3 _workstream/scan-outlook-mail.py --since <last working day>`) and use its output (exit 0); (b) if the script is missing or exits non-zero (exit 2 prints "Mail: unable to check (...)": not Windows, no pywin32, or Outlook not open), use the Outlook MCP connector for a light Inbox and Sent check since the last working day; (c) if neither works, say "Mail: unable to check" and continue. Either way, look for open threads needing a reply and Sent items that create a follow-up, and recommend a next step, or write the reply text in chat for the BA to copy (never an Outlook draft or send: the hook blocks mail tools). A mail failure never stops the rest of end of day.
 1b. **Commitment scan (read-only).** Load `sub-skills/ba-commitment-scan/SKILL.md`. Reconcile the closeout-day Outlook triage, Slack (DMs, replies, mentions, threads the user reacted to) and Microsoft Teams (high-signal chats and accessible channels). Capture evidence-backed commitments, completions, decisions, risks and action changes into local state, then regenerate `ba-actions.md`. Read the user's working-hours preferences file in `_workstream/` (if one exists) before proposing any focus block. Never post, reply, react or create a communication artefact. On partial access failure, state the unavailable source and continue.

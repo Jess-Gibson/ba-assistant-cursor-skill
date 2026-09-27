@@ -72,7 +72,26 @@ out = ""
 if notes:
     out = "STATE REMINDER (computed, sessionState hook): " + " | ".join(notes[:2])
 
+def history_snapshot(folder, label):
+    """Save a version of the chat's initiative folder after each assistant reply, so
+    anything the assistant changed can be undone (_workstream/initiative-history.py).
+    Silent, time-boxed, never affects the hook's answer."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    for script in (os.path.join(here, "..", "_workstream", "initiative-history.py"),
+                   os.path.join(os.path.expanduser("~"), ".cursor", "_workstream", "initiative-history.py")):
+        if os.path.isfile(script):
+            try:
+                import subprocess
+                subprocess.run([sys.executable, script, "snapshot", "--initiative", folder, "--label", label],
+                               capture_output=True, text=True, timeout=3)
+            except Exception:
+                pass
+            return
+
+
 if STOP_MODE:
+    if sc:
+        history_snapshot(os.path.dirname(sc), "After assistant reply")
     # Cursor docs (5 Jul 2026): the stop hook's only supported output is followup_message
     # (auto-submits a user message, i.e. a "ghost" turn the user didn't type). Default OFF
     # (B4c) -- opt in with `stopFollowup: true` in ba-assistant-config.mdc. Nudge at most

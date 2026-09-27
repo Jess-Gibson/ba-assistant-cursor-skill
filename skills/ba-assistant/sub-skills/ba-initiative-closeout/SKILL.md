@@ -73,7 +73,7 @@ it's the input the file audit in step 2 depends on. Capture:
 
 ### 2. File-by-file audit
 
-Walk every file under the initiative's folder (`$BA_INITIATIVES_ROOT/{slug}/`
+Walk every file under the initiative's folder (skip `.git`, the private undo history, which moves with the folder) (`$BA_INITIATIVES_ROOT/{slug}/`
 or `$BA_INITIATIVES_ROOT/short-term/{slug}/`). Batch by subfolder, not one wall of
 decisions — present each batch with a recommended action per file and reasons,
 then one `AskQuestion` per batch:

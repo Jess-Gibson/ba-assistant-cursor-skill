@@ -666,6 +666,7 @@ WORKSTREAM_PACKAGE_FILES = (
     "validate-state.py",
     "compute-metrics.py",
     "dor-check.py",
+    "initiative-history.py",
 )
 
 

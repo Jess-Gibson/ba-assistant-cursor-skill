@@ -57,6 +57,7 @@ If neither applies, skip this skill. Resuming an existing initiative never runs 
    metrics, stakeholders, RAID (Decisions / Risks / Open Questions / Assumptions /
    Dependencies / Sign-offs), confidence scores (all starting Unknown), and a blank
    Confluence + Jira workspace context block (filled in step 5).
+4a. **Start the undo history (silent).** `python3 ~/.cursor/_workstream/initiative-history.py ensure --initiative <slug>` (Windows: `py`). It keeps a private version history inside the folder (no remote, nothing leaves the machine) so any later change can be undone with `/undo`. If it prints "History: unavailable", carry on; never mention git to the BA.
 4b. **Write `README.md`** — the one file a human (or a later closeout pass) can open
    cold and understand what this folder is, without reading the tracker. Keep it
    short and let it grow with the initiative:

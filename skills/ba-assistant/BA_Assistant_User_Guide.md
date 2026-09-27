@@ -127,6 +127,7 @@ Slash commands trigger orchestrator-driven flows. Type the slash in chat; if Cur
 | `/todo` | Quick-capture a BA action into `_workstream/ba-actions.json` |
 | `/handover` | Publish confirmed analysis to the shared delivery repo (gated) |
 | `/close` | Close out and archive a finished initiative |
+| `/undo` | Undo the last change to an initiative's files. Every capture, debrief, `/wrap`, end of day and reply is saved as a version in a private history inside the initiative folder (no git knowledge needed, nothing leaves the machine) |
 | `/fast-track` | Condensed phase structure for time-critical initiatives |
 | `/next` | Top 3 next actions across all active workstreams and scopes, ranked by urgency, unblock potential, and critical-path criticality |
 | `/status` | Full current state in chat  -  workstream grid, feature status, critical path, blockers, living tracker, quality metrics, confidence scores. Offers `/canvas` for the visual |

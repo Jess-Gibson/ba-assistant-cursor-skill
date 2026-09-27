@@ -72,6 +72,7 @@ The table above uses friendly phase names as a quick skills index. Day-to-day ro
 | `/reanchor` | Re-read state files when the assistant drifts |
 | `/handover` | Publish confirmed analysis to the delivery repo |
 | `/close` | Archive a finished initiative (closure retro, file audit, move to `archive/`) |
+| `/undo` | Put an initiative's files back as they were before a change (local history, nothing leaves the machine) |
 | `/ba-assistant` | Start BA Assistant (runs setup wizard on first install) |
 | `/install-ba-assistant` | Install or repair package files from the public repo |
 | `/setup` | Re-run the first-run configuration wizard |

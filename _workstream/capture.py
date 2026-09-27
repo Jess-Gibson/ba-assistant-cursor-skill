@@ -196,6 +196,19 @@ def resolve_session_context(args) -> Path | None:
     return initiatives_root(home) / args.initiative / "SESSION-CONTEXT.md"
 
 
+def history_snapshot(folder: Path, label: str) -> None:
+    """Save a version of the initiative folder (initiative-history.py) so the
+    capture can be undone. Silent; never stops a capture."""
+    script = WORKSTREAM / "initiative-history.py"
+    if not script.exists():
+        return
+    try:
+        subprocess.run([sys.executable, str(script), "snapshot", "--initiative", str(folder), "--label", label],
+                       capture_output=True, text=True, timeout=20)
+    except Exception:
+        pass
+
+
 def send_actions(items: list[dict], initiative: str | None) -> str:
     rows = [{"task": i["text"], "initiative": initiative, "due": i.get("due"),
              "notes": (f"[unverified: {i['source']}] " if needs_check(i) else "") + (i.get("context") or ""),
@@ -278,7 +291,9 @@ def main(argv: list[str] | None = None) -> int:
         written.append(item)
 
     if written:
+        history_snapshot(path.parent, "Before capture")
         path.write_text(insert_items(text, day, grouped), encoding="utf-8")
+        history_snapshot(path.parent, f"Captured {len(written)} item(s) from chat")
     for item in written:
         tag = " [unverified: confirm with the BA]" if needs_check(item) else ""
         print(f"Captured {item['type']}{tag}: {item['text']}")

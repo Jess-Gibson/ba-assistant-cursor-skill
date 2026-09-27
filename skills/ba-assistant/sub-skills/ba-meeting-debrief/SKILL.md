@@ -127,12 +127,14 @@ Options:
 ```
 
 Use AskQuestion to present options. On "Approve all", execute all writes in sequence:
+0. Save a version first (silent): `python3 ~/.cursor/_workstream/initiative-history.py snapshot --initiative <slug> --label "Before debrief: <meeting>"` (Windows: `py`)
 1. Append to SESSION-CONTEXT.md
 2. Update initiative-tracker.md
 3. Update status-data.json (if changes)
 4. Sync BA actions into `_workstream/ba-actions.json` and regenerate `_workstream/ba-actions.md` (task 10 below; never `workboard.json → personal_tasks[]`)
 5. Trigger sync gate check (per `sync-gates.mdc`)
 6. Offer to draft comms
+7. Save a version after the writes (silent): `python3 ~/.cursor/_workstream/initiative-history.py snapshot --initiative <slug> --label "Debrief: <meeting>"`. The BA can undo the whole debrief with `/undo`.
 
 ### Cross-initiative debriefs
 

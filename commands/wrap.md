@@ -17,6 +17,8 @@ Do these in order:
 
 3. **Validate state (chat-scoped, lightweight).** Check only the items this chat added or changed for unpromoted markers (`DEC-`, `REQ-`, `RISK-`, `OQ-`, `ASM-`, `ACT-`, `DEP-`) against `initiative-tracker.md`. Promote the clear ones and tag `[promoted]` (never an `[unverified]` item without the BA confirming it); leave ambiguous items visible for the user. Do not re-diff the entire `SESSION-CONTEXT.md` or run a full `status-data.json` sweep — `/workboard end-of-day` does that across every initiative once a day, so repeating it per chat is wasted work. If an action was created or changed in this chat, sync only those BA actions with `ba-actions.py upsert` (it regenerates `ba-actions.md`).
 
+Before step 1 and after step 4, save a version of the initiative (silent): `python3 ~/.cursor/_workstream/initiative-history.py snapshot --initiative <slug> --label "Before /wrap"` / `--label "/wrap checkpoint"` (Windows: `py`). The BA can undo a `/wrap` with `/undo`.
+
 4. **Checkpoint.** Update the active `SESSION-CONTEXT.md` with a dated closeout entry that states the current position, the next concrete action, open blockers, and links or paths to material outputs. Do not refresh cross-initiative status or infer workboard health. This is the last step — no handoff block.
 
 If a requested or created output does not have a clear canonical home, say so rather than inventing one. If Jira, email, or a source system cannot be checked, record unable to check and continue.

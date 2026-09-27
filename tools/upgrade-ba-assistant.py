@@ -27,6 +27,7 @@ import importlib.util
 import json
 import re
 import shutil
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -515,6 +516,17 @@ def main() -> int:
     # Workboard helper scripts (code only; _workstream JSON data is never replaced)
     plan.append(f"UPDATE workboard helper scripts in {workstream}")
     installer.copy_workstream_scripts(home, pkg, dry_run)
+
+    # Local undo history for existing initiatives (Version 15). Adds a private .git
+    # inside each initiative folder; no file in the folder is changed, nothing is pushed.
+    history = workstream / "initiative-history.py"
+    if dry_run:
+        plan.append("HISTORY start local undo history in each initiative folder (skipped where git is missing "
+                    "or the folder is already inside a git repo of your own)")
+    elif history.exists():
+        proc = subprocess.run([sys.executable, str(history), "ensure", "--all", "--cursor-home", str(home)],
+                              capture_output=True, text=True, timeout=300)
+        plan.extend(f"HISTORY {line}" for line in (proc.stdout or "").splitlines() if line.strip())
 
     # Workstream seed + migrate
     plan.extend(seed_workstream(workstream, dry_run))

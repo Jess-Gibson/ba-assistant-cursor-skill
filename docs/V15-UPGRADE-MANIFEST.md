@@ -3,8 +3,8 @@
 Every installed file that changed between Version 14 (`750a6c5`) and Version 15, grouped by what the change is.
 The same data, machine-readable, is `docs/port-manifest.json`; `tools/ba-merge-upgrade.py` uses it.
 
-- **Tested code commit:** `9a2735fc0d252d12e33ea6e1b746ca84c245ab26` (all code and tests; every later Version 15 release-candidate commit changes documentation only).
-- **Release commit:** pin the branch head you were given for the upgrade, and check that `git diff 9a2735f <release> --stat` lists only `.md` files.
+- **Tested code commit:** `4b06a976bdd466b4c62edbff1ea47d0890b03eea` (all code and tests; every later Version 15 release-candidate commit changes documentation only).
+- **Release commit:** pin the branch head you were given for the upgrade, and check that `git diff 4b06a97 <release> --stat` lists only `.md` files.
 
 | Category | Files | What happens to a personalised install |
 |---|---:|---|

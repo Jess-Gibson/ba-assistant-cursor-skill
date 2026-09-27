@@ -512,6 +512,7 @@ def main() -> int:
                 plan.append(f"RETIRE hooks/{wrapper.name} if hooks.json no longer references it after the merge")
         else:
             plan.extend(retire_hook_wrappers(home, pkg, backup_root, dry_run))
+            plan.extend(installer.verify_hook_scripts(home))
 
     # Workboard helper scripts (code only; _workstream JSON data is never replaced)
     plan.append(f"UPDATE workboard helper scripts in {workstream}")

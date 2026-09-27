@@ -1,9 +1,9 @@
 # Shared-repo guard — blocks working-file leakage into the shared delivery repo.
 # Wave: hook-reliability (C1b). Used by TWO hook events:
 #
-#   afterFileEdit          → mode "edit":  can't undo the edit, so it WARNS loudly
-#                            (agentMessage) when an edited file under the shared repo
-#                            links to a git-ignored working file.
+#   postToolUse (Write)    → mode "edit":  can't undo the edit, so it WARNS loudly
+#                            (additional_context) when an edited file under the shared
+#                            repo links to a git-ignored working file.
 #   beforeShellExecution   → mode "shell": DENIES git commit/push run inside the shared
 #                            repo while any analysis/ file contains a leak.
 #
@@ -20,9 +20,9 @@ LINKISH = re.compile(r'\]\([^)]*(SESSION-CONTEXT|initiative-tracker|status-data|
                      r'|(\.\./)+[^\s)]*(SESSION-CONTEXT|initiative-tracker|status-data)', re.I)
 
 def out(permission, agent="", user=""):
-    # Cursor hooks docs (checked 5 Jul 2026): snake_case fields; afterFileEdit has no output
-    # fields at all, so the edit-mode warning ALSO ships as additional_context (honoured when
-    # this script is registered under postToolUse). camelCase kept for back-compat.
+    # snake_case fields; the edit-mode warning ships as additional_context, which Cursor
+    # reads on postToolUse (afterFileEdit reads nothing, so it is not registered there).
+    # camelCase kept for back-compat.
     o = {"permission": permission, "agent_message": agent, "user_message": user,
          "agentMessage": agent, "userMessage": user}
     if agent:

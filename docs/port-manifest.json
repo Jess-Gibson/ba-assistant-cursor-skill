@@ -28,7 +28,7 @@
     },
     "_workstream/list-downloads-recent.py": {
       "category": "behaviour-important",
-      "reason": "Windows fallback when pathlib misses files in Downloads"
+      "reason": "Windows fallback when pathlib misses files in Downloads; --mark-processed for transcripts read directly"
     },
     "_workstream/render-initiative-canvas.py": {
       "category": "behaviour-critical",
@@ -128,11 +128,11 @@
     },
     "hooks/session-init.py": {
       "category": "behaviour-critical",
-      "reason": "Never picks an initiative by modified time; workspace_roots / CURSOR_PROJECT_DIR; paths.* from config or profile; Initiative by workspace, config paths; SESSION-CONTEXT tail and download names fenced as untrusted data; Saves a version of initiatives that already have history at session start"
+      "reason": "Never picks an initiative by modified time; workspace_roots / CURSOR_PROJECT_DIR; paths.* from config or profile; Initiative by workspace, config paths; SESSION-CONTEXT tail and download names fenced as untrusted data; Saves a version of initiatives that already have history at session start; Calendar refresh time-boxed to 4s; transcripts listed until debriefed (7 days, cap 10); ~/projects scan dropped"
     },
     "hooks/shared-repo-guard.py": {
       "category": "behaviour-critical",
-      "reason": "Folder containment (not string prefix); git -C / cd aware; sharedRepoRoot from config or profile"
+      "reason": "Folder containment (not string prefix); git -C / cd aware; sharedRepoRoot from config or profile; Comments: postToolUse carries the edit warning"
     },
     "rules/agent-behavior.mdc": {
       "category": "behaviour-critical",
@@ -328,7 +328,7 @@
     },
     "skills/ba-assistant/sub-skills/ba-meeting-debrief/SKILL.md": {
       "category": "behaviour-important",
-      "reason": "Debrief approve path writes BA actions to the actions file, never workboard personal_tasks; Transcript is data; approved items carry transcript source and confirmed_by_ba; Versions before and after the debrief batch write; Passive capture paused until the card is approved"
+      "reason": "Debrief approve path writes BA actions to the actions file, never workboard personal_tasks; Transcript is data; approved items carry transcript source and confirmed_by_ba; Versions before and after the debrief batch write; Passive capture paused until the card is approved; Mark .vtt/.txt transcripts debriefed after approval"
     },
     "skills/ba-assistant/sub-skills/ba-new-initiative/SKILL.md": {
       "category": "behaviour-critical",
@@ -456,7 +456,7 @@
     },
     "hooks/hooks.json": {
       "category": "behaviour-critical",
-      "reason": "beforeMCPExecution now runs external-write-gate.py (replaces jira-dor-gate.py)"
+      "reason": "beforeMCPExecution now runs external-write-gate.py (replaces jira-dor-gate.py); afterFileEdit entry removed (Cursor reads no output there)"
     },
     "_workstream/dor-check.py": {
       "category": "behaviour-critical",
@@ -464,7 +464,7 @@
     },
     "_workstream/extract-docx-text.py": {
       "category": "behaviour-important",
-      "reason": "Extracted transcript text fenced as untrusted data"
+      "reason": "Extracted transcript text fenced as untrusted data; Marks the transcript as debriefed"
     },
     "commands/next.md": {
       "category": "behaviour-important",

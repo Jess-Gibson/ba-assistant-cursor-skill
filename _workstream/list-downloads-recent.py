@@ -7,14 +7,36 @@ back to `cmd /c dir`; file timestamps still come from Python metadata.
 
 Usage:
   python3 list-downloads-recent.py --path "~/Downloads" --days 3
+  python3 list-downloads-recent.py --mark-processed "~/Downloads/steerco.vtt"
+      (after a debrief of a file extract-docx-text.py did not read, e.g. .vtt:
+      session start stops listing it as "not debriefed yet")
 """
 from __future__ import annotations
 
 import argparse
+import json
 import subprocess
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
+
+
+def mark_processed(transcript: Path) -> None:
+    """Record a transcript as debriefed so session start stops listing it
+    (_workstream/processed-transcripts.json, next to this script). Best effort."""
+    store = Path(__file__).resolve().parent / "processed-transcripts.json"
+    try:
+        data = json.loads(store.read_text(encoding="utf-8")) if store.exists() else {}
+    except (OSError, ValueError):
+        data = {}
+    items = [p for p in (data.get("processed") or []) if isinstance(p, str)]
+    path = str(Path(transcript).expanduser().resolve())
+    if path not in items:
+        items.append(path)
+    try:
+        store.write_text(json.dumps({"processed": items[-1000:]}, indent=2) + "\n", encoding="utf-8")
+    except OSError:
+        pass
 
 
 def windows_dir_files(folder: Path) -> list[Path]:
@@ -59,9 +81,16 @@ def main() -> int:
     ap = argparse.ArgumentParser(
         description="List recently modified files in a folder, newest first"
     )
-    ap.add_argument("--path", required=True, type=Path)
+    ap.add_argument("--path", type=Path)
     ap.add_argument("--days", type=int, default=3)
+    ap.add_argument("--mark-processed", type=Path, help="record this transcript as debriefed, then exit")
     args = ap.parse_args()
+    if args.mark_processed:
+        mark_processed(args.mark_processed)
+        print(f"Marked as debriefed: {args.mark_processed}")
+        return 0
+    if not args.path:
+        ap.error("--path is required")
 
     folder = args.path.expanduser().resolve()
     if not folder.is_dir():

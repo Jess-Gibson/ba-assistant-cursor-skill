@@ -142,7 +142,11 @@ def main():
 
     # ---- 7. HARD gates in critical-gates.mdc must name a real, registered script ----
     hooks_dir = os.path.join(root, "hooks")
-    hooks_json_text = read(os.path.join(hooks_dir, "hooks.json")) or ""
+    # Repo layout keeps hooks/hooks.json; an installed ~/.cursor keeps hooks.json at the root.
+    hooks_json_path = os.path.join(root, "hooks.json")
+    if not os.path.isfile(hooks_json_path):
+        hooks_json_path = os.path.join(hooks_dir, "hooks.json")
+    hooks_json_text = read(hooks_json_path) or ""
     hook_files_present = set(os.listdir(hooks_dir)) if os.path.isdir(hooks_dir) else set()
 
     gates_text = read(os.path.join(rules_dir, "critical-gates.mdc")) or ""
@@ -176,6 +180,16 @@ def main():
         add("FAIL", "gate-scripts", f"HARD gate rows naming a script that isn't both present under hooks/ AND registered in hooks.json: {bad_gate_rows}")
     else:
         add("PASS", "gate-scripts", "Every HARD gate row in critical-gates.mdc names a script present under hooks/ and registered in hooks.json")
+
+    # ---- 7b. Every script hooks.json runs must exist (a missing one fails silently in Cursor) ----
+    missing_scripts = sorted({s for s in re.findall(r"hooks[/\\]+([A-Za-z0-9_\-]+\.(?:py|ps1|sh))", hooks_json_text)
+                              if s not in hook_files_present})
+    if not hooks_json_text:
+        add("FAIL", "hook-scripts", f"No hooks.json found at {os.path.join(root, 'hooks.json')} or {os.path.join(hooks_dir, 'hooks.json')}")
+    elif missing_scripts:
+        add("FAIL", "hook-scripts", f"{hooks_json_path} runs scripts that are not in {hooks_dir}: {missing_scripts} (re-run the installer or upgrader)")
+    else:
+        add("PASS", "hook-scripts", f"Every script {os.path.basename(hooks_json_path)} runs exists under hooks/")
 
     # ---- 8. Orphan scripts under hooks/ (present but never registered) ----
     # A helper that a registered hook script calls (by file name) counts as used.

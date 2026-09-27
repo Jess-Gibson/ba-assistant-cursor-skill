@@ -30,7 +30,8 @@ picking one arbitrarily:
     ~/.cursor/rules/ba-assistant-config.mdc (what setup writes), then always
     ~/.cursor/initiatives (the installer default). The older roots
     (~/.cursor/Initiatives, ~/.cursor/blueprints, ~/ba-initiatives,
-    ~/Initiatives, ~/projects) stay as legacy fallbacks only.
+    ~/Initiatives) stay as legacy fallbacks only (~/projects was dropped: a full
+    recursive scan of a code folder could blow the hook timeout).
   - CURSOR_NEW_TRANSCRIPTS join character: .ps1 joined paths with ';', .sh
     joined with a raw newline (fragile in an env var). Kept ';' (.ps1's).
 Kept from both: AGENTS.md/README.md guidance line, SESSION-CONTEXT tail
@@ -66,6 +67,8 @@ TRANSCRIPT_EXTENSIONS = {".docx", ".vtt"}
 OTHER_EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg", ".xlsx", ".csv", ".txt", ".md", ".pptx"}
 TAIL_LINES = 45
 MAX_OTHER_LISTED = 10
+MAX_TRANSCRIPTS_LISTED = 10
+TRANSCRIPT_WINDOW_DAYS = 7   # transcripts stay listed until debriefed, for up to this long
 
 
 def eprint(msg: str) -> None:
@@ -146,7 +149,6 @@ def search_roots() -> list[str]:
         str(Path(home) / ".cursor" / "blueprints"),
         str(Path(home) / "ba-initiatives"),
         str(Path(home) / "Initiatives"),
-        str(Path(home) / "projects"),
     ]
     # De-dupe, preserve order.
     seen = set()
@@ -304,7 +306,24 @@ def windows_dir_files(folder: Path) -> list[Path]:
     return files
 
 
-def scan_downloads(folders: list[str], since_mtime: float) -> tuple[list[dict], list[dict]]:
+def processed_transcripts() -> set[str]:
+    """Transcripts already debriefed: extract-docx-text.py and
+    list-downloads-recent.py --mark-processed record them here."""
+    path = Path.home() / ".cursor" / "_workstream" / "processed-transcripts.json"
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return set()
+    items = data.get("processed") if isinstance(data, dict) else None
+    return {os.path.normcase(str(p)) for p in items or [] if isinstance(p, str)}
+
+
+def scan_downloads(folders: list[str], since_mtime: float, transcript_since: float = 0.0,
+                   processed: set[str] | None = None) -> tuple[list[dict], list[dict]]:
+    """Transcripts: every one from the last TRANSCRIPT_WINDOW_DAYS not yet debriefed
+    (so a transcript is not lost just because another chat opened first). Other
+    downloads: new since the last session."""
+    processed = processed or set()
     new_transcripts: list[dict] = []
     other_new: list[dict] = []
     seen = set()
@@ -326,7 +345,11 @@ def scan_downloads(folders: list[str], since_mtime: float) -> tuple[list[dict], 
                 st = f.stat()
             except OSError:
                 continue
-            if st.st_mtime <= since_mtime:
+            ext = f.suffix.lower()
+            if ext in TRANSCRIPT_EXTENSIONS:
+                if st.st_mtime <= transcript_since or os.path.normcase(str(f)) in processed:
+                    continue
+            elif st.st_mtime <= since_mtime:
                 continue
             entry = {
                 "name": f.name,
@@ -334,7 +357,6 @@ def scan_downloads(folders: list[str], since_mtime: float) -> tuple[list[dict], 
                 "modified": datetime.fromtimestamp(st.st_mtime).strftime("%Y-%m-%d %H:%M"),
                 "folder": str(folder_path),
             }
-            ext = f.suffix.lower()
             if ext in TRANSCRIPT_EXTENSIONS:
                 new_transcripts.append(entry)
             elif ext in OTHER_EXTENSIONS:
@@ -408,12 +430,12 @@ def run_calendar_refresh() -> None:
             if script.exists():
                 subprocess.run(
                     ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(script), "-DaysAhead", "2"],
-                    capture_output=True, timeout=15, check=False,
+                    capture_output=True, timeout=4, check=False,
                 )
         elif sys.platform == "darwin":
             script = hooks_dir / "get-calendar.mac.sh"
             if script.exists():
-                subprocess.run(["bash", str(script), "2"], capture_output=True, timeout=15, check=False)
+                subprocess.run(["bash", str(script), "2"], capture_output=True, timeout=4, check=False)
     except (OSError, subprocess.SubprocessError) as exc:
         eprint(f"Calendar refresh failed: {exc}")
 
@@ -505,13 +527,18 @@ def main() -> int:
 
     # --- 2. Deterministic downloads check (D5) ---
     since = last_session_time.timestamp() if last_session_time else 0.0
-    new_transcripts, other_new = scan_downloads(downloads_folders(), since)
+    transcript_since = (datetime.now().timestamp() - TRANSCRIPT_WINDOW_DAYS * 86400)
+    new_transcripts, other_new = scan_downloads(downloads_folders(), since, transcript_since, processed_transcripts())
 
     transcript_block = ""
     if new_transcripts:
-        file_list = "\n".join(f"  - {t['name']} ({t['modified']}) in {t['folder']}" for t in new_transcripts)
+        new_transcripts.sort(key=lambda t: t["modified"], reverse=True)
+        file_list = "\n".join(f"  - {t['name']} ({t['modified']}) in {t['folder']}"
+                              for t in new_transcripts[:MAX_TRANSCRIPTS_LISTED])
+        if len(new_transcripts) > MAX_TRANSCRIPTS_LISTED:
+            file_list += f"\n  ... and {len(new_transcripts) - MAX_TRANSCRIPTS_LISTED} more"
         transcript_block = (
-            f"\n\nNEW TRANSCRIPTS DETECTED ({len(new_transcripts)} file(s) since last session):\n"
+            f"\n\nTRANSCRIPTS NOT DEBRIEFED YET ({len(new_transcripts)} file(s), last {TRANSCRIPT_WINDOW_DAYS} days):\n"
             f"{fence('downloads folder (file names)', file_list)}\n"
             "Process these as meeting debriefs (ba-meeting-debrief) before or alongside the user's first ask."
         )

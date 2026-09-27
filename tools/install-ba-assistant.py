@@ -343,6 +343,8 @@ RETIRED_PACKAGE_HOOKS = {
     # Version 15: external-write-gate.py is the one beforeMCPExecution hook and runs
     # the DoR check itself; a second registration would run the check twice.
     ("beforeMCPExecution", "jira-dor-gate.py"),
+    # Cursor reads no output from afterFileEdit; postToolUse (Write) carries the warning.
+    ("afterFileEdit", "shared-repo-guard.py"),
 }
 
 
@@ -588,6 +590,23 @@ def merge_hooks_json(package_hooks: Path, dest_hooks: Path, dry_run: bool, strat
         dest_hooks.write_text(json.dumps(merged, indent=2) + "\n", encoding="utf-8")
 
 
+def verify_hook_scripts(cursor_home: Path) -> list[str]:
+    """After install: every script ~/.cursor/hooks.json runs must exist in
+    ~/.cursor/hooks/. Cursor fails such a hook silently (a missing pre-compaction
+    snapshot script, for example, just never runs), so say it here."""
+    hooks_json = cursor_home / "hooks.json"
+    try:
+        text = hooks_json.read_text(encoding="utf-8")
+    except OSError:
+        return [f"WARN no {hooks_json}: hooks are not registered"]
+    import re as _re
+    names = sorted(set(_re.findall(r"hooks[/\\]+([A-Za-z0-9_\-]+\.(?:py|ps1|sh|js|cjs|mjs))", text)))
+    missing = [n for n in names if not (cursor_home / "hooks" / n).exists()]
+    if missing:
+        return [f"WARN hooks.json runs {n} but {cursor_home / 'hooks' / n} is missing: that hook does nothing" for n in missing]
+    return [f"VERIFY hooks: all {len(names)} script(s) hooks.json runs are present"]
+
+
 def migrate_legacy_actions(cursor_home: Path, package: Path, dry_run: bool) -> None:
     """Reuse the canonical migrate-once implementation from upgrade-workboard.
 
@@ -792,6 +811,9 @@ def install(package: Path, cursor_home: Path, dry_run: bool, hooks_strategy: str
             if src.is_file():
                 copy_file(src, cursor_home / "hooks" / src.name, dry_run)
         merge_hooks_json(hooks_dir / "hooks.json", cursor_home / "hooks.json", dry_run, strategy=hooks_strategy)
+        if not dry_run:
+            for line in verify_hook_scripts(cursor_home):
+                log(line)
 
     seed_workstream(cursor_home, package, dry_run)
     if migrate_legacy:

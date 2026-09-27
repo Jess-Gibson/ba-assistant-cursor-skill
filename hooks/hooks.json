@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "_comment": "Every hook script is a single cross-platform hooks/*.py file. The 'python' interpreter token in each command is a template: tools/install-ba-assistant.py (and the upgrader) rewrite it to `py` (Windows) or `python3` (Mac/Linux) when merging into ~/.cursor/hooks.json. beforeMCPExecution runs external-write-gate.py (failClosed:true), the one gate for every Runlayer call: it unwraps execute_tool, denies email send/reply/forward/draft, asks on other external writes, allows reads, and runs the DoR check on Story creates. A crash of the gate script blocks the call; the installer wraps that command on Mac/Linux so a MISSING interpreter allows the call instead of blocking every MCP tool (on Windows, if the py launcher is not found at install time, the gate is registered with failClosed:false and the installer warns). sessionStart runs session-init.py only (the old prompt-type re-entry hook was removed: prompt hooks are judged by a separate small model and do not drive the assistant; the re-entry card lives in execution-router.mdc). stop can emit followup_message but is off unless `stopFollowup: true` in ba-assistant-config.mdc. No beforeSubmitPrompt hook: Cursor does not read additional_context for that event, so the installer removes the old entry. postToolUse carries the shared-repo warning (afterFileEdit has no output channel).",
+  "_comment": "Every hook script is a single cross-platform hooks/*.py file. The 'python' interpreter token in each command is a template: tools/install-ba-assistant.py (and the upgrader) rewrite it to `py` (Windows) or `python3` (Mac/Linux) when merging into ~/.cursor/hooks.json. beforeMCPExecution runs external-write-gate.py (failClosed:true), the one gate for every Runlayer call: it unwraps execute_tool, denies email send/reply/forward/draft, asks on other external writes, allows reads, and runs the DoR check on Story creates. A crash of the gate script blocks the call; the installer wraps that command on Mac/Linux so a MISSING interpreter allows the call instead of blocking every MCP tool (on Windows, if the py launcher is not found at install time, the gate is registered with failClosed:false and the installer warns). sessionStart runs session-init.py only (the old prompt-type re-entry hook was removed: prompt hooks are judged by a separate small model and do not drive the assistant; the re-entry card lives in execution-router.mdc). stop can emit followup_message but is off unless `stopFollowup: true` in ba-assistant-config.mdc. No beforeSubmitPrompt hook: Cursor does not read additional_context for that event, so the installer removes the old entry. postToolUse (Write) carries the shared-repo warning; there is no afterFileEdit entry because Cursor reads no output from that event, and the installer removes the old one.",
   "hooks": {
     "sessionStart": [
       {
@@ -26,12 +26,6 @@
         "command": "python ./hooks/external-write-gate.py",
         "timeout": 8,
         "failClosed": true
-      }
-    ],
-    "afterFileEdit": [
-      {
-        "command": "python ./hooks/shared-repo-guard.py",
-        "timeout": 8
       }
     ],
     "postToolUse": [

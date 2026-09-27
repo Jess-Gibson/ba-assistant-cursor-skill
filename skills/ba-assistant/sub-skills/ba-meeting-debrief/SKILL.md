@@ -194,6 +194,8 @@ python3 _workstream/extract-docx-text.py --docx-path "FULL_PATH_TO.docx" --out-p
 
 (Windows: use `py` instead of `python3`.)
 
+Extracting a transcript marks it as debriefed, so session start stops listing it under "TRANSCRIPTS NOT DEBRIEFED YET". For a `.vtt` or `.txt` transcript you read directly, mark it after the card is approved: `python3 ~/.cursor/_workstream/list-downloads-recent.py --mark-processed "FULL_PATH"`.
+
 **Before running it:** check whether `--out-path` already exists and is newer than the source docx. If so, **skip extraction** and Read the out file directly.
 
 | Canonical outputs (Sample Initiative 17 Jul debrief) | Path |

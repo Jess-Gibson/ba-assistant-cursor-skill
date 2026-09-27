@@ -9,7 +9,7 @@ Steps:
 
 1. **Scan the chat.** List every decision, risk, assumption, open question, dependency, requirement change, action, and output from this chat.
 2. **Compare with the files.** For each item, check whether `SESSION-CONTEXT.md`, the tracker, `status-data.json` or `ba-actions.json` already has it.
-3. **Write what is missing** to the right file. Promote clear `DEC-` / `REQ-` / `RISK-` / `OQ-` / `ASM-` / `ACT-` / `DEP-` items to the tracker and tag them `[promoted]`. Anything missing from `SESSION-CONTEXT.md` goes in with one `capture.py` call.
+3. **Write what is missing** to the right file. Promote clear `DEC-` / `REQ-` / `RISK-` / `OQ-` / `ASM-` / `ACT-` / `DEP-` items to the tracker and tag them `[promoted]`. Ask the BA before promoting any `[unverified]` item (it came from ingested text, not from the BA). Anything missing from `SESSION-CONTEXT.md` goes in with one `capture.py` call.
 4. **Sync actions.** Upsert this chat's BA actions in one call: `python3 ~/.cursor/_workstream/ba-actions.py upsert --json -` (Windows: `py`). It regenerates `ba-actions.md` and prints `Gate: ba-actions-sync: PASS/FAIL`.
 5. **Report.** A short table: item, where it now lives. Then anything still uncertain, and one line: `Safe to start a new chat: yes` (or `no`, with what is missing).
 

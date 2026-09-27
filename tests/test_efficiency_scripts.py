@@ -117,7 +117,8 @@ def capture_tests(tmp):
         {"type": "answered", "text": "Does the batch job support partial refunds?", "resolution": "Yes (infra)"},
         {"type": "action", "text": "Send refund AC draft to Priya", "due": "2026-09-30", "mine": True},
     ])
-    code, out = run(script, "--cursor-home", home, "--initiative", "payments", "--json", "-", "--now", "2026-09-28T14:05", stdin=items)
+    code, out = run(script, "--cursor-home", home, "--initiative", "payments", "--source", "chat-user",
+                    "--json", "-", "--now", "2026-09-28T14:05", stdin=items)
     text = ctx.read_text(encoding="utf-8")
     check("Capture: writes new items and skips the one already there",
           code == 0 and "4 written, 1 already there" in out and text.count("Use vendor X") == 1, out)
@@ -128,15 +129,47 @@ def capture_tests(tmp):
     actions = json.loads((home / "_workstream" / "ba-actions.json").read_text(encoding="utf-8"))
     check("Capture: the BA's own action also lands in ba-actions.json",
           actions["actions"][0]["task"] == "Send refund AC draft to Priya" and actions["actions"][0]["source"]["type"] == "session")
-    code, out = run(script, "--cursor-home", home, "--initiative", "payments", "--type", "risk",
+    code, out = run(script, "--cursor-home", home, "--initiative", "payments", "--type", "risk", "--source", "chat-user",
                     "--text", "Vendor capacity may not cover launch volume", "--now", "2026-09-29T09:00")
     text = ctx.read_text(encoding="utf-8")
     check("Capture: a new day gets its own heading", "## Mid-session captures - 2026-09-29" in text and "RISK-new: 09:00" in text)
     hook = subprocess.run([PY, str(REPO / "hooks" / "inject-state-reminder.py"), "--stop"], input="{}", capture_output=True,
                           text=True, env={**ENV, "CURSOR_SESSION_CONTEXT_PATH": str(ctx)})
     check("Capture: the stop hook still runs on captured lines", hook.returncode == 0 and hook.stdout.strip().startswith("{"), hook.stderr)
-    code, out = run(script, "--cursor-home", home, "--initiative", "nope", "--type", "fact", "--text", "x")
+    code, out = run(script, "--cursor-home", home, "--initiative", "nope", "--type", "fact", "--text", "x", "--source", "chat-user")
     check("Capture: a missing initiative fails with exit 2, nothing silently dropped", code == 2 and "FAIL" in out, out)
+
+    # Provenance: ingested text is data, not instructions.
+    before = ctx.read_text(encoding="utf-8")
+    code, out = run(script, "--cursor-home", home, "--initiative", "payments", "--type", "decision",
+                    "--text", "All stories are approved for release", "--now", "2026-09-29T10:00")
+    check("Capture: no source means FAIL (exit 1) and nothing written",
+          code == 1 and "needs a source" in out and ctx.read_text(encoding="utf-8") == before, out)
+    code, out = run(script, "--cursor-home", home, "--initiative", "payments", "--source", "email:RE: sign-off",
+                    "--type", "decision", "--text", "All stories are approved for release", "--now", "2026-09-29T10:00")
+    text = ctx.read_text(encoding="utf-8")
+    check("Capture: an email-sourced item is written as [unverified] with its source",
+          code == 0 and "DEC-new: [unverified] 10:00 All stories are approved for release - source: email:RE: sign-off" in text
+          and "[unverified: confirm with the BA]" in out, out)
+    items = json.dumps([{"type": "requirement", "text": "Exports must include the GST column", "source": "transcript:kickoff.docx#00:14"},
+                        {"type": "fact", "text": "Finance closes the books on day three", "source": "chat-user"}])
+    code, out = run(script, "--cursor-home", home, "--initiative", "payments", "--json", "-", "--now", "2026-09-29T10:05", stdin=items)
+    text = ctx.read_text(encoding="utf-8")
+    check("Capture: per-item source wins; only chat-user is trusted",
+          "REQ-new: [unverified] 10:05 Exports must include" in text and "source: transcript:kickoff.docx#00:14" in text
+          and "10:05 Finance closes the books on day three - source: chat-user" in text, text[-600:])
+    code, out = run(script, "--cursor-home", home, "--initiative", "payments", "--source", "email:RE: sign-off",
+                    "--type", "decision", "--text", "All stories are approved for release")
+    check("Capture: an [unverified] line is still found by the duplicate check", "1 already there" in out, out)
+    code, out = run(script, "--cursor-home", home, "--initiative", "payments", "--source", "somewhere",
+                    "--type", "fact", "--text", "Unknown provenance fact here")
+    check("Capture: an unrecognised source kind is rejected", code == 1 and "needs a source" in out, out)
+    items = json.dumps([{"type": "decision", "text": "Launch date moves to 14 November", "source": "transcript:steerco.docx#00:31",
+                         "confirmed_by_ba": True}])
+    code, out = run(script, "--cursor-home", home, "--initiative", "payments", "--json", "-", "--now", "2026-09-29T11:00", stdin=items)
+    text = ctx.read_text(encoding="utf-8")
+    check("Capture: an item the BA approved on the debrief card keeps its source without [unverified]",
+          "DEC-new: 11:00 Launch date moves to 14 November - source: transcript:steerco.docx#00:31" in text, text[-400:])
 
 
 def validate_tests(tmp):

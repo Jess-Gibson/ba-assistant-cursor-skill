@@ -39,6 +39,16 @@ Version 14 QA fixes (from the fork review) plus the fixes below.
 - Personalised install: follow `docs/PERSONALISED-UPGRADE.md`.
 - Your profile, config, own rules, own skills, actions, workboard, calendar feed and initiatives are not changed by either path.
 
+### Review fixes (before release)
+
+- A failed calendar roll at end of day now stops: no canvas is written and the command exits 1.
+- Initiative selection works on case-insensitive disks (macOS), where the same folder is seen as `initiatives/` and `Initiatives/`.
+- Snapshots are only FRESH when every input (initiative files, `workboard.json`, `ba-actions.json`, `calendar-feed.json`) is byte-identical to when they were made.
+- `dist/ba-workboard-overlay.zip` rebuilt with the Version 15 files and `eod-closeout-procedure.md`; a test keeps it in step with the sources.
+- Mail lookback defaults to the previous working day. No region-specific timezone fallback.
+- Merge tool: one sign-off for auto-merged files, stale decisions refused, a warning for initiative folders outside `.cursor`, and `changed-since-deploy` for a safe first sync.
+- CI runs the tests on Ubuntu, macOS and Windows.
+
 ### Tests
 
 - `python3 tests/run_all.py` adds end-of-day (roll and canvas prompt), install and upgrade (installs Version 14, personalises it, upgrades, and pins what is kept), and merge-tool (full flow on a personalised install with its own naming) suites.

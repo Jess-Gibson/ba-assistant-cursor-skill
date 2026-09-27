@@ -11,6 +11,16 @@ Version 14 QA fixes (from the fork review) plus the fixes below.
 - **Canvas End of Day prompt** now points at `eod-closeout-procedure.md` instead of a moved section of `sync-procedures.md`, and follows its action filter (not every open action).
 - **Mail check order:** `_workstream/scan-outlook-mail.py` if installed, then the Outlook MCP connector, then "Mail: unable to check". Never blocks end of day.
 
+### New scripts
+
+- **`_workstream/scan-outlook-mail.py`** (Windows, Outlook desktop, read-only): Inbox and Sent triage for end of day. Your noise filters live in config (`mail_noise_subjects`, `mail_ignore_folders`, `mail_noise_repos`), so upgrades never wipe them. Prints one "Mail: unable to check" line and exits 2 when it cannot scan, so end of day moves on to the Outlook connector.
+- **`_workstream/generate-initiative-snapshots.py`**: compact, source-linked snapshots for resume. `--check <slug>` says FRESH, STALE, MISSING or MALFORMED; resume only uses a FRESH one. Never used to pick an initiative. End of day step 7a refreshes them.
+- **Meeting highlights from config:** `calendar_highlight_substrings` in `ba-assistant-config.mdc`.
+
+### Config found in more places
+
+- Session start, the Jira DoR gate and the shared-repo guard read `paths.*` from `ba-assistant-config.mdc`, then `ba-profile.mdc`. Before, an install with no config file found no initiatives, and the DoR gate denied stories that had a recorded pass.
+
 ### Initiative selection
 
 - Session start also reads `CURSOR_PROJECT_DIR` when Cursor sends no `workspace_roots`. Still never picks an initiative by modified time.
@@ -20,6 +30,7 @@ Version 14 QA fixes (from the fork review) plus the fixes below.
 - **Your data is left alone by default.** The upgrader, the installer (when re-run on an existing install) and the workboard overlay no longer run the old data migrations unless you pass `--migrate-legacy`. Before, any of them could move a live actions file with the old pre-Version 10 name into a backup. Now they report what they found and leave it byte-identical.
 - **`--patch-profile`** replaces only the old `/wrap` and `/validate-state` rows in your `ba-profile.mdc` (backup first). Without it, the upgrader shows the exact new rows. Rows you have personalised are never rewritten.
 - **No hook runs twice.** Old `.sh`/`.ps1` hook wrappers are dropped from `hooks.json` when the package ships the `.py` hook, and moved into the backup once nothing references them.
+- **Port manifest:** `docs/port-manifest.json` (readable: `docs/V15-UPGRADE-MANIFEST.md`) marks each changed file as behaviour or wording. The merge tool brings only behaviour changes into a personalised install, three-way merging them with your edits.
 - **New: `tools/ba-merge-upgrade.py`** for personalised installs (edited skills, your own rules and skills, your own naming). Backup with restore rehearsal, staging, a three-way comparison, your decisions, a reviewed deploy plan, a drift check, hash-verified deploy with automatic rollback. New files are written in your own naming (for example `alex-actions`, not `ba-actions`). See `docs/PERSONALISED-UPGRADE.md`.
 
 ### Upgrading from 14

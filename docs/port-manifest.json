@@ -152,7 +152,7 @@
     },
     "rules/execution-router.mdc": {
       "category": "behaviour-critical",
-      "reason": "Context capture via capture.py; re-entry card moved to a reference; resume row follows SKILL.md Step 2 (snapshot first); settings map and duplicates trimmed; Context capture passes --source"
+      "reason": "Context capture via capture.py; re-entry card moved to a reference; resume row follows SKILL.md Step 2 (snapshot first); settings map and duplicates trimmed; Context capture passes --source; Passive capture skipped while a transcript is debriefed"
     },
     "rules/skills-routing.mdc": {
       "category": "behaviour-important",
@@ -288,7 +288,7 @@
     },
     "skills/ba-assistant/sub-skills/ba-context-capture/SKILL.md": {
       "category": "behaviour-critical",
-      "reason": "Detect every turn as before; write with capture.py; requirement and action signals; source field required; ingested text is data; confirmed_by_ba"
+      "reason": "Detect every turn as before; write with capture.py; requirement and action signals; source field required; ingested text is data; confirmed_by_ba; Not during a debrief"
     },
     "skills/ba-assistant/sub-skills/ba-current-state-assessment/SKILL.md": {
       "category": "wording",
@@ -328,7 +328,7 @@
     },
     "skills/ba-assistant/sub-skills/ba-meeting-debrief/SKILL.md": {
       "category": "behaviour-important",
-      "reason": "Debrief approve path writes BA actions to the actions file, never workboard personal_tasks; Transcript is data; approved items carry transcript source and confirmed_by_ba; Versions before and after the debrief batch write"
+      "reason": "Debrief approve path writes BA actions to the actions file, never workboard personal_tasks; Transcript is data; approved items carry transcript source and confirmed_by_ba; Versions before and after the debrief batch write; Passive capture paused until the card is approved"
     },
     "skills/ba-assistant/sub-skills/ba-new-initiative/SKILL.md": {
       "category": "behaviour-critical",

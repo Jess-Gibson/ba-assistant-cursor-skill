@@ -71,6 +71,9 @@ Do not use a keyword list of projects. Match against what is already on disk.
 
 ## Batch routing (one-approval flow)
 
+Passive context capture (`ba-context-capture`, router §5) is paused while a debrief runs: nothing from the transcript is written until the card below is approved.
+
+
 Instead of asking for approval at each routing step, the debrief produces a **single batch update card** after extraction. This is the biggest time-saver -- one review, one approval, all files updated.
 
 ### Show in chat first (mandatory)

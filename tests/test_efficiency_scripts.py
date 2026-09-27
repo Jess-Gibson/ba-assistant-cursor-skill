@@ -320,6 +320,8 @@ def docs_tests():
           and (REPO / "skills" / "ba-assistant" / "references" / "re-entry-card.md").exists())
     check("Docs: context capture still runs every BA turn and writes via capture.py",
           "After every user message" in router and "capture.py" in router)
+    check("Docs: passive capture is paused while a transcript is debriefed (the debrief card decides)",
+          "its items go on the debrief card" in router)
     inst = (REPO / "tools" / "install-ba-assistant.py").read_text(encoding="utf-8")
     missing = [s for s in ("ba-actions.py", "capture.py", "validate-state.py", "compute-metrics.py", "render-initiative-canvas.py")
                if f'"{s}"' not in inst]

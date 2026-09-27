@@ -160,8 +160,8 @@ Pull from `metrics-cache.json` (per `references/canvas-data-model.md` Section 4)
 |---|---|---|---|---|
 | MoSCoW coverage  -  Cohort A | 92% | → | ≥80% | ✓ |
 | MoSCoW coverage  -  Cohort B | 64% | ↘ | ≥80% | 🔴 below threshold |
-| DoR hit rate  -  Cohort A | 78% | → | ≥70% | ✓ |
-| DoR hit rate  -  Cohort B | n/a |  -  | ≥70% | No DoR checks this period |
+| Preflight first-pass rate  -  Cohort A | 78% | → | ≥70% | ✓ |
+| Preflight first-pass rate  -  Cohort B | n/a |  -  | ≥70% | No preflight checks this period |
 | Requirement interrogation rate  -  overall | 91% | → | ≥95% | 🟡 below target |
 | Sign-off cycle time (median) | 6.5 days | ↗ | ≤5 days | 🔴 above target |
 

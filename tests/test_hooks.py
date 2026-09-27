@@ -159,7 +159,7 @@ def main():
               out["env"]["CURSOR_SESSION_CONTEXT_PATH"].endswith(os.path.join("only-one", "SESSION-CONTEXT.md")),
               out["additional_context"][:300])
         # DoR gate, black box: no session context, a ready story recorded only in an
-        # initiative under the ba-profile.mdc root -> the gate must find it: "DoR met", BA approves.
+        # initiative under the ba-profile.mdc root -> the gate must find it: "Structural preflight passed", BA approves.
         (own_root / "only-one" / "status-data.json").write_text(json.dumps({"stories": [{"title": "Export the monthly report", "scope": "feature_export", "moscow": "must",
                           "linkedRequirements": ["REQ-1"], "dependsOn": []}],
              "raid": {"risks": [{"id": "R-1", "title": "Large files time out", "scope": "feature_export"}]}}), encoding="utf-8")
@@ -171,7 +171,7 @@ def main():
                                                         "issuetype": {"name": "Story"}}})}
         gate = run_hook("external-write-gate.py", prof_home, stdin=json.dumps(payload))
         check("V15 DoR check finds a ready story under the initiatives root from ba-profile.mdc",
-              gate.get("permission") == "ask" and gate.get("user_message", "").startswith("DoR met"), str(gate)[:300])
+              gate.get("permission") == "ask" and gate.get("user_message", "").startswith("Structural preflight passed"), str(gate)[:300])
         (prof_home / ".cursor" / "rules" / "ba-assistant-config.mdc").write_text(
             'paths:\n  initiativesRoot: "~/.cursor/initiatives"\n', encoding="utf-8")
         out = session_init(prof_home)

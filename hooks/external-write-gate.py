@@ -3,27 +3,34 @@
 Runlayer is the only MCP path, so every call arrives as Runlayer `execute_tool`
 with the real tool name inside tool_input:
     execute_tool { "tool_name": "createJiraIssue", "arguments": {...} }
-This hook unwraps that (as the DoR gate always has), then decides:
+This hook unwraps that, then decides:
 
-  deny   email send / reply / forward / draft (Outlook or any mail tool).
-         BA Assistant never sends email or creates Outlook drafts; the text goes
-         in chat (or a local .md file) for the BA to copy.
-  ask    any other external write: Jira, Confluence, calendar, Miro, Slack/Teams
-         posts. Cursor shows an approval dialog; the BA's click is the decision.
-  allow  reads (get / search / list / fetch / ...), so reads never prompt.
+Precedence, checked in this order over every word in the tool name (word order
+in the name never matters, so a write can't hide behind a read verb):
 
-Unknown tool names (no verb we recognise) get "ask": the hook is the safety net
-whatever auto-run setting the BA uses.
+  1. deny   email send / reply / forward / draft, or composing email
+            (compose / generate / create / prepare / write / new + email, mail,
+            Outlook). BA Assistant never sends email or creates Outlook drafts;
+            the text goes in chat (or a local .md file) for the BA to copy.
+  2. ask    any write verb anywhere in the name: Jira, Confluence, calendar,
+            Miro, Slack/Teams posts. Cursor shows an approval dialog; the BA's
+            click is the decision. findAndReplacePage asks, it is not a read.
+  3. allow  otherwise, a read verb (get / search / list / fetch / ...), so pure
+            reads never prompt.
+  4. ask    anything else (no verb we recognise): the hook is the safety net
+            whatever auto-run setting the BA uses.
 
-Story creates in Jira also run the Definition of Ready check
+Story creates in Jira also run the Story Readiness Preflight
 (_workstream/dor-check.py, recomputed from the initiative files every time; a
-stored pass is never trusted). A Story is still a Jira write, so the BA always
-gets the approval dialog: "DoR met" when every criterion passes, otherwise
-"DoR not met: <missing>. Approve to create anyway as a BA override."
+stored pass is never trusted). It checks five structural conditions only; the
+Definition of Ready stays the BA's judgement. A Story is still a Jira write, so
+the BA always gets the approval dialog: "Structural preflight passed ..." (with
+what it does not check), otherwise "Structural preflight not passed ...: <missing>.
+Approve to create anyway as a BA override."
 
 Every decision is appended to ~/.cursor/_workstream/audit-log.jsonl: tool name
-and decision, plus the DoR outcome and story title for Story creates. Never the
-rest of the payload.
+and decision, plus the preflight outcome and story title for Story creates. Never
+the rest of the payload.
 
 Never crashes: hooks.json registers this with failClosed:true, so a crash would
 block every MCP call. Any unexpected error answers "ask".
@@ -48,14 +55,26 @@ WRITE_VERBS = {
     "submit", "approve", "reject", "resolve", "reopen", "label", "tag", "react", "pin",
     "accept", "decline", "cancel", "complete", "mark", "draft", "drafts", "new", "save",
     "import", "sync", "bulk", "execute", "run", "trigger", "restore", "clear", "respond",
+    "replace", "upsert", "modify", "overwrite", "append", "revert", "grant", "revoke",
+    "enable", "disable", "deploy", "push", "notify", "reset", "purge", "destroy", "clone",
+    "duplicate", "migrate", "subscribe", "unsubscribe",
 }
 # Mail-sending words. Denied unless the name is clearly about something that is
 # not email (a chat post, a Confluence page, a calendar invite, a Jira issue).
 MAIL_SEND_WORDS = {"send", "reply", "replyall", "forward", "draft", "drafts", "respond"}
+# Composing words only count as email when the name also says email, mail or
+# Outlook (generateReport and composeConfluencePage are not email).
+MAIL_COMPOSE_WORDS = {"compose", "generate", "create", "prepare", "write", "new"}
+MAIL_WORDS = {"email", "emails", "mail", "mails", "outlook", "inbox", "mailbox"}
 NOT_MAIL_CONTEXT = {
     "slack", "teams", "chat", "channel", "confluence", "page", "pages", "jira", "issue",
     "issues", "miro", "board", "calendar", "event", "events", "invite", "meeting",
 }
+
+# What a structural pass does and does not show. Shown in every pass dialog.
+PREFLIGHT_SCOPE = ("It confirms a linked requirement, Given/When/Then acceptance criteria, dependencies, "
+                   "MoSCoW and risks are present. It does not confirm semantic completeness, required "
+                   "sign-offs, feasibility, sizing or NFR coverage.")
 
 MAIL_DENY_USER = "BA Assistant doesn't send email. The text is in chat for you to copy."
 MAIL_DENY_AGENT = (
@@ -109,13 +128,15 @@ def classify(name):
     if not toks:
         return "ask", "unrecognised MCP call"
     tokset = set(toks)
-    if tokset & MAIL_SEND_WORDS and not tokset & NOT_MAIL_CONTEXT:
-        return "deny", "email send/reply/forward/draft"
-    for t in toks:                      # the first verb in the name decides
-        if t in READ_VERBS:
-            return "allow", "read"
-        if t in WRITE_VERBS:
-            return "ask", "external write"
+    if not tokset & NOT_MAIL_CONTEXT:
+        if tokset & MAIL_SEND_WORDS:
+            return "deny", "email send/reply/forward/draft"
+        if tokset & MAIL_COMPOSE_WORDS and tokset & MAIL_WORDS:
+            return "deny", "email compose"
+    if tokset & WRITE_VERBS:            # a write anywhere in the name wins over any read verb
+        return "ask", "external write"
+    if tokset & READ_VERBS:
+        return "allow", "read"
     return "ask", "unrecognised MCP call"
 
 
@@ -235,22 +256,29 @@ def main():
         outcome, err = dor_outcome(_args)
         decision = "ask"                       # a Story is a Jira write: the BA always decides
         if outcome is None:
-            reason = "DoR check could not run"
-            user = f"DoR check couldn't run ({err}). Check the story is ready before approving."
-            agent = "The DoR check could not run; the BA must decide. If they approve, log it as a BA decision."
+            reason = "structural preflight could not run"
+            user = (f"Story Readiness Preflight couldn't run ({err}). Check the story is ready "
+                    "before approving.")
+            agent = "The Story Readiness Preflight could not run; the BA must decide. If they approve, log it as a BA decision."
             extra = {"dor": "error"}
         elif outcome["result"] == "pass":
-            reason = "DoR met"
-            user = f"DoR met. BA Assistant wants to create the Story \"{outcome['story']}\" in Jira. Approve to create."
+            reason = "structural preflight passed"
+            user = (f"Structural preflight passed for \"{outcome['story']}\". " + PREFLIGHT_SCOPE +
+                    " Approve to create in Jira.")
+            agent = ("Show the final payload in chat before calling it; if the BA declines, do not retry. "
+                     "Structural preflight passed; this is not a full Definition of Ready. Do not tell the "
+                     "BA the story is ready or that sign-offs, AC coverage, NFRs, feasibility or sizing "
+                     "were checked unless this conversation shows they were.")
             extra = {"dor": "pass", "story": outcome["story"]}
         else:
-            reason = "DoR not met"
-            user = ("DoR not met: " + ", ".join(outcome["missing_labels"]) +
+            reason = "structural preflight not passed"
+            user = (f"Structural preflight not passed for \"{outcome['story']}\": " +
+                    ", ".join(outcome["missing_labels"]) +
                     ". Approve to create anyway as a BA override.")
-            agent = ("DoR not met for this Story (" + ", ".join(outcome["missing_labels"]) + "). The BA decides in "
-                     "Cursor's dialog. If they approve, record the override as a decision row in the tracker "
-                     "(who, date, story, missing criteria). If they decline, fix the gaps and re-run "
-                     "_workstream/dor-check.py.")
+            agent = ("Structural preflight not passed for this Story (" + ", ".join(outcome["missing_labels"]) +
+                     "). The BA decides in Cursor's dialog. If they approve, record the override as a "
+                     "decision row in the tracker (who, date, story, missing conditions). If they decline, "
+                     "fix the gaps and re-run _workstream/dor-check.py.")
             extra = {"dor": "fail", "story": outcome["story"], "missing": outcome["missing"]}
 
     audit(shown, decision, reason, extra)

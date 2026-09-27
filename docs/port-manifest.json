@@ -148,7 +148,7 @@
     },
     "rules/critical-gates.mdc": {
       "category": "behaviour-critical",
-      "reason": "Same gates, shorter rows; External-write gate row; DoR gate recomputed by dor-check.py"
+      "reason": "Same gates, shorter rows; External-write gate row; DoR gate recomputed by dor-check.py; Story Readiness Preflight row; Definition of Ready as a reasoning gate"
     },
     "rules/execution-router.mdc": {
       "category": "behaviour-critical",
@@ -184,7 +184,7 @@
     },
     "skills/ba-assistant/hook-contracts.md": {
       "category": "behaviour-important",
-      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change; Cursor lifecycle hooks table (external-write-gate, DoR)"
+      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change; Cursor lifecycle hooks table (external-write-gate, DoR); gate precedence and preflight wording"
     },
     "skills/ba-assistant/instructions.md": {
       "category": "wording",
@@ -224,7 +224,7 @@
     },
     "skills/ba-assistant/references/jira-ticket-format.md": {
       "category": "behaviour-important",
-      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change; Stories: DoR recomputed at create; not met = BA override"
+      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change; Stories: DoR recomputed at create; not met = BA override; preflight wording; hook never reads dorChecks"
     },
     "skills/ba-assistant/references/markdown-readability.md": {
       "category": "wording",
@@ -256,7 +256,7 @@
     },
     "skills/ba-assistant/references/user-story-format.md": {
       "category": "behaviour-minor",
-      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change; DoR computed by dor-check.py"
+      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change; DoR computed by dor-check.py; DoR checklist split into computed preflight and human review"
     },
     "skills/ba-assistant/references/workboard-procedure.md": {
       "category": "behaviour-important",
@@ -400,7 +400,7 @@
     },
     "skills/ba-assistant/sub-skills/ba-story-writing/SKILL.md": {
       "category": "behaviour-critical",
-      "reason": "Draft, BA approves, then create in Jira; internal schema checklist; asks which initiative; Agent no longer writes result: pass; runs dor-check.py; logs BA overrides as decisions"
+      "reason": "Draft, BA approves, then create in Jira; internal schema checklist; asks which initiative; Agent no longer writes result: pass; runs dor-check.py; logs BA overrides as decisions; structural preflight vs Definition of Ready: never claim Ready from the script alone"
     },
     "skills/ba-assistant/sub-skills/ba-visual-storytelling/SKILL.md": {
       "category": "wording",
@@ -452,7 +452,7 @@
     },
     "hooks/external-write-gate.py": {
       "category": "behaviour-critical",
-      "reason": "One beforeMCPExecution gate: unwraps Runlayer execute_tool, denies email send/reply/forward/draft, asks on other external writes, allows reads, runs dor-check.py on Story creates, writes audit-log.jsonl"
+      "reason": "One beforeMCPExecution gate: unwraps Runlayer execute_tool, denies email send/reply/forward/draft, asks on other external writes, allows reads, runs dor-check.py on Story creates, writes audit-log.jsonl; a write verb anywhere in the name asks (no first-verb shortcut); email compose denied; Story Readiness Preflight wording (never \"DoR met\")"
     },
     "hooks/hooks.json": {
       "category": "behaviour-critical",
@@ -460,7 +460,7 @@
     },
     "_workstream/dor-check.py": {
       "category": "behaviour-critical",
-      "reason": "DoR computed from the files (requirement status, Given/When/Then, dependencies, MoSCoW, risks); shared by the hook; --record for metrics; One initiative reached through two folder spellings counts once (case-insensitive disks)"
+      "reason": "DoR computed from the files (requirement status, Given/When/Then, dependencies, MoSCoW, risks); shared by the hook; --record for metrics; One initiative reached through two folder spellings counts once (case-insensitive disks); Story Readiness Preflight wording; placeholders (TBD) and look-alike words (Risk-free) no longer pass; HLR-08.1 / HLR-08.21 parsed as their own IDs"
     },
     "_workstream/extract-docx-text.py": {
       "category": "behaviour-important",

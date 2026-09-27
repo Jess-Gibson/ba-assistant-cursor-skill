@@ -4,8 +4,10 @@ external-write-gate hook uses it on Jira Story creates.
 
 The check recomputes readiness from the initiative files every time; a stored
 `result: pass` row is never evidence. A Story is a Jira write, so the hook
-always asks the BA: "DoR met" when every criterion passes, otherwise
-"DoR not met: <missing>. Approve to create anyway as a BA override."
+always asks the BA: "Structural preflight passed ..." (with what it does not
+check) when all five structural conditions hold, otherwise "Structural preflight
+not passed ...: <missing>. Approve to create anyway as a BA override." It never
+says "DoR met": the Definition of Ready stays the BA's judgement.
 
 Run:
     python3 tests/test_dor_check.py      (Windows: py tests/test_dor_check.py)
@@ -100,8 +102,8 @@ def main():
         # --- auto-pass: every criterion met ---
         home = ready_home(tmp)
         out = gate(home, story())
-        check("Ready story: DoR met, the BA still approves the Jira write",
-              out["permission"] == "ask" and out["user_message"].startswith("DoR met"), str(out))
+        check("Ready story: structural preflight passed, the BA still approves the Jira write",
+              out["permission"] == "ask" and out["user_message"].startswith("Structural preflight passed"), str(out))
         code, txt = dor_cli(home, "--initiative", "export", "--title", "Export the monthly report", "--description", GWT)
         check("dor-check.py CLI: ready story exits 0 with a PASS gate line", code == 0 and "Gate: dor-check: PASS" in txt, txt)
 
@@ -111,7 +113,7 @@ def main():
                         dor_rows=[{"storyTitle": "Export the monthly report", "result": "pass", "firstAttempt": "pass"}])
         out = gate(home, story(description="Export it please"))
         check("A stored result: pass row does not make an unready story pass",
-              out["permission"] == "ask" and out["user_message"].startswith("DoR not met")
+              out["permission"] == "ask" and out["user_message"].startswith("Structural preflight not passed")
               and "no Given/When/Then ACs" in out["user_message"] and "BA override" in out["user_message"], str(out))
 
         # --- each criterion on its own ---
@@ -128,7 +130,7 @@ def main():
         sd_path.write_text(json.dumps(sd), encoding="utf-8")
         out = gate(home, story())
         check("MoSCoW set for another scope only -> 'MoSCoW unset for its scope'",
-              out["user_message"] == "DoR not met: MoSCoW unset for its scope. Approve to create anyway as a BA override.",
+              out["user_message"] == "Structural preflight not passed for \"Export the monthly report\": MoSCoW unset for its scope. Approve to create anyway as a BA override.",
               str(out))
         home = ready_home(tmp)
         sd = json.loads((home / ".cursor" / "initiatives" / "export" / "status-data.json").read_text(encoding="utf-8"))
@@ -146,7 +148,7 @@ def main():
                 "## Dependencies\nNone\n\n## Risks\nNone identified")
         out = gate(home, story("Show the audit trail to admins", desc))
         check("Description-only story (register table, MoSCoW line, sections) passes",
-              out["user_message"].startswith("DoR met"), str(out))
+              out["user_message"].startswith("Structural preflight passed"), str(out))
 
         # --- the same folder reached two ways (initiatives/ and Initiatives/ on macOS/Windows) ---
         home = Path(tempfile.mkdtemp(dir=tmp))
@@ -160,19 +162,19 @@ def main():
             out = gate(home, story("Show the audit trail to admins",
                                    "Implements REQ-7.\nMoSCoW: Should\nGiven a When b Then c\nDependencies: none\nRisks: none"))
             check("One initiative reached through two folder spellings still counts as one",
-                  out["user_message"].startswith("DoR met"), str(out))
+                  out["user_message"].startswith("Structural preflight passed"), str(out))
 
         # --- which initiative ---
         home = ready_home(tmp, "beta")
         make_initiative(home, "alpha")
         out = gate(home, story())
-        check("Two initiatives, no chat initiative: the story's own record decides", out["user_message"].startswith("DoR met"), str(out))
+        check("Two initiatives, no chat initiative: the story's own record decides", out["user_message"].startswith("Structural preflight passed"), str(out))
         home = Path(tempfile.mkdtemp(dir=tmp))
         make_initiative(home, "alpha")
         make_initiative(home, "beta")
         out = gate(home, story("Brand new story nobody recorded"))
-        check("Unknown initiative -> DoR not met, BA decides (never silently allowed)",
-              out["permission"] == "ask" and "DoR not met" in out["user_message"], str(out))
+        check("Unknown initiative -> preflight not passed, BA decides (never silently allowed)",
+              out["permission"] == "ask" and "Structural preflight not passed" in out["user_message"], str(out))
 
         # --- which calls count as a Story create ---
         home = ready_home(tmp)
@@ -182,11 +184,11 @@ def main():
                 ("issue type given only by id", {"summary": "Export the monthly report", "description": GWT,
                                                  "issuetype": {"id": "10001"}}, True)):
             out = gate(home, fields, runlayer=runlayer)
-            check(f"DoR runs for {label}", out["permission"] == "ask" and "DoR" in out["user_message"], str(out))
+            check(f"Preflight runs for {label}", out["permission"] == "ask" and "Structural preflight" in out["user_message"], str(out))
         out = gate(home, {"summary": "Export crashes", "description": "found while testing story PROJ-12",
                           "issueTypeName": "Bug"})
-        check("A Bug mentioning a story is a plain Jira write (no DoR)",
-              out["permission"] == "ask" and "DoR" not in out["user_message"], str(out))
+        check("A Bug mentioning a story is a plain Jira write (no preflight)",
+              out["permission"] == "ask" and "preflight" not in out["user_message"].lower(), str(out))
         spec = importlib.util.spec_from_file_location("ewg", GATE)
         ewg = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(ewg)
@@ -197,8 +199,8 @@ def main():
         home = Path(tempfile.mkdtemp(dir=tmp))
         make_initiative(home, "broken", raw="{not json")
         out = gate(home, story())
-        check("Malformed status-data.json: no crash, DoR not met, BA decides",
-              out["permission"] == "ask" and "DoR not met" in out["user_message"], str(out))
+        check("Malformed status-data.json: no crash, preflight not passed, BA decides",
+              out["permission"] == "ask" and "Structural preflight not passed" in out["user_message"], str(out))
         lone = tmp / "lone-hooks"
         lone.mkdir()
         shutil.copy(GATE, lone / "external-write-gate.py")
@@ -224,6 +226,74 @@ def main():
         rows = [json.loads(l) for l in log.read_text(encoding="utf-8").splitlines()] if log.exists() else []
         check("Audit log records the DoR outcome for each Story create",
               [r.get("dor") for r in rows] == ["pass", "fail"] and rows[1].get("missing"), str(rows))
+        check("Audit reason names the structural preflight, never 'DoR met'",
+              [r.get("reason") for r in rows] == ["structural preflight passed", "structural preflight not passed"]
+              and not any("DoR met" in json.dumps(r) for r in rows), str(rows))
+
+        # --- a structural pass is never presented as the Definition of Ready ---
+        home = ready_home(tmp)
+        out = gate(home, story())
+        msg = out["user_message"]
+        check("Structural pass never says 'DoR met'", "DoR met" not in msg and "DoR met" not in out["agent_message"], msg)
+        check("Structural pass states what it does not confirm",
+              "does not confirm semantic completeness, required sign-offs, feasibility, sizing or NFR coverage" in msg
+              and msg.endswith("Approve to create in Jira."), msg)
+        code, txt = dor_cli(home, "--initiative", "export", "--title", "Export the monthly report", "--description", GWT)
+        check("Legacy CLI still exits 0 with 'Gate: dor-check: PASS', plus the preflight wording",
+              code == 0 and "Gate: dor-check: PASS" in txt and "Story Readiness Preflight: Structural preflight passed" in txt
+              and "still need review" in txt and "DoR met" not in txt, txt)
+        code, txt = dor_cli(home, "--initiative", "export", "--title", "Export the monthly report", "--description", "nothing")
+        check("Legacy CLI still exits 3 with NOT READY, naming each missing condition as not passed",
+              code == 3 and "Gate: dor-check: NOT READY (" in txt and "Structural preflight not passed: no Given/When/Then ACs" in txt
+              and "BA override" in txt, txt)
+        code, txt = dor_cli(home, "--initiative", "export", "--title", "Export the monthly report", "--description", GWT, "--json")
+        check("--json names the check as the Story Readiness Preflight", code == 0 and json.loads(txt).get("check") == "Story Readiness Preflight", txt)
+
+        # --- placeholders and look-alike words don't satisfy a structural condition ---
+        home = ready_home(tmp)
+        junk = "REQ-1\nGiven a user\nWhen they use it\nThen it works well\nMoSCoW: Must\nDependencies: TBD\nRisk-free"
+        make_initiative(home, "junk", register="### REQ-1 · Make it better\n**Status:** Confirmed\n")
+        code, txt = dor_cli(home, "--initiative", "junk", "--title", "Improve the thing", "--description", junk, "--json")
+        res = json.loads(txt)
+        check("Review repro: 'Dependencies: TBD' and 'Risk-free' no longer pass",
+              code == 3 and res["missing"] == ["dependencies", "risks"], txt)
+        for deps, ok in (("Dependencies: TBC", False), ("Dependencies: ?", False), ("## Dependencies\n\n## Risks\nNone identified", False),
+                         ("Dependencies: None", True), ("## Dependencies\n- Payments API (DEP-2)", True), ("**Dependencies:** N/A", True)):
+            res = json.loads(dor_cli(home, "--initiative", "junk", "--title", "Improve the thing", "--json", "--description",
+                                     "REQ-1\n" + GWT.split("\n\nDependencies")[0] + "\nMoSCoW: Must\nRisks: none identified\n" + deps)[1])
+            check(f"Dependencies {'listed' if ok else 'not listed'}: {deps!r}", res["checks"]["dependencies"]["ok"] is ok, str(res["checks"]))
+        for risks, ok in (("Risks: TBD", False), ("Risk-free rollout", False), ("### Risks and mitigations\nTimeouts on big months", True),
+                          ("**Risks:** None identified", True)):
+            res = json.loads(dor_cli(home, "--initiative", "junk", "--title", "Improve the thing", "--json", "--description",
+                                     "REQ-1\n" + GWT.split("\n\nDependencies")[0] + "\nMoSCoW: Must\nDependencies: None\n" + risks)[1])
+            check(f"Risks {'logged' if ok else 'not logged'}: {risks!r}", res["checks"]["risks"]["ok"] is ok, str(res["checks"]))
+
+        # --- requirement IDs: canonical HLR (decimal children) and legacy prefixes ---
+        body = GWT + "\nMoSCoW: Must"
+        def req_check(register, ref):
+            h = Path(tempfile.mkdtemp(dir=tmp))
+            make_initiative(h, "ids", register=register)
+            code, txt = dor_cli(h, "--initiative", "ids", "--title", "Story for " + ref, "--json", "--description", ref + "\n" + body)
+            return json.loads(txt)["checks"]["requirement"]
+        parent_first = "### HLR-08 · Exports\n**Status:** Confirmed\n\n#### HLR-08.1 · Monthly CSV\n**Status:** Proposed\n"
+        child_first = "#### HLR-08.1 · Monthly CSV\n**Status:** Proposed\n\n### HLR-08 · Exports\n**Status:** Confirmed\n"
+        for label, reg in (("parent listed first", parent_first), ("child listed first", child_first)):
+            ch = req_check(reg, "HLR-08.1")
+            check(f"HLR-08.1 is judged on its own status, not its parent's ({label})",
+                  ch["ok"] is False and "HLR-08.1 (proposed)" in ch["detail"] and "HLR-08 " not in ch["detail"] + " ", str(ch))
+            ch = req_check(reg, "HLR-08")
+            check(f"HLR-08 alone links only the parent ({label})", ch["ok"] and ch["detail"] == "linked: HLR-08", str(ch))
+        ch = req_check("### HLR-08 · Exports\n**Status:** Confirmed\n\n#### HLR-08.21 · Big months\n**Status:** Interrogated\n", "HLR-08.21")
+        check("Multi-digit child HLR-08.21 parses and links", ch["ok"] and ch["detail"] == "linked: HLR-08.21", str(ch))
+        ch = req_check("| ID | Title | Status |\n|---|---|---|\n| HLR-03 | Audit | Confirmed |\n| HLR-03.2 | Admin view | Confirmed |\n", "HLR-03.2")
+        check("Decimal HLR in a register table links", ch["ok"] and ch["detail"] == "linked: HLR-03.2", str(ch))
+        ch = req_check("### HLR-01 · Onboarding\n**Status:** Confirmed\n", "HLR-01")
+        check("Top-level HLR-01 links", ch["ok"], str(ch))
+        for legacy in ("REQ-1", "FR-001", "BR-001", "NFR-001", "COMP-001", "CON-001"):
+            ch = req_check(f"### {legacy} · Legacy requirement\n**Status:** Confirmed\n", legacy)
+            check(f"Legacy ID still readable: {legacy}", ch["ok"] and ch["detail"] == f"linked: {legacy}", str(ch))
+        ch = req_check("### REQ-1 · One\n**Status:** Confirmed\n### REQ-10 · Ten\n**Status:** Proposed\n", "REQ-10")
+        check("REQ-10 does not also link REQ-1", ch["ok"] is False and ch["detail"] == "not interrogated/confirmed: REQ-10 (proposed)", str(ch))
 
     passed = sum(results)
     print(f"\n{passed}/{len(results)} DoR checks passed")

@@ -297,7 +297,7 @@ Walk through each phase in turn:
    - How many ADRs were reversed or revisited?
 
 5. **Delivery Definition**
-   - DoR hit rate  -  what % of stories were actually ready?
+   - Preflight first-pass rate  -  what % of stories had the structural basics first time? (Whether they were actually ready is a question for the team, not this number.)
    - Where did rework happen, and what caused it?
    - Were AI-pairing effort estimates accurate?
 
@@ -395,7 +395,7 @@ Skills to update:
 Outcome metrics:
 - Idea → engineering start: [time]
 - Rework rate: [%]
-- DoR hit rate: [%]
+- Preflight first-pass rate: [%]
 - Sign-off cycle time: [time]
 - Risk realisation rate: [%]
 - Stakeholder surprise: [count / nil]
@@ -532,7 +532,7 @@ Type 2 and Type 3 retros MUST pull and surface the four derivable metrics from `
 | Metric | What it tells the retro |
 |---|---|
 | MoSCoW coverage rate (per scope, current and trend) | Whether prioritisation discipline held up |
-| DoR hit rate (per scope, current and trend) | Whether stories were genuinely ready when picked up |
+| Preflight first-pass rate (per scope, current and trend) | Whether stories had the structural basics (linked requirement, ACs, dependencies, MoSCoW, risks) first time; not whether they were genuinely ready |
 | Requirement interrogation rate | Whether requirements were challenged before being accepted |
 | Sign-off cycle time (median + outliers) | Whether sign-offs were sought early and resolved cleanly |
 
@@ -544,7 +544,7 @@ Type 2 and Type 3 retros MUST pull and surface the four derivable metrics from `
 
 3. **For pattern detection:** A metric trending badly across 2+ initiatives is a cross-initiative pattern. Add to `learnings.md` with `metric: <name>` tag so it's findable.
 
-4. **For success analysis:** A metric performing unusually well is a success signal. "DoR hit rate of 95%  -  what specifically did we do differently?"
+4. **For success analysis:** A metric performing unusually well is a success signal. "Preflight first-pass rate of 95%  -  what specifically did we do differently?"
 
 ### Failure handling
 

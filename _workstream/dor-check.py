@@ -1,20 +1,34 @@
 #!/usr/bin/env python3
-"""Definition of Ready check for one Story, computed from the initiative files.
+"""Story Readiness Preflight for one Story, computed from the initiative files.
+
+A minimum STRUCTURAL check, not the Definition of Ready. The Definition of Ready
+stays the BA's judgement (ba-story-writing/SKILL.md): business value and scope,
+semantic AC coverage and edge cases, NFRs, feasibility and sizing, independence,
+and any design, legal, compliance or stakeholder approval. None of those are
+checked here. A pass prints "Structural preflight passed", never "DoR met".
 
 Shared by the external-write-gate hook (at Jira create time) and the agent
 (before asking the BA to create). It never trusts a stored pass: every run
-recomputes the result from the current files and the story text.
+recomputes the result from the current files and the story text. The file name,
+arguments, exit codes and the `Gate: dor-check:` line are kept from the old
+"DoR check" so existing installs and skills keep working.
 
-Criteria (ba-story-writing/SKILL.md, Definition of Ready):
+Five structural conditions:
   requirement   a linked requirement exists and every linked one is
-                interrogated or confirmed (or later) in the requirements register
+                interrogated or confirmed (or later) in the requirements register.
+                IDs: HLR-01, detailed HLR-01.1 / HLR-08.21 (canonical), and legacy
+                type-prefixed IDs (REQ-1, FR-001, BR-001, NFR-001, ...). A detailed
+                ID is its own requirement: HLR-08 never stands in for HLR-08.1.
   acs           Given / When / Then acceptance criteria are present
-  dependencies  dependencies are listed (a "Dependencies" section, even "None",
-                or dependsOn on the story record)
+  dependencies  dependencies are listed (a "Dependencies:" line or heading, even
+                "None", or dependsOn on the story record). TBD / TBC / ? / unknown
+                and empty sections don't count.
   moscow        MoSCoW is set for the story's scope (story record, the linked
                 requirement's moscowMatrix for that scope, or a "MoSCoW:" line)
-  risks         risks are logged (a "Risks" section, even "None identified", or a
-                risk in status-data.json for the story's scope / requirements)
+  risks         risks are logged (a "Risks:" line or heading, even "None
+                identified", or a risk in status-data.json for the story's scope /
+                requirements). Placeholders don't count, and a word such as
+                "Risk-free" is not a Risks section.
 
 Where the story is found: status-data.json -> stories[] (matched by Jira key or
 title), plus the text being sent to Jira (summary + description, ADF flattened).
@@ -22,7 +36,8 @@ title), plus the text being sent to Jira (summary + description, ADF flattened).
   python3 ~/.cursor/_workstream/dor-check.py --initiative refunds --title "Partial refund API" \
       --description-file story.md [--record] [--json]
 
---record upserts status-data.json -> dorChecks (storyTitle, result, firstAttempt
+--record upserts status-data.json -> dorChecks (field names kept for older
+initiatives; a "pass" there means the structural preflight passed, nothing more) (storyTitle, result, firstAttempt
 on the first run, missingCriteria, checkedAt) for the metrics. The gate does not
 read dorChecks. Exit 0 = pass, 3 = not ready, 1 = bad input / initiative not found.
 Windows: use `py` instead of `python3`.
@@ -38,6 +53,13 @@ import sys
 from datetime import date
 from pathlib import Path
 
+CHECK_NAME = "Story Readiness Preflight"
+PASS_TEXT = "Structural preflight passed"
+FAIL_TEXT = "Structural preflight not passed"
+NOT_CHECKED = ("It confirms a linked requirement, Given/When/Then acceptance criteria, dependencies, MoSCoW "
+               "and risks are present. It does not confirm semantic completeness, required sign-offs, "
+               "feasibility, sizing or NFR coverage. Semantic readiness and required human approvals "
+               "still need review.")
 CRITERIA = ("requirement", "acs", "dependencies", "moscow", "risks")
 LABELS = {
     "requirement": "no interrogated/confirmed requirement linked",
@@ -49,9 +71,28 @@ LABELS = {
 READY_STATUSES = {"interrogated", "confirmed", "in-flight", "inflight", "delivered"}
 MOSCOW_RE = re.compile(r"\bmo\s*s\s*co\s*w\b\s*[:=\-]?\s*(must|should|could|won'?t|wont)\b", re.I)
 GWT_RE = re.compile(r"\bgiven\b.{1,400}?\bwhen\b.{1,400}?\bthen\b", re.I | re.S)
-DEPS_RE = re.compile(r"(^|\n)\s*(#+\s*|\*\*|[-*]\s*)?dependenc(y|ies)\b", re.I)
-RISKS_RE = re.compile(r"(^|\n)\s*(#+\s*|\*\*|[-*]\s*)?risks?\b", re.I)
-REG_HEADING_RE = re.compile(r"^#{2,5}\s+([A-Z][A-Z0-9]{0,9}-\d{1,4}[a-z]?)\b", re.M)
+# A labelled section: "Dependencies: ...", "**Risks:** ...", "- Risks: ...", or a
+# heading that starts with the word ("## Risks", "### Risks and mitigations") with
+# its value on the next line. A word that merely starts with the label
+# ("Risk-free", "Dependency injection is used") is not a section.
+def _label_re(word: str) -> re.Pattern:
+    return re.compile(
+        rf"^[ \t]*(?:"
+        rf"(?:[-*][ \t]*)?(?:\*\*)?(?:{word})(?:\*\*)?[ \t]*:(?:\*\*)?[ \t]*(?P<v>.*)"
+        rf"|#+[ \t]*(?:\*\*)?(?:{word})(?![\w-])[^\n]*"
+        rf"|(?:\*\*)?(?:{word})(?:\*\*)?[ \t]*$)", re.I | re.M)
+
+
+DEPS_RE = _label_re(r"dependenc(?:y|ies)")
+RISKS_RE = _label_re(r"risks?")
+PLACEHOLDERS = {"tbd", "tbc", "tba", "todo", "to do", "to be confirmed", "to be determined", "?", "??",
+                "???", "unknown", "pending", "xxx", "..."}
+# Requirement IDs: canonical HLR-01 / HLR-01.1 / HLR-08.21, and legacy type-prefixed
+# IDs (REQ-1, FR-001, BR-001, NFR-001, COMP-001, ...). The optional letter suffix
+# (REQ-1a) is kept from the old parser.
+REQ_ID = r"[A-Z][A-Z0-9]{0,9}-\d{1,4}(?:\.\d{1,3})*[a-z]?"
+REQ_ID_FULL_RE = re.compile(rf"^{REQ_ID}$")
+REG_HEADING_RE = re.compile(rf"^#{{2,5}}\s+({REQ_ID})(?![\w.])", re.M)
 STATUS_LINE_RE = re.compile(r"^\s*(?:[-*]\s*)?(?:\*\*)?status(?:\*\*)?\s*[:|]\s*(?:\*\*)?\s*([A-Za-z\-]+)", re.I | re.M)
 
 
@@ -207,9 +248,28 @@ def register_statuses(init_dir: Path) -> dict[str, str]:
             if "status" in lower and "id" in lower:
                 cols = (lower.index("id"), lower.index("status"))
                 continue
-            if cols and len(cells) > max(cols) and re.match(r"^[A-Z][A-Z0-9]{0,9}-\d{1,4}[a-z]?$", cells[cols[0]]):
+            if cols and len(cells) > max(cols) and REQ_ID_FULL_RE.match(cells[cols[0]]):
                 statuses.setdefault(cells[cols[0]], cells[cols[1]].lower())
     return statuses
+
+
+def id_in_text(rid: str, text: str) -> bool:
+    """HLR-08 matches "HLR-08" and "HLR-08," but not "HLR-08.1" or "HLR-080"."""
+    return re.search(rf"(?<![\w.-]){re.escape(rid)}(?!\w|\.\d)", text) is not None
+
+
+def section_listed(label_re: re.Pattern, text: str) -> bool:
+    """True when a labelled section has a real value (placeholders don't count)."""
+    for m in label_re.finditer(text):
+        value = (m.group("v") or "").strip()
+        if not value:
+            rest = text[m.end():].splitlines()
+            nxt = next((ln.strip() for ln in rest if ln.strip()), "")
+            value = "" if nxt.startswith("#") else nxt
+        value = re.sub(r"^[-*\s]+|[*`_\s.]+$", "", value).strip()
+        if value and value.lower() not in PLACEHOLDERS:
+            return True
+    return False
 
 
 # ---------- the check ----------
@@ -223,7 +283,7 @@ def check_story(init_dir: Path | None, title: str, description: str = "", key: s
 
     linked = [r for r in record.get("linkedRequirements") or [] if isinstance(r, str)]
     for rid in statuses:
-        if re.search(rf"\b{re.escape(rid)}\b", text) and rid not in linked:
+        if id_in_text(rid, text) and rid not in linked:
             linked.append(rid)
 
     checks: dict[str, dict] = {}
@@ -241,8 +301,9 @@ def check_story(init_dir: Path | None, title: str, description: str = "", key: s
     checks["acs"] = {"ok": bool(GWT_RE.search(text)), "detail": "Given/When/Then found" if GWT_RE.search(text)
                      else "no Given/When/Then in the story text"}
 
-    deps_ok = "dependsOn" in record or bool(DEPS_RE.search(description))
-    checks["dependencies"] = {"ok": deps_ok, "detail": "listed" if deps_ok else "no Dependencies section (write 'None' if none)"}
+    deps_ok = "dependsOn" in record or section_listed(DEPS_RE, description)
+    checks["dependencies"] = {"ok": deps_ok, "detail": "listed" if deps_ok
+                              else "no Dependencies section with a value (write 'None' if none; TBD doesn't count)"}
 
     scope = record.get("scope") or ""
     moscow = record.get("moscow") or ""
@@ -261,12 +322,13 @@ def check_story(init_dir: Path | None, title: str, description: str = "", key: s
     risks = sd.get("raid", {}).get("risks") if isinstance(sd.get("raid"), dict) else None
     matched = [r.get("id") for r in risks or [] if isinstance(r, dict) and (
         (scope and r.get("scope") == scope) or set(r.get("linkedRequirements") or []) & set(linked))]
-    risks_ok = bool(matched) or bool(RISKS_RE.search(description))
+    risks_ok = bool(matched) or section_listed(RISKS_RE, description)
     checks["risks"] = {"ok": risks_ok, "detail": ("logged: " + ", ".join(str(m) for m in matched)) if matched
-                       else ("Risks section in the story" if risks_ok else "no risk logged for this scope and no Risks section")}
+                       else ("Risks section in the story" if risks_ok
+                             else "no risk logged for this scope and no Risks section with a value")}
 
     missing = [c for c in CRITERIA if not checks[c]["ok"]]
-    return {"result": "pass" if not missing else "fail", "missing": missing,
+    return {"check": CHECK_NAME, "result": "pass" if not missing else "fail", "missing": missing,
             "missing_labels": [LABELS[c] for c in missing], "checks": checks,
             "story": title, "initiative": str(init_dir) if init_dir else "", "linkedRequirements": linked}
 
@@ -291,7 +353,7 @@ def record_result(init_dir: Path, outcome: dict, key: str = "") -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description="Definition of Ready check for one Story")
+    ap = argparse.ArgumentParser(description="Story Readiness Preflight (structural checks only) for one Story")
     ap.add_argument("--initiative", help="initiative slug (folder under the initiatives root)")
     ap.add_argument("--title", required=True, help="the story summary exactly as it will go to Jira")
     ap.add_argument("--description", default="")
@@ -308,7 +370,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.initiative:
         init_dir = next((d for d in all_initiatives(home) if d.name == args.initiative), None)
         if init_dir is None:
-            print(f"DoR: FAIL (initiative '{args.initiative}' not found under {', '.join(map(str, initiative_roots(home)))})")
+            print(f"{CHECK_NAME}: could not run (initiative '{args.initiative}' not found under {', '.join(map(str, initiative_roots(home)))})")
             return 1
     else:
         init_dir, _ = locate_initiative(home, args.title, args.key, os.environ.get("CURSOR_SESSION_CONTEXT_PATH", ""))
@@ -322,6 +384,11 @@ def main(argv: list[str] | None = None) -> int:
             ch = outcome["checks"][c]
             print(f"{'PASS' if ch['ok'] else 'MISS'}  {c:<12} {ch['detail']}")
         print(f"Gate: dor-check: {'PASS' if outcome['result'] == 'pass' else 'NOT READY (' + ', '.join(outcome['missing_labels']) + ')'}")
+        if outcome["result"] == "pass":
+            print(f"{CHECK_NAME}: {PASS_TEXT}. {NOT_CHECKED}")
+        else:
+            print(f"{CHECK_NAME}: {FAIL_TEXT}: {', '.join(outcome['missing_labels'])}. "
+                  "Creating it anyway is a BA override.")
     return 0 if outcome["result"] == "pass" else 3
 
 

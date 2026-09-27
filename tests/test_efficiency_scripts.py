@@ -356,7 +356,7 @@ def always_on_tests():
                          ("ba-profile.mdc", "Priority types"), ("execution-router.mdc", "Publish guard"),
                          ("execution-router.mdc", "Anti-Pattern Detector"), ("execution-router.mdc", "Context Capture"),
                          ("execution-router.mdc", "Mid-thread opt-out"), ("critical-gates.mdc", "Interrogate before register"),
-                         ("critical-gates.mdc", "Jira DoR gate")):
+                         ("critical-gates.mdc", "Jira story preflight")):
         check(f"Always-on: {name} still has '{needle}'", needle in text[name])
     commands = [c.stem for c in (REPO / "commands").glob("*.md")]
     thin = [c for c in commands if "ba-profile.mdc" in (REPO / "commands" / f"{c}.md").read_text(encoding="utf-8")]

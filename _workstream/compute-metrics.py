@@ -189,7 +189,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"| MoSCoW coverage | {pct(m['moscowCoverage']['value'])} | {t['moscowCoverage']} | {m['moscowCoverage']['rated']} of {m['moscowCoverage']['total']} requirements rated |")
     for scope, value in m["moscowCoverage"]["perScope"].items():
         print(f"| MoSCoW coverage ({scope}) | {pct(value)} | - | per-scope cells rated |")
-    print(f"| DoR hit rate (30 days) | {pct(m['dorHitRate']['value'])} | {t['dorHitRate']} | {m['dorHitRate']['passedFirstTime']} of {m['dorHitRate']['checks30d']} passed first time |")
+    print(f"| Preflight first-pass rate (30 days, structural only) | {pct(m['dorHitRate']['value'])} | {t['dorHitRate']} | {m['dorHitRate']['passedFirstTime']} of {m['dorHitRate']['checks30d']} passed first time |")
     print(f"| Requirement interrogation rate | {pct(m['interrogationRate']['value'])} | {t['interrogationRate']} | {m['interrogationRate']['interrogated']} of {m['interrogationRate']['total']} challenged |")
     median = "n/a" if s["medianWorkingDays"] is None else f"{s['medianWorkingDays']} working days (p90 {s['p90WorkingDays']})"
     print(f"| Sign-off cycle time | {median} | {t['signOffMedian']} | {s['completed']} completed, {len(s['openOver7WorkingDays'])} open over 7 working days |")

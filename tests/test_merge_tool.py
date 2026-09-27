@@ -215,7 +215,7 @@ def personalised_layout_scenario(tmp, v14):
                                                                         "description": "Given a month with transactions When I export Then I get one CSV row per transaction",
                                                                         "issuetype": {"name": "Story"}}})}), encoding="utf-8")
     code, out = run([TOOL, "run", "--session", session, "--stdin", payload, "--", PY, stage / "hooks" / "external-write-gate.py"], home)
-    check("Layout: DoR check run in staging finds the ready story", '"permission": "ask"' in out and "DoR met" in out, out[-400:])
+    check("Layout: DoR check run in staging finds the ready story", '"permission": "ask"' in out and "Structural preflight passed" in out, out[-400:])
     code, out = run([TOOL, "run", "--session", session, "--", PY, stage / "_workstream" / "generate-initiative-snapshots.py"], home)
 
     # Jess's route: no config file, initiatives root written into the renamed profile.

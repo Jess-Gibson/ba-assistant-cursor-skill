@@ -67,7 +67,7 @@ Do not treat a general instruction to continue, tidy, reconcile, or publish as a
 
 ## Gate visibility (default-deny for reasoning gates)
 
-Hooks enforce the hard gates (Jira DoR, shared-repo guard). Reasoning gates (interrogate before register, ground before scoring, readiness checks) are yours:
+Hooks enforce hard gates (Jira preflight, shared-repo guard). Reasoning gates (interrogate before register, ground before scoring, readiness checks) are yours:
 
 - Every gate that runs prints one visible line: `Gate: <name>: PASS/FAIL/SKIPPED (<reason>)`.
 - **Default-deny:** if you cannot confirm a required gate ran in this conversation, do not publish or write the gated output. Say which gate is unconfirmed and run it. Never claim a pass you did not check.

@@ -966,7 +966,7 @@ def cmd_classify(args) -> int:
     if not (local_root / "rules" / "ba-assistant-config.mdc").exists():
         root_value = read_config_value(local_root, "initiativesRoot")
         findings.append(
-            "No rules/ba-assistant-config.mdc. Session start, the Jira DoR gate and the shared-repo guard read "
+            "No rules/ba-assistant-config.mdc. Session start, the Jira story preflight and the shared-repo guard read "
             "paths.* from it (then from your profile). "
             + ("Your initiatives root was found in another rule file, so they will work. "
                if root_value else "No paths.initiativesRoot was found anywhere, so they would look only in "

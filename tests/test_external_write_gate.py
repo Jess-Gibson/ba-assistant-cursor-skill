@@ -90,6 +90,27 @@ def main():
         code, out = run_gate(runlayer("send_invite_for_calendar_event"), home)
         check("calendar invite is a write (ask), not a mail deny", out["permission"] == "ask", str(out))
 
+        # --- a write anywhere in the name wins over a read verb, whatever the word order ---
+        mixed = ("findAndReplaceConfluencePage", "previewAndPublishPage", "list_and_archive",
+                 "searchThenDeleteIssue", "getAndUpdatePage", "readAndCommentJiraIssue",
+                 "fetchAndTransitionIssue", "getAndDeleteIssue", "search_and_replace", "view_update",
+                 "check_and_close", "read_and_mark", "fetchThenPost", "lookupAndUpsertRecord")
+        for tool in mixed:
+            code, out = run_gate(runlayer(tool), home)
+            check(f"mixed read/write asks: {tool}", out["permission"] == "ask" and tool in out["user_message"], str(out))
+
+        # --- composing email is denied like sending it; composing anything else is not email ---
+        for tool in ("composeEmail", "generateEmail", "createEmailDraft", "prepareAndSendMail",
+                     "previewAndSendEmail", "outlook_compose_message", "newMail", "write_email_reply"):
+            code, out = run_gate(runlayer(tool), home)
+            check(f"mail compose denied: {tool}", out["permission"] == "deny" and out["user_message"] == MAIL_MSG, str(out))
+        for tool in ("generateReport", "composeConfluencePage", "outlook_calendar_create_event", "frobnicateWidgetAndThings"):
+            code, out = run_gate(runlayer(tool), home)
+            check(f"not email, asks: {tool}", out["permission"] == "ask", str(out))
+        for tool in ("outlook_mail_search", "getJiraIssue", "glean_chat"):
+            code, out = run_gate(runlayer(tool), home)
+            check(f"pure read still allowed: {tool}", out["permission"] == "allow", str(out))
+
         # --- unknown / malformed: ask, never crash ---
         code, out = run_gate(runlayer("frobnicate_widget"), home)
         check("unrecognised tool asks", out["permission"] == "ask", str(out))
@@ -105,6 +126,13 @@ def main():
         check("audit log written for every call", len(rows) >= 40, f"{len(rows)} rows")
         check("audit rows carry tool and decision",
               all({"ts", "tool", "decision"} <= set(r) for r in rows), str(rows[:2]))
+        by_tool = {r["tool"]: r for r in rows}
+        check("audit records a mixed read/write name as an external write, not a read",
+              by_tool.get("findAndReplaceConfluencePage", {}).get("decision") == "ask"
+              and by_tool.get("findAndReplaceConfluencePage", {}).get("reason") == "external write",
+              str(by_tool.get("findAndReplaceConfluencePage")))
+        check("audit records mail compose as a deny",
+              by_tool.get("composeEmail", {}).get("decision") == "deny", str(by_tool.get("composeEmail")))
         check("audit log never stores payload text",
               not any("Export crashes" in json.dumps(r) or "Sure" in json.dumps(r) for r in rows))
 

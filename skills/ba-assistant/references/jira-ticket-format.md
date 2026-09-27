@@ -94,7 +94,7 @@ No `createJiraIssue` (and no material `editJiraIssue`) until the BA has **seen t
 2. Show the complete draft in chat (or in a file for long ADF): project key, issue type, summary, description, AC, labels, parent/links.
 3. AskQuestion: **Create in Jira** / **Edit first** / **Not yet**.
 4. Only on **Create in Jira**: create through Runlayer (`execute_tool` → `createJiraIssue`; use `search_tools` if the live schema is unclear). Report the new key back.
-5. Stories also get the DoR check (`_workstream/dor-check.py`, re-run by the `external-write-gate` hook at create time). Not met: the BA's approval dialog names the missing criteria, and an approval is a BA override to log as a tracker decision.
+5. Stories also get the Story Readiness Preflight (`_workstream/dor-check.py`, re-run by the `external-write-gate` hook at create time). It checks five structural conditions only (`user-story-format.md` §6); a pass is "Structural preflight passed", not the Definition of Ready. Not passed: the BA's approval dialog names the missing conditions, and an approval is a BA override to log as a tracker decision.
 
 Approval covers the draft as shown. If anything material changes after approval, show it again and re-ask. Several tickets can be approved in one AskQuestion only if every draft was shown.
 
@@ -200,7 +200,7 @@ A sub-skill producing a Jira ticket follows this sequence:
 5. **Draft** the ticket content per `user-story-format.md`, render to ADF if your project uses panels
 6. **Self-check** against the anti-patterns table (Section 8) and the verification considerations (Section 5)
 7. **Show the full draft and get approval** (per 2g). Stop here unless the BA chooses **Create in Jira**
-8. **Create** via Runlayer `createJiraIssue`. Stories: the DoR gate hook checks `dorChecks` first
+8. **Create** via Runlayer `createJiraIssue`. Stories: the `external-write-gate` hook recomputes the Story Readiness Preflight from the files (it never reads `dorChecks`) and the BA approves in Cursor's dialog
 
 Steps 6 and 7 are mandatory and run before step 8. The Anti-Pattern Detector also runs continuously and will catch issues post-creation, but pre-creation self-check prevents creating tickets that immediately get flagged.
 

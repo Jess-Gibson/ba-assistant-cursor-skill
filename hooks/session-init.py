@@ -42,7 +42,7 @@ Initiative selection (P1): this hook never picks "the newest SESSION-CONTEXT.md
 by modified time" as the chat's initiative. It names one only when the open
 workspace sits inside exactly one initiative folder, or when only one initiative
 exists. Otherwise it lists the candidates, tells the model to ask, and leaves
-CURSOR_SESSION_CONTEXT_PATH empty (the DoR gate then checks every initiative).
+CURSOR_SESSION_CONTEXT_PATH empty (the Jira story preflight then checks every initiative).
 Workspace folders come from the hook's stdin JSON (`workspace_roots`), else the
 CURSOR_PROJECT_DIR environment variable (Version 15); if Cursor sends neither,
 the workspace step is skipped.

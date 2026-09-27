@@ -581,7 +581,7 @@ signOffCycleTime = approvedDate - requestedDate (in working days)
 
 ### `dorChecks` array
 
-**Metrics record, written by `_workstream/dor-check.py --record`:** one row per story checked (feeds the DoR hit-rate in `compute-metrics.py`). It is **not** the gate's evidence: the `external-write-gate` hook recomputes DoR from the files at create time and never reads this array. Never hand-write a `result: pass` row. A canvas refresh must keep `storyTitle`, `firstAttempt` and `result`.
+**Metrics record, written by `_workstream/dor-check.py --record`:** one row per story checked (feeds the preflight first-pass rate, key `dorHitRate`, in `compute-metrics.py`). Field names are kept for older initiatives; `pass` means the structural Story Readiness Preflight passed, not that the Definition of Ready was met. It is **not** the gate's evidence: the `external-write-gate` hook recomputes the preflight from the files at create time and never reads this array. Never hand-write a `result: pass` row. A canvas refresh must keep `storyTitle`, `firstAttempt` and `result`.
 
 ```jsonc
 {
@@ -592,14 +592,14 @@ signOffCycleTime = approvedDate - requestedDate (in working days)
       "scope": "feature_cohort_a",
       "checkedAt": "2026-05-28",
       "firstAttempt": "partial",  // "pass" | "partial" | "fail"  -  did it pass first time? (hit-rate metric)
-      "result": "pass",           // "pass" | "partial" | "fail"  -  latest outcome (the DoR gate reads this)
+      "result": "pass",           // "pass" | "partial" | "fail"  -  latest structural preflight outcome (metrics only; the gate recomputes)
       "missingCriteria": []
     }
   ]
 }
 ```
 
-The DoR gate matches a row on `storyKey` (when the create has one) or `storyTitle`, and treats `result` as the pass signal (falling back to `firstAttempt` for older rows). The hit-rate metric keeps using `firstAttempt`.
+`dor-check.py --record` upserts a row by `storyKey` (when known) or `storyTitle`. The first-pass metric uses `firstAttempt`. The Jira create hook does not read this array.
 
 ### `stories`, `spikes`, `tickets` arrays
 
@@ -712,7 +712,7 @@ function mosCoWCoverageRate(scopeId) {
 
 Compute per scope. Warning threshold: <80% on any scope with `delivery` workstream active. Surface in `/status` MoSCoW summary.
 
-### DoR hit rate
+### Preflight first-pass rate (`dorHitRate`)
 
 ```javascript
 function dorHitRate(scopeId, windowDays = 30) {
@@ -769,7 +769,7 @@ Warning thresholds: median >5 working days OR any sign-off open >10 working days
 
 Any metric that can't be computed returns `null`, displayed as `n/a`. Never fabricate `0%` for missing data  -  that looks like a real signal and triggers false alarms.
 
-After 3 status outputs with the same metric `n/a`, surface a one-line nudge: "DoR hit rate has been n/a for 3 status runs  -  likely missing instrumentation in Delivery Definition. Want me to look?"
+After 3 status outputs with the same metric `n/a`, surface a one-line nudge: "Preflight first-pass rate has been n/a for 3 status runs  -  likely missing instrumentation in Delivery Definition. Want me to look?"
 
 ### Caching
 

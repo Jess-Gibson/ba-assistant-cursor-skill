@@ -1,10 +1,20 @@
 # BA Assistant — User Guide
 
-*Current package: **Version 14** (see CHANGELOG.md). This guide was substantially updated in August 2026; earlier sections still describe Waves 1–7 foundations.*
+*Current package: **Version 15** (see CHANGELOG.md). This guide was substantially updated in August 2026; earlier sections still describe Waves 1–7 foundations.*
 
 This guide introduces the **BA Assistant**, a multi-skill system for business analysts and product managers that takes an initiative from earliest conception through delivery and post-launch evaluation.
 
 ---
+
+## What changed in Version 15
+
+| Change | What it means for you |
+|---|---|
+| **End of day rolls the calendar once** | The End of Day button and `/workboard end-of-day` follow one procedure. Running it twice for the same day changes nothing |
+| **Mail check at end of day** | `_workstream/scan-outlook-mail.py` (Windows, Outlook desktop) if you have it, else the Outlook connector, else "Mail: unable to check" |
+| **Initiative snapshots** | Resume can start from a compact snapshot when it is fresh; it never decides which initiative you are in |
+| **Your settings found in more places** | Session start and the Jira DoR gate read folder paths from `ba-assistant-config.mdc`, then your profile |
+| **Safer upgrades** | Your data is left alone unless you ask for a migration. Personalised installs can use `tools/ba-merge-upgrade.py` to keep their own edits and naming |
 
 ## What changed in Version 10
 

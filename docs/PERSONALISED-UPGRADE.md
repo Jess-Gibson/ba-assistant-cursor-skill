@@ -166,7 +166,7 @@ Steps:
    - mail: `run -- py S/_workstream/scan-outlook-mail.py`. It must either print a triage or one "Mail: unable to check" line, never a traceback.
    - read my profile, tone rules and one of my own skills in staging and confirm they are intact.
 9. Run deploy-plan. Show me the counts and any "personal" or "generated" rows. Wait for my go.
-10. Run deploy with the plan id. Show me the result.
+10. Run deploy with the plan id. Show me the result. Then start the undo history once (deploy does not): `py ~/.cursor/_workstream/initiative-history.py ensure --all`, and show me its lines ("left alone" means my .cursor folder is itself a git repo; undo stays off there).
 11. Walk me through the smoke test in "After you deploy" in docs/PERSONALISED-UPGRADE.md, one step at a time, in new chats. Remind me of the rollback command and where the session folder is.
 ```
 
@@ -192,11 +192,14 @@ Afterwards the file should be about 2,000 characters. If a script or hook stops 
 The package tests cover the scripts, the installer and the upgrade. They cannot run Cursor itself, so check the behaviour once in a real BA workspace. Each step is a new chat unless it says otherwise.
 
 1. **Resume:** say "resume <initiative>". Expect a one-line state check (`state aligned` or a drift table), the re-entry card and an AskQuestion. It should not read every file in the initiative.
-2. **Capture (same chat):** say something that is a decision, e.g. "we're going with option B". Expect a `📝 Captured:` line, and a `DEC-new:` line under today's heading in that initiative's `SESSION-CONTEXT.md`.
+2. **Capture (same chat):** say something that is a decision, e.g. "we're going with option B". Expect a `📝 Captured:` line, and a `DEC-new:` line with `source: chat-user` under today's heading in that initiative's `SESSION-CONTEXT.md`.
+2b. **Undo (same chat):** `/undo`. Expect a plain-English list and, after you pick "Undo the latest change", the captured line gone from `SESSION-CONTEXT.md`. `/undo` again puts it back.
 3. **Actions (same chat):** `/todo chase the data export by Friday`. Expect `Added: BA-...` and the gate lines; `ba-actions.md` updated.
 4. **Status:** `/status`. Expect chat status with the metrics table and an offer of `/canvas`, and no canvas written.
 5. **Canvas:** first, ask Cursor: "Compare every `cursor/canvas` import and prop used in `~/.cursor/skills/ba-assistant/templates/initiative-status.canvas.tsx.template` against `~/.cursor/skills-cursor/canvas/sdk/index.d.ts` and list anything the SDK does not define." (The package tests could only check the template against a stand-in for Cursor's SDK.) Then `/canvas`. Expect `Gate: canvas-render: PASS` and the canvas opening with 8 tabs; click through every tab and the scope filter, then open the HTML snapshot in a browser.
 6. **Wrap (same chat as 2):** `/wrap`. Expect the captured decision promoted to the tracker and tagged `[promoted]`.
+6b. **Email:** ask "send that as an email to <someone>". Expect the email text in chat and a note that BA Assistant doesn't send email (no Outlook draft appears).
+6c. **Jira (only if you have a story ready):** ask to create it in Jira. Expect Cursor's approval dialog saying "DoR met", or "DoR not met: ..." naming what's missing. Cancel if you don't want the ticket.
 7. **Typed command:** type `/next` as plain text in a new chat without picking it from the menu. It should still run the `/next` behaviour (the profile tells the agent to read the command file).
 
 Anything that fails: note the step and the reply, and roll back if it blocks your day.

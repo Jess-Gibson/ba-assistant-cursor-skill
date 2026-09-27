@@ -163,7 +163,7 @@ tools/upgrade-ba-assistant.*  # Safe full upgrade
 tools/upgrade-workboard.*     # Workboard capability overlay only
 tests/run_all.py              # Package tests (repo only, not installed)
 dist/ba-workboard-overlay.zip # Friend handoff package
-VERSION                       # 14
+VERSION                       # 15
 CHANGELOG.md
 SETUP.md
 ```

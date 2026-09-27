@@ -23,7 +23,7 @@ Ambiguous PRD language ("should", "might"); missing acceptance criteria or edge 
 
 ### Lock block when the brief is thin
 
-When the user's ask could produce a wrong artefact if assumptions fill the gaps, **stop and AskQuestion before drafting, rewriting, publishing, or bulk-acting**. Applies to data/file work and also BA artefacts, tickets, comms, Miro, sync, code/scripts, and multi-step plans. Do not invent source of truth, scope, audience, or mutate reviewed material.
+When the user's ask could produce a wrong artefact if assumptions fill the gaps, **stop and AskQuestion before publishing, overwriting reviewed material, or bulk-acting**. Drafts go ahead with assumptions labelled. Applies to data/file work and also BA artefacts, tickets, comms, Miro, sync, code/scripts, and multi-step plans. Do not invent source of truth, scope, audience, or mutate reviewed material.
 
 Ask (batch in one panel) for whatever is missing from this set:
 
@@ -46,7 +46,7 @@ Before changing a frozen artefact:
 3. Show a concise diff.
 4. Wait for the user's explicit approval to apply that diff.
 
-Do not treat a general instruction to continue, tidy, reconcile, or publish as approval to alter frozen content. This rule applies to local drafts and published material. A direct request to change a named frozen artefact still requires the diff and an explicit approval to apply it.
+Do not treat a general instruction to continue, tidy, reconcile, or publish as approval to alter frozen content. Applies to drafts and published material, even when the user names the frozen artefact to change.
 
 ## Critical context (the BA)
 

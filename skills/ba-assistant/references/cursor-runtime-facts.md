@@ -25,7 +25,7 @@ Most of the BA orchestrator's load discipline is **soft**. Treat duplicate instr
 
 ### 1. Router bootstrap vs SKILL.md bootstrap  -  same intent, not double inject
 
-- `execution-router.mdc` is always-on: its **full text** is in context every turn. The line "Bootstrap: `instructions.md` + `hook-contracts.md`" is an instruction to the model.
+- `execution-router.mdc` is always-on: its **full text** is in context every turn. Its bootstrap line points at `SKILL.md` Step 1 (the single owner of the bootstrap list); that is an instruction to the model, not a harness load.
 - `ba-assistant/SKILL.md` is **not** auto-injected. Only the skill catalog entry (name + description) is preloaded; the body arrives when the agent `Read`s it or the user invokes `/ba-assistant` / `@`.
 - `instructions.md` and `hook-contracts.md` enter context only via `Read` (or `@`).
 - **No harness double-load.** Cost doubles only if the model `Read`s the same path twice in one turn.
@@ -48,7 +48,7 @@ Most of the BA orchestrator's load discipline is **soft**. Treat duplicate instr
 
 - Not enforced by hooks or the harness.
 - Long threads can quietly re-bulk-load "just in case"; nothing will flag it.
-- Hard gates in this package are the ones actually registered in `hooks/hooks.json`: DoR, shared-repo leak, and the unpromoted-state stop/preCompact check. Miro preflight, em dash, and nested-PowerShell safety are written/manual guidance only  -  no hook script ships for them yet. None of this covers sub-skill Read counts.
+- Hard gates in this package are the ones actually registered in `hooks/hooks.json`: the external-write gate (asks on every Runlayer write, denies email, runs the DoR check on Stories) and the shared-repo leak guard. The stop-hook nudge is off unless `stopFollowup: true`; preCompact only saves a disk snapshot. Miro preflight, em dash, and nested-PowerShell safety are written/manual guidance only  -  no hook script ships for them yet. None of this covers sub-skill Read counts.
 
 ### 5. Skill `description` frontmatter is always-on catalog cost (with a silent cap)
 

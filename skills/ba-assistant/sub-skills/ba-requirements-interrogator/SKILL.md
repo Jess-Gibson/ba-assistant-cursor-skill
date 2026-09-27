@@ -365,7 +365,7 @@ Mode: [Rethink / Discovery / In-flight  -  usually Rethink at kickoff]
 [What we're treating as true until disproved]
 ```
 
-If conflicts exist, **stop and surface them before asking anything else.** Do not let stale docs silently override tracker decisions after D-228-style corrections.
+If conflicts exist, **stop and surface them before asking anything else.** Do not let stale docs silently override a tracker decision that corrected them.
 
 ### Step 2  -  Interrogate (one question per turn)
 

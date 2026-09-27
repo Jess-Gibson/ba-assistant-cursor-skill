@@ -22,6 +22,7 @@ domain: "[payments | platform | customer | data | compliance | product | other]"
 jira:
   instanceUrl: "[your-org].atlassian.net"   # leave as is if you do not use Jira
   projectKey: "[YOUR-PROJECT-KEY]"
+  sprintField: "customfield_10007"  # your site's Sprint field
 
 confluence:
   spaceKey: "[YOUR-SPACE-KEY]"               # leave as is if you do not use Confluence

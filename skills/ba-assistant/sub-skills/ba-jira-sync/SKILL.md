@@ -30,7 +30,7 @@ If `status-data.json` does not exist, read `SESSION-CONTEXT.md` and `confluence-
 For each ticket, call `getJiraIssue` with:
 - `cloudId`: the project's Atlassian cloud ID (stored in `confluence-pages.json` or use site URL)
 - `issueIdOrKey`: the ticket key
-- `fields`: `["status", "summary", "assignee", "customfield_10007"]` (status, summary, assignee, sprint)
+- `fields`: `["status", "summary", "assignee", <sprint field>]` where `<sprint field>` is `jira.sprintField` in `ba-assistant-config.mdc` (default `customfield_10007`; sites differ: if sprint comes back empty, find the Sprint field id in one `getJiraIssue` response and save it to config)
 
 **Do NOT request `expand: "changelog"`** unless specifically investigating what changed. Changelogs are verbose and consume context.
 
@@ -42,8 +42,8 @@ For each ticket, compare the Jira response to the current `status-data.json` ent
 |---|---|
 | `status.name` | Update `tickets[].status` |
 | `assignee.displayName` | Update `tickets[].assignee` |
-| `customfield_10007[0].name` | Update `tickets[].sprint` |
-| `customfield_10007[0].endDate` | Update `tickets[].sprintEndDate` |
+| `<sprint field>[0].name` | Update `tickets[].sprint` |
+| `<sprint field>[0].endDate` | Update `tickets[].sprintEndDate` |
 
 Set `tickets[].lastJiraSync` to current ISO 8601 timestamp.
 

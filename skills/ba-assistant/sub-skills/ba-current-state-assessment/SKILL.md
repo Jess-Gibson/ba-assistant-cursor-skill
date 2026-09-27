@@ -29,7 +29,7 @@ This skill exists because "current state" is one of the most under-invested phas
 | 1 | **Visual outputs** | Every assessment ends with at least one Mermaid diagram per relevant lens (process, system, data flow, journey, pain heatmap). | `ba-visual-storytelling` |
 | 2 | **Data analysis handoff (`HK-CSA-BDI-data`)** | Any quantitative slice (volumes, failure rates, latency, error counts) is delegated to the data investigation skill, not duplicated here. Applies the cross-validation and dedup discipline before any number is treated as current-state fact. | `ba-data-investigation` |
 | 3 | **Stakeholder identification** | Use Stakeholder Strategy to identify who must be interviewed or invited to workshops. | `ba-stakeholder-strategy` |
-| 4 | **Code exploration** | When the initiative is technical, use Glean code search to understand existing implementations before relying on docs alone. | Glean `code-exploration` |
+| 4 | **Code exploration** | When the initiative is technical, read the code before relying on docs alone: Cursor codebase search on an open repo (cite `file:line`), Glean for repos that are not open. | Cursor codebase search, Glean `code-exploration` |
 | 5 | **Source skepticism** | Apply the source vetting principles from `ba-intake-reviewer` to every source read. Flag stale, AI-generated, or unverified content. |  -  (inherit from intake-reviewer) |
 
 If hook 1 or 2 is skipped, the Anti-Pattern Detector flags it.
@@ -78,7 +78,7 @@ Run these in order. Phase 2 of an initiative begins with these tasks before requ
 
 3. **Plan source triangulation**  -  For each lens, identify the code, docs, people, and data sources to consult. Note where you're relying on a single source (risk flag).
 
-4. **Code exploration** (if technical)  -  Use Glean `code-exploration` to find the relevant repos, services, and key flows. Read enough to confirm or challenge what the docs say. Note discrepancies.
+4. **Code exploration** (if technical)  -  If the repo is open in Cursor, use Cursor's own codebase search first and cite `file:line` for every claim; use Glean `code-exploration` for repos that are not open. Find the relevant services and key flows. Read enough to confirm or challenge what the docs say. Note discrepancies.
 
 5. **People interviews and workshops**  -  Use the Workshop crafting section below to design specific interventions when knowledge lives in people's heads. Don't default to "send a survey"  -  workshops are usually higher fidelity for tribal knowledge.
 

@@ -19,7 +19,7 @@ The Meeting Debrief skill captures the value of a meeting and propagates it thro
 
 The skill exists because the most expensive failure mode after a meeting is **not capturing the information**: decisions get forgotten, action items get dropped, new requirements get assumed instead of interrogated, RAID items don't get logged, and the next meeting starts by re-relitigating last meeting's outcomes. Conversations where work actually happens get lost.
 
-This skill is **proactive**. When the user signals a meeting has happened (verbally, by sharing a transcript, by saying "I just got out of…"), or when the orchestrator notices a meeting day in available context, this skill should prompt to debrief  -  it should not wait to be explicitly invoked.
+This skill is **offered proactively by the orchestrator**, not loaded by the model on its own (`disable-model-invocation: true` keeps it out of the always-visible skill list). When the user signals a meeting has happened (verbally, by sharing a transcript, by saying "I just got out of…"), when session start lists transcripts not debriefed yet, or when the orchestrator notices a meeting day in context, the orchestrator reads this skill and offers to debrief; the BA does not have to type `/debrief`.
 
 ## When to invoke
 
@@ -299,7 +299,7 @@ If the script errors (not a valid `.docx`, missing file, unreadable XML), it pri
    - Flag net-new items  -  these are the additions
    - Surface the net-new and updated items to the user for confirmation before writing
 
-7a. **Inference-vs-explicit cross-check**  -  For every decision extracted that was *derived by reasoning* (data analysis, synthesis of multiple statements, BA judgement) rather than *directly stated* by a speaker: re-scan the same source material specifically for explicit, direct statements on the same topic, even ones that appeared earlier or later in the transcript, in a different part of the conversation. If a direct statement conflicts with the inference-based decision, the direct statement wins by default  -  surface the conflict to the user rather than presenting the inferred decision as confirmed. Tag inference-based decisions with `basis: inferred` vs `basis: explicit-quote` in the tracker so this check is auditable later. *(Added 2 Jul 2026, Sample Initiative mid-initiative retro  -  see D-147 vs D-163.)*
+7a. **Inference-vs-explicit cross-check**  -  For every decision extracted that was *derived by reasoning* (data analysis, synthesis of multiple statements, BA judgement) rather than *directly stated* by a speaker: re-scan the same source material specifically for explicit, direct statements on the same topic, even ones that appeared earlier or later in the transcript, in a different part of the conversation. If a direct statement conflicts with the inference-based decision, the direct statement wins by default  -  surface the conflict to the user rather than presenting the inferred decision as confirmed. Tag inference-based decisions with `basis: inferred` vs `basis: explicit-quote` in the tracker so this check is auditable later.
 
 8. **Question-to-action gap check**  -  For every open question extracted:
    - Does an action exist to answer it? (Who will find out? By when?)

@@ -9,7 +9,7 @@ The one rule that decides **what to load and whether to act**. Runs before respo
 
 ## 0. Workspace detection and default agent
 
-The BA Assistant orchestrator is the **default agent** in any workspace containing `blueprints/Project*/`, `.cursor/skills/ba-assistant/`, or a `your shared BA workspace` root, or set up per SETUP.md. The user does not type `/ba-assistant` — classify the turn and engage silently when BA-related. Outside BA workspaces, never auto-engage.
+The BA Assistant orchestrator is the **default agent** in any workspace containing `.cursor/skills/ba-assistant/` or an initiative folder, or set up per SETUP.md. The user does not type `/ba-assistant` — classify the turn and engage silently when BA-related. Outside BA workspaces, never auto-engage.
 
 ## 1. Project context (first chat in a workspace)
 

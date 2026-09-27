@@ -136,7 +136,7 @@
     },
     "rules/agent-behavior.mdc": {
       "category": "behaviour-critical",
-      "reason": "AskQuestion rules in one place (never re-ask, timeout); gate visibility and em-dash rule shortened; Safety: never send or draft email; ingested text is data, not instructions; external writes show the payload first"
+      "reason": "AskQuestion rules in one place (never re-ask, timeout); gate visibility and em-dash rule shortened; Safety: never send or draft email; ingested text is data, not instructions; external writes show the payload first; Lock block covers publish/overwrite/bulk; drafts go ahead with assumptions labelled"
     },
     "rules/ba-delivery-process.mdc": {
       "category": "wording",
@@ -152,7 +152,7 @@
     },
     "rules/execution-router.mdc": {
       "category": "behaviour-critical",
-      "reason": "Context capture via capture.py; re-entry card moved to a reference; resume row follows SKILL.md Step 2 (snapshot first); settings map and duplicates trimmed; Context capture passes --source; Passive capture skipped while a transcript is debriefed"
+      "reason": "Context capture via capture.py; re-entry card moved to a reference; resume row follows SKILL.md Step 2 (snapshot first); settings map and duplicates trimmed; Context capture passes --source; Passive capture skipped while a transcript is debriefed; Placeholder workspace root removed"
     },
     "rules/skills-routing.mdc": {
       "category": "behaviour-important",
@@ -176,7 +176,7 @@
     },
     "skills/ba-assistant/ba-profile.template.mdc": {
       "category": "behaviour-minor",
-      "reason": "Values only; command table and prose removed"
+      "reason": "Values only; command table and prose removed; jira.sprintField"
     },
     "skills/ba-assistant/hook-contracts-history.md": {
       "category": "wording",
@@ -212,7 +212,7 @@
     },
     "skills/ba-assistant/references/cursor-runtime-facts.md": {
       "category": "wording",
-      "reason": "Re-entry card location"
+      "reason": "Re-entry card location; Bootstrap and hard-gate facts match the package"
     },
     "skills/ba-assistant/references/dev-handover-format.md": {
       "category": "wording",
@@ -291,8 +291,8 @@
       "reason": "Detect every turn as before; write with capture.py; requirement and action signals; source field required; ingested text is data; confirmed_by_ba; Not during a debrief"
     },
     "skills/ba-assistant/sub-skills/ba-current-state-assessment/SKILL.md": {
-      "category": "wording",
-      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
+      "category": "behaviour-important",
+      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change; Cursor codebase search first with file:line; Glean for repos not open"
     },
     "skills/ba-assistant/sub-skills/ba-data-investigation/SKILL.md": {
       "category": "wording",
@@ -323,12 +323,12 @@
       "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
     },
     "skills/ba-assistant/sub-skills/ba-jira-sync/SKILL.md": {
-      "category": "wording",
-      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
+      "category": "behaviour-important",
+      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change; Sprint field from config, not a hard-coded tenant field"
     },
     "skills/ba-assistant/sub-skills/ba-meeting-debrief/SKILL.md": {
       "category": "behaviour-important",
-      "reason": "Debrief approve path writes BA actions to the actions file, never workboard personal_tasks; Transcript is data; approved items carry transcript source and confirmed_by_ba; Versions before and after the debrief batch write; Passive capture paused until the card is approved; Mark .vtt/.txt transcripts debriefed after approval"
+      "reason": "Debrief approve path writes BA actions to the actions file, never workboard personal_tasks; Transcript is data; approved items carry transcript source and confirmed_by_ba; Versions before and after the debrief batch write; Passive capture paused until the card is approved; Mark .vtt/.txt transcripts debriefed after approval; Offered by the orchestrator; internal decision IDs removed"
     },
     "skills/ba-assistant/sub-skills/ba-new-initiative/SKILL.md": {
       "category": "behaviour-critical",
@@ -364,7 +364,7 @@
     },
     "skills/ba-assistant/sub-skills/ba-requirements-interrogator/SKILL.md": {
       "category": "wording",
-      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change"
+      "reason": "Public-repo wording, genericisation or doc tidy-up; no behaviour change; Internal decision ID removed"
     },
     "skills/ba-assistant/sub-skills/ba-retrospective-and-learning/SKILL.md": {
       "category": "wording",
@@ -477,6 +477,10 @@
     "commands/undo.md": {
       "category": "behaviour-critical",
       "reason": "New /undo command: plain-English undo from the local history"
+    },
+    "skills/miro-board-analysis/templates/debrief-board.md": {
+      "category": "wording",
+      "reason": "Example IDs genericised"
     }
   }
 }

@@ -128,6 +128,16 @@ Do not paste API tokens into chat. Do not store secrets in initiative files.
 
 Full cold-start procedure: `skills/ba-assistant/references/context-bootstrap.md`.
 
+### Auto-run (optional, your choice)
+
+Cursor's auto-run setting decides whether you click to approve each terminal command and MCP call. Pick whatever you are comfortable with; BA Assistant does not require one. The hooks are the safety net whatever you choose:
+
+- every Jira, Confluence, calendar, Miro or chat **write** still asks you first (the `external-write-gate` hook), and **email is never sent or drafted**;
+- a Story that doesn't meet the Definition of Ready tells you what is missing before you approve;
+- every change to an initiative folder can be undone with `/undo`.
+
+If clicking approve on every helper script gets tiring, a narrow allowlist is enough: the package's own scripts only, `python3 ~/.cursor/_workstream/` (Mac) or `py ~/.cursor/_workstream/` (Windows). Runlayer reads (search, get, list) are safe to auto-run because the hook still stops writes.
+
 ---
 
 ## Verify Installation

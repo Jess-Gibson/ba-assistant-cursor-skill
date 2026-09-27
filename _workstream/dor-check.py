@@ -112,23 +112,39 @@ def config_initiatives_root(cursor_home: Path) -> str:
     return "" if not value or value.startswith("[") else os.path.expanduser(value)
 
 
+def folder_key(path) -> tuple | str:
+    """Same folder, however it is spelled: initiatives/ and Initiatives/ on a
+    case-insensitive disk (macOS, Windows), symlinks, short names."""
+    try:
+        st = os.stat(path)
+        if st.st_ino:
+            return (st.st_dev, st.st_ino)
+    except OSError:
+        pass
+    return os.path.normcase(os.path.realpath(str(path)))
+
+
 def initiative_roots(cursor_home: Path) -> list[Path]:
     roots = [os.environ.get("BA_INITIATIVES_ROOT", "") or config_initiatives_root(cursor_home),
              str(cursor_home / "initiatives"), str(cursor_home / "Initiatives"), str(cursor_home / "blueprints")]
     out: list[Path] = []
+    keys: set = set()
     for r in roots:
-        if r and os.path.isdir(r) and os.path.realpath(r) not in [os.path.realpath(x) for x in out]:
+        if r and os.path.isdir(r) and folder_key(r) not in keys:
+            keys.add(folder_key(r))
             out.append(Path(r))
     return out
 
 
 def all_initiatives(cursor_home: Path) -> list[Path]:
     found: list[Path] = []
+    keys: set = set()
     for root in initiative_roots(cursor_home):
         for marker in ("status-data.json", "SESSION-CONTEXT.md"):
             for p in glob.glob(str(root / "**" / marker), recursive=True):
                 d = Path(p).parent
-                if d not in found:
+                if folder_key(d) not in keys:
+                    keys.add(folder_key(d))
                     found.append(d)
     return found
 

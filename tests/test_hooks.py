@@ -352,6 +352,25 @@ def main():
         check("Transcripts: a marked file drops off the session-start list",
               "meeting-00.docx" not in session_init(tr_home)["additional_context"])
 
+        # macOS (/var -> /private/var) and Windows (RUNNER~1) spell the same Downloads path two
+        # ways; a transcript recorded under one spelling must still match the other.
+        if hasattr(os, "symlink"):
+            real_home = make_home(tmp, initiatives=("solo",))
+            (real_home / "Downloads").mkdir()
+            (real_home / "Downloads" / "retro.vtt").write_text("WEBVTT\n", encoding="utf-8")
+            alias = Path(tmp) / "home-alias"
+            try:
+                os.symlink(real_home, alias, target_is_directory=True)
+                made = True
+            except OSError:
+                made = False
+            if made:
+                (real_home / ".cursor" / "_workstream" / "processed-transcripts.json").write_text(
+                    json.dumps({"processed": [str((real_home / "Downloads" / "retro.vtt").resolve())]}), encoding="utf-8")
+                ctxt = session_init(alias)["additional_context"]
+                check("Transcripts: a debriefed file matches even when the home path is spelled differently",
+                      "retro.vtt" not in ctxt, ctxt[-300:])
+
         # --- Installer: afterFileEdit retired, missing hook scripts reported ---
         inst = load_module(REPO / "tools" / "install-ba-assistant.py", "inst_quick")
         pkg = json.loads((REPO / "hooks" / "hooks.json").read_text(encoding="utf-8"))["hooks"]

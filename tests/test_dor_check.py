@@ -148,6 +148,20 @@ def main():
         check("Description-only story (register table, MoSCoW line, sections) passes",
               out["user_message"].startswith("DoR met"), str(out))
 
+        # --- the same folder reached two ways (initiatives/ and Initiatives/ on macOS/Windows) ---
+        home = Path(tempfile.mkdtemp(dir=tmp))
+        make_initiative(home, "solo", register="### REQ-7 · Audit trail\n**Status:** Confirmed\n")
+        try:
+            os.symlink(home / ".cursor" / "initiatives", home / ".cursor" / "Initiatives", target_is_directory=True)
+            alias_made = True
+        except OSError:
+            alias_made = False
+        if alias_made:
+            out = gate(home, story("Show the audit trail to admins",
+                                   "Implements REQ-7.\nMoSCoW: Should\nGiven a When b Then c\nDependencies: none\nRisks: none"))
+            check("One initiative reached through two folder spellings still counts as one",
+                  out["user_message"].startswith("DoR met"), str(out))
+
         # --- which initiative ---
         home = ready_home(tmp, "beta")
         make_initiative(home, "alpha")

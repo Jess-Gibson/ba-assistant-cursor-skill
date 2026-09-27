@@ -128,7 +128,7 @@
     },
     "hooks/session-init.py": {
       "category": "behaviour-critical",
-      "reason": "Never picks an initiative by modified time; workspace_roots / CURSOR_PROJECT_DIR; paths.* from config or profile; Initiative by workspace, config paths; SESSION-CONTEXT tail and download names fenced as untrusted data; Saves a version of initiatives that already have history at session start; Calendar refresh time-boxed to 4s; transcripts listed until debriefed (7 days, cap 10); ~/projects scan dropped"
+      "reason": "Never picks an initiative by modified time; workspace_roots / CURSOR_PROJECT_DIR; paths.* from config or profile; Initiative by workspace, config paths; SESSION-CONTEXT tail and download names fenced as untrusted data; Saves a version of initiatives that already have history at session start; Calendar refresh time-boxed to 4s; transcripts listed until debriefed (7 days, cap 10); ~/projects scan dropped; Debriefed transcripts matched however the path is spelled (macOS /private/var, Windows short names)"
     },
     "hooks/shared-repo-guard.py": {
       "category": "behaviour-critical",
@@ -460,7 +460,7 @@
     },
     "_workstream/dor-check.py": {
       "category": "behaviour-critical",
-      "reason": "DoR computed from the files (requirement status, Given/When/Then, dependencies, MoSCoW, risks); shared by the hook; --record for metrics"
+      "reason": "DoR computed from the files (requirement status, Given/When/Then, dependencies, MoSCoW, risks); shared by the hook; --record for metrics; One initiative reached through two folder spellings counts once (case-insensitive disks)"
     },
     "_workstream/extract-docx-text.py": {
       "category": "behaviour-important",

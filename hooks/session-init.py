@@ -315,7 +315,17 @@ def processed_transcripts() -> set[str]:
     except (OSError, ValueError):
         return set()
     items = data.get("processed") if isinstance(data, dict) else None
-    return {os.path.normcase(str(p)) for p in items or [] if isinstance(p, str)}
+    return {same_file_key(p) for p in items or [] if isinstance(p, str)}
+
+
+def same_file_key(path) -> str:
+    """One spelling per file: resolves symlinks (macOS /var -> /private/var),
+    Windows short names (RUNNER~1) and case, so a recorded path matches the
+    path the Downloads scan sees."""
+    try:
+        return os.path.normcase(os.path.realpath(str(path)))
+    except (OSError, ValueError):
+        return os.path.normcase(str(path))
 
 
 def scan_downloads(folders: list[str], since_mtime: float, transcript_since: float = 0.0,
@@ -347,7 +357,7 @@ def scan_downloads(folders: list[str], since_mtime: float, transcript_since: flo
                 continue
             ext = f.suffix.lower()
             if ext in TRANSCRIPT_EXTENSIONS:
-                if st.st_mtime <= transcript_since or os.path.normcase(str(f)) in processed:
+                if st.st_mtime <= transcript_since or same_file_key(f) in processed:
                     continue
             elif st.st_mtime <= since_mtime:
                 continue

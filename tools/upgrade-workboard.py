@@ -32,6 +32,8 @@ OPTIONAL_COMMANDS = [
 OPTIONAL_IF_MISSING = [
     ("_workstream/regenerate-ba-actions-md.py", "_workstream/regenerate-ba-actions-md.py"),
     ("skills/ba-assistant/references/ba-actions-format.md", "skills/ba-assistant/references/ba-actions-format.md"),
+    # The canvas End of Day prompt follows this procedure; older installs may not have it.
+    ("skills/ba-assistant/references/eod-closeout-procedure.md", "skills/ba-assistant/references/eod-closeout-procedure.md"),
 ]
 
 OPTIONAL_WRAP = ("commands/wrap.md", "commands/wrap.md")

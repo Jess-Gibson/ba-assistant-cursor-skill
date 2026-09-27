@@ -180,17 +180,35 @@ def find_initiatives(roots: list[str]) -> list[tuple[Path, float]]:
                 key = f"{st.st_dev}:{st.st_ino}" if st.st_ino else os.path.normcase(str(f.resolve()))
             except OSError:
                 continue
-            found[key] = (f, mtime)
+            # Keep the FIRST path a file was reached by. Roots are ordered config,
+            # then initiatives/, then Initiatives/, so the alias never replaces
+            # the path the workspace will be compared against.
+            if key not in found:
+                found[key] = (f, mtime)
     return sorted(found.values(), key=lambda item: item[1], reverse=True)
 
 
 def is_within(child: Path, parent: Path) -> bool:
-    """Path containment by path parts, not string prefix (repo-old is not inside repo)."""
+    """Path containment by path parts, not string prefix (repo-old is not inside repo).
+    Falls back to samefile() on each ancestor, so a different spelling of the
+    same folder (Initiatives/ vs initiatives/ on a case-insensitive disk) still
+    counts as inside."""
     try:
         child.resolve().relative_to(parent.resolve())
         return True
     except (OSError, ValueError):
+        pass
+    try:
+        target = parent.resolve()
+        for ancestor in (child.resolve(), *child.resolve().parents):
+            try:
+                if os.path.samefile(ancestor, target):
+                    return True
+            except OSError:
+                continue
+    except OSError:
         return False
+    return False
 
 
 def read_hook_input() -> dict:

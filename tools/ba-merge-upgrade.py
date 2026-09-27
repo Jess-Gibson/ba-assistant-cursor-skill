@@ -10,9 +10,12 @@ reviewable flow:
     backup -> stage -> classify -> (decide) -> apply-staging -> deploy-plan -> deploy
                                                                    rollback (any time after backup)
 
-What this tool does NOT do: it never merges file content and never decides.
-Files that both you and the new version changed are listed for a person (or
-Cursor, with you approving) to merge by hand into <session>/merged/.
+What this tool decides for you: nothing. It sorts files, and for behaviour
+files you and the new version both changed it runs git's line merge
+(git merge-file). A clean result is written to <session>/merged/ and still
+needs your sign-off (auto_merged_reviewed in decisions.json) before anything
+is built; an overlap becomes a question for a person (or Cursor, with you
+approving) to resolve by hand.
 
 Your naming is kept. The public package is generic (ba-actions, [BA name]);
 your install may use your own names (for example alex-actions). Give classify a
@@ -49,7 +52,8 @@ Steps (see docs/PERSONALISED-UPGRADE.md for the full walkthrough):
       Drift check, copy only planned files, verify, auto-rollback on failure.
 
   python3 tools/ba-merge-upgrade.py rollback --session <dir>
-      Puts the backup back exactly (moves the current files aside first).
+      Puts every backed-up file back byte for byte (moves the current files
+      aside first). Symlinks and cache folders are listed, not restored.
 """
 from __future__ import annotations
 
@@ -398,7 +402,8 @@ def write_rollback_doc(session: Path, roots: dict[str, Path]) -> None:
     lines = [
         "# Rollback",
         "",
-        "Puts your BA Assistant install back exactly as it was when this backup was taken.",
+        "Puts every backed-up BA Assistant file back byte for byte, as it was when this backup was taken.",
+        "Symlinks and cache folders (__pycache__) were not backed up; they are listed in manifest.json.",
         "",
         "## One command",
         "",
@@ -455,6 +460,11 @@ def cmd_stage(args) -> int:
         die(f"staging copy does not match the backup: {bad[:5]}")
     say(f"Staging ready: {staging}")
     say("It is a full copy of your install. Nothing in your real Cursor home was touched.")
+    external = {k: v for k, v in (load_json(session / "manifest.json", {}) or {}).get("roots", {}).items() if k != "home"}
+    if external:
+        say("WARNING these folders are outside the Cursor home and are NOT copied into staging. Commands run "
+            "with 'run' read them live, and a command that writes to them writes to the real folder: "
+            + ", ".join(external.values()))
     say(f'Test tools against it with: run --session "{session}" -- <command>')
     return 0
 
@@ -477,6 +487,9 @@ def cmd_run(args) -> int:
     env.pop("BA_INITIATIVES_ROOT", None)
     env.pop("CURSOR_SESSION_CONTEXT_PATH", None)
     say(f"[staging home: {home}]")
+    external = {k: v for k, v in (load_json(session / "manifest.json", {}) or {}).get("roots", {}).items() if k != "home"}
+    if external:
+        say(f"[read live, not staged: {', '.join(external.values())}]")
     # Hooks read stdin until it closes, so always give them input (empty by default).
     feed = Path(args.stdin).read_text(encoding="utf-8") if args.stdin else ""
     return subprocess.run(cmd, env=env, input=feed, text=True).returncode
@@ -962,7 +975,11 @@ def cmd_classify(args) -> int:
         findings.append(f"Port manifest used: {manifest_path.name}. Only behaviour changes are brought in; "
                         "wording-only changes keep your version.")
 
+    classification_id = hashlib.sha256(
+        json.dumps([(r["path"], r["class"], r["decision"]) for r in rows], sort_keys=True).encode("utf-8")
+    ).hexdigest()[:16]
     write_json(session / "classification.json", {
+        "id": classification_id,
         "base": str(base), "new": str(new), "rules": str(rules_path) if rules_path else None,
         "new_commit": git_head(new), "base_commit": git_head(base),
         "personal_files": sorted(CTX["personal_files"]),
@@ -972,13 +989,20 @@ def cmd_classify(args) -> int:
     })
     decisions_path = session / "decisions.json"
     if decisions_path.exists() and not args.overwrite_decisions:
-        say(f"NOTE {decisions_path} already exists and was left alone (pass --overwrite-decisions to regenerate).")
+        old_id = (load_json(decisions_path, {}) or {}).get("classification_id")
+        if old_id != classification_id:
+            say(f"WARNING {decisions_path} was made for a different classification. apply-staging will refuse it. "
+                "Re-run classify with --overwrite-decisions (your answers are then asked again).")
+        else:
+            say(f"NOTE {decisions_path} already exists and still matches; left alone.")
     else:
         write_json(decisions_path, {
             "_help": "Set each 'ask' to take_new, keep_mine, or merged (merged = you wrote the result, in your "
                      "own naming, to <session>/merged/<path>). For class G, take_new restores the package file; "
                      "keep_mine leaves it missing. For class F, remove moves your copy aside at deploy. "
                      "patch_profile true replaces only the old /wrap and /validate-state rows in ba-profile.mdc.",
+            "classification_id": classification_id,
+            "auto_merged_reviewed": False,
             "patch_profile": False,
             "create_config": False,
             "files": {r["path"]: {"class": r["class"], "decision": r["decision"]} for r in rows
@@ -1131,6 +1155,12 @@ def cmd_apply_staging(args) -> int:
     pending = sorted(p for p, d in files.items() if d.get("decision") == "ask")
     if pending:
         die(f"{len(pending)} decision(s) still 'ask' in decisions.json, e.g. {pending[:5]}")
+    if decisions.get("classification_id") != cls_data.get("id"):
+        die("decisions.json does not match the latest classify run. Re-run classify with --overwrite-decisions.")
+    auto = [r["path"] for r in cls_data["rows"] if r.get("auto_merged") and files.get(r["path"], {}).get("decision") == "merged"]
+    if auto and not decisions.get("auto_merged_reviewed"):
+        die(f"{len(auto)} auto-merged file(s) in merged/ have not been signed off. Review them "
+            "(report.md lists them), then set auto_merged_reviewed to true in decisions.json.")
     new = Path(cls_data["new"])
     loc = Localiser(Path(cls_data["rules"]) if cls_data.get("rules") else None)
     CTX["personal_files"] = set(cls_data.get("personal_files") or PERSONAL_FILES)
@@ -1441,11 +1471,17 @@ def cmd_deploy(args) -> int:
         say(f"DEPLOY FAILED: {exc}")
         say("Rolling back to the backup ...")
         rc = do_rollback(session)
-        say("Rollback complete; your install is exactly as it was." if rc == 0 else
+        say("Rollback complete; every backed-up file matches the backup." if rc == 0 else
             f"Rollback reported a problem. Follow {session / 'ROLLBACK.md'} by hand.")
         return 1
 
     write_json(session / "deploy-result.json", {"deployed": done, "at": ts})
+    baseline = {}
+    for entry in home_includes():
+        p = home / entry
+        files_now = {entry: p} if p.is_file() else {f"{entry}/{k}": v for k, v in walk_files(p)[0].items()} if p.is_dir() else {}
+        baseline.update({k: sha256_file(v) for k, v in files_now.items()})
+    write_json(session / "post-deploy-manifest.json", {"at": ts, "files": baseline})
     say(f"Deployed {len(done)} file(s). Every deployed file and every untouched file verified by hash.")
     say("Open a NEW Cursor chat and run /ba-assistant, then /workboard.")
     say(f"If anything feels wrong: rollback --session \"{session}\"")
@@ -1500,6 +1536,43 @@ def cmd_rollback(args) -> int:
     session = Path(os.path.expanduser(args.session)).resolve()
     load_session(session)
     return do_rollback(session)
+
+
+def cmd_changed_since_deploy(args) -> int:
+    """Files added or changed in the real install since deploy: the allowlist
+    for the first sync back to the repo (so kept-as-yours wording files that
+    you have not touched are never pushed back)."""
+    session = Path(os.path.expanduser(args.session)).resolve()
+    meta = load_session(session)
+    base = load_json(session / "post-deploy-manifest.json")
+    if not base:
+        die("no post-deploy-manifest.json: deploy has not run in this session.")
+    home = Path(meta["cursor_home"])
+    now = {}
+    for entry in home_includes():
+        p = home / entry
+        if p.is_file():
+            now[entry] = p
+        elif p.is_dir():
+            now.update({f"{entry}/{k}": v for k, v in walk_files(p)[0].items()})
+    changed = []
+    for path, p in sorted(now.items()):
+        if path.split("/", 1)[0] in CTX["extra_home_dirs"] or is_immutable_data(path):
+            continue  # data is never synced to the package
+        if base["files"].get(path) != sha256_file(p):
+            changed.append(("added" if path not in base["files"] else "changed", path))
+    removed = sorted(p for p in base["files"] if p not in now and not is_immutable_data(p))
+    for kind, path in changed:
+        say(f"{kind:8} {path}")
+    for path in removed:
+        say(f"removed  {path}")
+    if not changed and not removed:
+        say("Nothing changed since deploy: nothing to sync.")
+    if args.out:
+        Path(os.path.expanduser(args.out)).write_text(
+            "\n".join([p for _, p in changed] + removed) + "\n", encoding="utf-8")
+        say(f"Allowlist written to {args.out}")
+    return 0
 
 
 def cmd_drift(args) -> int:
@@ -1570,7 +1643,12 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--session", required=True)
     p.set_defaults(func=cmd_drift)
 
-    p = sub.add_parser("rollback", help="restore the backup exactly")
+    p = sub.add_parser("changed-since-deploy", help="files you changed after deploy: the allowlist for your first sync")
+    p.add_argument("--session", required=True)
+    p.add_argument("--out", help="write the list of paths to this file")
+    p.set_defaults(func=cmd_changed_since_deploy)
+
+    p = sub.add_parser("rollback", help="restore every backed-up file byte for byte")
     p.add_argument("--session", required=True)
     p.set_defaults(func=cmd_rollback)
 

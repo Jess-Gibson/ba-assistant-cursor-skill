@@ -93,6 +93,25 @@ def main():
     for key in ("domainDocs", "initiativesRoot", "downloadsPath", "projectKey", "spaceKey"):
         check(f"Config: setup captures {key} and the template has it", key in setup and key in template)
 
+    # The shared workboard overlay zip must be exactly the current sources.
+    import importlib.util
+    import zipfile
+    spec = importlib.util.spec_from_file_location("overlay_builder", REPO / "tools" / "build-workboard-overlay-zip.py")
+    builder = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(builder)
+    zip_path = REPO / "dist" / "ba-workboard-overlay.zip"
+    expected = {}
+    for rel in builder.COPY_PATHS:
+        member = Path(rel).name if rel.startswith("tools/workboard-overlay-docs/") else rel
+        # Line endings normalised: a Windows checkout may have CRLF sources.
+        expected[member] = (REPO / rel).read_bytes().replace(b"\r\n", b"\n")
+    with zipfile.ZipFile(zip_path) as zf:
+        members = {n.replace("\\", "/"): zf.read(n).replace(b"\r\n", b"\n") for n in zf.namelist() if not n.endswith("/")}
+    stale = sorted(m for m, data in expected.items() if members.get(m) != data)
+    extra = sorted(set(members) - set(expected))
+    check("Overlay zip: every member is byte-identical to its source (rebuild: tools/build-workboard-overlay-zip.py)",
+          not stale and not extra, f"stale={stale} extra={extra}")
+
     print(f"\n{'All consistency checks passed.' if not FAILURES else f'{len(FAILURES)} failed.'}")
     return 1 if FAILURES else 0
 

@@ -141,6 +141,22 @@ def main():
               wb2["meetings_date"] == "2026-09-17" and "SKIPPED" in p2.stdout, p2.stdout + p2.stderr)
         check("Canvas --eod-roll: no duplicate FAIL line on skip", "FAIL" not in p2.stdout, p2.stdout)
 
+        # --- Canvas --eod-roll stops on a failed roll (no canvas, exit 1) ---
+        home, ws = make_workstream(tmp, meetings_date="2026-09-16",
+                                   rolled={"rolled_from": "2026-09-16", "rolled_to": "2026-09-17"})
+        canvas = home / "canvas.tsx"
+        p3 = subprocess.run([PY, str(REPO / "tools" / "generate-workboard-canvas.py"), "--cursor-home", str(home / ".cursor"),
+                             "--canvas", str(canvas), "--eod-roll", "--closeout-date", "2026-09-16"],
+                            capture_output=True, text=True, timeout=60)
+        check("Canvas --eod-roll: partial roll exits 1 and writes no canvas",
+              p3.returncode == 1 and not canvas.exists() and "FAIL" in p3.stdout, p3.stdout + p3.stderr)
+        (ws / "calendar-feed.json").unlink()
+        p4 = subprocess.run([PY, str(REPO / "tools" / "generate-workboard-canvas.py"), "--cursor-home", str(home / ".cursor"),
+                             "--canvas", str(canvas), "--eod-roll", "--closeout-date", "2026-09-16"],
+                            capture_output=True, text=True, timeout=60)
+        check("Canvas --eod-roll: missing calendar feed exits 1 and writes no canvas",
+              p4.returncode == 1 and not canvas.exists(), p4.stdout + p4.stderr)
+
         # --- Canvas End of Day prompt ---
         gen_mod = load_module(REPO / "tools" / "generate-workboard-canvas.py", "gen_canvas_eod")
         config = gen_mod.load_workboard_config(home / ".cursor")

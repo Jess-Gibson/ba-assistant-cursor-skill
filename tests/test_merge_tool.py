@@ -185,6 +185,16 @@ def personalised_layout_scenario(tmp, v14):
     dec["create_config"] = True
     dec_path.write_text(json.dumps(dec, indent=2), encoding="utf-8")
     code, out = run([TOOL, "apply-staging", "--session", session], home)
+    check("Layout: apply-staging refuses until auto-merged files are signed off",
+          code == 1 and "auto_merged_reviewed" in out, out[-400:])
+    stale = dict(dec, classification_id="0000")
+    dec_path.write_text(json.dumps(stale, indent=2), encoding="utf-8")
+    code, out = run([TOOL, "apply-staging", "--session", session], home)
+    check("Layout: apply-staging refuses decisions made for another classify run",
+          code == 1 and "--overwrite-decisions" in out, out[-400:])
+    dec["auto_merged_reviewed"] = True
+    dec_path.write_text(json.dumps(dec, indent=2), encoding="utf-8")
+    code, out = run([TOOL, "apply-staging", "--session", session], home)
     stage = session / "stage-home" / ".cursor"
     cfg = stage / "rules" / "ba-assistant-config.mdc"
     check("Layout: apply-staging OK", code == 0, out[-800:])
@@ -216,6 +226,17 @@ def personalised_layout_scenario(tmp, v14):
     check("Layout: snapshots made while testing staging are not deployed",
           not (cursor / "_workstream" / "snapshots").exists())
     check("Layout: wording edit survived", "SAM WORDING KEPT" in ab.read_text(encoding="utf-8"))
+
+    # First sync after the upgrade: only what was changed after deploy is on the allowlist.
+    code, out = run([TOOL, "changed-since-deploy", "--session", session], home)
+    check("Layout: right after deploy nothing is on the sync allowlist", code == 0 and "Nothing changed" in out, out[-400:])
+    ab.write_text(ab.read_text(encoding="utf-8") + "\nedited after the upgrade\n", encoding="utf-8")
+    (ws / "sam-actions.json").write_text(json.dumps({"actions": [{"id": "BA-1"}]}), encoding="utf-8")
+    allow = tmp / "allowlist.txt"
+    code, out = run([TOOL, "changed-since-deploy", "--session", session, "--out", allow], home)
+    listed = allow.read_text(encoding="utf-8").split()
+    check("Layout: sync allowlist has the edited rule and no data or untouched wording files",
+          listed == ["rules/agent-behavior.mdc"], str(listed))
 
 
 def main():
@@ -324,6 +345,7 @@ def main():
             if d["decision"] == "ask":
                 d["decision"] = "keep_mine" if d["class"] in ("D", "G", "E") else "take_new"
         dec["patch_profile"] = True
+        dec["auto_merged_reviewed"] = True
         dec_path.write_text(json.dumps(dec, indent=2), encoding="utf-8")
 
         code, out = run([TOOL, "apply-staging", "--session", session], home)

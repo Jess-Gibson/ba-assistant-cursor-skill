@@ -81,6 +81,11 @@ def mail_tests(tmp):
     row = mail.item_row(FakeMail("[team-repo] Fix the thing", "hey @sam can you look"), "inbox", cfg)
     check("Mail: repo mail that mentions the BA is kept", not row["noise"], row)
 
+    from datetime import date as _d
+    check("Mail: default lookback Monday -> Friday", mail.default_since(_d(2026, 9, 14)) == _d(2026, 9, 11))
+    check("Mail: default lookback Tuesday -> Monday", mail.default_since(_d(2026, 9, 15)) == _d(2026, 9, 14))
+    check("Mail: default lookback Saturday -> Friday", mail.default_since(_d(2026, 9, 19)) == _d(2026, 9, 18))
+
     empty = mail.MailConfig("")
     row = mail.item_row(FakeMail("Weekly numbers for September", "can you check"), "inbox", empty)
     check("Mail: with no config, nothing organisation-specific is filtered", not row["noise"], row)
@@ -140,10 +145,24 @@ def snapshot_tests(tmp):
           and data["current"]["nextAction"] == "Chase sign-off" and data["actions"][0]["id"] == "BA-001", data)
     code, out = run("--check", "payments")
     check("Snapshot: fresh right after generating (exit 0)", code == 0 and "FRESH" in out, out)
-    future = time.time() + 30
-    os.utime(init / "SESSION-CONTEXT.md", (future, future))
+    (ws / "ba-actions.json").write_text(json.dumps({"actions": [
+        {"id": "BA-002", "task": "Different", "status": "open", "initiative": "payments"}]}), encoding="utf-8")
     code, out = run("--check", "payments")
-    check("Snapshot: a source edited later makes it STALE (exit 1)", code == 1 and "STALE" in out, out)
+    check("Snapshot: a changed action (workstream input) makes it STALE", code == 1 and "ba-actions.json" in out, out)
+    run()
+    code, out = run("--check", "payments")
+    check("Snapshot: fresh again after regenerating", code == 0 and "FRESH" in out, out)
+    ctx = init / "SESSION-CONTEXT.md"
+    st = ctx.stat()
+    ctx.write_text(ctx.read_text(encoding="utf-8") + "new line\n", encoding="utf-8")
+    os.utime(ctx, (st.st_atime, st.st_mtime))  # same timestamp as before: an mtime check would miss it
+    code, out = run("--check", "payments")
+    check("Snapshot: an edit with an unchanged timestamp is still STALE", code == 1 and "STALE" in out, out)
+    (init / "Project-hub.md").write_text("# hub\n", encoding="utf-8")
+    run()
+    (init / "Project-hub.md").unlink()
+    code, out = run("--check", "payments")
+    check("Snapshot: a source file that disappeared makes it STALE", code == 1 and "Project-hub.md" in out, out)
     snap.write_text("{ not json", encoding="utf-8")
     code, out = run("--check", "payments")
     check("Snapshot: unreadable file is MALFORMED (exit 1)", code == 1 and "MALFORMED" in out, out)

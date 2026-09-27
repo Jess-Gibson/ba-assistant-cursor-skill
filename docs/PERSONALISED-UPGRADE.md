@@ -8,10 +8,12 @@ version. This flow keeps your changes.
 
 ## Who does what
 
-The script never merges file content and never decides. It does the jobs where
-exact and repeatable beats clever: backup, hashing, sorting files, copying only
-what you approved, and rollback. Anything that needs judgement is done by you,
-or by Cursor with you approving each file.
+The script never decides for you. It does the jobs where exact and repeatable
+beats clever: backup, hashing, sorting files, copying only what you approved,
+and rollback. The one merge it does is git's line merge for behaviour files that
+you and the new version both changed; a clean result still needs your sign-off
+(`auto_merged_reviewed`) before anything is built, and an overlap is left for you
+(or Cursor, with you approving) to resolve.
 
 | Job | Who |
 |---|---|
@@ -19,7 +21,7 @@ or by Cursor with you approving each file.
 | Backup, hash manifest, zip test, restore rehearsal | Script |
 | Work out your naming rules (`rules.json`) | Cursor, from your sync-to-repo skill or your install |
 | Sort every file into a class | Script |
-| Merge any file you and the new version both changed | Cursor, one file at a time, you approve |
+| Merge a behaviour file you and the new version both changed | Script tries git's line merge; you (or Cursor) review every result and resolve overlaps |
 | Your own skills, rules, profile, tone, data | Never touched |
 | Deploy, verify, roll back if anything fails | Script |
 
@@ -104,7 +106,8 @@ python3 ba-new/tools/ba-merge-upgrade.py classify --session <session> --base ba-
 
 # 5. Build the upgraded install in staging, then test it there. Staging is a whole
 #    fake home (<session>/stage-home/.cursor); "run" points HOME at it, so hooks and
-#    scripts read staging's config, workstream and initiatives, never your real ones.
+#    scripts read staging's config, workstream and initiatives, not your real .cursor.
+#    Initiative folders OUTSIDE .cursor are not copied: they are read live (stage warns).
 python3 ba-new/tools/ba-merge-upgrade.py apply-staging --session <session>
 python3 ba-new/tools/ba-merge-upgrade.py run --session <session> -- python3 <session>/stage-home/.cursor/hooks/session-init.py
 
@@ -114,7 +117,7 @@ python3 ba-new/tools/ba-merge-upgrade.py deploy-plan --session <session>
 # 7. Deploy exactly that plan (the id comes from step 6)
 python3 ba-new/tools/ba-merge-upgrade.py deploy --session <session> --plan-sha <id>
 
-# Any time after step 1: put everything back exactly
+# Any time after step 1: put every backed-up file back, byte for byte
 python3 ba-new/tools/ba-merge-upgrade.py rollback --session <session>
 ```
 
@@ -143,7 +146,7 @@ Steps:
 4. Build rules.json in the session folder: read my sync-to-repo skill (if I have one) and list every local-to-generic name pair it uses, plus any of my file names that are renamed package files. Show me the pairs as a table with values masked (first 3 characters, then ***) and ask me to confirm.
 5. Run classify with --rules. Show me the class counts, the Findings section of report.md, and the hooks.json section.
 6. Go through every "ask" in decisions.json with me, highest-risk first:
-   - Auto-merged files: they are already in merged/ with decision "merged". For each, show me a two-line summary of what changed from my version. Critical ones first.
+   - Auto-merged files: they are already in merged/ with decision "merged". For each, show me a two-line summary of what changed from my version. Critical ones first. Only when I say they are fine, set auto_merged_reviewed to true.
    - Conflicts (a .conflict file next to the path in merged/): resolve each into merged/<path> in MY naming, keeping my intent and the new version's behaviour fix, show me the result, then set "merged".
    - hooks.json: explain each dropped or changed registration. Recommend take_new, or merged (write the merged hooks.json yourself) if I want to keep a setting such as failClosed.
    - Other D files: read my version, the old version and the new version. Explain in plain English what I changed and what the new version changed. Recommend one of: take_new (and why my change is not needed), keep_mine (and what I miss from the new version), or merged. For merged, write the merged file in MY naming to <session>/merged/<path> and show me a short summary of the result before I approve it.
@@ -163,7 +166,26 @@ Steps:
 11. Tell me to open a new chat and run /ba-assistant, then /workboard. Remind me of the rollback command and where the session folder is.
 ```
 
+## Your first sync back to the repo
+
+You kept your own version of every wording-only file. A full sync would push
+those back over the public clean-up. So the first time, sync only what you
+changed after the upgrade:
+
+```bash
+python3 ba-new/tools/ba-merge-upgrade.py changed-since-deploy --session <session> --out allowlist.txt
+```
+
+1. Reset your public clone to the merged `main`.
+2. Run your sync as a dry run, limited to the paths in `allowlist.txt`.
+3. Reject any wording-only file (see `docs/V15-UPGRADE-MANIFEST.md`) unless it is on the list.
+4. Check `git diff --name-status` before you push.
+
 ## If something goes wrong
+
+- **You find a bug after deploying:** `rollback` first, then run the whole flow
+  again against the fixed release with a new session. Never classify an install
+  that is already half upgraded.
 
 - **Deploy stopped with "your real install changed":** something wrote to your
   install after the backup. Nothing was deployed. Start again from backup

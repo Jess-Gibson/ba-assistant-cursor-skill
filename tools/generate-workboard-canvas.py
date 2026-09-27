@@ -530,11 +530,13 @@ def resolve_actions_path(workstream: Path, config: dict) -> Path:
     return workstream / f"{config['actions_file']}.json"
 
 
-def run_eod_calendar_roll(workstream: Path, closeout_date: str | None = None) -> str:
+def run_eod_calendar_roll(workstream: Path, closeout_date: str | None = None) -> tuple[bool, str]:
+    """(ok, meetings_date). ok is False when the roll failed; the caller must
+    stop instead of generating a canvas for a board that did not roll."""
     script = workstream / "roll-calendar-eod.py"
     if not script.exists():
         print(f"Gate: calendar-roll: FAIL (missing {script})")
-        return date.today().isoformat()
+        return False, date.today().isoformat()
     cmd = [sys.executable, str(script), "--workstream", str(workstream)]
     if closeout_date:
         cmd.extend(["--closeout-date", closeout_date])
@@ -548,7 +550,7 @@ def run_eod_calendar_roll(workstream: Path, closeout_date: str | None = None) ->
     if proc.returncode != 0 and "Gate: calendar-roll:" not in (proc.stdout or ""):
         print("Gate: calendar-roll: FAIL (roll-calendar-eod.py exited non-zero)")
     wb = read_json(workstream / "workboard.json", {})
-    return str(wb.get("meetings_date") or date.today().isoformat())
+    return proc.returncode == 0, str(wb.get("meetings_date") or date.today().isoformat())
 
 
 def main() -> int:
@@ -577,7 +579,10 @@ def main() -> int:
         config["canvas_path"] = posix(args.canvas.expanduser().resolve())
 
     if args.eod_roll:
-        args.today = run_eod_calendar_roll(workstream, args.closeout_date)
+        ok, args.today = run_eod_calendar_roll(workstream, args.closeout_date)
+        if not ok:
+            print("Canvas not generated: calendar roll failed. Fix the calendar feed first; nothing else was written.")
+            return 1
 
     workboard = read_json(workstream / "workboard.json", {"initiatives": []})
     actions = read_json(resolve_actions_path(workstream, config), {"actions": []})

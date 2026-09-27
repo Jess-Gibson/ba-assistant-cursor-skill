@@ -19,7 +19,7 @@ import json
 import os
 import re
 import sys
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -52,7 +52,7 @@ def local_now() -> datetime:
                 continue
         return resolved
     except (OSError, ValueError):
-        return datetime.now(ZoneInfo("Australia/Sydney"))
+        return datetime.now(timezone.utc)
 
 
 def local_midnight(value: date, resolved_tz) -> datetime:
@@ -65,7 +65,7 @@ def local_midnight(value: date, resolved_tz) -> datetime:
             raise ValueError("local timezone unavailable")
         return resolved
     except (OSError, ValueError):
-        return datetime.combine(value, time.min, tzinfo=ZoneInfo("Australia/Sydney"))
+        return datetime.combine(value, time.min, tzinfo=timezone.utc)
 
 
 def parse_rule_value(text: str, key: str) -> str | None:
@@ -273,7 +273,7 @@ def roll_calendar_eod(workstream: Path, closeout_date: date | None = None) -> di
     ]
 
     now = local_now()
-    resolved_tz = now.tzinfo or ZoneInfo("Australia/Sydney")
+    resolved_tz = now.tzinfo or timezone.utc
     cal["range_start"] = local_midnight(today, resolved_tz).isoformat(timespec="microseconds")
     cal["range_end"] = local_midnight(
         tomorrow + timedelta(days=1), resolved_tz

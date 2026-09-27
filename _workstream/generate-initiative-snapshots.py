@@ -20,6 +20,7 @@ Initiatives folder: BA_INITIATIVES_ROOT, else paths.initiativesRoot in
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -91,15 +92,30 @@ def first_value(text: str, label: str) -> str | None:
     return match.group(1).strip() if match else None
 
 
+def file_sha256(path: Path) -> str | None:
+    try:
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+    except OSError:
+        return None
+
+
 def file_info(path: Path) -> dict:
+    exists = path.exists()
     return {
         "path": str(path),
-        "exists": path.exists(),
-        "modifiedAt": datetime.fromtimestamp(path.stat().st_mtime).astimezone().isoformat() if path.exists() else None,
+        "exists": exists,
+        "modifiedAt": datetime.fromtimestamp(path.stat().st_mtime).astimezone().isoformat() if exists else None,
+        "sha256": file_sha256(path) if exists else None,
     }
 
 
-def snapshot(initiatives_root: Path, initiative: dict, actions: list[dict], calendar: dict) -> dict:
+# Workstream files a snapshot reads (actions, status, meetings). A change to any
+# of them makes the snapshot STALE, same as a change to the initiative's files.
+WORKSTREAM_INPUTS = ("workboard.json", "ba-actions.json", "calendar-feed.json")
+
+
+def snapshot(initiatives_root: Path, initiative: dict, actions: list[dict], calendar: dict,
+             workstream: Path | None = None) -> dict:
     slug = str(initiative["slug"])
     root = initiatives_root / slug
     tracker, session = root / "initiative-tracker.md", root / "SESSION-CONTEXT.md"
@@ -118,6 +134,9 @@ def snapshot(initiatives_root: Path, initiative: dict, actions: list[dict], cale
         if any(term in str(item).lower() for term in terms)
     ][:5]
     sources = {name: file_info(root / name) for name in SOURCE_FILES}
+    if workstream is not None:
+        for name in WORKSTREAM_INPUTS:
+            sources[f"_workstream/{name}"] = file_info(workstream / name)
     return {
         "schemaVersion": 1,
         "role": "retrieval-index",
@@ -139,23 +158,28 @@ def snapshot(initiatives_root: Path, initiative: dict, actions: list[dict], cale
     }
 
 
-def check_snapshot(snapshots: Path, initiatives_root: Path, slug: str) -> tuple[str, str]:
-    """FRESH only when the snapshot parses and no source file changed after it
-    was generated. Anything else means: read the source files instead."""
+def check_snapshot(snapshots: Path, initiatives_root: Path, slug: str, workstream: Path) -> tuple[str, str]:
+    """FRESH only when the snapshot parses and every file it was built from is
+    byte-identical (SHA-256) to when it was made, including files that have
+    appeared or disappeared since. Anything else: read the source files."""
     path = snapshots / f"{slug}.json"
     if not path.exists():
         return "MISSING", f"no snapshot at {path}"
     try:
         data = json.loads(path.read_text(encoding="utf-8-sig"))
-        generated = datetime.fromisoformat(data["generatedAt"]).timestamp()
-        if data.get("initiative", {}).get("slug") != slug:
+        recorded = data["sources"]
+        if data.get("initiative", {}).get("slug") != slug or not isinstance(recorded, dict):
             return "MALFORMED", "snapshot is for a different initiative"
     except (ValueError, KeyError, TypeError, AttributeError):
         return "MALFORMED", f"cannot read {path}"
     root = initiatives_root / slug
-    for name in SOURCE_FILES:
-        src = root / name
-        if src.exists() and src.stat().st_mtime > generated + 1:
+    expected = {name: root / name for name in SOURCE_FILES}
+    expected.update({f"_workstream/{name}": workstream / name for name in WORKSTREAM_INPUTS})
+    for name, src in expected.items():
+        entry = recorded.get(name)
+        if not isinstance(entry, dict) or "sha256" not in entry:
+            return "STALE", f"snapshot does not record {name} (made by an older version)"
+        if file_sha256(src) != entry.get("sha256"):
             return "STALE", f"{name} changed after the snapshot was made"
     return "FRESH", str(path)
 
@@ -172,7 +196,7 @@ def main() -> int:
     snapshots = workstream / "snapshots"
 
     if args.check:
-        state, detail = check_snapshot(snapshots, initiatives_root, args.check)
+        state, detail = check_snapshot(snapshots, initiatives_root, args.check, workstream)
         print(f"Snapshot: {state} ({detail})")
         return 0 if state == "FRESH" else 1
 
@@ -189,7 +213,7 @@ def main() -> int:
         output = snapshots / f"{slug}.json"
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(
-            json.dumps(snapshot(initiatives_root, initiative, actions, calendar), indent=2) + "\n",
+            json.dumps(snapshot(initiatives_root, initiative, actions, calendar, workstream), indent=2) + "\n",
             encoding="utf-8",
         )
         print(f"Snapshot: {output}")

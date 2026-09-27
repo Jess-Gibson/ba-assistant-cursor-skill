@@ -135,7 +135,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--since",
         default=None,
-        help="ISO date inclusive (default: last Friday before today, or today-3 weekdays)",
+        help="ISO date inclusive (default: the previous working day)",
     )
     p.add_argument(
         "--out",
@@ -148,8 +148,12 @@ def parse_args() -> argparse.Namespace:
 
 
 def default_since(today: date) -> date:
-    """Three calendar days back, so a Monday run still covers Friday."""
-    return today - timedelta(days=3)
+    """The previous working day: Monday looks back to Friday, Tuesday to Monday,
+    and a weekend run to Friday. End of day passes --since explicitly."""
+    d = today - timedelta(days=1)
+    while d.weekday() >= 5:
+        d -= timedelta(days=1)
+    return d
 
 
 def local_now() -> datetime:

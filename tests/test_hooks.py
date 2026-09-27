@@ -118,6 +118,34 @@ def main():
         check("P1 workspace 'payroll' does not also match 'pay'",
               out["env"]["CURSOR_SESSION_CONTEXT_PATH"] == str(ws / "SESSION-CONTEXT.md"))
 
+        # --- Case-insensitive disk (macOS default): each SESSION-CONTEXT.md is reachable as
+        # initiatives/x and Initiatives/x, same file, and resolve() keeps both spellings.
+        # On a case-sensitive disk, hard links under a real Initiatives/ folder reproduce it.
+        ci = make_home(tmp)
+        lower = ci / ".cursor" / "initiatives"
+        upper = ci / ".cursor" / "Initiatives"
+        aliased = True
+        if not upper.exists():
+            try:
+                for name in ("alpha", "beta"):
+                    (upper / name).mkdir(parents=True)
+                    os.link(lower / name / "SESSION-CONTEXT.md", upper / name / "SESSION-CONTEXT.md")
+            except (OSError, NotImplementedError, AttributeError):
+                aliased = False
+        if aliased:
+            ci_beta = lower / "beta"
+            out = session_init(ci, stdin=json.dumps({"workspace_roots": [str(ci_beta)]}))
+            check("V15 alias folder: workspace_roots still selects beta",
+                  out["env"]["CURSOR_SESSION_CONTEXT_PATH"].endswith(os.path.join("beta", "SESSION-CONTEXT.md")),
+                  out["additional_context"][:300])
+            out = session_init(ci, env_extra={"CURSOR_PROJECT_DIR": str(ci_beta)})
+            check("V15 alias folder: CURSOR_PROJECT_DIR still selects beta",
+                  out["env"]["CURSOR_SESSION_CONTEXT_PATH"].endswith(os.path.join("beta", "SESSION-CONTEXT.md")))
+            out = session_init(ci)
+            listed = [l for l in out["additional_context"].splitlines() if l.startswith("  - ")]
+            check("V15 alias folder: two initiatives seen twice are listed twice, not four times (asks)",
+                  out["env"]["CURSOR_SESSION_CONTEXT_PATH"] == "" and len(listed) == 2, str(listed))
+
         # --- Version 15: paths.* found in ba-profile.mdc when there is no config file ---
         prof_home = Path(tempfile.mkdtemp(dir=tmp))
         own_root = prof_home / ".cursor" / "my analysis folder"

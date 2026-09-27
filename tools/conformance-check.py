@@ -178,17 +178,22 @@ def main():
         add("PASS", "gate-scripts", "Every HARD gate row in critical-gates.mdc names a script present under hooks/ and registered in hooks.json")
 
     # ---- 8. Orphan scripts under hooks/ (present but never registered) ----
+    # A helper that a registered hook script calls (by file name) counts as used.
+    registered_scripts_text = ""
+    for fname in hook_files_present:
+        if fname != "hooks.json" and fname in hooks_json_text:
+            registered_scripts_text += read(os.path.join(hooks_dir, fname)) or ""
     orphans = []
     if os.path.isdir(hooks_dir):
         for fname in sorted(hook_files_present):
             if fname == "hooks.json" or os.path.isdir(os.path.join(hooks_dir, fname)):
                 continue
-            if fname not in hooks_json_text:
+            if fname not in hooks_json_text and fname not in registered_scripts_text:
                 orphans.append(fname)
     if orphans:
-        add("WARN", "orphan-scripts", f"Files under hooks/ never referenced in any hooks.json command string: {orphans}")
+        add("WARN", "orphan-scripts", f"Files under hooks/ never referenced in hooks.json or by a registered hook script: {orphans}")
     else:
-        add("PASS", "orphan-scripts", "Every file under hooks/ is referenced in hooks.json")
+        add("PASS", "orphan-scripts", "Every file under hooks/ is registered in hooks.json or called by a registered hook")
 
     # ---- 9. Referenced mail script must exist ----
     mail_script = "scan-outlook-mail.py"

@@ -325,6 +325,9 @@ def merge_hook_event(event_name: str, user_entries: list, pkg_entries: list) -> 
         if is_package_prompt_entry(entry):
             logs.append(f"DROP hooks.{event_name} old package prompt entry (replaced, not stacked)")
             continue
+        if (event_name, name) in RETIRED_PACKAGE_HOOKS:
+            logs.append(f"DROP hooks.{event_name} retired package entry ({name})")
+            continue
         kept.append(entry)
         logs.append(f"KEEP hooks.{event_name} user entry ({name or entry.get('type', 'entry')})")
     for entry in pkg_entries:
@@ -337,6 +340,9 @@ def merge_hook_event(event_name: str, user_entries: list, pkg_entries: list) -> 
 # from an existing hooks.json on merge so old installs stop running them.
 RETIRED_PACKAGE_HOOKS = {
     ("beforeSubmitPrompt", "inject-state-reminder.py"),  # Cursor ignores its output
+    # Version 15: external-write-gate.py is the one beforeMCPExecution hook and runs
+    # the DoR check itself; a second registration would run the check twice.
+    ("beforeMCPExecution", "jira-dor-gate.py"),
 }
 
 
@@ -440,14 +446,12 @@ def rewrite_package_python_interpreters(pkg_hooks: dict) -> int:
     return rewritten
 
 
-DOR_GATE_SCRIPT = "jira-dor-gate.py"
-
-
 def guard_dor_gate_interpreter(pkg_hooks: dict) -> list[str]:
-    """The DoR gate runs with failClosed:true. If the Python interpreter itself is
-    missing, that would block EVERY MCP call (Confluence reads included). Keep
-    the gate strict when the script runs, but allow when the interpreter can't
-    start. A crash of the script itself stays fail-closed.
+    """Every package hook registered with failClosed:true (today the external-write
+    gate on beforeMCPExecution). If the Python interpreter itself is missing, that
+    would block EVERY MCP call (Confluence reads included). Keep the gate strict
+    when the script runs, but allow when the interpreter can't start. A crash of
+    the script itself stays fail-closed.
 
     Mac/Linux: wrap the command in `sh -c` that checks for the interpreter first.
     Windows: no portable wrapper, so if the py launcher is missing right now,
@@ -460,14 +464,16 @@ def guard_dor_gate_interpreter(pkg_hooks: dict) -> list[str]:
         if not isinstance(entries, list):
             continue
         for entry in entries:
-            if not isinstance(entry, dict) or hook_entry_script_name(entry) != DOR_GATE_SCRIPT:
+            if not isinstance(entry, dict) or entry.get("failClosed") is not True:
+                continue
+            if not (hook_entry_script_name(entry) or "").endswith(".py"):
                 continue
             cmd = entry.get("command", "")
             if platform.system() == "Windows":
                 if shutil.which(interpreter) is None:
                     entry["failClosed"] = False
                     logs.append(
-                        f"WARN '{interpreter}' not found: DoR gate registered with failClosed:false "
+                        f"WARN '{interpreter}' not found: MCP gate registered with failClosed:false "
                         "so MCP calls are not blocked. Install Python and re-run the installer."
                     )
                 continue
@@ -484,7 +490,7 @@ def guard_dor_gate_interpreter(pkg_hooks: dict) -> list[str]:
                 f"sh -c 'command -v {interpreter} >/dev/null 2>&1 || "
                 f"{{ echo \"{escaped}\"; exit 0; }}; exec {interpreter} \"$0\"' {script_path}"
             )
-            logs.append("WRAP DoR gate command: allow MCP calls if the interpreter is missing")
+            logs.append("WRAP MCP gate command: allow MCP calls if the interpreter is missing")
     return logs
 
 

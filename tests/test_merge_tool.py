@@ -154,7 +154,9 @@ def personalised_layout_scenario(tmp, v14):
     check("Layout: own-named profile is personal", rows.get("rules/sam-ba-profile.mdc", {}).get("class") == "P")
     hr = rows["hooks.json"].get("hooks_review", {})
     check("Layout: hooks.json failClosed change is surfaced and needs a decision",
-          rows["hooks.json"]["decision"] == "ask" and any("jira-dor-gate.py failClosed False -> True" in c for c in hr.get("changed", [])),
+          rows["hooks.json"]["decision"] == "ask"
+          and any("jira-dor-gate.py" in d for d in hr.get("dropped", []))
+          and any("external-write-gate.py" in a for a in hr.get("added", [])),
           str(hr))
     check("Layout: own hook is not dropped by the merge", not any("em-dash-guard" in d for d in hr.get("dropped", [])), str(hr))
     eod_row = rows["skills/ba-assistant/references/eod-closeout-procedure.md"]

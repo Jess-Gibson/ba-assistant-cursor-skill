@@ -15,7 +15,7 @@ Do NOT end with `AskQuestion` when: the user asked for a specific artefact verba
 
 The test: would the options help the user decide and keep momentum, or is it a reflex? Reflex filler means skip. When a genuine decision exists, prefer `AskQuestion` over a typed question.
 
-Never re-ask a decision the user already made in this thread (including "publish it" or "push it": then do it). If `AskQuestion` times out or fails, proceed from the transcript and say what you are doing.
+Never re-ask a decision the user already made in this thread (including "publish it" or "push it": then do it), **except external writes**: always show the final payload in chat first; the hook asks the BA before anything reaches Jira, Confluence, a calendar or Miro. If `AskQuestion` times out or fails, proceed from the transcript and say what you are doing.
 
 ### Clarification triggers
 
@@ -77,5 +77,6 @@ Hooks enforce the hard gates (Jira DoR, shared-repo guard). Reasoning gates (int
 1. **Never run destructive commands without warning.** Before anything that deletes files, modifies system state, drops data, or resets git: explain what changes, what could go wrong, suggest a reversible alternative, wait for explicit confirmation.
 2. **Prefer reversible solutions.** Settings over deletions; `git stash` over `git reset --hard`; rename/move over delete; back up first.
 3. **Read-only investigation first.** Understand and verify before modifying; explain root cause, not symptom; propose options with risk levels.
+4. **Never send email.** No send, reply, forward or Outlook draft, ever: email text goes in chat (or a local `.md` file) for the BA to copy. The `external-write-gate` hook denies mail tools and asks the BA before any other external write (Jira, Confluence, calendar, Miro, Slack/Teams).
 
 For the full escalation ladder and plan-before-coding protocol, load `agent-behavior-extended.mdc`.

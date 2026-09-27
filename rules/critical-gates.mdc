@@ -9,7 +9,8 @@ When each gate fires, and where its logic lives (load that file when the gate fi
 
 | Gate | Fires when | Enforcement | Logic lives in |
 |---|---|---|---|
-| Jira DoR gate | A Story is about to be created in Jira | **HARD:** `beforeMCPExecution` hook (jira-dor-gate) denies without DoR pass evidence | `ba-story-writing` DoR section, `user-story-format.md §6` |
+| External writes (MCP) | Any Runlayer call that writes: Jira, Confluence, calendar, Miro, Slack/Teams | **HARD:** `beforeMCPExecution` hook (`external-write-gate.py`) asks the BA; reads pass. Email send/reply/forward/draft is always denied: email text goes in chat for the BA to copy | `agent-behavior.mdc` (Safety) |
+| Jira DoR gate | A Story is about to be created in Jira | **HARD:** the same hook (`external-write-gate.py`) runs the DoR check on Story creates | `ba-story-writing` DoR section, `user-story-format.md §6` |
 | Shared-repo leak guard | A file under `paths.sharedRepoRoot` (or `BA_SHARED_REPO_ROOT`) is edited / committed | **HARD when a shared-repo path is set:** edits warn, git commit/push with leaks is denied. No path set = no guard | `dev-handover-format.md §1, §7` |
 | Miro pre-flight | Before Miro `layout_create` | Manual: write a fresh plan file with `## Board inventory (context_explore)` and `## Board placement` first | `miro-board-analysis/algorithm.md` Pass 2b-0/2b |
 | Handover readiness | `/handover`, before any publish | Reasoning, default-deny | `ba-dev-handover` Tasks 3–4 |

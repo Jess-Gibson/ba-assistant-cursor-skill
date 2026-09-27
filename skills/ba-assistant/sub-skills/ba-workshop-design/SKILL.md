@@ -353,7 +353,7 @@ AskQuestion: approve board, skip Miro, or I'll do it manually
 - Use `Communication_Drafter` to draft:
   - Meeting invite with agenda, pre-read link, Miro link
   - Reminder message for 24h before the workshop
-- AskQuestion: approve invite text, edit, send reminder manually
+- AskQuestion: approve invite text, edit, send reminder manually (text stays in chat for the BA to copy; never an Outlook draft or send)
 
 **Step 7: Add to workboard + calendar**
 - Add the workshop as a personal task in `_workstream/workboard.json` (with prep checklist)

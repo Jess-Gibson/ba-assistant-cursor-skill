@@ -45,6 +45,20 @@ If a hook fires without a header, the user loses visibility into what the assist
 
 ---
 
+## Cursor lifecycle hooks (code, not skill-to-skill)
+
+These run as scripts from `~/.cursor/hooks.json`, whatever skill is loaded. `critical-gates.mdc` lists when they fire.
+
+| Script | Event | Decides | Output |
+|---|---|---|---|
+| `external-write-gate.py` | `beforeMCPExecution` (`failClosed: true`) | Unwraps Runlayer `execute_tool`. Email send / reply / forward / draft: **deny**. Other external writes (Jira, Confluence, calendar, Miro, Slack/Teams): **ask**. Reads: **allow**. Unknown tool: **ask**. Story creates also run the DoR check; the stricter answer wins. | `permission`, `user_message`, `agent_message`; one line per call in `_workstream/audit-log.jsonl` (tool + decision, no payload) |
+| `shared-repo-guard.py` | `postToolUse` (Write), `beforeShellExecution` | Leak links in `paths.sharedRepoRoot` files: warn on edit, deny git commit/push | `additional_context` / `permission` |
+| `session-init.py` | `sessionStart` | Initiative context, new downloads, counts | `additional_context`, `env` |
+| `snapshot-before-compact.py` | `preCompact` | Disk snapshot of the chat's SESSION-CONTEXT | none |
+| `inject-state-reminder.py --stop` | `stop` | Unpromoted-item nudge, only if `stopFollowup: true` | `followup_message` |
+
+---
+
 ## Hub skills (called by many)
 
 These skills receive the most hooks. Changes to them are highest-risk.

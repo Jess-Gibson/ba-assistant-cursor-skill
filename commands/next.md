@@ -16,12 +16,12 @@ Name **at most 3** next items, ranked by: due/remind today, blocked items today'
 
 Then **start the first item in this reply**. Do not wait for a second click if the prep is cheap and grounded:
 
-- Comms (Teams/email): draft in the user's voice in chat. Correct names (voice-to-text typos). Use Outlook/Glean when the thread exists. Flag if go-live is not confirmed yet.
+- Comms (Teams/email): write the text in the user's voice in chat for them to copy. Correct names (voice-to-text typos). Read the thread in Outlook/Glean when it exists; never create an Outlook draft or send. Flag if go-live is not confirmed yet.
 - Meetings: 5-line prep + questions to ask.
 - Tests/POCs: a short test plan from SESSION-CONTEXT (pass/fail, what failed last time).
 - Publish/tidy: the exact files and the first concrete edit.
 
-End with **AskQuestion** (clickable): do this first / send the draft / tweak then send / skip to item 2 / pick a different focus.
+End with **AskQuestion** (clickable): do this first / text is ready to copy / tweak the text / skip to item 2 / pick a different focus.
 
 ## Do not
 

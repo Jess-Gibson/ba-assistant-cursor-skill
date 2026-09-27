@@ -224,3 +224,38 @@ Prefer `tools/upgrade-ba-assistant.py --apply`, or ask Cursor:
 Upgrade my BA Assistant install from https://github.com/Jess-Gibson/ba-assistant-cursor-skill
 without overwriting my ba-assistant-config.mdc
 ```
+
+## Go back to an older version
+
+If a new version misbehaves, you can go back. Your initiatives, actions, profile and config are never touched by any of these.
+
+**Upgraded with the merge tool (personalised installs):** undo the upgrade exactly, file for file:
+
+```text
+py tools\ba-merge-upgrade.py rollback --session "<the session folder the upgrade printed>"
+```
+
+(Mac: `python3 tools/ba-merge-upgrade.py ...`.) This is the safest route: it puts back the install you had before, including your own edits.
+
+**Installed or upgraded with the plain installer or upgrader:** reinstall a bookmarked version. Two bookmarks (git tags) are kept:
+
+| Tag | What it is |
+|---|---|
+| `v14.0` | Version 14, as released |
+| `v15.0-rc1` | Version 15 before the safety review changes (write gate, DoR check, undo) |
+
+```text
+git clone https://github.com/Jess-Gibson/ba-assistant-cursor-skill ba-fallback
+cd ba-fallback
+git checkout v14.0
+py tools\install-ba-assistant.py --dry-run
+py tools\install-ba-assistant.py --apply --hooks-strategy replace
+```
+
+(Mac: `python3`, and `tools/...`.) `--hooks-strategy replace` puts back that version's hooks exactly; your current `hooks.json` is backed up first (`hooks.json.bak-<time>` next to it), so any hooks of your own can be copied back from there. The skills folder is backed up to `~/.cursor/ba-assistant-backups/` before it is replaced. Start a new chat afterwards.
+
+If the tag is not on the main repository yet, get it from the working fork instead: `git fetch https://github.com/jessgibson/ba-assistant-cursor-skill tag v14.0` before `git checkout v14.0`.
+
+**Last resort:** restore the copy of your whole `.cursor` folder you made before upgrading (recommended in the upgrade guides).
+
+Leftovers from a newer version (for example `/undo`, `hooks/external-write-gate.py`, the `.git` history folder inside each initiative) are harmless after going back and can stay.

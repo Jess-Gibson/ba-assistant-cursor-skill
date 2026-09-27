@@ -59,8 +59,8 @@ The table above uses friendly phase names as a quick skills index. Day-to-day ro
 | Command | What it does |
 |---------|-------------|
 | `/next` | Top 3 next actions by urgency |
-| `/status` | Full current state with canvas and HTML snapshot |
-| `/canvas` | Generate/refresh the interactive project dashboard |
+| `/status` | Full current state in chat, with quality metrics (offers `/canvas`) |
+| `/canvas` | Render the interactive project dashboard and HTML snapshot from `status-data.json` |
 | `/report` | Full structured deep-dive report |
 | `/validate-state` | Write this chat's captures into the initiative files and `ba-actions` |
 | `/wrap` | Chat-scoped checkpoint — capture, promote, sync BA actions changed in this chat (workboard refresh is `/workboard end-of-day`) |

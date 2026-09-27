@@ -115,7 +115,7 @@ For every source, capture and surface:
 when you find content that might be stale, AI-generated, or unverified  -  using
 `AskQuestion` with clear options (use it / verify it / ignore it).
 
-This stance is informed by the Glean `confidence-signals` skill and the always-active
+This stance is informed by the Glean `confidence-signals` skill and, if your organisation installs one, a
 `glean-result-vetting.mdc` rule. Apply the same rigour to non-Glean sources.
 
 ---

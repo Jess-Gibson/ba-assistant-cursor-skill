@@ -176,6 +176,8 @@ The Project Canvas generates `.canvas.tsx` files that require Cursor's Canvas fe
 
 If canvas generation fails, check that the Cursor Canvas skill is installed in your IDE.
 
+The initiative canvas is rendered by `_workstream/render-initiative-canvas.py` from `skills/ba-assistant/templates/initiative-status.canvas.tsx.template`. To change how it looks, edit the template (and `render_html` in the script for the HTML snapshot), never a generated `.canvas.tsx`. `canvas-tab-specs.md` is the design reference.
+
 ---
 
 ## 10. Cross-initiative Workboard

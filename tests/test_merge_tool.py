@@ -212,6 +212,27 @@ def personalised_layout_scenario(tmp, v14):
     code, out = run([TOOL, "run", "--session", session, "--stdin", payload, "--", PY, stage / "hooks" / "jira-dor-gate.py"], home)
     check("Layout: DoR gate run in staging finds the recorded pass", '"permission": "allow"' in out, out[-400:])
     code, out = run([TOOL, "run", "--session", session, "--", PY, stage / "_workstream" / "generate-initiative-snapshots.py"], home)
+
+    # Jess's route: no config file, initiatives root written into the renamed profile.
+    cfg_stage = stage / "rules" / "ba-assistant-config.mdc"
+    cfg_text = cfg_stage.read_text(encoding="utf-8")
+    cfg_stage.unlink()
+    prof_stage = stage / "rules" / "sam-ba-profile.mdc"
+    prof_before = prof_stage.read_text(encoding="utf-8")
+    prof_stage.write_text(prof_before + f'\npaths:\n  initiativesRoot: "~/.cursor/{folder}"\n', encoding="utf-8")
+    code, out = run([TOOL, "run", "--session", session, "--", PY, stage / "_workstream" / "validate-state.py", "--initiative", "payments"], home)
+    check("Layout (profile only, no config): validate-state finds the initiative in a folder with spaces",
+          code == 0 and "Gate: state-validation:" in out, out[-500:])
+    canvas_out, html_out = tmp / "layout.canvas.tsx", tmp / "layout.html"
+    code, out = run([TOOL, "run", "--session", session, "--", PY, stage / "_workstream" / "render-initiative-canvas.py",
+                     "--initiative", "payments", "--canvas", canvas_out, "--html", html_out], home)
+    check("Layout (profile only, no config): canvas renders to temp files", code == 0 and "Gate: canvas-render: PASS" in out
+          and canvas_out.exists(), out[-500:])
+    code, out = run([TOOL, "run", "--session", session, "--", PY, stage / "_workstream" / "sam-actions.py", "list"], home)
+    check("Layout (profile only, no config): renamed actions script lists", code == 0 and "open in total" in out, out[-500:])
+    prof_stage.write_text(prof_before, encoding="utf-8")
+    cfg_stage.write_text(cfg_text, encoding="utf-8")
+
     code, out = run([TOOL, "deploy-plan", "--session", session], home)
     plan = json.loads((session / "deploy-plan.json").read_text(encoding="utf-8"))
     kinds = {e["path"]: e["kind"] for e in plan["entries"]}
@@ -356,6 +377,19 @@ def main():
         eod = staging / "skills" / "ba-assistant" / "references" / "eod-closeout-procedure.md"
         check("Staging: taken-new file is written in the BA's naming",
               "sam-actions" in eod.read_text(encoding="utf-8") and "ba-actions" not in eod.read_text(encoding="utf-8"))
+        ws_stage = staging / "_workstream"
+        check("Staging: new actions script is in the BA's naming and points at their store",
+              (ws_stage / "sam-actions.py").exists() and not (ws_stage / "ba-actions.py").exists()
+              and "sam-actions.json" in (ws_stage / "sam-actions.py").read_text(encoding="utf-8"), str(sorted(p.name for p in ws_stage.glob("*.py"))))
+        cap = (ws_stage / "capture.py").read_text(encoding="utf-8") if (ws_stage / "capture.py").exists() else ""
+        check("Staging: capture.py hands the BA's own actions to the renamed actions script",
+              '"sam-actions.py"' in cap and '"ba-actions.py"' not in cap)
+        check("Staging: every other new script is present",
+              all((ws_stage / n).exists() for n in ("capture.py", "validate-state.py", "compute-metrics.py", "render-initiative-canvas.py")))
+        todo_rule = next((p for p in (staging / "rules").glob("*todo*")), None)
+        check("Staging: /todo rule tells the agent the renamed script",
+              todo_rule is not None and "sam-actions.py" in todo_rule.read_text(encoding="utf-8")
+              and "ba-actions.py" not in todo_rule.read_text(encoding="utf-8"))
         hook = (staging / "hooks" / "session-init.py").read_text(encoding="utf-8")
         check("Staging: hook script uses the BA's actions file", "sam-actions.json" in hook and "ba-actions.json" not in hook)
         check("Staging: D file kept as the BA's (keep_mine)", "SAM EDIT D" in (staging / d_file.relative_to(cursor)).read_text(encoding="utf-8"))

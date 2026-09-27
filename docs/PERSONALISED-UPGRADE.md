@@ -195,7 +195,7 @@ The package tests cover the scripts, the installer and the upgrade. They cannot 
 2. **Capture (same chat):** say something that is a decision, e.g. "we're going with option B". Expect a `📝 Captured:` line, and a `DEC-new:` line under today's heading in that initiative's `SESSION-CONTEXT.md`.
 3. **Actions (same chat):** `/todo chase the data export by Friday`. Expect `Added: BA-...` and the gate lines; `ba-actions.md` updated.
 4. **Status:** `/status`. Expect chat status with the metrics table and an offer of `/canvas`, and no canvas written.
-5. **Canvas:** `/canvas`. Expect `Gate: canvas-render: PASS` and the canvas opening with 8 tabs, then check the HTML snapshot in a browser.
+5. **Canvas:** first, ask Cursor: "Compare every `cursor/canvas` import and prop used in `~/.cursor/skills/ba-assistant/templates/initiative-status.canvas.tsx.template` against `~/.cursor/skills-cursor/canvas/sdk/index.d.ts` and list anything the SDK does not define." (The package tests could only check the template against a stand-in for Cursor's SDK.) Then `/canvas`. Expect `Gate: canvas-render: PASS` and the canvas opening with 8 tabs; click through every tab and the scope filter, then open the HTML snapshot in a browser.
 6. **Wrap (same chat as 2):** `/wrap`. Expect the captured decision promoted to the tracker and tagged `[promoted]`.
 7. **Typed command:** type `/next` as plain text in a new chat without picking it from the menu. It should still run the `/next` behaviour (the profile tells the agent to read the command file).
 

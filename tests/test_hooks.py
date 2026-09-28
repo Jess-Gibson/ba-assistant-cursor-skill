@@ -284,6 +284,38 @@ def main():
         check("Config: canvas generator reads name without the comment", c["ba_name"] == "Sam Example", c["ba_name"])
         check("Config: canvas generator reads paths.initiativesRoot", c["initiatives_root"] == "/x/inits", c["initiatives_root"])
         check("Config: canvas generator reads paths.downloadsPath", c["downloads_path"] == "/x/dl", c["downloads_path"])
+        saved = {k: os.environ.pop(k) for k in ("BA_INITIATIVES_ROOT",) if k in os.environ}
+        os.environ["BA_INITIATIVES_ROOT"] = str(tmp / "stale-no-such-folder")
+        try:
+            c = gen.load_workboard_config(cfg_home)
+        finally:
+            os.environ.pop("BA_INITIATIVES_ROOT", None)
+            os.environ.update(saved)
+        check("Config: a stale BA_INITIATIVES_ROOT (not a folder) is ignored; config path still used",
+              c["initiatives_root"] == "/x/inits", c["initiatives_root"])
+
+        # --- Workboard canvas embeds only what the template reads (a big board stopped the canvas host) ---
+        dates = [{"what": f"Old {i}", "date": "2026-01-01", "done": True} for i in range(200)]
+        dates += [{"what": f"Open {i}", "date": "2026-10-0{i}", "note": "x" * 50} for i in range(1, 8)]
+        board = {"initiatives": [{"slug": "pay", "name": "Payments", "phase": "Discovery", "status": "on-track",
+                                  "key_dates": dates, "tracker_dump": "y" * 50000, "top_risk": "Vendor"}]}
+        acts = {"actions": [{"id": "BA-001", "task": "Chase", "status": "open", "due": "2026-10-01",
+                             "initiative": "pay", "priority": "high", "history": ["z" * 5000] * 20}]}
+        data = gen.build_data(board, acts, {"days": []}, "2026-09-30", gen.load_workboard_config(cfg_home))
+        ini, act = data["initiatives"][0], data["actions"][0]
+        check("Canvas data: initiative keeps every field the template reads, drops the rest",
+              set(ini) == set(gen.CANVAS_INITIATIVE_FIELDS) | {"key_dates"} and ini["top_risk"] == "Vendor"
+              and "tracker_dump" not in ini, sorted(ini))
+        check("Canvas data: only open key dates, at most 5",
+              len(ini["key_dates"]) == 5 and all(d["what"].startswith("Open") for d in ini["key_dates"]), ini["key_dates"])
+        check("Canvas data: action keeps the template's fields (with initiativeName), drops history",
+              set(act) == set(gen.CANVAS_ACTION_FIELDS) and act["initiativeName"] == "Payments" and "history" not in act, act)
+        check("Canvas data: priorities are still worked out from the full actions",
+              any(item.get("actionId") == "BA-001" for item in data["priorityQueue"]), data["priorityQueue"])
+        check("Canvas data: a 200-date, 150 KB board embeds in under 5 KB",
+              len(json.dumps(data["initiatives"]) + json.dumps(data["actions"])) < 5000,
+              len(json.dumps(data["initiatives"]) + json.dumps(data["actions"])))
+
         eod = load_module(REPO / "tools" / "roll-calendar-eod.py", "roll_eod")
         check("Config: calendar EOD reads name without the comment",
               eod.load_ba_name(cfg_home / "_workstream") == "Sam Example")

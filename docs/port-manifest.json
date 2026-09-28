@@ -12,19 +12,19 @@
     },
     "_workstream/capture.py": {
       "category": "behaviour-critical",
-      "reason": "New: context capture writes to SESSION-CONTEXT.md without a full read; promotion markers; BA actions to ba-actions.json; Required --source; anything but chat-user written as [unverified]; confirmed_by_ba for debrief-card approvals; Saves a version before and after each capture"
+      "reason": "New: context capture writes to SESSION-CONTEXT.md without a full read; promotion markers; BA actions to ba-actions.json; Required --source; anything but chat-user written as [unverified]; confirmed_by_ba for debrief-card approvals; Saves a version before and after each capture; a stale BA_INITIATIVES_ROOT (not a folder) is ignored, config path still used"
     },
     "_workstream/compute-metrics.py": {
       "category": "behaviour-important",
-      "reason": "New: the four quality metrics computed from status-data.json with trend and n/a streak"
+      "reason": "New: the four quality metrics computed from status-data.json with trend and n/a streak; a stale BA_INITIATIVES_ROOT (not a folder) is ignored, config path still used"
     },
     "_workstream/generate-initiative-snapshots.py": {
       "category": "behaviour-critical",
-      "reason": "Resume snapshots: freshness hashes only this initiative's slice of workstream files; --ensure rebuilds when stale"
+      "reason": "Resume snapshots: freshness hashes only this initiative's slice of workstream files; --ensure rebuilds when stale; a stale BA_INITIATIVES_ROOT (not a folder) is ignored, config path still used"
     },
     "_workstream/generate-workboard-canvas.py": {
       "category": "behaviour-critical",
-      "reason": "End of Day button points at eod-closeout-procedure.md; one calendar roll; config keys read correctly"
+      "reason": "End of Day button points at eod-closeout-procedure.md; one calendar roll; config keys read correctly; a stale BA_INITIATIVES_ROOT (not a folder) is ignored, config path still used; canvas embeds only the fields the template reads (at most 5 open key dates), so a big board no longer stops the canvas host"
     },
     "_workstream/list-downloads-recent.py": {
       "category": "behaviour-important",
@@ -32,7 +32,7 @@
     },
     "_workstream/render-initiative-canvas.py": {
       "category": "behaviour-critical",
-      "reason": "New: initiative canvas + HTML snapshot rendered from status-data.json"
+      "reason": "New: initiative canvas + HTML snapshot rendered from status-data.json; a stale BA_INITIATIVES_ROOT (not a folder) is ignored, config path still used"
     },
     "_workstream/roll-calendar-eod.py": {
       "category": "behaviour-critical",
@@ -44,7 +44,7 @@
     },
     "_workstream/validate-state.py": {
       "category": "behaviour-critical",
-      "reason": "New: local drift scan (state validator steps 3-5) for resume and end of day"
+      "reason": "New: local drift scan (state validator steps 3-5) for resume and end of day; a stale BA_INITIATIVES_ROOT (not a folder) is ignored, config path still used"
     },
     "commands/audit-standards.md": {
       "category": "behaviour-minor",
@@ -128,7 +128,7 @@
     },
     "hooks/session-init.py": {
       "category": "behaviour-critical",
-      "reason": "Never picks an initiative by modified time; workspace_roots / CURSOR_PROJECT_DIR; paths.* from config or profile; Initiative by workspace, config paths; SESSION-CONTEXT tail and download names fenced as untrusted data; Saves a version of initiatives that already have history at session start; Calendar refresh time-boxed to 4s; transcripts listed until debriefed (7 days, cap 10); ~/projects scan dropped; Debriefed transcripts matched however the path is spelled (macOS /private/var, Windows short names)"
+      "reason": "Never picks an initiative by modified time; workspace_roots / CURSOR_PROJECT_DIR; paths.* from config or profile; Initiative by workspace, config paths; SESSION-CONTEXT tail and download names fenced as untrusted data; Saves a version of initiatives that already have history at session start; Calendar refresh time-boxed to 4s; transcripts listed until debriefed (7 days, cap 10); ~/projects scan dropped; Debriefed transcripts matched however the path is spelled (macOS /private/var, Windows short names); a stale BA_INITIATIVES_ROOT (not a folder) is ignored, config path still used"
     },
     "hooks/shared-repo-guard.py": {
       "category": "behaviour-critical",
@@ -460,7 +460,7 @@
     },
     "_workstream/dor-check.py": {
       "category": "behaviour-critical",
-      "reason": "DoR computed from the files (requirement status, Given/When/Then, dependencies, MoSCoW, risks); shared by the hook; --record for metrics; One initiative reached through two folder spellings counts once (case-insensitive disks); Story Readiness Preflight wording; placeholders (TBD) and look-alike words (Risk-free) no longer pass; HLR-08.1 / HLR-08.21 parsed as their own IDs"
+      "reason": "DoR computed from the files (requirement status, Given/When/Then, dependencies, MoSCoW, risks); shared by the hook; --record for metrics; One initiative reached through two folder spellings counts once (case-insensitive disks); Story Readiness Preflight wording; placeholders (TBD) and look-alike words (Risk-free) no longer pass; HLR-08.1 / HLR-08.21 parsed as their own IDs; a stale BA_INITIATIVES_ROOT (not a folder) is ignored, config path still used"
     },
     "_workstream/extract-docx-text.py": {
       "category": "behaviour-important",
@@ -472,7 +472,7 @@
     },
     "_workstream/initiative-history.py": {
       "category": "behaviour-critical",
-      "reason": "Private local undo history per initiative folder (no remote); snapshot/history/undo; no-op without git"
+      "reason": "Private local undo history per initiative folder (no remote); snapshot/history/undo; no-op without git; a stale BA_INITIATIVES_ROOT (not a folder) is ignored, config path still used"
     },
     "commands/undo.md": {
       "category": "behaviour-critical",

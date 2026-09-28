@@ -67,7 +67,7 @@ def load_rules_text(cursor_home: Path) -> str:
 def resolve_initiatives_root(cursor_home: Path, rules_text: str) -> Path:
     """Same order as hooks/session-init.py: env, then config, then the default."""
     env = os.environ.get("BA_INITIATIVES_ROOT", "").strip()
-    if env:
+    if env and os.path.isdir(os.path.expanduser(env)):   # a stale, missing folder is ignored
         return Path(os.path.expanduser(env))
     value = parse_rule_value(rules_text, "initiativesRoot")
     if value:

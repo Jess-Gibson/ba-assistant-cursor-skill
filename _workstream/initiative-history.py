@@ -63,8 +63,10 @@ def config_initiatives_root(cursor_home: Path) -> str:
 
 
 def initiatives_root(cursor_home: Path) -> Path:
-    return Path(os.environ.get("BA_INITIATIVES_ROOT", "") or config_initiatives_root(cursor_home)
-                or cursor_home / "initiatives")
+    env = os.path.expanduser(os.environ.get("BA_INITIATIVES_ROOT", "").strip())
+    if env and os.path.isdir(env):   # a stale, missing folder is ignored
+        return Path(env)
+    return Path(config_initiatives_root(cursor_home) or cursor_home / "initiatives")
 
 
 def all_initiatives(cursor_home: Path) -> list[Path]:

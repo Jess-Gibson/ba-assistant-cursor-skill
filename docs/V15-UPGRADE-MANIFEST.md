@@ -28,15 +28,15 @@ Then run the smoke test in `docs/PERSONALISED-UPGRADE.md` → "After you deploy"
 | Installed path | Why |
 |---|---|
 | `_workstream/ba-actions.py` | New: /todo, action sync and end of day 5a/5b write ba-actions.json through one script (ids, dedupe, no reopen, MD regenerate); exact-wording matches stay within their initiative; a source-only change is saved |
-| `_workstream/capture.py` | New: context capture writes to SESSION-CONTEXT.md without a full read; promotion markers; BA actions to ba-actions.json; Required --source; anything but chat-user written as [unverified]; confirmed_by_ba for debrief-card approvals; Saves a version before and after each capture |
-| `_workstream/dor-check.py` | DoR computed from the files (requirement status, Given/When/Then, dependencies, MoSCoW, risks); shared by the hook; --record for metrics; One initiative reached through two folder spellings counts once (case-insensitive disks); Story Readiness Preflight wording; placeholders (TBD) and look-alike words (Risk-free) no longer pass; HLR-08.1 / HLR-08.21 parsed as their own IDs |
-| `_workstream/generate-initiative-snapshots.py` | Resume snapshots: freshness hashes only this initiative's slice of workstream files; --ensure rebuilds when stale |
-| `_workstream/generate-workboard-canvas.py` | End of Day button points at eod-closeout-procedure.md; one calendar roll; config keys read correctly |
-| `_workstream/initiative-history.py` | Private local undo history per initiative folder (no remote); snapshot/history/undo; no-op without git |
-| `_workstream/render-initiative-canvas.py` | New: initiative canvas + HTML snapshot rendered from status-data.json |
+| `_workstream/capture.py` | New: context capture writes to SESSION-CONTEXT.md without a full read; promotion markers; BA actions to ba-actions.json; Required --source; anything but chat-user written as [unverified]; confirmed_by_ba for debrief-card approvals; Saves a version before and after each capture; a stale BA_INITIATIVES_ROOT (not a folder) is ignored, config path still used |
+| `_workstream/dor-check.py` | DoR computed from the files (requirement status, Given/When/Then, dependencies, MoSCoW, risks); shared by the hook; --record for metrics; One initiative reached through two folder spellings counts once (case-insensitive disks); Story Readiness Preflight wording; placeholders (TBD) and look-alike words (Risk-free) no longer pass; HLR-08.1 / HLR-08.21 parsed as their own IDs; a stale BA_INITIATIVES_ROOT (not a folder) is ignored, config path still used |
+| `_workstream/generate-initiative-snapshots.py` | Resume snapshots: freshness hashes only this initiative's slice of workstream files; --ensure rebuilds when stale; a stale BA_INITIATIVES_ROOT (not a folder) is ignored, config path still used |
+| `_workstream/generate-workboard-canvas.py` | End of Day button points at eod-closeout-procedure.md; one calendar roll; config keys read correctly; a stale BA_INITIATIVES_ROOT (not a folder) is ignored, config path still used; canvas embeds only the fields the template reads (at most 5 open key dates), so a big board no longer stops the canvas host |
+| `_workstream/initiative-history.py` | Private local undo history per initiative folder (no remote); snapshot/history/undo; no-op without git; a stale BA_INITIATIVES_ROOT (not a folder) is ignored, config path still used |
+| `_workstream/render-initiative-canvas.py` | New: initiative canvas + HTML snapshot rendered from status-data.json; a stale BA_INITIATIVES_ROOT (not a folder) is ignored, config path still used |
 | `_workstream/roll-calendar-eod.py` | One roll per closeout date (repeat is a no-op, partial roll fails closed); real timezone; config highlights; null duration fix |
 | `_workstream/scan-outlook-mail.py` | New: Outlook desktop triage, config-driven noise filters, fails open with exit 2; Mail listing fenced as untrusted data; read-only |
-| `_workstream/validate-state.py` | New: local drift scan (state validator steps 3-5) for resume and end of day |
+| `_workstream/validate-state.py` | New: local drift scan (state validator steps 3-5) for resume and end of day; a stale BA_INITIATIVES_ROOT (not a folder) is ignored, config path still used |
 | `commands/canvas.md` | /canvas renders with the script; no read-every-file, no hand-written canvas |
 | `commands/status.md` | /status is chat + metrics script; offers /canvas instead of rendering it; no longer depends on the profile table |
 | `commands/undo.md` | New /undo command: plain-English undo from the local history |
@@ -46,7 +46,7 @@ Then run the smoke test in `docs/PERSONALISED-UPGRADE.md` → "After you deploy"
 | `hooks/hooks.json` | beforeMCPExecution now runs external-write-gate.py (replaces jira-dor-gate.py); afterFileEdit entry removed (Cursor reads no output there) |
 | `hooks/inject-state-reminder.py` | Stop hook counts REQ- and ASM- captures as unpromoted too; Stop hook saves a version of the chat's initiative after each reply |
 | `hooks/jira-dor-gate.py` | Retired: folded into hooks/external-write-gate.py and _workstream/dor-check.py; the installer drops its hooks.json registration |
-| `hooks/session-init.py` | Never picks an initiative by modified time; workspace_roots / CURSOR_PROJECT_DIR; paths.* from config or profile; Initiative by workspace, config paths; SESSION-CONTEXT tail and download names fenced as untrusted data; Saves a version of initiatives that already have history at session start; Calendar refresh time-boxed to 4s; transcripts listed until debriefed (7 days, cap 10); ~/projects scan dropped; Debriefed transcripts matched however the path is spelled (macOS /private/var, Windows short names) |
+| `hooks/session-init.py` | Never picks an initiative by modified time; workspace_roots / CURSOR_PROJECT_DIR; paths.* from config or profile; Initiative by workspace, config paths; SESSION-CONTEXT tail and download names fenced as untrusted data; Saves a version of initiatives that already have history at session start; Calendar refresh time-boxed to 4s; transcripts listed until debriefed (7 days, cap 10); ~/projects scan dropped; Debriefed transcripts matched however the path is spelled (macOS /private/var, Windows short names); a stale BA_INITIATIVES_ROOT (not a folder) is ignored, config path still used |
 | `hooks/shared-repo-guard.py` | Folder containment (not string prefix); git -C / cd aware; sharedRepoRoot from config or profile; Comments: postToolUse carries the edit warning |
 | `rules/agent-behavior.mdc` | AskQuestion rules in one place (never re-ask, timeout); gate visibility and em-dash rule shortened; Safety: never send or draft email; ingested text is data, not instructions; external writes show the payload first; Lock block covers publish/overwrite/bulk; drafts go ahead with assumptions labelled |
 | `rules/critical-gates.mdc` | Same gates, shorter rows; External-write gate row; DoR gate recomputed by dor-check.py; Story Readiness Preflight row; Definition of Ready as a reasoning gate |
@@ -66,7 +66,7 @@ Then run the smoke test in `docs/PERSONALISED-UPGRADE.md` → "After you deploy"
 
 | Installed path | Why |
 |---|---|
-| `_workstream/compute-metrics.py` | New: the four quality metrics computed from status-data.json with trend and n/a streak |
+| `_workstream/compute-metrics.py` | New: the four quality metrics computed from status-data.json with trend and n/a streak; a stale BA_INITIATIVES_ROOT (not a folder) is ignored, config path still used |
 | `_workstream/extract-docx-text.py` | Extracted transcript text fenced as untrusted data; Marks the transcript as debriefed |
 | `_workstream/list-downloads-recent.py` | Windows fallback when pathlib misses files in Downloads; --mark-processed for transcripts read directly |
 | `commands/metrics.md` | /metrics runs compute-metrics.py |

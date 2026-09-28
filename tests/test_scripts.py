@@ -168,6 +168,12 @@ def snapshot_tests(tmp):
     check("Snapshot: unreadable file is MALFORMED (exit 1)", code == 1 and "MALFORMED" in out, out)
     code, out = run("--slug", "nope")
     check("Snapshot: unknown slug fails clearly", code == 1 and "no initiative" in out, out)
+    env["BA_INITIATIVES_ROOT"] = str(tmp / "no-such-folder")
+    code, out = run()
+    data = json.loads(snap.read_text(encoding="utf-8"))
+    check("Snapshot: a stale BA_INITIATIVES_ROOT (not a folder) is ignored, config still applies",
+          code == 0 and "no-such-folder" not in data["initiative"]["root"], out)
+    (tmp / "elsewhere").mkdir(exist_ok=True)
     env["BA_INITIATIVES_ROOT"] = str(tmp / "elsewhere")
     code, out = run()
     data = json.loads(snap.read_text(encoding="utf-8"))

@@ -39,7 +39,7 @@ def parse_rule_value(text: str, key: str) -> str | None:
 
 def initiatives_root(home: Path) -> Path:
     env = os.environ.get("BA_INITIATIVES_ROOT", "").strip()
-    if env:
+    if env and os.path.isdir(os.path.expanduser(env)):   # a stale, missing folder is ignored
         return Path(os.path.expanduser(env))
     for name in ("ba-assistant-config.mdc", "ba-profile.mdc"):
         path = home / "rules" / name

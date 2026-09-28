@@ -3,8 +3,8 @@
 Every installed file that changed between Version 14 (`750a6c5`) and Version 15, grouped by what the change is.
 The same data, machine-readable, is `docs/port-manifest.json`; `tools/ba-merge-upgrade.py` uses it.
 
-- **Tested code commit:** `a71db3c0be65048ca4ff710a61643e4d4e1cf0e8` (all code and tests, including the review addendum: external-write gate, untrusted content, DoR check, undo, and the governance follow-up: gate verb precedence, Story Readiness Preflight, decimal HLR IDs; every later Version 15 release-candidate commit changes documentation only).
-- **Release commit:** pin the branch head you were given for the upgrade, and check that `git diff a71db3c <release> --stat` lists only `.md` files.
+- **Tested code commit:** `dc16ce5d29f328d268f48ad9ab8c745fc879ad11` (all code and tests, including the review addendum: external-write gate, untrusted content, DoR check, undo, and the governance follow-up: gate verb precedence, Story Readiness Preflight, decimal HLR IDs, email recipients in arguments, actions upsert fixes; every later Version 15 release-candidate commit changes documentation only).
+- **Release commit:** pin the branch head you were given for the upgrade, and check that `git diff dc16ce5 <release> --stat` lists only `.md` files.
 - **Fallback versions:** tag `v14.0` (`750a6c5`, Version 14 as released) and tag `v15.0-rc1` (`49f11e5`, Version 15 before the review addendum). See `SETUP.md` → "Go back to an older version".
 
 | Category | Files | What happens to a personalised install |
@@ -27,7 +27,7 @@ Then run the smoke test in `docs/PERSONALISED-UPGRADE.md` → "After you deploy"
 
 | Installed path | Why |
 |---|---|
-| `_workstream/ba-actions.py` | New: /todo, action sync and end of day 5a/5b write ba-actions.json through one script (ids, dedupe, no reopen, MD regenerate) |
+| `_workstream/ba-actions.py` | New: /todo, action sync and end of day 5a/5b write ba-actions.json through one script (ids, dedupe, no reopen, MD regenerate); exact-wording matches stay within their initiative; a source-only change is saved |
 | `_workstream/capture.py` | New: context capture writes to SESSION-CONTEXT.md without a full read; promotion markers; BA actions to ba-actions.json; Required --source; anything but chat-user written as [unverified]; confirmed_by_ba for debrief-card approvals; Saves a version before and after each capture |
 | `_workstream/dor-check.py` | DoR computed from the files (requirement status, Given/When/Then, dependencies, MoSCoW, risks); shared by the hook; --record for metrics; One initiative reached through two folder spellings counts once (case-insensitive disks); Story Readiness Preflight wording; placeholders (TBD) and look-alike words (Risk-free) no longer pass; HLR-08.1 / HLR-08.21 parsed as their own IDs |
 | `_workstream/generate-initiative-snapshots.py` | Resume snapshots: freshness hashes only this initiative's slice of workstream files; --ensure rebuilds when stale |
@@ -42,7 +42,7 @@ Then run the smoke test in `docs/PERSONALISED-UPGRADE.md` → "After you deploy"
 | `commands/undo.md` | New /undo command: plain-English undo from the local history |
 | `commands/workboard.md` | End of day defers to eod-closeout-procedure.md and does not walk every action; action sync through ba-actions.py |
 | `hooks.json` | Retired beforeSubmitPrompt entry removed; no hook registered twice |
-| `hooks/external-write-gate.py` | One beforeMCPExecution gate: unwraps Runlayer execute_tool, denies email send/reply/forward/draft, asks on other external writes, allows reads, runs dor-check.py on Story creates, writes audit-log.jsonl; a write verb anywhere in the name asks (no first-verb shortcut); email compose denied; Story Readiness Preflight wording (never "DoR met") |
+| `hooks/external-write-gate.py` | One beforeMCPExecution gate: unwraps Runlayer execute_tool, denies email send/reply/forward/draft, asks on other external writes, allows reads, runs dor-check.py on Story creates, writes audit-log.jsonl; a write verb anywhere in the name asks (no first-verb shortcut); email compose denied; Story Readiness Preflight wording (never "DoR met"); email recipients in the arguments deny |
 | `hooks/hooks.json` | beforeMCPExecution now runs external-write-gate.py (replaces jira-dor-gate.py); afterFileEdit entry removed (Cursor reads no output there) |
 | `hooks/inject-state-reminder.py` | Stop hook counts REQ- and ASM- captures as unpromoted too; Stop hook saves a version of the chat's initiative after each reply |
 | `hooks/jira-dor-gate.py` | Retired: folded into hooks/external-write-gate.py and _workstream/dor-check.py; the installer drops its hooks.json registration |

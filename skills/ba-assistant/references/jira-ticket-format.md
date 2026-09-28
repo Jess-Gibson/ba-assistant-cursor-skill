@@ -1,15 +1,14 @@
 # Jira Ticket Format Standard
 
 **Location:** `~/.cursor/skills/ba-assistant/references/jira-ticket-format.md`
-**Owner:** `jira-templates` skill (workflow and full format detail), this standard (positioning and high-level rules)
+**Owner:** this standard (workflow, approval gate, hard rules). Your own optional `jira-templates` skill, if you have one, only adds project-specific rendering.
 **Last reviewed:** 2026-05-30
 
-This reference is a **positioning file**. The detailed format definition for PROJ Jira tickets  -  ADF panels, mandatory custom fields, canonical example issue IDs, panel type quick reference, verification considerations, full templates for Bug / Story / Spike  -  lives in the existing `jira-templates` skill (already structured as a separate top-level skill in `.cursor/skills/`).
+This file is everything the assistant needs to draft and create a Jira ticket. **Nothing here depends on a skill that is not in the package.** Jira calls go through Runlayer (`references/runlayer-atlassian-mcp.md`).
 
-This file exists to:
-1. Make Jira format discoverable as part of the references index
-2. Define the contract between `references/user-story-format.md` (the WHAT of a ticket) and `jira-templates` (the HOW for Jira specifically)
-3. Capture cross-cutting rules that apply to any Jira write, independent of PROJ specifics
+**Where the Jira details come from:** the site is `jira.instanceUrl` and the default project is `jira.projectKey` in `~/.cursor/rules/ba-assistant-config.mdc` (what `/setup` wrote). An initiative can override the project with `status-data.json → initiative.jiraProjectKey`. Ask only if both are missing or still placeholders.
+
+If you have built your own `jira-templates` skill (panel layout, custom fields for your project), read it for rendering. It is optional formatting. If it is not installed, render from `references/user-story-format.md` plus an example issue read from your project via Runlayer.
 
 ---
 
@@ -20,10 +19,10 @@ Three layers, each owns something distinct:
 | Layer | Owns | Lives in |
 |---|---|---|
 | **Content structure** | What sections a ticket has (Why, AC, Negative case, Scope, etc.) and how they're written | `references/user-story-format.md` |
-| **Jira-specific rendering** | ADF panels, panel types, emoji headings, PROJ custom fields, canonical example IDs, panel layout for PROJ-4277 / PROJ-4275 | `jira-templates/SKILL.md` |
-| **Workflow** | When to clarify, when to draft, when to create the ticket, the mandatory `AskQuestion` gate | `jira-templates/SKILL.md` |
+| **Jira-specific rendering** | ADF panels, panel types, custom fields, canonical example keys | An example issue from your project (read via Runlayer), or your optional `jira-templates` skill |
+| **Workflow** | Clarify, draft, **BA approval**, create | This file (§2a, §2g, §9) |
 
-The two files are read together when producing a Jira ticket. The story-format file is the source of truth for content; the Jira-templates file is the source of truth for how that content gets rendered into Jira-specific structures.
+The story-format file is the source of truth for content. Rendering follows your project's own example tickets.
 
 ---
 
@@ -39,13 +38,13 @@ This rule is non-negotiable. The Anti-Pattern Detector flags Jira writes that sk
 
 ### 2b. Mirror the canonical example for structure
 
-For every project that has canonical example tickets recorded (PROJ has examples for Bug, Story, Spike, Story with panels, dense Spike), the assistant reads the canonical example via `getJiraIssue` before drafting, and mirrors its structure  -  sections, panels, headings, custom fields. **Structure only, never content.**
+For every project that has canonical example tickets recorded (for example `status-data.json → initiative.jiraTemplate`, captured at intake), the assistant reads the canonical example via `getJiraIssue` before drafting, and mirrors its structure  -  sections, panels, headings, custom fields. **Structure only, never content.**
 
 For projects without recorded canonical examples, the assistant should produce the ticket against `references/user-story-format.md` and flag in the chat that no canonical Jira example was available.
 
 ### 2c. ADF format for writes with panels
 
-When the ticket type requires coloured panels (PROJ Bug, Story, Spike), the write uses ADF (`contentFormat: "adf"`) with `panel` nodes. Markdown content format drops panels and is not acceptable as a shortcut.
+When your project's example tickets use coloured panels, the write uses ADF (`contentFormat: "adf"`) with `panel` nodes. Markdown content format drops panels and is not acceptable as a shortcut.
 
 If ADF JSON is large, build it in a UTF-8 `.json` file, parse, and pass the object to the MCP tool. Don't inline it as a string in the chat.
 
@@ -53,7 +52,7 @@ If ADF JSON is large, build it in a UTF-8 `.json` file, parse, and pass the obje
 
 `[Area] Imperative outcome`  -  short, specific, searchable. Independent of project.
 
-Good: `[Onboarding] Reject Fiserv applications when phone format invalid`
+Good: `[Onboarding] Reject applications when phone format is invalid`
 Bad: `Bug in onboarding`, `Investigation needed`, `Fix the thing from yesterday`
 
 ### 2e. Stories describe the problem, not the solution
@@ -87,40 +86,46 @@ This rule applies to Stories, Spikes, and Bugs. The existing anti-pattern "no so
 
 Mixing types (e.g. a Bug that's actually scope expansion, or a Story that's actually investigation) gets rejected.
 
+### 2g. BA approval before any create (hard gate)
+
+No `createJiraIssue` (and no material `editJiraIssue`) until the BA has **seen the full draft and approved it**.
+
+1. Confirm which initiative this ticket is for. If it has not been named in this chat, ask. Never draft against a guessed initiative.
+2. Show the complete draft in chat (or in a file for long ADF): project key, issue type, summary, description, AC, labels, parent/links.
+3. AskQuestion: **Create in Jira** / **Edit first** / **Not yet**.
+4. Only on **Create in Jira**: create through Runlayer (`execute_tool` → `createJiraIssue`; use `search_tools` if the live schema is unclear). Report the new key back.
+5. Stories also get the Story Readiness Preflight (`_workstream/dor-check.py`, re-run by the `external-write-gate` hook at create time). It checks five structural conditions only (`user-story-format.md` §6); a pass is "Structural preflight passed", not the Definition of Ready. Not passed: the BA's approval dialog names the missing conditions, and an approval is a BA override to log as a tracker decision.
+
+Approval covers the draft as shown. If anything material changes after approval, show it again and re-ask. Several tickets can be approved in one AskQuestion only if every draft was shown.
+
 ---
 
 ## 3. Content conformance
 
-Tickets must conform to **both** `references/user-story-format.md` (content structure) and the project-specific format file (`jira-templates/SKILL.md` for PROJ).
+Tickets must conform to `references/user-story-format.md` (content structure) and follow your project's rendering (example ticket, or your optional `jira-templates` skill).
 
 If the two ever conflict:
 - For content structure (sections, what each section contains, INVEST conformance, DoR): `user-story-format.md` wins
-- For Jira-specific rendering (which panel type, emoji choice, custom field mapping): `jira-templates/SKILL.md` wins
+- For Jira-specific rendering (which panel type, emoji choice, custom field mapping): the project's rendering wins
 
 If a true conflict appears, raise it as a learnings.md entry so the two files can be reconciled.
 
 ---
 
-## 4. Project-specific format files
+## 4. Project-specific format
 
-Currently:
-
-| Project | Format file | Site |
-|---|---|---|
-| PROJ (your-jira-cloud) | `jira-templates/SKILL.md` | your Jira site |
-
-When new projects need their own ticket conventions (different panel layouts, different custom fields, different canonical examples), they get their own format skill following the same pattern. The references/jira-ticket-format.md file (this one) doesn't expand; the project-specific skill is the source of detail.
+The project key and site come from `ba-assistant-config.mdc` (`jira.projectKey`, `jira.instanceUrl`), with a per-initiative override in `status-data.json → initiative.jiraProjectKey`. If a project has its own ticket conventions, record an example issue key at intake (`initiative.jiraTemplate`) or build your own optional format skill. This file does not change per project.
 
 ---
 
-## 5. Pre-write checks (the verification considerations from jira-templates)
+## 5. Pre-write checks (verification considerations)
 
-Before a ticket gets created, the BA Assistant runs the verification considerations from `jira-templates/SKILL.md` Section "Verification considerations":
+Before a draft is shown for approval, the BA Assistant runs these verification considerations (plus any extra ones in your optional format skill):
 
 **Always check:**
 - Telemetry  -  what events fire, where
 - Feature toggling  -  flag, default state, rollout plan
-- Geo scope (e.g. AU & NZ for PROJ)
+- Geo / market scope (set from the initiative)
 - Unhappy paths  -  including UI behaviour for each
 - Flow variants  -  which flows does this hit
 
@@ -171,6 +176,7 @@ This is the same gate as the status page DRAFT banner. Creation OK; advancement 
 | Watching | Trigger | Anti-pattern |
 |---|---|---|
 | Any Jira write | `createJiraIssue` or material `editJiraIssue` invoked without prior `AskQuestion` clarification in session | Clarification gate skipped |
+| Any Jira write | `createJiraIssue` invoked before the BA saw the full draft and chose **Create in Jira** (§2g) | Approval gate skipped |
 | Any Jira write | Write uses `contentFormat: "markdown"` when panels are required | Markdown shortcut |
 | Any Jira write | Canonical example for this issue type exists in project but was not fetched before draft | Canonical example not mirrored |
 | Any Jira write | Ticket type doesn't match content (e.g. Bug type used for new feature work) | Type mismatch |
@@ -187,17 +193,16 @@ This is the same gate as the status page DRAFT banner. Creation OK; advancement 
 
 A sub-skill producing a Jira ticket follows this sequence:
 
-1. **Read this file** (`references/jira-ticket-format.md`) for the hard rules
-2. **Read `references/user-story-format.md`** for content structure
-3. **Read the project-specific format skill** (e.g. `jira-templates/SKILL.md`) for rendering
-4. **Run AskQuestion** for clarification (per 2a)
-5. **Fetch canonical example** via `getJiraIssue` (per 2b)
-6. **Draft** the ticket content per `user-story-format.md` structure
-7. **Render** to ADF per project-specific format file
-8. **Self-check** against the anti-patterns table (Section 8)
-9. **Create** via `createJiraIssue` with the ADF object
+1. **Confirm the initiative** (named in this chat, else ask) and the project key (config / `status-data.json`)
+2. **Read this file** for the hard rules, and `references/user-story-format.md` for content structure
+3. **Run AskQuestion** for clarification (per 2a)
+4. **Fetch the example ticket** via Runlayer `getJiraIssue` (per 2b), if one is recorded. Read your optional format skill only if it is installed
+5. **Draft** the ticket content per `user-story-format.md`, render to ADF if your project uses panels
+6. **Self-check** against the anti-patterns table (Section 8) and the verification considerations (Section 5)
+7. **Show the full draft and get approval** (per 2g). Stop here unless the BA chooses **Create in Jira**
+8. **Create** via Runlayer `createJiraIssue`. Stories: the `external-write-gate` hook recomputes the Story Readiness Preflight from the files (it never reads `dorChecks`) and the BA approves in Cursor's dialog
 
-Step 8 is mandatory and runs before step 9. The Anti-Pattern Detector also runs continuously and will catch issues post-creation, but pre-creation self-check prevents creating tickets that immediately get flagged.
+Steps 6 and 7 are mandatory and run before step 8. The Anti-Pattern Detector also runs continuously and will catch issues post-creation, but pre-creation self-check prevents creating tickets that immediately get flagged.
 
 ---
 
@@ -207,8 +212,6 @@ v1.0 (2026-05-30). Changes to the hard rules (Section 2) require version bump. P
 
 ---
 
-## 11. Note on the existing jira-templates skill
+## 11. Note on the optional jira-templates skill
 
-The `jira-templates` skill currently lives at `~/.cursor/skills/jira-templates/` as a top-level skill, not a sub-skill of `ba-assistant`. This is fine and doesn't need to change. The reference-guides refactor isn't moving it; it's just being referenced from this file so the standards index can point to it.
-
-If a future change wants to bring it under `ba-assistant/sub-skills/` for consistency, that's a separate refactor and out of scope for the reference-guides work.
+`jira-templates` is an optional personal skill (for example `~/.cursor/skills/jira-templates/`) that you can build for your own project's rendering conventions. It does not ship with this package and nothing waits on it. Without it, the flow above works end to end through Runlayer.

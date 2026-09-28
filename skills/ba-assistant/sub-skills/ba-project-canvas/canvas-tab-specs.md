@@ -1,5 +1,9 @@
 # Canvas tab specifications, HTML snapshot spec, and pre-delivery self-check
-<!-- Wave 10: moved verbatim from SKILL.md. Read together with canvas-generate.md when producing outputs. -->
+<!-- Version 15: DESIGN REFERENCE ONLY. The canvas and HTML are rendered by render-initiative-canvas.py
+     from templates/initiative-status.canvas.tsx.template. Do not read this file to make a canvas;
+     read it only when changing the template or the script. -->
+
+> **Maintainers only.** This is the design the template implements. To make a canvas, follow `canvas-generate.md`. Where this file says "the agent" writes code or runs the self-check, that is now the template's job.
 
 ## Tab specifications
 
@@ -239,7 +243,7 @@ const chain = selectedNode
 
 **Below the graph  -  Critical chains as horizontal Pill chains:**
 
-Render the most important paths (e.g. Solo cohort path and Business cohort path) as horizontal sequences of `<Pill size="sm">` linked by `<Text size="small" tone="tertiary">→</Text>` separators. Each path lives inside a `<Callout>` with a chain-status title.
+Render the most important paths (e.g. existing-customer cohort path and new-customer cohort path) as horizontal sequences of `<Pill size="sm">` linked by `<Text size="small" tone="tertiary">→</Text>` separators. Each path lives inside a `<Callout>` with a chain-status title.
 
 **Horizontal compact legend** (same pattern as Workstreams/Timeline):
 ```

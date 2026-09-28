@@ -1,0 +1,66 @@
+{
+  "version": "1.0",
+  "computedAt": "2026-09-28T09:00:00+13:00",
+  "initiative": {
+    "name": "Sample refunds uplift",
+    "slug": "sample-refunds",
+    "phase": "Discovery",
+    "startedAt": "2026-09-01",
+    "deadline": "2026-11-20",
+    "sponsor": "[Sponsor]",
+    "productManager": "[PM]",
+    "techLead": "[Tech Lead]",
+    "businessAnalyst": "[BA name]",
+    "pmApproval": {"status": "pending", "approver": "[PM]"}
+  },
+  "scopes": [
+    {"id": "feature_partial", "label": "Partial refunds (<$500)", "level": "feature"},
+    {"id": "feature_approvals", "label": "Second-approver flow", "level": "feature"},
+    {"id": "cohort_existing", "label": "Existing merchants", "level": "cohort", "parentScope": "feature_partial"}
+  ],
+  "features": [
+    {"id": "feature_partial", "name": "Partial refunds (<$500)", "status": "in-progress", "owner": "[Tech Lead]"},
+    {"id": "feature_approvals", "name": "Second-approver flow", "status": "blocked", "owner": "[PM]"}
+  ],
+  "workstreams": {
+    "intake": {"initiative": "complete"},
+    "discovery": {"initiative": "active", "feature_partial": "complete", "feature_approvals": "active", "cohort_existing": "active"},
+    "solutionShaping": {"feature_partial": "active", "feature_approvals": "not_started"},
+    "delivery": {"feature_partial": "not_started"}
+  },
+  "workstreamChanges": [{"date": "2026-09-24", "scope": "feature_partial", "workstream": "Solution", "change": "Started"}],
+  "narrative": "Discovery is wrapping up for partial refunds. The second-approver flow is waiting on a risk ruling.",
+  "thisWeek": [{"item": "Refund AC walkthrough", "owner": "[BA name]", "atRisk": false}],
+  "confidenceScores": {
+    "problemClarity": {"current": "high", "evidence": {"type": "data", "source": "refund volumes report"}},
+    "complianceReadiness": {"current": "low", "evidence": {"type": "qualitative"}}
+  },
+  "criticalPath": [
+    {"id": 1, "milestone": "Risk ruling on approvals", "date": "2026-10-06", "status": "blocked", "owner": "[Risk lead]", "scope": "feature_approvals"},
+    {"id": 2, "milestone": "Go-live partial refunds", "date": "2026-11-20", "status": "pending", "owner": "[Tech Lead]", "scope": "feature_partial"}
+  ],
+  "blockers": [{"id": "B-1", "description": "Risk team has not ruled on approval threshold", "impact": "Approvals flow cannot be designed", "owner": "[Risk lead]", "targetDate": "2026-09-25", "scope": "feature_approvals"}],
+  "requirements": [
+    {"id": "REQ-001", "description": "Refund part of a transaction", "moscowMatrix": [{"scope": "feature_partial", "rating": "Must"}, {"scope": "cohort_existing", "rating": "Must"}]},
+    {"id": "REQ-002", "description": "Refunds over $500 need a second approver", "moscowMatrix": [{"scope": "feature_approvals", "rating": "Should"}]}
+  ],
+  "decisions": [
+    {"id": "D-01", "title": "Use the existing ledger API", "date": "2026-09-15", "owner": "[Tech Lead]", "status": "confirmed", "scope": "feature_partial", "linkedADR": "ADR-01", "linkedRequirements": ["REQ-001"]},
+    {"id": "D-02", "title": "Threshold stays at $500", "date": "2026-09-22", "owner": "[PM]", "status": "tentative", "scope": "feature_approvals"}
+  ],
+  "raid": {
+    "risks": [{"id": "R-01", "title": "Ledger API rate limits at peak", "impact": "high", "owner": "[Tech Lead]", "status": "open", "scope": "feature_partial"}],
+    "assumptions": [{"id": "A-01", "assumption": "Merchants refund within 30 days", "status": "open"}],
+    "dependencies": [{"id": "DEP-01", "description": "Risk team ruling on threshold", "blocks": "Risk ruling on approvals", "owner": "[Risk lead]", "status": "blocked", "scope": "feature_approvals"}]
+  },
+  "tracker": {
+    "unknowns": [{"id": "OQ-01", "description": "Do partial refunds need a reason code?", "owner": "[PM]", "status": "open"}],
+    "actions": [{"id": "A-10", "description": "Draft refund AC", "owner": "[BA name]", "due": "2026-09-30", "status": "open", "scope": "feature_partial"}]
+  },
+  "stories": [
+    {"key": "PROJ-101", "title": "Partial refund API", "scope": "feature_partial", "status": "In Progress", "moscow": "must", "linkedRequirements": ["REQ-001"], "linkedSlice": "SL-01", "startedAt": "2026-09-22"},
+    {"key": "PROJ-102", "title": "Approver queue", "scope": "feature_approvals", "status": "To Do", "linkedRequirements": ["REQ-002"], "dependsOn": ["DEP-01"]}
+  ],
+  "signOffs": [{"id": "SO-01", "artefact": "Risk sign-off on threshold", "approver": "[Risk lead]", "requestedDate": "2026-09-18", "approvedDate": null, "status": "pending", "scope": "feature_approvals"}],
+  "milestones": [{"id": "M-01", "title": "Go-live partial refunds", "targetDate": "2026-11-20", "status": "on-track", "scope": "feature_partial", "linkedSignOff": "SO-01"}]
+}

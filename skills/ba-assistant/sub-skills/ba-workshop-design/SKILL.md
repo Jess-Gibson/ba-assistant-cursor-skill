@@ -1,6 +1,7 @@
 ---
 name: ba-workshop-design
 description: Design and run workshops across the initiative lifecycle  -  kickoff, current state, discovery, slicing, solution shaping, retro, change kickoff. Owns facilitation patterns, templates, agendas, attendee logic, and post-workshop debrief routing.
+disable-model-invocation: true
 ---
 
 # Skill: Workshop Design
@@ -352,7 +353,7 @@ AskQuestion: approve board, skip Miro, or I'll do it manually
 - Use `Communication_Drafter` to draft:
   - Meeting invite with agenda, pre-read link, Miro link
   - Reminder message for 24h before the workshop
-- AskQuestion: approve invite text, edit, send reminder manually
+- AskQuestion: approve invite text, edit, send reminder manually (text stays in chat for the BA to copy; never an Outlook draft or send)
 
 **Step 7: Add to workboard + calendar**
 - Add the workshop as a personal task in `_workstream/workboard.json` (with prep checklist)
@@ -375,7 +376,7 @@ Miro board: [created / skipped]
 Invite:     [drafted / skipped]
 
 Files created/updated:
-  - blueprints/{slug}/workshops/[name].md (workshop pack)
+  - ~/.cursor/initiatives/{slug}/workshops/[name].md (workshop pack)
   - _workstream/workboard.json (prep task added)
 
 Next: Send the invite, share the pre-read, review the Miro board.

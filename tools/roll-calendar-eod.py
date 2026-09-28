@@ -6,18 +6,66 @@ Use your platform's Python launcher: `py` on Windows, `python3` on Mac/Linux.
   py _workstream/roll-calendar-eod.py                                    # Windows
   python3 _workstream/roll-calendar-eod.py                               # Mac/Linux
   python3 _workstream/roll-calendar-eod.py --closeout-date 2026-09-15
+
+Safe to re-run: a second run for the same --closeout-date prints
+"Gate: calendar-roll: SKIPPED" and writes nothing. Markers that disagree
+(a partial roll) print FAIL and write nothing.
   python3 _workstream/roll-calendar-eod.py --workstream /path/to/.cursor/_workstream
 """
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-TZ = timezone(timedelta(hours=12))
+
+def local_now() -> datetime:
+    """Return aware local time, preserving zone rules when the OS exposes them."""
+    try:
+        resolved = datetime.now().astimezone()
+        if resolved.tzinfo is None or resolved.utcoffset() is None:
+            raise ValueError("local timezone unavailable")
+        if isinstance(resolved.tzinfo, ZoneInfo):
+            return resolved
+
+        candidates = []
+        env_tz = os.environ.get("TZ")
+        if env_tz:
+            candidates.append(env_tz.lstrip(":"))
+        try:
+            localtime = Path("/etc/localtime").resolve()
+            parts = localtime.parts
+            if "zoneinfo" in parts:
+                marker = len(parts) - 1 - list(reversed(parts)).index("zoneinfo")
+                candidates.append("/".join(parts[marker + 1 :]))
+        except OSError:
+            pass
+        for key in candidates:
+            try:
+                return resolved.astimezone(ZoneInfo(key))
+            except (ValueError, ZoneInfoNotFoundError):
+                continue
+        return resolved
+    except (OSError, ValueError):
+        return datetime.now(timezone.utc)
+
+
+def local_midnight(value: date, resolved_tz) -> datetime:
+    """Resolve a date at local midnight with that date's actual UTC offset."""
+    if isinstance(resolved_tz, ZoneInfo):
+        return datetime.combine(value, time.min, tzinfo=resolved_tz)
+    try:
+        resolved = datetime.combine(value, time.min).astimezone()
+        if resolved.tzinfo is None or resolved.utcoffset() is None:
+            raise ValueError("local timezone unavailable")
+        return resolved
+    except (OSError, ValueError):
+        return datetime.combine(value, time.min, tzinfo=timezone.utc)
 
 
 def parse_rule_value(text: str, key: str) -> str | None:
@@ -29,23 +77,42 @@ def parse_rule_value(text: str, key: str) -> str | None:
         for pattern in patterns:
             match = re.match(pattern, line.strip())
             if match:
-                value = match.group(1).strip().strip('"').strip("'")
-                if value and value not in {"[Your Name]", "[BA name]", "TBC"}:
+                value = match.group(1).strip()
+                if value[:1] in {'"', "'"}:
+                    # Quoted: take what is inside the quotes, ignore a trailing # comment.
+                    end = value.find(value[0], 1)
+                    value = value[1:end] if end > 0 else value[1:]
+                else:
+                    value = value.split(" #", 1)[0].strip()
+                if value and value not in {"[Your Name]", "[BA name]", "TBC"} and not value.startswith("["):
                     return value
     return None
 
 
-def load_ba_name(workstream: Path) -> str | None:
-    """Read the configured BA name the same way generate-workboard-canvas.py does,
-    so a solo focus block (empty subject, single required attendee) can be
-    recognised without hardcoding any one person's name."""
+def load_rules_text(workstream: Path) -> str:
     home = workstream.parent
     text = ""
     for name in ("ba-assistant-config.mdc", "ba-profile.mdc"):
         path = home / "rules" / name
         if path.exists():
             text += path.read_text(encoding="utf-8") + "\n"
+    return text
+
+
+def load_ba_name(workstream: Path) -> str | None:
+    """Read the configured BA name the same way generate-workboard-canvas.py does,
+    so a solo focus block (empty subject, single required attendee) can be
+    recognised without hardcoding any one person's name."""
+    text = load_rules_text(workstream)
     return parse_rule_value(text, "ba_name") or parse_rule_value(text, "name")
+
+
+def load_highlight_substrings(workstream: Path) -> tuple[str, ...]:
+    """Optional `calendar_highlight_substrings: Weekly 1:1, Steering` in config.
+    A meeting whose subject contains any of them is highlighted, in addition to
+    meetings the calendar feed already marks with "highlight": true."""
+    raw = parse_rule_value(load_rules_text(workstream), "calendar_highlight_substrings") or ""
+    return tuple(part.strip() for part in raw.split(",") if part.strip())
 
 
 def next_working_day(d: date) -> date:
@@ -65,13 +132,26 @@ def meeting_date(start: str) -> date | None:
         return None
 
 
-def end_time(start: str, dur: int) -> str:
-    h, m = int(start[11:13]), int(start[14:16])
+def coerce_duration(value) -> int | None:
+    """duration_min can be missing, null or a string in hand-edited feeds."""
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def end_time(start: str, dur: int | None) -> str:
+    if dur is None or len(start) < 16:
+        return ""
+    try:
+        h, m = int(start[11:13]), int(start[14:16])
+    except ValueError:
+        return ""
     total = h * 60 + m + dur
     return f"{total // 60:02d}:{total % 60:02d}"
 
 
-def build_workboard_meeting(raw: dict, ba_name: str | None) -> dict:
+def build_workboard_meeting(raw: dict, ba_name: str | None, highlight_substrings: tuple[str, ...] = ()) -> dict:
     subj = raw.get("subject") or ""
     required = str(raw.get("required", "")).strip()
     if not subj.strip() and required and (ba_name is None or required.lower() == ba_name.lower()):
@@ -79,17 +159,16 @@ def build_workboard_meeting(raw: dict, ba_name: str | None) -> dict:
     start = raw.get("start", "")
     return {
         "time": start[11:16] if len(start) >= 16 else "",
-        "end": end_time(start, int(raw.get("duration_min", 30))),
+        "end": end_time(start, coerce_duration(raw.get("duration_min", 30))),
         "subject": subj,
-        "duration_min": raw.get("duration_min", 0),
+        "duration_min": coerce_duration(raw.get("duration_min", 0)) or 0,
         "organizer": raw.get("organizer", ""),
         "done": False,
         "canceled": "cancel" in subj.lower(),
-        # Highlighting is data-driven from calendar-feed.json (matches
-        # generate-workboard-canvas.py's own reading of raw.get("highlight")),
-        # not a hardcoded keyword list -- whatever produces the feed marks
-        # the meetings that matter for this BA.
-        "highlight": bool(raw.get("highlight")),
+        # Highlighting is data-driven: the feed's own "highlight" flag, plus the
+        # BA's optional calendar_highlight_substrings in config. Never a
+        # keyword list in code.
+        "highlight": bool(raw.get("highlight")) or any(h.lower() in subj.lower() for h in highlight_substrings),
         "is_online": raw.get("is_online", True),
     }
 
@@ -109,7 +188,50 @@ def summarize_day(meetings: list[dict]) -> str:
     return "; ".join(parts)
 
 
+class AlreadyRolled(Exception):
+    """The feed and workboard already show a complete roll for this closeout date."""
+
+
+class RollConflict(Exception):
+    """Roll markers disagree with the request or with each other. Fail closed."""
+
+
+def check_previous_roll(cal: dict, wb: dict, closeout: date | None) -> None:
+    """Guard against a second roll for the same day (Version 15).
+
+    The feed records rolled_from/rolled_to on every roll. A repeat for the same
+    closeout date is a no-op only when all three markers agree; anything else
+    is a partial or inconsistent roll and must not be "fixed" by rolling again.
+    """
+    rolled_from = cal.get("rolled_from")
+    rolled_to = cal.get("rolled_to")
+    if closeout is None:
+        if rolled_from:
+            raise RollConflict(
+                f"feed was already rolled {rolled_from} -> {rolled_to}; "
+                "pass --closeout-date <date being closed out> so the roll cannot guess"
+            )
+        return
+    if rolled_from != closeout.isoformat():
+        return
+    expected_to = next_working_day(closeout).isoformat()
+    if rolled_to == expected_to and wb.get("meetings_date") == rolled_to:
+        raise AlreadyRolled(f"already rolled {rolled_from} -> {rolled_to}")
+    raise RollConflict(
+        f"partial or inconsistent roll for {closeout.isoformat()}: "
+        f"rolled_to={rolled_to!r} (expected {expected_to}), "
+        f"workboard meetings_date={wb.get('meetings_date')!r}. "
+        "Check calendar-feed.json and workboard.json by hand before rolling again"
+    )
+
+
 def roll_calendar_eod(workstream: Path, closeout_date: date | None = None) -> dict:
+    """Roll the feed and workboard forward one working day.
+
+    closeout_date is the day being closed out (usually today; yesterday for a
+    morning catch-up). Raises AlreadyRolled (nothing written) or RollConflict
+    (nothing written) before touching any file.
+    """
     workstream = workstream.resolve()
     cal_path = workstream / "calendar-feed.json"
     wb_path = workstream / "workboard.json"
@@ -119,20 +241,25 @@ def roll_calendar_eod(workstream: Path, closeout_date: date | None = None) -> di
 
     with open(cal_path, encoding="utf-8-sig") as f:
         cal = json.load(f)
+    wb = {}
+    if wb_path.exists():
+        with open(wb_path, encoding="utf-8-sig") as f:
+            wb = json.load(f)
+
+    check_previous_roll(cal, wb, closeout_date)
 
     closeout = closeout_date
-    if closeout is None and wb_path.exists():
-        with open(wb_path, encoding="utf-8") as f:
-            wb_probe = json.load(f)
-        md = wb_probe.get("meetings_date")
+    if closeout is None:
+        md = wb.get("meetings_date")
         if md:
             closeout = date(*map(int, md.split("-")))
     if closeout is None:
-        closeout = datetime.now(TZ).date()
+        closeout = local_now().date()
 
     today = next_working_day(closeout)
     tomorrow = next_working_day(today)
     ba_name = load_ba_name(workstream)
+    highlights = load_highlight_substrings(workstream)
 
     all_meetings = cal.get("meetings") or []
     today_raw = [m for m in all_meetings if meeting_date(m.get("start", "")) == today]
@@ -145,9 +272,12 @@ def roll_calendar_eod(workstream: Path, closeout_date: date | None = None) -> di
         and meeting_date(m.get("start", "")) >= today
     ]
 
-    now = datetime.now(TZ)
-    cal["range_start"] = f"{today.isoformat()}T00:00:00.0000000+12:00"
-    cal["range_end"] = f"{(tomorrow + timedelta(days=1)).isoformat()}T00:00:00.0000000+12:00"
+    now = local_now()
+    resolved_tz = now.tzinfo or timezone.utc
+    cal["range_start"] = local_midnight(today, resolved_tz).isoformat(timespec="microseconds")
+    cal["range_end"] = local_midnight(
+        tomorrow + timedelta(days=1), resolved_tz
+    ).isoformat(timespec="microseconds")
     cal["meetings"] = kept
     cal["meeting_count"] = len(kept)
     cal["last_updated"] = now.isoformat()
@@ -156,7 +286,7 @@ def roll_calendar_eod(workstream: Path, closeout_date: date | None = None) -> di
     if not tomorrow_raw:
         cal["note"] = (
             f"EOD roll {closeout.isoformat()} -> {today.isoformat()}. "
-            f"{tomorrow.isoformat()} not in feed yet; re-pull Outlook on morning /workboard Update."
+            f"{tomorrow.isoformat()} not in feed yet; re-pull the calendar on morning /workboard Update."
         )
     else:
         cal["note"] = f"EOD roll {closeout.isoformat()} -> {today.isoformat()}."
@@ -166,16 +296,11 @@ def roll_calendar_eod(workstream: Path, closeout_date: date | None = None) -> di
         f.write("\n")
 
     meetings_today = [
-        build_workboard_meeting(m, ba_name) for m in sorted(today_raw, key=lambda x: x.get("start", ""))
+        build_workboard_meeting(m, ba_name, highlights) for m in sorted(today_raw, key=lambda x: x.get("start", ""))
     ]
     meetings_tomorrow = [
-        build_workboard_meeting(m, ba_name) for m in sorted(tomorrow_raw, key=lambda x: x.get("start", ""))
+        build_workboard_meeting(m, ba_name, highlights) for m in sorted(tomorrow_raw, key=lambda x: x.get("start", ""))
     ]
-
-    wb = {}
-    if wb_path.exists():
-        with open(wb_path, encoding="utf-8") as f:
-            wb = json.load(f)
 
     wb["meetings_date"] = today.isoformat()
     wb["meetings_today"] = meetings_today
@@ -186,7 +311,7 @@ def roll_calendar_eod(workstream: Path, closeout_date: date | None = None) -> di
     elif not tomorrow_raw:
         wb["meetings_tomorrow_note"] = (
             f"{tomorrow.strftime('%a %d %b')}: not in calendar-feed yet. "
-            "Re-pull from Outlook on morning /workboard Update."
+            "Re-pull the calendar on morning /workboard Update."
         )
     else:
         wb["meetings_tomorrow_note"] = f"{tomorrow.strftime('%a %d %b')}: no meetings in feed."
@@ -222,17 +347,24 @@ def main() -> int:
         "--closeout-date",
         type=str,
         default=None,
-        help="Date being closed out (YYYY-MM-DD). Default: workboard meetings_date or today.",
+        help="Date being closed out (YYYY-MM-DD): usually today, yesterday for a morning catch-up. Always pass it at EOD. Omitted: workboard meetings_date, and refused if the feed was already rolled.",
     )
     args = parser.parse_args()
 
     closeout = None
     if args.closeout_date:
-        closeout = date(*map(int, args.closeout_date.split("-")))
+        try:
+            closeout = date(*map(int, args.closeout_date.split("-")))
+        except ValueError:
+            print(f"Gate: calendar-roll: FAIL (bad --closeout-date {args.closeout_date!r}, want YYYY-MM-DD)")
+            return 1
 
     try:
         result = roll_calendar_eod(args.workstream, closeout)
-    except FileNotFoundError as exc:
+    except AlreadyRolled as exc:
+        print(f"Gate: calendar-roll: SKIPPED ({exc}; nothing written)")
+        return 0
+    except (FileNotFoundError, RollConflict, json.JSONDecodeError) as exc:
         print(f"Gate: calendar-roll: FAIL ({exc})")
         return 1
 

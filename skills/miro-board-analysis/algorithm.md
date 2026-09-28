@@ -86,14 +86,14 @@ Copy the output into the plan file **before** placement math. Required section:
 ```markdown
 ## Board inventory (context_explore)
 
-**Board URL:** https://miro.com/app/board/uXjVHdjL1c4=/
+**Board URL:** https://miro.com/app/board/{boardId}/
 **Explored:** this session (before layout_create)
 
 | Frame title | Widget ID | Board x | Board y | w | h | Relevant to this build? |
 |---|---|---|---|---|---|---|
-| MoSCoW 20 Jul | 3458764678608204701 | 286983 | 2359 | 5900 | 2400 | style reference |
-| Release pillars | 3458764678608456596 | 286633 | 5621 | 5200 | 3629 | neighbour  -  overlap risk |
-| Prior analysis frame | 3458764678609592937 | 287000 | 9800 | 5000 | 10800 | prior attempt  -  do not overlap |
+| MoSCoW 20 Jul | `<widgetId>` | 286983 | 2359 | 5900 | 2400 | style reference |
+| Release pillars | `<widgetId>` | 286633 | 5621 | 5200 | 3629 | neighbour  -  overlap risk |
+| Prior analysis frame | `<widgetId>` | 287000 | 9800 | 5000 | 10800 | prior attempt  -  do not overlap |
 
 **Frames in placement zone (~20k px of target):** Release pillars, MoSCoW 20 Jul, …
 **Empty zone confirmed:** no / yes  -  if yes, cite inventory rows
@@ -101,7 +101,7 @@ Copy the output into the plan file **before** placement math. Required section:
 
 If the board is genuinely empty, still run `context_explore` and record: `No frames returned  -  new/empty board confirmed.`
 
-The pre-flight hook **denies** `layout_create` without this section.
+The manual pre-flight check is incomplete without this section. No enforcement hook ships in this package.
 
 ### Step 2b-1: Discover neighbours
 
@@ -162,7 +162,7 @@ Every coordinate manifest MUST include:
 
 | Neighbour | Frame ID | Frame box (x, y, w, h) | Content bottom (board-absolute) | Content right |
 |---|---|---|---|---|
-| Release pillars | 3458764678608456596 | 286633, 5621, 5200, 3629 | **9250+ (items spill)** | 291833 |
+| Release pillars | `<widgetId>` | 286633, 5621, 5200, 3629 | **9250+ (items spill)** | 291833 |
 
 **Proposed new frame:** x=293500, y=5621, w=5000, h=10800
 **Gap:** 167px horizontal from content right (FAIL  -  need ≥500) → revised x=292400
@@ -228,7 +228,7 @@ When the section is an Accent Card, **do not** use Step 3c / 3d header+grey form
 
 If `card_h > 900`, widen `card_w` once and recompute (wider → fewer wraps → shorter).
 
-Gold reference for tuning: [BA name] clone `3458764680341236141` on board `uXjVHz3VP9I=`.
+Gold reference for tuning: [BA name] clone `<widgetId>` on board `<boardId>`.
 
 ### Step 3d: Calculate section total height
 ```
@@ -318,7 +318,7 @@ Present the plan to the user with:
 
 **Wait for user approval before proceeding to Pass 5.** If the user requests changes, update the manifest and re-present.
 
-The pre-flight hook (`gate-miro-preflight.py`) **denies** `layout_create` unless the plan file contains **both** required sections. Chat memory does not count; the plan file does.
+Before `layout_create`, manually verify that the plan file contains **both** required sections. Chat memory does not count; the plan file does. No pre-flight gate script ships in this package.
 
 ---
 

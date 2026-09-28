@@ -4,11 +4,15 @@ This repository is a **Cursor skill package** for Business Analysts. When a user
 opens this workspace, or pastes the install prompt, your job is to **install the
 files**, then run the personalisation wizard. Do not only chat about setup.
 
+After installation, behaviour comes from `skills/ba-assistant/SKILL.md` (the
+Version 15 router), not from this install guide.
+
 ## Paste-this prompt (share with new BAs)
 
 ```text
 Install BA Assistant from https://github.com/Jess-Gibson/ba-assistant-cursor-skill
-into my Cursor home. Copy skills, rules, hooks, and commands, verify the install,
+into my Cursor home. Run tools/install-ba-assistant.py to install skills, rules,
+hooks, and commands (do not copy hooks.json by hand), verify the install,
 then run the personalisation wizard. Default my initiatives folder to
 ~/.cursor/initiatives. When setup finishes, help me with MCP / Runlayer
 connections and offer to set up my workboard or start my first initiative.

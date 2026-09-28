@@ -1,74 +1,64 @@
 ---
-description: Turn classification, default-agent behaviour, and skill routing for BA workspaces — the single always-on router (absorbs ba-assistant-default, session-start-protocol, and legacy project-context twins)
+description: Turn classification, default-agent behaviour, and skill routing for BA workspaces (the single always-on router)
 alwaysApply: true
 ---
 
 # Execution router
 
-The one rule that decides **what to load and whether to act**. Runs before responding to the first user message in any conversation, including resumes. (Wave: always-on restructure — this file absorbed `session-start-protocol.mdc`; the repo twins `ba-assistant-default.mdc` and older project-context rules are also folded in.)
+The one rule that decides **what to load and whether to act**. Runs before responding to the first user message in any conversation, including resumes.
 
 ## 0. Workspace detection and default agent
 
-The BA Assistant orchestrator is the **default agent** in any workspace containing `blueprints/Project*/`, `.cursor/skills/ba-assistant/`, or a `your shared BA workspace` root, or set up per SETUP.md. The user does not type `/ba-assistant` — classify the turn and engage silently when BA-related. Outside BA workspaces, never auto-engage.
+The BA Assistant orchestrator is the **default agent** in any workspace containing `.cursor/skills/ba-assistant/` or an initiative folder, or set up per SETUP.md. The user does not type `/ba-assistant` — classify the turn and engage silently when BA-related. Outside BA workspaces, never auto-engage.
 
 ## 1. Project context (first chat in a workspace)
 
-If the open workspace root has `AGENTS.md`, read it as primary context; else `README.md`. If another project agent guide exists at the root, honour it too. (The sessionStart hook also injects this instruction — belt and braces.) Do not assume a specific product; infer from the open project.
-
-Load BA skills **only** from `~/.cursor/skills/ba-assistant/` (or this package's `skills/ba-assistant/` when installing). Do not search other skill folders on the machine.
+Read the workspace root's `AGENTS.md` as primary context, else `README.md`. Do not assume a specific product. Load BA skills **only** from `~/.cursor/skills/ba-assistant/` (or this package's `skills/ba-assistant/` when installing); never search other skill folders.
 
 ## 2. Classify the turn (first action, silent)
 
 | Class | Signals | Required reads (Read tool) | Then |
 |-------|---------|---------------------------|------|
-| **BA-resume** | continue, resume, #2, initiative name, Sample Initiative/NP, `/next` `/status` | `SESSION-CONTEXT.md`, `initiative-tracker.md`, `Project-hub.md` | Run Step 2.75 resume — **act on recommended next**, do not status-dump only |
-| **BA-new** | new initiative, Phase 0, intake | `instructions.md` only | BA welcome panel + intake |
-| **Sync/publish-risk** | sync, push, team repo, harness, `/sync-team-repo` | `TEAM-REPO-HANDOFF.md` (**no bundled `sync-team-repo` skill** — see CUSTOMIZATION.md §11 to build one) | Present file table. **No write/push until "sync now"** (see Harness sync path below) |
-| **BA-tooling** | improve BA assistant, new skill/sub-skill/rule/command/hook, workboard package, "for another BA", change routing/orchestrator, edit `ba-assistant-cursor-skill` skills/rules/commands | `local-first packaging rule (if installed)` (always on — re-read if unsure) | **Edit `~/.cursor/` first.** No writes to `ba-assistant-cursor-skill/skills|rules|commands|hooks` until local exists and [BA name] has confirmed sync (packaging zips are distribution only — see that rule). |
+| **BA-resume** | continue, resume, #2, initiative name, `/next` `/status` | `SKILL.md` Step 2 read order (snapshot first) | Run `SKILL.md` Step 2 (resume / `/reanchor`). **Act on the recommended next action**, do not status-dump only. No welcome panel. |
+| **BA-new** | new initiative, Phase 0, intake | `instructions.md` only | Run `ba-new-initiative`, then `SKILL.md` Step 3 (Intake Reviewer). No welcome panel, no draft-depth quiz, no automatic canvas. |
+| **Publish-risk** | hand to devs, publish to the team/delivery repo, push analysis to a shared repo, `/handover` | Route via `skills-routing.mdc` to `ba-dev-handover` | Publish confirmed analysis only. **No write/push until the user explicitly says to** (see Publish guard below). Plain "sync" is not this class: it means `/wrap`, Jira/Confluence status (`ba-jira-sync`, `/publish-status`), or `/validate-state`. Ask once if unclear. |
+| **BA-tooling** | improve BA assistant, new skill/sub-skill/rule/command/hook, workboard package, "for another BA", change routing/orchestrator, edit `ba-assistant-cursor-skill` skills/rules/commands | Your local-first packaging rule, if you have one | **Edit `~/.cursor/` first.** No writes to the package repo's skills/rules/commands/hooks until the local change exists and the BA has confirmed it. |
 | **Non-BA** | debug code, syntax, generic explain | Project README/AGENTS only | Skip BA orchestrator |
 | **Ambiguous** | "help me think through something", short message either way | — | Ask once via AskQuestion: BA Assistant (recommended) / Quick chat / Specific skill. "Quick chat" = orchestrator stays off for the thread. |
-| **End-of-session** | wrap up, close out, done for tonight | `SESSION-CONTEXT.md` (tail) | Load **ba-retrospective-and-learning**: Type 1 default; Type 2 if tooling/process failure this session. Update session log. |
+| **Chat checkpoint** | wrap up, close out this chat, checkpoint, `/wrap` | `~/.cursor/commands/wrap.md` | Run `/wrap`: chat-only checkpoint into `SESSION-CONTEXT.md` and the tracker. Not a retro, not end of day. |
+| **End of day** | done for tonight, I'm done for the day, end of day, `/workboard end-of-day` | `~/.cursor/commands/workboard.md` | Run `/workboard end-of-day` per `references/eod-closeout-procedure.md`. Do **not** load `ba-retrospective-and-learning`. |
+| **Retro** | `/retro`, or the user explicitly asks for a retro / retrospective / lessons learned | `SESSION-CONTEXT.md` (tail) | Load **ba-retrospective-and-learning**: Type 1 default; Type 2 if tooling/process failure this session. Only on explicit request. |
 
 Also classify the **activity** (Frame / Discover / Shape / Deliver / Run — see `references/activity-map.md`). Do not print model-tier nudges (Auto-balance handles model selection).
 
-### Harness sync path (publish-risk, mandatory steps)
+### Publish guard (publish-risk)
 
-1. Read `TEAM-REPO-HANDOFF.md`
-2. List every file with action: share | exclude | update-first
-3. Hash-compare modified files against local master
-4. Explicit **"sync now"** from user
-5. Set env `CURSOR_HARNESS_SYNC_OK=1` for that shell session only, then push (hook allows)
-
-Bulk copy (`Copy-Item -Recurse`, copying whole folders) to the harness is **forbidden** — sync file-by-file with review.
+1. Publishing to devs goes through `ba-dev-handover` only. It never publishes unconfirmed work.
+2. Do not write or push to a shared repo until the user explicitly says to.
+3. No bulk copy of working notes (`Copy-Item -Recurse`, whole-folder copies) to a shared or team repo. Publish selected confirmed artefacts file by file with review.
+4. When a shared-repo path is configured (`paths.sharedRepoRoot` in `ba-assistant-config.mdc`, or `BA_SHARED_REPO_ROOT`), the shared-repo guard hook still applies on commit/push.
 
 ### Mid-thread opt-out
 
 "Skip the BA assistant", "just answer my question", "no orchestrator", "drop out of BA Assistant" → suspend the orchestrator for the rest of the thread, acknowledge briefly. Re-engage only on explicit "run BA assistant" / "back to BA Assistant".
 
-### Mid-thread re-anchor (`/reanchor`)
+### Mid-thread re-anchor
 
-1. Re-read `ba-assistant/SKILL.md` and `instructions.md`
-2. Re-read the active project's `SESSION-CONTEXT.md`, `status-data.json`, `initiative-tracker.md`
-3. Resume from current state; confirm: "Re-anchored. Current workstream: <X>. Continue with: <Y>?"
+`/reanchor` follows `~/.cursor/commands/reanchor.md`. The Anti-Pattern Detector flags drift and offers it proactively.
 
-The Anti-Pattern Detector flags drift symptoms and offers `/reanchor` proactively.
+## 2b. Use the BA's settings (`ba-assistant-config.mdc`)
+
+`/setup` writes `~/.cursor/rules/ba-assistant-config.mdc` (always in context). Use its values everywhere instead of package placeholders, and never ask for one that is set: `[BA name]` → `name` (plus `role`, `team`); Jira → `jira.instanceUrl`, `jira.projectKey`; Confluence → `confluence.spaceKey`, `confluence.parentPageUrl`; domain → `domain`, `domainDocs` (shape questions, research and examples); folders → `paths.initiativesRoot`, `paths.downloadsPath`, `paths.sharedRepoRoot`. An initiative's `status-data.json` / `confluence-pages.json` overrides Jira and Confluence values; an upper-case env var (`BA_INITIATIVES_ROOT` etc.) overrides the config. A value still in `[brackets]` counts as unset: ask once, then offer to save it. `PROJ-1234` keys in package examples are illustrations.
 
 ## 3. Skill loading — one primary, not bulk
 
-**Bootstrap (BA only):** per `ba-assistant/SKILL.md` Step 1. That file is the single owner of the bootstrap file list, not restated here — this rule and the skill body used to be two copies of the same instruction with no benefit to duplicating it.
+**Bootstrap (BA only):** per `ba-assistant/SKILL.md` Step 1.
 
-**Routing:** on a BA or matched intent, **Read** `skills-routing.mdc` (agent-requested; not always injected). Load **one primary** skill for the turn. Load a **second** only when intents are clearly complementary (e.g. workshop design + Miro board analysis). Prefer the more specific row on conflicts. **Never** read all BA sub-skills before the first reply. **Never** skip Step 2.75 file reads on a resume thread.
+**Routing:** on a BA or matched intent, **Read** `skills-routing.mdc` (agent-requested; not always injected). Load **one primary** skill for the turn. Load a **second** only when intents are clearly complementary (e.g. workshop design + Miro board analysis). Prefer the more specific row on conflicts. **Never** read all BA sub-skills before the first reply. **Never** skip `SKILL.md` Step 2 file reads on a resume thread.
 
 **Report loads inline:** every skill load/invocation gets a one-line header — `> **Skill loaded:** [name] — [reason]`. Skip for internal tool calls.
 
-## 4. AskQuestion + prior decisions
-
-- AskQuestion is used **when it helps the user decide or move** (see agent-behavior), not on every reply.
-- If the user **already answered** the same decision this thread, do not re-ask — offer next-step options only.
-- If AskQuestion times out or fails, proceed from the transcript and state what you are doing.
-- If the user said "sync now" or chose sync in a prior answer, execute — do not ask again.
-
-## 5. Continuous monitors (every BA turn, silent unless triggered)
+## 4. Continuous monitors (every BA turn, silent unless triggered)
 
 ### Anti-Pattern Detector (quick scan)
 
@@ -85,7 +75,7 @@ After any BA output, self-check against the top triggers. If one fires, load `ba
 
 ### Context Capture (passive)
 
-After every user message in a BA thread, scan for new facts, decisions, blockers, corrections → write to SESSION-CONTEXT.md with a `📝 Captured:` inline confirmation (per `ba-context-capture`).
+After every user message in a BA thread, scan for decisions, requirements, actions, answered questions, assumptions, risks, blockers, facts and corrections. When something is found, write it the same turn with one `_workstream/capture.py` call (`--source chat-user` for what the BA said, else the real source) and add a `📝 Captured:` line (per `ba-context-capture`). Nothing found: stay silent, write nothing. Debriefing a transcript or pasted document: skip this, its items go on the debrief card.
 
 ### Skill nudges (content-aware routing)
 
@@ -99,64 +89,10 @@ After every user message in a BA thread, scan for new facts, decisions, blockers
 | "playback", "sign-off", "presentation to" | ba-playback-and-enablement |
 | "hand to devs", "spike request", "ADR request" | ba-dev-handover |
 
-## 6. Report (one line)
+## 5. Report (one line)
 
 > **Session context:** [class] | Activity: [activity] | Skills: [loaded] | BA: [active/skipped]
 
-## 7. Required visible outputs (BA-resume reply) — the Re-entry Card
+## 6. Required visible outputs (BA-resume reply) — the Re-entry Card
 
-### Pre-card actions (silent)
-
-1. Read `SESSION-CONTEXT.md` (tail 50) and `initiative-tracker.md` via Read tool
-2. Read `_workstream/workboard.json` for cross-initiative context
-2b. Read `_workstream/ba-actions.json` — count open/blocked; note overdue. Full list: `_workstream/ba-actions.md`.
-3. Read `_workstream/calendar-feed.json` for today's meetings
-4. Check `CURSOR_NEW_TRANSCRIPT_COUNT` / `CURSOR_NEW_TRANSCRIPTS` (set by the sessionStart hook)
-5. If the initiative has a Jira project key, run a quick Jira status delta
-
-### Card format
-
-```
---- Re-entry: [initiative] | [phase] | Day [N] ---
-
-Where we are: [One sentence — last significant action + current state]
-Next action: [The single most valuable thing to do right now]
-
-Today's meetings: [count] ([names])
-New transcripts: [count or "none"]
-Jira delta: [tickets moved since last check, or "no changes"]
-Sync status: [ok / N items unpromoted / stale pages]
-
----
-```
-
-Then AskQuestion: recommended next action (first, marked recommended), 2-3 alternatives, "Show full status", "Debrief [meeting]" if new transcripts.
-
-### Cross-initiative resume
-
-"Resume" with no initiative name → mini-workboard, then AskQuestion: which initiative, or `/workboard`:
-
-```
---- Cross-initiative re-entry ---
-
-Sample Initiative:            [phase] — [one-line state]
-Data Collection:              [phase] — [one-line state]
-Sample Reassessment Initiative: [phase] — [one-line state]
-
-Top 3 actions:
-1. [highest priority task from workboard]
-2. [next]
-3. [next]
-
-Today: [count] meetings | [count] new transcripts
-
----
-```
-
-### Non-negotiables
-
-- Read state files BEFORE the card — never generate from memory or summary alone
-- Always include the next action
-- Always include AskQuestion — the card without options is a dead end
-- Keep it one screen; `/status` is the deep view
-- Jira delta is best-effort — "Jira: unable to check" and proceed on MCP failure
+On a BA-resume reply, read `~/.cursor/skills/ba-assistant/references/re-entry-card.md` and show that card (one screen: where we are, next action, today's meetings, new transcripts, Jira delta, sync status), then AskQuestion with the recommended next action first. "Resume" with no initiative named: the cross-initiative mini-workboard in the same file. Non-negotiables: read state files before the card (never from memory), always include the next action, always include the AskQuestion, Jira delta is best-effort.

@@ -1,17 +1,19 @@
-# beforeSubmitPrompt hook — computed context injection (C3).
-# Replaces static always-on reminder rules with ONE relevant line per turn, computed
-# from actual state. Cuts the always-on tax AND fires reliably (it's code, not vibes).
+# stop hook (--stop): computed unpromoted-state reminder (C3). Off unless
+# `stopFollowup: true` in ba-assistant-config.mdc, and even then it nudges at most
+# once per conversation. It never runs on each prompt: the package does not register
+# a beforeSubmitPrompt hook (Cursor ignores that event's additional_context). The
+# non --stop branch at the bottom only lets an old hooks.json entry exit cleanly.
 #
-# stdin: hook JSON (user prompt etc — verify field names against current Cursor docs)
-# stdout: {"additional_context": "..."} (empty string = inject nothing)
+# It checks only the initiative session-init.py named for this chat
+# (CURSOR_SESSION_CONTEXT_PATH). No named initiative = silent. It never falls back
+# to "newest SESSION-CONTEXT.md by modified time".
 #
 # What it computes (cheap, local-file-only, <50ms):
-#   1. Unpromoted items in the newest SESSION-CONTEXT.md (DEC-/RISK-/OQ-/ACT-/DEP-
-#      lines without a [promoted] tag) → reminder to promote / run /wrap.
-#   2. status-data.json older than initiative-tracker.md by >1h → staleness note.
-# One line max. Silence when state is clean — the reminder only exists when earned.
+#   1. Unpromoted DEC-/REQ-/RISK-/OQ-/ASM-/ACT-/DEP- lines (no [promoted] tag) -> promote / run /wrap.
+#   2. status-data.json older than initiative-tracker.md by >1h -> staleness note.
+# Silence when state is clean.
 
-import json, os, re, sys, glob, time
+import json, os, re, sys
 from pathlib import Path
 
 
@@ -35,16 +37,9 @@ def stop_followup_enabled() -> bool:
     return False
 
 
-def newest_session_context():
-    cands = []
+def named_session_context():
     ctx = os.environ.get("CURSOR_SESSION_CONTEXT_PATH", "")
-    if ctx and os.path.isfile(ctx):
-        return ctx
-    for root in filter(None, [os.environ.get("BA_INITIATIVES_ROOT", ""),
-                              os.path.expanduser("~/.cursor/blueprints"),
-                              os.path.expanduser("~/ba-initiatives")]):
-        cands += glob.glob(os.path.join(root, "**", "SESSION-CONTEXT.md"), recursive=True)
-    return max(cands, key=os.path.getmtime) if cands else ""
+    return ctx if ctx and os.path.isfile(ctx) else ""
 
 STOP_MODE = "--stop" in sys.argv
 loop_count = 0
@@ -55,15 +50,15 @@ except Exception:
     pass
 
 notes = []
-sc = newest_session_context()
+sc = named_session_context()
 if sc:
     try:
         text = open(sc, encoding="utf-8", errors="ignore").read()
         unpromoted = [l for l in text.splitlines()
-                      if re.match(r'\s*[-*]?\s*(DEC|RISK|OQ|ACT|DEP)-', l.strip())
+                      if re.match(r'\s*[-*]?\s*(DEC|REQ|RISK|OQ|ASM|ACT|DEP)-', l.strip())
                       and "[promoted]" not in l]
         if len(unpromoted) >= 3:
-            notes.append(f"{len(unpromoted)} unpromoted items in SESSION-CONTEXT (decisions/risks/OQs). "
+            notes.append(f"{len(unpromoted)} unpromoted items in SESSION-CONTEXT (decisions/requirements/risks/OQs). "
                          f"Promote to the tracker or suggest /wrap before the session ends.")
         d = os.path.dirname(sc)
         tracker, sd = os.path.join(d, "initiative-tracker.md"), os.path.join(d, "status-data.json")
@@ -77,7 +72,26 @@ out = ""
 if notes:
     out = "STATE REMINDER (computed, sessionState hook): " + " | ".join(notes[:2])
 
+def history_snapshot(folder, label):
+    """Save a version of the chat's initiative folder after each assistant reply, so
+    anything the assistant changed can be undone (_workstream/initiative-history.py).
+    Silent, time-boxed, never affects the hook's answer."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    for script in (os.path.join(here, "..", "_workstream", "initiative-history.py"),
+                   os.path.join(os.path.expanduser("~"), ".cursor", "_workstream", "initiative-history.py")):
+        if os.path.isfile(script):
+            try:
+                import subprocess
+                subprocess.run([sys.executable, script, "snapshot", "--initiative", folder, "--label", label],
+                               capture_output=True, text=True, timeout=3)
+            except Exception:
+                pass
+            return
+
+
 if STOP_MODE:
+    if sc:
+        history_snapshot(os.path.dirname(sc), "After assistant reply")
     # Cursor docs (5 Jul 2026): the stop hook's only supported output is followup_message
     # (auto-submits a user message, i.e. a "ghost" turn the user didn't type). Default OFF
     # (B4c) -- opt in with `stopFollowup: true` in ba-assistant-config.mdc. Nudge at most
@@ -90,7 +104,5 @@ if STOP_MODE:
     else:
         print(json.dumps({}))
 else:
-    # beforeSubmitPrompt: additional_context is NOT a documented output for this event
-    # (docs list continue/user_message only). Emitted anyway - harmless if ignored,
-    # future-proof if Cursor adds support. continue:true keeps the prompt flowing.
-    print(json.dumps({"continue": True, "additional_context": out}))
+    # Retired beforeSubmitPrompt entry in an old hooks.json: let the prompt through, say nothing.
+    print(json.dumps({"continue": True}))

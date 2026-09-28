@@ -26,7 +26,7 @@ The BA workspace already git-ignores its state files (`.gitignore`: SESSION-CONT
 
 ## 2. Shared-repo folder convention
 
-Root is `BA_SHARED_REPO_ROOT` (env var) or the path recorded in `confluence-pages.json → sharedRepo`. Ask once, cache it. Per initiative:
+Root is `paths.sharedRepoRoot` in `~/.cursor/rules/ba-assistant-config.mdc` (an optional `BA_SHARED_REPO_ROOT` env var overrides it). If it is empty, ask once and write the answer there. Per initiative:
 
 ```
 <shared-repo>/

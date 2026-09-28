@@ -1,9 +1,12 @@
 ---
 name: ba-solution-evaluation
 description: Post-launch BA work  -  measure actual vs expected outcomes, validate value delivered, identify performance gaps, recommend continue/adjust/sunset decisions. Closes the BABOK loop after delivery.
+disable-model-invocation: true
 ---
 
 # Skill: Solution Evaluation
+
+> **Hook ids:** this skill names `HK-...` ids. Open that row in `~/.cursor/skills/ba-assistant/hook-contracts.md` if you need the contract. Do not read the whole file.
 
 ## Description
 
@@ -57,9 +60,9 @@ Solution Evaluation MUST invoke the following:
    - Measurement is wrong (instrumentation issue, wrong baseline)
    Hand off to `Requirements_Interrogator` (Rethink mode) for any requirement-rooted gaps.
 
-5. **Surface unintended consequences**  -  Things that got better unexpectedly, things that got worse unexpectedly. Both matter. Examples: a feature reduced Data Collection fail rate but increased support tickets about confusing error messages.
+5. **Surface unintended consequences**  -  Things that got better unexpectedly, things that got worse unexpectedly. Both matter. Examples: a feature reduced the verification fail rate but increased support tickets about confusing error messages.
 
-6. **Validate the original problem**  -  Is the problem we set out to solve actually solved? Use stakeholder feedback + data + journey observation. A solution can hit its metrics and still not solve the problem (e.g. Data Collection pass rate up but customers still drop off at the same point).
+6. **Validate the original problem**  -  Is the problem we set out to solve actually solved? Use stakeholder feedback + data + journey observation. A solution can hit its metrics and still not solve the problem (e.g. verification pass rate up but customers still drop off at the same point).
 
 7. **Recommend a decision**  -  Produce a clear continue/adjust/sunset recommendation:
    - **Continue**  -  outcomes meet targets, no adjustments needed, sustain monitoring

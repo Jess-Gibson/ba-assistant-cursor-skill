@@ -1,8 +1,7 @@
 # BA Assistant for Cursor — Setup Guide
 
-**Version 13** - see [CHANGELOG.md](CHANGELOG.md) and [README.md](README.md).
+**Version 15** - see [CHANGELOG.md](CHANGELOG.md) and [README.md](README.md).
 
-> Originally designed and built by Jess Gibson, Senior BA (2025–2026).
 > Built iteratively across real BA initiatives using agent-assisted development.
 
 ---
@@ -13,7 +12,8 @@ You do **not** need to be a developer. Open Cursor, start a new chat, and paste:
 
 ```text
 Install BA Assistant from https://github.com/Jess-Gibson/ba-assistant-cursor-skill
-into my Cursor home. Copy skills, rules, hooks, and commands, verify the install,
+into my Cursor home. Run tools/install-ba-assistant.py to install skills, rules,
+hooks, and commands (do not copy hooks.json by hand), verify the install,
 then run the personalisation wizard. Default my initiatives folder to
 ~/.cursor/initiatives. When setup finishes, help me with MCP / Runlayer
 connections and offer to set up my workboard or start my first initiative.
@@ -22,7 +22,7 @@ connections and offer to set up my workboard or start my first initiative.
 Cursor should:
 
 1. Clone or open the package
-2. Copy skills, rules, hooks, and commands into your Cursor home (`~/.cursor`)
+2. Run `tools/install-ba-assistant.py` to install skills, rules, hooks, and commands into your Cursor home (`~/.cursor`). The installer sets the right Python command for Windows or Mac; a hand-copied `hooks.json` will not work.
 3. Create `~/.cursor/initiatives` and seed `_workstream`
 4. Run the personalisation wizard (name, role, Jira/Confluence, output depth)
 5. Offer first tasks: workboard, meeting debrief, first initiative, or MCP help
@@ -99,6 +99,8 @@ python tools/upgrade-ba-assistant.py --package /path/to/ba-assistant-cursor-skil
 python tools/upgrade-ba-assistant.py --package /path/to/ba-assistant-cursor-skill --apply
 ```
 
+Personalised install (edited skills or rules, your own naming)? Use `tools/ba-merge-upgrade.py` instead: see [docs/PERSONALISED-UPGRADE.md](docs/PERSONALISED-UPGRADE.md).
+
 ---
 
 ## Configuring MCP / Runlayer integrations
@@ -125,6 +127,16 @@ Prefer **Glean via Runlayer**. Do not install a standalone unmanaged Glean MCP
 Do not paste API tokens into chat. Do not store secrets in initiative files.
 
 Full cold-start procedure: `skills/ba-assistant/references/context-bootstrap.md`.
+
+### Auto-run (optional, your choice)
+
+Cursor's auto-run setting decides whether you click to approve each terminal command and MCP call. Pick whatever you are comfortable with; BA Assistant does not require one. The hooks are the safety net whatever you choose:
+
+- every Jira, Confluence, calendar, Miro or chat **write** still asks you first (the `external-write-gate` hook), and **email is never sent or drafted**;
+- a Story that doesn't meet the Definition of Ready tells you what is missing before you approve;
+- every change to an initiative folder can be undone with `/undo`.
+
+If clicking approve on every helper script gets tiring, a narrow allowlist is enough: the package's own scripts only, `python3 ~/.cursor/_workstream/` (Mac) or `py ~/.cursor/_workstream/` (Windows). Runlayer reads (search, get, list) are safe to auto-run because the hook still stops writes.
 
 ---
 
@@ -154,12 +166,12 @@ Also confirm `~/.cursor/skills/ba-assistant/SKILL.md` exists.
 
 | Setting | Default |
 |---------|---------|
-| Initiatives root | `~/.cursor/initiatives` (`BA_INITIATIVES_ROOT`) |
+| Initiatives root | `~/.cursor/initiatives` (`paths.initiativesRoot` in `ba-assistant-config.mdc`) |
 | Downloads | `~/Downloads` (`BA_DOWNLOADS_PATH`) |
 | Personalisation file | `~/.cursor/rules/ba-assistant-config.mdc` |
 | Persona rule | `~/.cursor/rules/ba-profile.mdc` (package; not overwritten by wizard) |
 
-Legacy `blueprints/` folders still work if you point `BA_INITIATIVES_ROOT` there.
+Legacy `blueprints/` folders still work: the hooks check them as a fallback, or point `paths.initiativesRoot` there.
 
 ---
 
@@ -212,3 +224,38 @@ Prefer `tools/upgrade-ba-assistant.py --apply`, or ask Cursor:
 Upgrade my BA Assistant install from https://github.com/Jess-Gibson/ba-assistant-cursor-skill
 without overwriting my ba-assistant-config.mdc
 ```
+
+## Go back to an older version
+
+If a new version misbehaves, you can go back. Your initiatives, actions, profile and config are never touched by any of these.
+
+**Upgraded with the merge tool (personalised installs):** undo the upgrade exactly, file for file:
+
+```text
+py tools\ba-merge-upgrade.py rollback --session "<the session folder the upgrade printed>"
+```
+
+(Mac: `python3 tools/ba-merge-upgrade.py ...`.) This is the safest route: it puts back the install you had before, including your own edits.
+
+**Installed or upgraded with the plain installer or upgrader:** reinstall a bookmarked version. Two bookmarks (git tags) are kept:
+
+| Tag | What it is |
+|---|---|
+| `v14.0` | Version 14, as released |
+| `v15.0-rc1` | Version 15 before the safety review changes (write gate, DoR check, undo) |
+
+```text
+git clone https://github.com/Jess-Gibson/ba-assistant-cursor-skill ba-fallback
+cd ba-fallback
+git checkout v14.0
+py tools\install-ba-assistant.py --dry-run
+py tools\install-ba-assistant.py --apply --hooks-strategy replace
+```
+
+(Mac: `python3`, and `tools/...`.) `--hooks-strategy replace` puts back that version's hooks exactly; your current `hooks.json` is backed up first (`hooks.json.bak-<time>` next to it), so any hooks of your own can be copied back from there. The skills folder is backed up to `~/.cursor/ba-assistant-backups/` before it is replaced. Start a new chat afterwards.
+
+If the tag is not on the main repository yet, get it from the working fork instead: `git fetch https://github.com/jessgibson/ba-assistant-cursor-skill tag v14.0` before `git checkout v14.0`.
+
+**Last resort:** restore the copy of your whole `.cursor` folder you made before upgrading (recommended in the upgrade guides).
+
+Leftovers from a newer version (for example `/undo`, `hooks/external-write-gate.py`, the `.git` history folder inside each initiative) are harmless after going back and can stay.

@@ -1,10 +1,10 @@
 # BA Assistant for Cursor
 
-**Version 13** - see [CHANGELOG.md](CHANGELOG.md).
+**Version 15** - see [CHANGELOG.md](CHANGELOG.md).
 
 A comprehensive Business Analysis assistant built as a Cursor skill. Designed to support BAs through the full initiative lifecycle — from intake and discovery through delivery, playback, and retrospective.
 
-> Originally designed and built by Jess Gibson, Senior BA (2025–2026).
+> Built by Jess Gibson.
 > Built iteratively across real BA initiatives using agent-assisted development.
 
 ---
@@ -47,7 +47,7 @@ The BA Assistant is an AI-powered BA thinking partner that runs inside [Cursor](
 
 **Workboard** is an **inline Run procedure** (`references/workboard-procedure.md`), not a sub-skill folder.
 
-The table above uses old "Phase" names for a quick skills index. For the canonical M0–M8 workstream model (purpose, scope, states, gates), see `skills/ba-assistant/references/workstreams.md`.
+The table above uses friendly phase names as a quick skills index. Day-to-day routing uses `skills/ba-assistant/references/activity-map.md`; the slim `skills/ba-assistant/SKILL.md` is the orchestrator. `skills/ba-assistant/references/workstreams.md` is an optional M0–M8 glossary for legacy terminology and cross-reference.
 
 ### Optional companion skills
 
@@ -59,11 +59,11 @@ The table above uses old "Phase" names for a quick skills index. For the canonic
 | Command | What it does |
 |---------|-------------|
 | `/next` | Top 3 next actions by urgency |
-| `/status` | Full current state with canvas and HTML snapshot |
-| `/canvas` | Generate/refresh the interactive project dashboard |
+| `/status` | Full current state in chat, with quality metrics (offers `/canvas`) |
+| `/canvas` | Render the interactive project dashboard and HTML snapshot from `status-data.json` |
 | `/report` | Full structured deep-dive report |
-| `/validate-state` | Mid-session drift check (read-only) |
-| `/wrap` | End-of-session closeout — promote, sync BA actions, refresh workboard |
+| `/validate-state` | Write this chat's captures into the initiative files and `ba-actions` |
+| `/wrap` | Chat-scoped checkpoint — capture, promote, sync BA actions changed in this chat (workboard refresh is `/workboard end-of-day`) |
 | `/workboard` | Cross-initiative dashboard |
 | `/todo` | Quick-capture into `ba-actions.json` |
 | `/fast-track` | Condensed BA flow for time-critical initiatives |
@@ -72,6 +72,7 @@ The table above uses old "Phase" names for a quick skills index. For the canonic
 | `/reanchor` | Re-read state files when the assistant drifts |
 | `/handover` | Publish confirmed analysis to the delivery repo |
 | `/close` | Archive a finished initiative (closure retro, file audit, move to `archive/`) |
+| `/undo` | Put an initiative's files back as they were before a change (local history, nothing leaves the machine) |
 | `/ba-assistant` | Start BA Assistant (runs setup wizard on first install) |
 | `/install-ba-assistant` | Install or repair package files from the public repo |
 | `/setup` | Re-run the first-run configuration wizard |
@@ -85,7 +86,8 @@ The table above uses old "Phase" names for a quick skills index. For the canonic
 
 ```text
 Install BA Assistant from https://github.com/Jess-Gibson/ba-assistant-cursor-skill
-into my Cursor home. Copy skills, rules, hooks, and commands, verify the install,
+into my Cursor home. Run tools/install-ba-assistant.py to install skills, rules,
+hooks, and commands (do not copy hooks.json by hand), verify the install,
 then run the personalisation wizard. Default my initiatives folder to
 ~/.cursor/initiatives. When setup finishes, help me with MCP / Runlayer
 connections and offer to set up my workboard or start my first initiative.
@@ -103,7 +105,9 @@ Default initiative folders: `~/.cursor/initiatives`. After files are installed, 
 
 ## Upgrade from an older install
 
-Preserves personalised `ba-profile.mdc` and `_workstream` data. Migrates legacy `personal_tasks[]` into `ba-actions.json` when safe.
+Preserves personalised `ba-profile.mdc` and `_workstream` data. Package files (skills, package rules, commands, hooks) are replaced with the new version. Legacy data migrations (old `personal_tasks[]`, an old actions file) only run with `--migrate-legacy`. `--patch-profile` updates only the old `/wrap` and `/validate-state` rows in your profile.
+
+**Edited skills or rules, or renamed things to your own names?** Use `tools/ba-merge-upgrade.py` instead. It backs up, stages, compares your install against the old and new versions, keeps your edits and naming, and deploys only what you approve. Walkthrough: [docs/PERSONALISED-UPGRADE.md](docs/PERSONALISED-UPGRADE.md).
 
 ```bash
 # Dry-run first
@@ -157,10 +161,19 @@ rules/                        # Always-on routing, sync gates, todo capture
 commands/                     # Slash command stubs
 tools/upgrade-ba-assistant.*  # Safe full upgrade
 tools/upgrade-workboard.*     # Workboard capability overlay only
+tests/run_all.py              # Package tests (repo only, not installed)
 dist/ba-workboard-overlay.zip # Friend handoff package
-VERSION                       # 13
+VERSION                       # 15
 CHANGELOG.md
 SETUP.md
 ```
 
 `_workstream/` is created under `~/.cursor/` on first use (not committed).
+
+## Tests (for people changing this repo)
+
+```
+python3 tests/run_all.py      # Windows: py tests/run_all.py
+```
+
+Runs the Jira story preflight, hook, and package consistency checks. They are not installed and never run while a BA uses the assistant, so they cost no tokens in normal use.

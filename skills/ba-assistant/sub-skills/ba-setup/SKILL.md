@@ -103,7 +103,7 @@ Empty free-text is not an answer; ask once more. Never invent name chips.
 - `pa` — Product Analyst
 - `other` — Other (type in the free-text field)
 
-Capture: `profile.name`, `profile.role`.
+Capture: `name`, `role`.
 
 ---
 
@@ -125,7 +125,17 @@ Options (none pre-marked as the only “right” answer):
 - `product` — Product / Features
 - `other` — Other (type your domain or team name in the free-text field)
 
-Capture: `profile.domain` (and `profile.team` if they typed a team name under Other).
+Capture: `domain` (and `team` if they typed a team name under Other).
+
+**Optional, same panel or next:**
+
+> Any pages that explain your domain or product? (Confluence links, docs, file paths)
+
+- `docs` — Type one or more links in the free-text field
+- `skip_docs` — Skip for now
+
+Capture: `domainDocs` (list). Intake and research read these first, and the
+assistant uses `domain` to frame questions and examples for the rest of the process.
 
 ---
 
@@ -150,8 +160,8 @@ another BA's canvas sidecar or embedded records.
 - `change_dl` — Change the Downloads folder (type path in free-text)
 
 If they change a path, confirm it once. Store in config YAML. Prefer writing
-config over lecturing about environment variables. Do not mention `BA_SHARED_REPO_ROOT`
-until `/handover`.
+config over lecturing about environment variables. Do not ask for a shared repo
+path here: `/handover` asks the first time and writes `paths.sharedRepoRoot`.
 
 Capture: `paths.initiativesRoot`, `paths.downloadsPath`.
 
@@ -186,7 +196,7 @@ Never use chips like “Enter the URL (Recommended)” with no typed value.
 If Jira tools are missing in this chat, note briefly that Step 6 will help them
 connect via Runlayer. Do not block setup.
 
-Capture: `workspace.jira.instanceUrl`, `workspace.jira.projectKey`.
+Capture: `jira.instanceUrl`, `jira.projectKey`.
 
 ---
 
@@ -216,7 +226,7 @@ there later (with their OK). Do not invent placeholder URL chips.
 
 If Confluence tools are missing, note Step 6 will help connect via Runlayer.
 
-Capture: `workspace.confluence.spaceKey`, `workspace.confluence.parentPageUrl`
+Capture: `confluence.spaceKey`, `confluence.parentPageUrl`
 (and hub URL if different).
 
 ---
@@ -261,7 +271,11 @@ Never ask for API tokens.
 Default draft depth: **standard** (do not ask unless they ask to change it).
 
 Write `~/.cursor/rules/ba-assistant-config.mdc` from
-`skills/ba-assistant/ba-profile.template.mdc`.
+`~/.cursor/skills/ba-assistant/ba-profile.template.mdc`. Keep the template's
+frontmatter (`alwaysApply: true`) at the top so the config loads in every chat.
+Keep this file short: settings only, no procedures. Fill every key captured above
+(`name`, `role`, `team`, `domain`, `domainDocs`, `jira.*`, `confluence.*`, `paths.*`);
+the rest of the assistant reads them from here instead of asking again.
 
 **Do not overwrite** always-on `ba-profile.mdc` (persona).
 

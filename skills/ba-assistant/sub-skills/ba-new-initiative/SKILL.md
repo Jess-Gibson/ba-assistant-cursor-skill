@@ -8,6 +8,7 @@ description: >
   for X", or when the resume flow finds no existing initiative folder matching what
   the user describes. Replaces the old welcome-panel and project-initialisation flow
   that used to live inline in ba-assistant/SKILL.md.
+disable-model-invocation: true
 ---
 
 # Skill: New Initiative Setup
@@ -56,6 +57,7 @@ If neither applies, skip this skill. Resuming an existing initiative never runs 
    metrics, stakeholders, RAID (Decisions / Risks / Open Questions / Assumptions /
    Dependencies / Sign-offs), confidence scores (all starting Unknown), and a blank
    Confluence + Jira workspace context block (filled in step 5).
+4a. **Start the undo history (silent).** `python3 ~/.cursor/_workstream/initiative-history.py ensure --initiative <slug>` (Windows: `py`). It keeps a private version history inside the folder (no remote, nothing leaves the machine) so any later change can be undone with `/undo`. If it prints "History: unavailable", carry on; never mention git to the BA.
 4b. **Write `README.md`** — the one file a human (or a later closeout pass) can open
    cold and understand what this folder is, without reading the tracker. Keep it
    short and let it grow with the initiative:
@@ -66,10 +68,14 @@ If neither applies, skip this skill. Resuming an existing initiative never runs 
    - Status line: `Active` (only ever flipped by a closeout pass, to
      `Closed — see outcome summary below`)
    This is an index, not a competing source of truth: decisions and RAID stay owned
-   by `initiative-tracker.md`. Refresh it at phase gates alongside the canvas.
+   by `initiative-tracker.md`. Refresh the README at phase gates. Generate or
+   refresh a canvas only after `/canvas`, `/status`, or a direct user request.
 5. **Capture workspace context once**, batched into one or two `AskQuestion` panels,
-   not a sequential interview:
-   - Jira project key (e.g., PROJ, SW)
+   not a sequential interview. **Pre-fill from `ba-assistant-config.mdc`** and ask the
+   BA to confirm or change, rather than asking blank: Jira project = `jira.projectKey`,
+   Confluence = `confluence.spaceKey` / `confluence.parentPageUrl`. Only ask blank for
+   values the config does not have.
+   - Jira project key (default `jira.projectKey`)
    - Jira issue type templates, if this project uses custom ones
    - Confluence space and parent page
    - Slack channel for initiative comms (e.g. `#sample-initiative`)
@@ -79,14 +85,18 @@ If neither applies, skip this skill. Resuming an existing initiative never runs 
    before asking its own workspace-context question.
 6. **Multi-source research**, before asking the user to restate anything they may
    already have documented. Search, in this order, in parallel where possible:
+   - **Domain docs first:** read the pages listed in `domainDocs` (config) that relate
+     to this initiative, and use `domain` to pick search terms and the regulators and
+     standards worth checking.
    - **Confluence** (Runlayer -> `searchConfluenceUsingCql` or `atlassian__search`) for
-     pages matching the initiative name, keywords, related domains.
-   - **Jira** (Runlayer -> `searchJiraIssuesUsingJql`) for existing epics, stories,
+     pages matching the initiative name, keywords, related domains; start in
+     `confluence.spaceKey`, then widen.
+   - **Jira** (Runlayer -> `searchJiraIssuesUsingJql`, project from step 5) for existing epics, stories,
      problem cards, spikes.
-   - **Glean, enterprise** (`enterprise-search` skill) for docs, Slack threads, email,
-     design docs, RFCs.
-   - **Glean, code** (`code-exploration` skill), for technical initiatives, to check
-     whether this has been built before.
+   - **Glean, enterprise** (via Runlayer) for docs, Slack threads, email, design docs,
+     RFCs.
+   - **Glean, code** (via Runlayer), for technical initiatives, to check whether this
+     has been built before.
    - **Web** (`WebSearch` tool) for regulations, vendor docs, industry standards, news.
 
    Report findings in one structured response with confidence signals per source
@@ -94,8 +104,8 @@ If neither applies, skip this skill. Resuming an existing initiative never runs 
    which sources to read in full.
 
    **Regulator gate (mandatory):** if the work touches a regulator or regulatory
-   framework ([regulator], APRA, ACCC, ASIC, OAIC, ATO, AusPayNet, AML/CTF, Privacy
-   Act / APP, CDR, PCI DSS, GDPR, PSD2/PSD3, CCPA, or cues like "regulatory mandate",
+   framework ([regulator], the regulators/standards configured for your jurisdiction
+   per CUSTOMIZATION.md §6, common standards such as PCI DSS, GDPR, PSD2/PSD3, CCPA, or cues like "regulatory mandate",
    "interchange reform", "compliance deadline"), web search is mandatory regardless
    of complexity. Read the regulator's own publication directly, internal Confluence
    summaries are secondary evidence. If WebSearch isn't available, do not proceed

@@ -32,7 +32,7 @@ Run without being asked:
 
 - **Anti-Pattern Detector** - flags anti-patterns as they appear, including skipped mandatory hooks.
 - **Requirements Interrogator** - fires when a requirement is becoming a design decision, or a design is justified by an uninterrogated requirement.
-- **Context Capture** - logs new facts, decisions, blockers, OQs, scope changes, and corrections to `SESSION-CONTEXT.md` with an inline `📝`. Surfaces `learnings.md` at inflection points (see that skill).
+- **Context Capture** - every BA turn, spots new decisions, requirements, actions, answered questions, assumptions, risks, blockers, scope changes and corrections, and writes them to `SESSION-CONTEXT.md` the same turn with `_workstream/capture.py` and an inline `📝`. Surfaces `learnings.md` at inflection points (see that skill).
 
 ## Self-Critique
 
@@ -49,6 +49,6 @@ Surface the critique in the output, not hidden.
 
 Clear, concise, structured, direct. No fluff. Challenge constructively. Prefer tables, bullets, and Mermaid over long paragraphs. Match depth to the user and the initiative.
 
-No Unicode em dash in anything meant to leave this chat (emails, Confluence, Miro, comms). Chat replies and internal working files are exempt. Boundary: `ba-profile.mdc` / output-style rules.
+No Unicode em dash in content another person will read or the BA will copy into email, Slack, Teams, Jira, Confluence, Miro, stakeholder status pages, stakeholder Markdown, or other external surfaces. Ordinary chat with the BA and internal working files are exempt. Boundary: `ba-profile.mdc` / output-style rules.
 
 Markdown or Confluence-bound artefacts: apply `references/markdown-readability.md`. Hook, not restated here (`hook-contracts.md`).

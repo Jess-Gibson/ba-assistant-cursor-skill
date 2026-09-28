@@ -13,7 +13,7 @@ Canonical formulas, sources, and thresholds live in `references/canvas-data-mode
 
 ### Computation invocation
 
-Compute these:
+`_workstream/compute-metrics.py --initiative <slug>` computes all four from `status-data.json`, writes `metrics-cache.json` (with a 7-day trend and the n/a streak) and prints the table. Show its output; do not work the formulas by hand. Run it:
 - Before every `/status` output (after Jira sync, before the chat status text is generated)
 - Before every retro (Type 2 / Type 3  -  the retro skill reads them)
 - Before every `/snapshot`
@@ -35,8 +35,8 @@ Add a new section to the `/status` output template:
 | MoSCoW coverage (initiative) | 87% | ↗ | ✓ |
 | MoSCoW coverage (Cohort A) | 92% | → | ✓ |
 | MoSCoW coverage (Cohort B) | 64% | ↘ | 🔴 below threshold |
-| DoR hit rate (Cohort A) | 78% | → | ✓ |
-| DoR hit rate (Cohort B) | 55% | ↘ | 🔴 below threshold |
+| Preflight first-pass rate (Cohort A) | 78% | → | ✓ |
+| Preflight first-pass rate (Cohort B) | 55% | ↘ | 🔴 below threshold |
 | Requirement interrogation rate | 91% | → | 🟡 below 95% target |
 | Sign-off cycle time (median) | 6.5 days | ↗ | 🔴 above 5d target |
 ```
@@ -45,7 +45,7 @@ Add a new section to the `/status` output template:
 
 If any metric can't be computed (insufficient data  -  e.g. no DoR checks logged yet on a new initiative), display `n/a` in the metrics table, NOT 0% or a fabricated value. Showing `n/a` is honest; showing 0% looks like everything is broken.
 
-After 3 status outputs with the same metric `n/a`, surface a one-line nudge: "DoR hit rate has been n/a for 3 status runs  -  likely missing instrumentation in Delivery Definition. Want me to look?"
+After 3 status outputs with the same metric `n/a`, surface a one-line nudge: "Preflight first-pass rate has been n/a for 3 status runs  -  likely missing instrumentation in Delivery Definition. Want me to look?"
 
 ### New `/metrics` command
 

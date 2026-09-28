@@ -11,9 +11,12 @@ description: >
   from the confirmed register (parallel to how /publish-status derives a Confluence page), gates them for
   quality before they leave, writes them to the shared repo, and feeds the matching Jira ticket.
   It never publishes unconfirmed work.
+disable-model-invocation: true
 ---
 
 # Skill: Dev Handover
+
+> **Hook ids:** this skill names `HK-...` ids. Open that row in `~/.cursor/skills/ba-assistant/hook-contracts.md` if you need the contract. Do not read the whole file.
 
 ## Description
 
@@ -78,7 +81,7 @@ Fire these as part of the readiness check, before publishing. Print the status h
 
 3. **Risk & Tracker** (`HK-DH-RT-raid`)  -  pull the confirmed RAID items a handover references (dependencies, decisions, compliance constraints) from the tracker and **embed them as a summary table in the published artefact** (the tracker itself never leaves the workspace). Block if a handover asserts a dependency or constraint with no tracker entry (untraceable).
 
-4. **Jira** (`HK-DH-JIRA-ticket`)  -  for spike requests, ADR requests, and story packs, after the markdown is published and the gate passes, offer to create/update the matching Jira ticket using the project-specific Jira skill (`jira-templates` in this workspace's convention  -  in the public repo this is a create-your-own skill per CUSTOMIZATION.md) and `references/jira-ticket-format.md`. The markdown is the source; the Jira ticket is the actioned view. Warn if the Jira MCP is unavailable; the markdown still publishes.
+4. **Jira** (`HK-DH-JIRA-ticket`)  -  for spike requests, ADR requests, and story packs, after the markdown is published and the gate passes, offer to draft the matching Jira ticket per `references/jira-ticket-format.md` (§2g: show the draft, create through Runlayer only after the BA chooses **Create in Jira**). An optional personal `jira-templates` skill, if installed, only adds formatting. The markdown is the source; the Jira ticket is the actioned view. Warn if the Jira MCP is unavailable; the markdown still publishes.
 
 5. **State Validator** (`HK-DH-SV-register`)  -  after publishing, register the handover's dependencies so the validator can flag it if a confirmed artefact it derived from later changes (making the published handover stale). Warn on failure.
 
@@ -90,7 +93,7 @@ If the user hasn't said, ask via AskQuestion: Requirements pack / Spike request 
 
 ### 2. Confirm the shared-repo target
 
-Read `BA_SHARED_REPO_ROOT` (env var) or `confluence-pages.json → sharedRepo` if recorded. If neither exists, ask once for the shared repo path and the initiative slug, then cache it. The confirmed export lands at `<shared-repo>/analysis/<slug>/confirmed/`; exchanges at `<shared-repo>/analysis/<slug>/exchanges/`. See `dev-handover-format.md` for the full structure.
+Read `paths.sharedRepoRoot` from `~/.cursor/rules/ba-assistant-config.mdc` (an optional `BA_SHARED_REPO_ROOT` env var overrides it). If it is empty, ask once for the shared repo path ("where should confirmed analysis go?") and write it to `paths.sharedRepoRoot` in that file, next to the other paths. Ask for the initiative slug if it is not obvious. Do not store the path in `confluence-pages.json`. The confirmed export lands at `<shared-repo>/analysis/<slug>/confirmed/`; exchanges at `<shared-repo>/analysis/<slug>/exchanges/`. See `dev-handover-format.md` for the full structure.
 
 ### 3. Readiness check (the gate's first half)
 
@@ -162,7 +165,7 @@ Per `instructions.md → Self-Critique`, before presenting: what am I assuming t
 |---|---|---|
 | Handover artefact | Markdown | `<shared-repo>/analysis/<slug>/confirmed/` or `/exchanges/` |
 | Handover note | Markdown | `<shared-repo>/analysis/<slug>/exchanges/handover-notes/` |
-| Jira ticket (spike/ADR/story) | Jira issue | Jira, via the project-specific Jira skill |
+| Jira ticket (spike/ADR/story) | Jira issue | Jira, via Runlayer after BA approval |
 | Index entry | Markdown row | `<shared-repo>/analysis/<slug>/README.md` |
 | Handover log | JSON | `metrics-cache.json → handovers` |
 
@@ -170,7 +173,7 @@ Per `instructions.md → Self-Critique`, before presenting: what am I assuming t
 
 | Failure | What to do |
 |---|---|
-| Shared repo path unknown | Ask once, cache in confluence-pages.json → sharedRepo |
+| Shared repo path unknown | Ask once, write to `paths.sharedRepoRoot` in `ba-assistant-config.mdc` |
 | Jira MCP unavailable | Publish the markdown; skip ticket; note in the handover note that the ticket is pending |
 | A required requirement isn't confirmed | Halt and hand off to the Interrogator conversation (requirements/story pack) or flag provisional (spike/ADR); never silently publish a draft |
 | User insists on publishing a soft-fail | Allow after explicit acknowledgement; log the override to metrics-cache |
@@ -199,7 +202,7 @@ Per `instructions.md → Self-Critique`, before presenting: what am I assuming t
 | Data Investigation | Grounds system facts before they're handed over |
 | Risk & Tracker | Source of the confirmed RAID a handover embeds |
 | State Validator | Registers handover dependencies; flags stale handovers on confirmed-artefact change |
-| Project-specific Jira skill (`jira-templates` convention) | Renders the published markdown into the Jira ticket |
+| `references/jira-ticket-format.md` (+ optional `jira-templates`) | Drafts the Jira ticket from the published markdown; created via Runlayer after BA approval |
 
 ## Hook contract
 
@@ -210,5 +213,5 @@ Add to `hook-contracts.md`:
 | HK-DH-INT-confirm | Requirements_Interrogator | Handover needs a requirement not yet confirmed | Requirement, source | Handoff-and-halt: Interrogator conversation runs; requirement confirmed in register as a separate event; user re-runs /handover | Block (reqs/story pack); warn+flag provisional (spike/ADR) | 🟠 W9 |
 | HK-DH-BDI-ground | ba-data-investigation | Requirement touches a real system with qualitative/absent grounding | Requirement, candidate sources | Grounded facts or qualitative tag | Warn  -  publish as qualitative after acknowledgement | 🟠 W9 |
 | HK-DH-RT-raid | Risk_and_Tracker | Handover references a dependency/decision/constraint | RAID reference | RAID summary table embedded in the artefact (tracker IDs preserved) | Block  -  untraceable handover | 🟠 W9 |
-| HK-DH-JIRA-ticket | Project Jira skill (jira-templates convention) | Spike/ADR/story published, gate passed | Published markdown | Jira ticket created/updated | Warn  -  markdown stands; ticket pending | 🟠 W9 |
+| HK-DH-JIRA-ticket | `jira-ticket-format.md` via Runlayer, after BA approval | Spike/ADR/story published, gate passed | Published markdown | Jira ticket created/updated | Warn  -  markdown stands; ticket pending | 🟠 W9 |
 | HK-DH-SV-register | ba-state-validator | After publish | Handover + source artefact IDs | Dependency registered for drift watch | Warn  -  manual re-check fallback | 🟠 W9 |

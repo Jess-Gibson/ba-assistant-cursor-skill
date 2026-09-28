@@ -14,6 +14,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import platform
 import shutil
@@ -62,27 +63,10 @@ EXCLUDE_FROM_SKILL_TREE = {
     "learnings.md",
 }
 
-PACKAGE_COMMANDS = [
-    "ba-assistant.md",
-    "setup.md",
-    "workboard.md",
-    "todo.md",
-    "wrap.md",
-    "status.md",
-    "canvas.md",
-    "validate-state.md",
-    "handover.md",
-    "debrief.md",
-    "metrics.md",
-    "reanchor.md",
-    "retro.md",
-    "next.md",
-    "report.md",
-    "fast-track.md",
-    "publish-status.md",
-    "snapshot.md",
-    "audit-standards.md",
-]
+def package_commands(package: Path) -> list[Path]:
+    """Every commands/*.md the package ships. Globbed, never a hand list that drifts."""
+    cmd_dir = package / "commands"
+    return sorted(cmd_dir.glob("*.md")) if cmd_dir.exists() else []
 
 
 def log(msg: str) -> None:
@@ -261,7 +245,7 @@ def seed_learnings(cursor_home: Path, package: Path, dry_run: bool) -> None:
 
 
 # Script extensions recognised when matching a hook entry's `command` to a
-# package-owned script (e.g. "python ./hooks/jira-dor-gate.py" -> "jira-dor-gate.py").
+# package-owned script (e.g. "python ./hooks/external-write-gate.py" -> "external-write-gate.py").
 HOOK_SCRIPT_EXTENSIONS = (".py", ".ps1", ".sh", ".js", ".cjs", ".mjs")
 
 
@@ -286,17 +270,46 @@ def hook_entry_script_name(entry: dict) -> str | None:
     return None
 
 
+# Prompt hooks this package used to ship. A prompt entry has no script to match
+# on, so without this a reinstall kept the old copy AND appended the new one.
+PACKAGE_PROMPT_OWNER = "ba-assistant"
+LEGACY_PACKAGE_PROMPT_PREFIXES = (
+    "SESSION START: Classify per execution-router.mdc",
+)
+
+
+def is_package_prompt_entry(entry: dict) -> bool:
+    if not isinstance(entry, dict) or entry.get("type") != "prompt":
+        return False
+    if entry.get("_owner") == PACKAGE_PROMPT_OWNER:
+        return True
+    prompt = str(entry.get("prompt", "")).lstrip()
+    return prompt.startswith(LEGACY_PACKAGE_PROMPT_PREFIXES)
+
+
+LEGACY_WRAPPER_EXTENSIONS = (".sh", ".ps1")
+
+
+def is_legacy_wrapper_of(script_name: str, pkg_py_stems: set[str]) -> bool:
+    """True for foo.sh / foo.ps1 when the package ships foo.py for the same event."""
+    lower = script_name.lower()
+    for ext in LEGACY_WRAPPER_EXTENSIONS:
+        if lower.endswith(ext) and lower[: -len(ext)] in pkg_py_stems:
+            return True
+    return False
+
+
 def merge_hook_event(event_name: str, user_entries: list, pkg_entries: list) -> tuple[list, list[str]]:
     """Merge one hooks.<event> array.
 
-    The package's own entries for this event (matched by script basename)
-    always reflect the package's current version. Any entry the user added
-    that this package doesn't own for this event (including any `"type":
-    "prompt"` entry, which has no script basename to match on) is preserved.
-    Returns (merged_list, log_lines).
+    The package's own entries for this event (matched by script basename, or
+    for prompt hooks by `_owner` / a known package prompt prefix) always
+    reflect the package's current version. Any entry the user added that this
+    package doesn't own is preserved. Returns (merged_list, log_lines).
     """
     pkg_names = {hook_entry_script_name(e) for e in pkg_entries}
     pkg_names.discard(None)
+    pkg_py_stems = {n[:-3].lower() for n in pkg_names if n.lower().endswith(".py")}
     kept: list = []
     logs: list[str] = []
     for entry in user_entries:
@@ -304,12 +317,35 @@ def merge_hook_event(event_name: str, user_entries: list, pkg_entries: list) -> 
         if name is not None and name in pkg_names:
             logs.append(f"DROP hooks.{event_name} stale user entry ({name}, superseded by package)")
             continue
+        if name is not None and is_legacy_wrapper_of(name, pkg_py_stems):
+            # Pre-Version 13 .sh/.ps1 twin of a package .py hook: keeping it
+            # would run the same hook twice on this event.
+            logs.append(f"DROP hooks.{event_name} legacy wrapper entry ({name}, replaced by the .py hook)")
+            continue
+        if is_package_prompt_entry(entry):
+            logs.append(f"DROP hooks.{event_name} old package prompt entry (replaced, not stacked)")
+            continue
+        if (event_name, name) in RETIRED_PACKAGE_HOOKS:
+            logs.append(f"DROP hooks.{event_name} retired package entry ({name})")
+            continue
         kept.append(entry)
         logs.append(f"KEEP hooks.{event_name} user entry ({name or entry.get('type', 'entry')})")
     for entry in pkg_entries:
         name = hook_entry_script_name(entry)
         logs.append(f"APPLY hooks.{event_name} package entry ({name or entry.get('type', 'entry')})")
     return kept + list(pkg_entries), logs
+
+
+# (event, script) pairs the package used to register and no longer does. Removed
+# from an existing hooks.json on merge so old installs stop running them.
+RETIRED_PACKAGE_HOOKS = {
+    ("beforeSubmitPrompt", "inject-state-reminder.py"),  # Cursor ignores its output
+    # Version 15: external-write-gate.py is the one beforeMCPExecution hook and runs
+    # the DoR check itself; a second registration would run the check twice.
+    ("beforeMCPExecution", "jira-dor-gate.py"),
+    # Cursor reads no output from afterFileEdit; postToolUse (Write) carries the warning.
+    ("afterFileEdit", "shared-repo-guard.py"),
+}
 
 
 def merge_hooks_object(pkg_hooks: dict, existing_hooks: dict) -> tuple[dict, list[str]]:
@@ -331,8 +367,23 @@ def merge_hooks_object(pkg_hooks: dict, existing_hooks: dict) -> tuple[dict, lis
         merged[event_name] = merged_list
         logs.extend(event_logs)
     for event_name in existing_hooks:
-        if event_name not in pkg_hooks:
-            logs.append(f"KEEP hooks.{event_name} (event not defined by package, left untouched)")
+        if event_name in pkg_hooks:
+            continue
+        entries = existing_hooks.get(event_name)
+        if isinstance(entries, list):
+            kept = []
+            for entry in entries:
+                name = hook_entry_script_name(entry) if isinstance(entry, dict) else None
+                if (event_name, name) in RETIRED_PACKAGE_HOOKS:
+                    logs.append(f"DROP hooks.{event_name} retired package entry ({name})")
+                    continue
+                kept.append(entry)
+            if kept:
+                merged[event_name] = kept
+            else:
+                merged.pop(event_name, None)
+                continue
+        logs.append(f"KEEP hooks.{event_name} (event not defined by package, left untouched)")
     return merged, logs
 
 
@@ -397,6 +448,54 @@ def rewrite_package_python_interpreters(pkg_hooks: dict) -> int:
     return rewritten
 
 
+def guard_dor_gate_interpreter(pkg_hooks: dict) -> list[str]:
+    """Every package hook registered with failClosed:true (today the external-write
+    gate on beforeMCPExecution). If the Python interpreter itself is missing, that
+    would block EVERY MCP call (Confluence reads included). Keep the gate strict
+    when the script runs, but allow when the interpreter can't start. A crash of
+    the script itself stays fail-closed.
+
+    Mac/Linux: wrap the command in `sh -c` that checks for the interpreter first.
+    Windows: no portable wrapper, so if the py launcher is missing right now,
+    register the gate fail-open and warn.
+    """
+    logs: list[str] = []
+    interpreter = package_python_command()
+    allow_json = '{"permission":"allow","agent_message":"","user_message":""}'
+    for entries in pkg_hooks.values():
+        if not isinstance(entries, list):
+            continue
+        for entry in entries:
+            if not isinstance(entry, dict) or entry.get("failClosed") is not True:
+                continue
+            if not (hook_entry_script_name(entry) or "").endswith(".py"):
+                continue
+            cmd = entry.get("command", "")
+            if platform.system() == "Windows":
+                if shutil.which(interpreter) is None:
+                    entry["failClosed"] = False
+                    logs.append(
+                        f"WARN '{interpreter}' not found: MCP gate registered with failClosed:false "
+                        "so MCP calls are not blocked. Install Python and re-run the installer."
+                    )
+                continue
+            if cmd.startswith("sh -c"):
+                continue
+            tokens = cmd.split()
+            if len(tokens) != 2:
+                continue
+            script_path = tokens[1]
+            escaped = allow_json.replace('"', '\\"')
+            # Script path stays the LAST token (passed as $0) so
+            # hook_entry_script_name still matches it on the next merge.
+            entry["command"] = (
+                f"sh -c 'command -v {interpreter} >/dev/null 2>&1 || "
+                f"{{ echo \"{escaped}\"; exit 0; }}; exec {interpreter} \"$0\"' {script_path}"
+            )
+            logs.append("WRAP MCP gate command: allow MCP calls if the interpreter is missing")
+    return logs
+
+
 def merge_hooks_json(package_hooks: Path, dest_hooks: Path, dry_run: bool, strategy: str = "merge") -> None:
     """Install/merge hooks.json per --hooks-strategy.
 
@@ -423,6 +522,8 @@ def merge_hooks_json(package_hooks: Path, dest_hooks: Path, dry_run: bool, strat
                 f"REWRITE {n_rewritten} package hook command(s) to use "
                 f"'{package_python_command()}' interpreter (detected OS: {platform.system()})"
             )
+        for line in guard_dor_gate_interpreter(pkg_hook_events_for_rewrite):
+            log(line)
 
     if not dest_hooks.exists():
         log(f"COPY hooks.json -> {dest_hooks}")
@@ -489,6 +590,57 @@ def merge_hooks_json(package_hooks: Path, dest_hooks: Path, dry_run: bool, strat
         dest_hooks.write_text(json.dumps(merged, indent=2) + "\n", encoding="utf-8")
 
 
+def verify_hook_scripts(cursor_home: Path) -> list[str]:
+    """After install: every script ~/.cursor/hooks.json runs must exist in
+    ~/.cursor/hooks/. Cursor fails such a hook silently (a missing pre-compaction
+    snapshot script, for example, just never runs), so say it here."""
+    hooks_json = cursor_home / "hooks.json"
+    try:
+        text = hooks_json.read_text(encoding="utf-8")
+    except OSError:
+        return [f"WARN no {hooks_json}: hooks are not registered"]
+    import re as _re
+    names = sorted(set(_re.findall(r"hooks[/\\]+([A-Za-z0-9_\-]+\.(?:py|ps1|sh|js|cjs|mjs))", text)))
+    missing = [n for n in names if not (cursor_home / "hooks" / n).exists()]
+    if missing:
+        return [f"WARN hooks.json runs {n} but {cursor_home / 'hooks' / n} is missing: that hook does nothing" for n in missing]
+    return [f"VERIFY hooks: all {len(names)} script(s) hooks.json runs are present"]
+
+
+def migrate_legacy_actions(cursor_home: Path, package: Path, dry_run: bool) -> None:
+    """Reuse the canonical migrate-once implementation from upgrade-workboard.
+
+    Runs after seed_workstream(), so a freshly seeded empty ba-actions.json
+    still receives legacy data once.
+    """
+    script = package / "tools" / "upgrade-workboard.py"
+    if not script.exists():
+        log(f"MIGRATE skip: missing canonical workboard upgrader {script}")
+        return
+    spec = importlib.util.spec_from_file_location("ba_upgrade_workboard", script)
+    if spec is None or spec.loader is None:
+        log(f"MIGRATE skip: cannot load canonical workboard upgrader {script}")
+        return
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    ts = datetime.now().strftime("%Y%m%d-%H%M%S")
+    backup_root = cursor_home / "ba-assistant-backups" / f"legacy-actions-{ts}"
+    for line in module.migrate_legacy_actions(cursor_home / "_workstream", backup_root, cursor_home, dry_run):
+        log(line)
+
+
+def warn_legacy_actions(cursor_home: Path, package: Path) -> None:
+    """Version 15: report, never move, a legacy action store (see --migrate-legacy)."""
+    script = package / "tools" / "upgrade-workboard.py"
+    spec = importlib.util.spec_from_file_location("ba_upgrade_workboard_warn", script) if script.exists() else None
+    if spec is None or spec.loader is None:
+        return
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    for line in module.legacy_actions_warnings(cursor_home / "_workstream"):
+        log(line)
+
+
 def seed_workstream(cursor_home: Path, package: Path, dry_run: bool) -> None:
     ws = cursor_home / "_workstream"
     ensure_dir(ws, dry_run)
@@ -514,19 +666,36 @@ def seed_workstream(cursor_home: Path, package: Path, dry_run: bool) -> None:
         log(f"SEED {ba}")
         if not dry_run:
             ba.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-    readme_src = package / "_workstream" / "README.md"
-    if readme_src.exists():
-        copy_file(readme_src, ws / "README.md", dry_run)
-    generator_src = package / "tools" / "generate-workboard-canvas.py"
-    if generator_src.exists():
-        copy_file(generator_src, ws / "generate-workboard-canvas.py", dry_run)
-    calendar_roll_src = package / "tools" / "roll-calendar-eod.py"
-    if calendar_roll_src.exists():
-        copy_file(calendar_roll_src, ws / "roll-calendar-eod.py", dry_run)
-    # These three already live under the package's own _workstream/ (not tools/) --
-    # copy them by name the same way. Previously only README.md was copied from here;
-    # the scripts themselves were referenced everywhere but never actually seeded.
-    for name in ("regenerate-ba-actions-md.py", "extract-docx-text.py", "list-downloads-recent.py"):
+    copy_workstream_scripts(cursor_home, package, dry_run)
+
+
+# Package-owned helper scripts under _workstream/ (code, not BA data). Install and
+# upgrade both refresh these; JSON data files are never touched here.
+WORKSTREAM_TOOL_SCRIPTS = ("generate-workboard-canvas.py", "roll-calendar-eod.py", "render-initiative-canvas.py")
+WORKSTREAM_PACKAGE_FILES = (
+    "README.md",
+    "calendar-feed.sample.json",
+    "regenerate-ba-actions-md.py",
+    "extract-docx-text.py",
+    "list-downloads-recent.py",
+    "scan-outlook-mail.py",
+    "generate-initiative-snapshots.py",
+    "ba-actions.py",
+    "capture.py",
+    "validate-state.py",
+    "compute-metrics.py",
+    "dor-check.py",
+    "initiative-history.py",
+)
+
+
+def copy_workstream_scripts(cursor_home: Path, package: Path, dry_run: bool) -> None:
+    ws = cursor_home / "_workstream"
+    for name in WORKSTREAM_TOOL_SCRIPTS:
+        src = package / "tools" / name
+        if src.exists():
+            copy_file(src, ws / name, dry_run)
+    for name in WORKSTREAM_PACKAGE_FILES:
         src = package / "_workstream" / name
         if src.exists():
             copy_file(src, ws / name, dry_run)
@@ -540,7 +709,7 @@ def seed_initiatives(cursor_home: Path, dry_run: bool) -> Path:
         text = (
             "# BA initiatives\n\n"
             "Default root for BA Assistant initiative folders "
-            "(`BA_INITIATIVES_ROOT`).\n\n"
+            "(`paths.initiativesRoot` in ~/.cursor/rules/ba-assistant-config.mdc).\n\n"
             "Create initiatives with: "
             '"Start a new initiative called [name]"\n'
         )
@@ -568,7 +737,8 @@ def write_install_marker(cursor_home: Path, package: Path, dry_run: bool) -> Non
         marker.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
-def install(package: Path, cursor_home: Path, dry_run: bool, hooks_strategy: str = "merge") -> int:
+def install(package: Path, cursor_home: Path, dry_run: bool, hooks_strategy: str = "merge",
+            migrate_legacy: bool = False) -> int:
     log(f"Package: {package}")
     log(f"Cursor home: {cursor_home}")
     log(f"Mode: {'DRY-RUN' if dry_run else 'APPLY'}")
@@ -608,6 +778,11 @@ def install(package: Path, cursor_home: Path, dry_run: bool, hooks_strategy: str
     if miro.exists():
         copy_tree(miro, cursor_home / "skills" / "miro-board-analysis", dry_run)
 
+    # Optional Confluence publishing companion
+    confluence = package / "skills" / "publish-docs-to-confluence"
+    if confluence.exists():
+        copy_tree(confluence, cursor_home / "skills" / "publish-docs-to-confluence", dry_run)
+
     # Rules
     for name in PACKAGE_RULES:
         src = package / "rules" / name
@@ -624,16 +799,8 @@ def install(package: Path, cursor_home: Path, dry_run: bool, hooks_strategy: str
             copy_file(persona, dest_persona, dry_run)
 
     # Commands
-    for name in PACKAGE_COMMANDS:
-        src = package / "commands" / name
-        if src.exists():
-            copy_file(src, cursor_home / "commands" / name, dry_run)
-    # Copy any other command stubs present in package
-    cmd_dir = package / "commands"
-    if cmd_dir.exists():
-        for src in cmd_dir.glob("*.md"):
-            if src.name not in PACKAGE_COMMANDS:
-                copy_file(src, cursor_home / "commands" / src.name, dry_run)
+    for src in package_commands(package):
+        copy_file(src, cursor_home / "commands" / src.name, dry_run)
 
     # Hooks scripts
     hooks_dir = package / "hooks"
@@ -644,8 +811,15 @@ def install(package: Path, cursor_home: Path, dry_run: bool, hooks_strategy: str
             if src.is_file():
                 copy_file(src, cursor_home / "hooks" / src.name, dry_run)
         merge_hooks_json(hooks_dir / "hooks.json", cursor_home / "hooks.json", dry_run, strategy=hooks_strategy)
+        if not dry_run:
+            for line in verify_hook_scripts(cursor_home):
+                log(line)
 
     seed_workstream(cursor_home, package, dry_run)
+    if migrate_legacy:
+        migrate_legacy_actions(cursor_home, package, dry_run)
+    else:
+        warn_legacy_actions(cursor_home, package)
     initiatives = seed_initiatives(cursor_home, dry_run)
     write_install_marker(cursor_home, package, dry_run)
 
@@ -686,6 +860,11 @@ def main() -> int:
             "an existing file is always backed up first regardless of strategy."
         ),
     )
+    ap.add_argument(
+        "--migrate-legacy",
+        action="store_true",
+        help="Also migrate a legacy actions file into ba-actions (changes _workstream data; off by default)",
+    )
     args = ap.parse_args()
 
     package = (args.package or package_root_from_script()).resolve()
@@ -694,7 +873,8 @@ def main() -> int:
     if args.dry_run:
         dry_run = True
 
-    return install(package, cursor_home, dry_run, hooks_strategy=args.hooks_strategy)
+    return install(package, cursor_home, dry_run, hooks_strategy=args.hooks_strategy,
+                   migrate_legacy=args.migrate_legacy)
 
 
 if __name__ == "__main__":

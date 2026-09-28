@@ -2,7 +2,7 @@
 
 **Location:** `~/.cursor/skills/ba-assistant/references/activity-map.md`
 **Owner:** execution-router (routing), this standard (the map)
-**Last reviewed:** 2026-09-25 (Version 14: orchestrator slim; canvas on-demand; resume/`/reanchor` is default BAU)
+**Last reviewed:** 2026-09-27 (Version 15: canvas on `/canvas` only, rendered by script; resume/`/reanchor` is default BAU)
 
 The single source of truth for how the BA Assistant's sub-skills group into **activities** and how each skill gets invoked. The user drives by activity ("I'm framing a problem", "I'm shaping a solution"), not by remembering 25 skill names. Leave the Cursor model picker on Auto-balance; do not print model-tier nudges.
 
@@ -35,6 +35,7 @@ This map replaces the old "Specialist Skills" table in `ba-profile.mdc`. Activit
 
 | Skill | Activity | Invocation |
 |---|---|---|
+| ba-install | Onboarding | Explicit (first install / `/install-ba-assistant`) |
 | ba-setup | Onboarding | Explicit (first run) |
 | ba-new-initiative | Frame | Explicit (project-creation trigger phrases; also invoked when resume finds no matching initiative folder) |
 | ba-intake-reviewer | Frame | Specialist (hands off from ba-new-initiative) |
@@ -52,7 +53,7 @@ This map replaces the old "Specialist Skills" table in `ba-profile.mdc`. Activit
 | ba-jira-sync | Deliver | Specialist + Explicit |
 | ba-dev-handover | Deliver | Explicit (gate) |
 | ba-change-strategy | Deliver | Specialist |
-| ba-project-canvas | Run | Explicit (`/canvas` `/status`) only — never auto-generated |
+| ba-project-canvas | Run | Explicit `/canvas` only (rendered by `render-initiative-canvas.py`) — never auto-generated, not by `/status` |
 | ba-playback-and-enablement | Run | Specialist / Explicit |
 | ba-solution-evaluation | Run | Explicit (post-launch) |
 | ba-retrospective-and-learning | Run | Explicit (`/retro`) + auto-suggest |
@@ -79,6 +80,8 @@ Notes:
 5. Monitors are always notionally on; their triggers live in `execution-router.mdc`.
 
 ## 5. Versioning
+
+v1.4 (2026-09-27, Version 15). `/status` no longer renders the canvas; `/canvas` renders it with `render-initiative-canvas.py`.
 
 v1.3 (2026-09-25, Version 14). Canvas is on-demand only (`/canvas` `/status`). M0–M8 code list demoted to optional legacy; activities are the day-to-day routing model. Resume/`/reanchor` is the default BAU path.
 

@@ -8,9 +8,12 @@ description: >
   of daily refresh churn. Invoke on "/close", "close out X", "archive X",
   "this one's done". Never runs automatically — always explicit, user-initiated,
   and confirmed batch by batch. Mirrors ba-new-initiative in reverse.
+disable-model-invocation: true
 ---
 
 # Skill: Initiative Closeout
+
+> **Hook ids:** this skill names `HK-...` ids. Open that row in `~/.cursor/skills/ba-assistant/hook-contracts.md` if you need the contract. Do not read the whole file.
 
 Tidy-up, not ceremony. No welcome panel, no complexity dial. Confirm the
 initiative is actually done, run the retro so its learnings inform the file
@@ -19,9 +22,7 @@ calls, walk the folder once, move it, and stop tracking it daily.
 ## Standards used
 
 - `references/workboard-format.md`  -  status enum (§1), `workboard.json` fields
-  (§4), canvas display rules (§5). **Note:** at time of writing this standard's
-  status enum does not yet include `archived` (see step 7) — add it there in the
-  same change that wires this skill in.
+  (§4), canvas display rules (§5).
 - `references/workspace-operations.md`  -  initiative folder convention,
   `BA_INITIATIVES_ROOT`
 
@@ -72,7 +73,7 @@ it's the input the file audit in step 2 depends on. Capture:
 
 ### 2. File-by-file audit
 
-Walk every file under the initiative's folder (`$BA_INITIATIVES_ROOT/{slug}/`
+Walk every file under the initiative's folder (skip `.git`, the private undo history, which moves with the folder) (`$BA_INITIATIVES_ROOT/{slug}/`
 or `$BA_INITIATIVES_ROOT/short-term/{slug}/`). Batch by subfolder, not one wall of
 decisions — present each batch with a recommended action per file and reasons,
 then one `AskQuestion` per batch:
@@ -223,5 +224,5 @@ to be wrong, fix it here, don't improvise per-initiative.
 | HK-CLOSE-SV-postmove | State_Validator | Step 8, after archive move | Old path, new path | Divergence report | Block — closing gate |
 | HK-CLOSE-COMD-supersede | Communication_Drafter | Step 3, if pages need a supersede banner | Page list | Supersede banner content | Warn — manual fallback |
 
-Add these three rows to `hook-contracts.md` under a new
-"Initiative Closeout — outbound" section when this skill is wired in.
+These rows are registered in `hook-contracts.md` under
+"Initiative Closeout — outbound".

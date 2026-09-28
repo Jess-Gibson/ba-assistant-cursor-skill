@@ -5,7 +5,7 @@ description: >
   Use when the user asks to install BA Assistant, clone and install from a GitHub URL,
   "set up BA Assistant for me", or opens this package repo as a first-time BA.
   Copies skills, rules, hooks, and commands, then hands off to ba-setup.
-disable-model-invocation: false
+disable-model-invocation: true
 ---
 
 # BA Install — One-shot package install for non-developer BAs
@@ -147,7 +147,8 @@ Agents may show this to the BA if they arrived without context:
 
 ```text
 Install BA Assistant from https://github.com/Jess-Gibson/ba-assistant-cursor-skill
-into my Cursor home. Copy skills, rules, hooks, and commands, verify the install,
+into my Cursor home. Run tools/install-ba-assistant.py to install skills, rules,
+hooks, and commands (do not copy hooks.json by hand), verify the install,
 then run the personalisation wizard. Default my initiatives folder to
 ~/.cursor/initiatives. When setup finishes, help me with MCP connections and
 offer to set up my workboard or start my first initiative.

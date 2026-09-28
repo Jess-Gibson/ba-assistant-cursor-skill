@@ -1,6 +1,7 @@
 ---
 name: ba-playback-and-enablement
 description: Playback materials, sign-offs, enablement. Use for playback phase in BA Assistant.
+disable-model-invocation: true
 ---
 
 # Skill: Playback and Enablement
@@ -267,7 +268,7 @@ By: [date]
 2. **Choose structure**  -  match the message type to the structures above.
 3. **Calibrate tone**  -  apply the tone table for the audience.
 4. **Pull content**  -  use actual content from the initiative tracker, not placeholders.
-5. **Draft**  -  produce the full message, ready to send.
+5. **Draft**  -  produce the full message in chat (or a local `.md` file), ready for the BA to copy and send. Never create an Outlook draft or send it.
 6. **Self-critique**  -  would this land? Is it the right length? Is the ask clear?
 7. **Output**  -  produce the draft along with the subject line, channel recommendation, and an offer to adjust tone/length.
 
@@ -343,7 +344,7 @@ For multi-stakeholder communications (same news, different audiences), produce t
 
 ### What this section does NOT do
 
-- Does not send messages  -  only drafts
+- Does not send messages or create Outlook/mail drafts  -  the text goes in chat for the BA to copy (the `external-write-gate` hook denies mail tools)
 - Does not negotiate on the user's behalf
 - Does not invent context  -  pulls from the tracker, requirements, decisions
 - Does not produce generic templates  -  every draft is initiative-specific

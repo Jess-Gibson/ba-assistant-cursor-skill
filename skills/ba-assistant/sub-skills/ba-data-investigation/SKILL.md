@@ -1,15 +1,18 @@
 ---
 name: ba-data-investigation
 description: Pairs with the user to gather, question, cross-validate, and debug data before a BA decision (confidence score, priority, risk rating, solution comparison, baseline, or post-launch actual) gets locked in on judgement alone. Invoked by other BA Assistant skills via hooks. Encodes the BA's own data-investigation methodology, not a generic analytics workflow.
+disable-model-invocation: true
 ---
 
 # Skill: Data Investigation and Evidence Pairing
 
+> **Hook ids:** this skill names `HK-...` ids. Open that row in `~/.cursor/skills/ba-assistant/hook-contracts.md` if you need the contract. Do not read the whole file.
+
 ## Description
 
-This skill exists so that confidence scores, priorities, risk ratings, and solution comparisons inside BA Assistant get backed by real data wherever real data is available  -  instead of defaulting to a gut-feel High/Medium/Low with nothing behind it. It is the canonical data-pairing skill for BA Assistant: every hook listed below routes here, not to the generic `pm-data-analyst` skill.
+This skill exists so that confidence scores, priorities, risk ratings, and solution comparisons inside BA Assistant get backed by real data wherever real data is available  -  instead of defaulting to a gut-feel High/Medium/Low with nothing behind it. It is the canonical data-pairing skill for BA Assistant: every hook listed below routes here.
 
-The method below is not generic analytics practice  -  it's distilled directly from how [BA name] actually investigates data (see `blueprints/Sample-Compliance-Initiative/outputs/acma-success-metrics-25jun.md` as the reference case): state the question precisely, rank every candidate source with a status and a reason, do a row-level sanity pass before trusting any aggregate, annotate SQL so it's auditable, cross-validate against a second source whenever one exists, and treat any disagreement between sources as the finding rather than noise to average away. Assumptions that can't yet be checked don't block  -  they get logged, tagged, and routed back to the calling skill.
+The method below is not generic analytics practice  -  it's distilled from how a BA actually investigates data: state the question precisely, rank every candidate source with a status and a reason, do a row-level sanity pass before trusting any aggregate, annotate SQL so it's auditable, cross-validate against a second source whenever one exists, and treat any disagreement between sources as the finding rather than noise to average away. Assumptions that can't yet be checked don't block  -  they get logged, tagged, and routed back to the calling skill.
 
 ## Standards used
 
@@ -22,7 +25,7 @@ The method below is not generic analytics practice  -  it's distilled directly f
 | `HK-SOL-BDI-viability` | Solution Shaping | Before recording "confidence in viability" or finalising the options table | Warn  -  proceed qualitatively, tag `evidence: qualitative` |
 | `HK-SLI-BDI-sizing` | Feature Slicing & Sequencing | Before finalising business priority / sequencing order | Warn  -  proceed qualitatively, tag `evidence: qualitative` |
 | `HK-RT-BDI-evidence` | Risk & Tracker | Before setting a new risk's probability/impact level | Warn  -  proceed qualitatively, tag `evidence: qualitative` |
-| `HK-INTK-BDI-baseline` | Intake Reviewer (extends hook 2) | During multi-source context gathering, before setting the Problem Clarity confidence score | Warn  -  cap Problem Clarity at Medium until a source is checked or explicitly declined |
+| `HK-NEWI-BDI-baseline` | New Initiative | During multi-source context gathering, before setting the Problem Clarity confidence score | Warn  -  cap Problem Clarity at Medium until a source is checked or explicitly declined |
 | `HK-CSA-BDI-data` | Current State Assessment | Any quantitative slice needed (volumes, failure rates, latency, error counts) | Warn  -  proceed qualitatively, flag gap in the Current State Report |
 | `HK-DISC-BDI-validate` | Discovery and Requirements | An assumption or hypothesis needs data validation | Warn  -  proceed with the assumption flagged (⚠️) |
 | `HK-EVAL-BDI-actual` | Solution Evaluation | Pulling actual outcome metrics post-launch | Block  -  no evaluation without actuals (unchanged from prior `pm-data-analyst` hook) |
@@ -166,7 +169,7 @@ Used for initiative-level baseline/monitoring design work (`HK-CSA-BDI-data`, `H
 
 ### Quick decision-grounding answer
 
-Used for the micro-decision hooks (`HK-SOL-BDI-viability`, `HK-SLI-BDI-sizing`, `HK-RT-BDI-evidence`, `HK-INTK-BDI-baseline`, `HK-DISC-BDI-validate`):
+Used for the micro-decision hooks (`HK-SOL-BDI-viability`, `HK-SLI-BDI-sizing`, `HK-RT-BDI-evidence`, `HK-NEWI-BDI-baseline`, `HK-DISC-BDI-validate`):
 
 ```
 ## Data check: [decision context]
@@ -219,17 +222,15 @@ It escalates only through the existing `ba-anti-pattern-detector` candidate-to-e
 
 | Data type | Source | Mechanics owned by |
 |---|---|---|
-| Warehouse / SQL (warehouse) | `user-snowflake-server` MCP | `pm-data-analyst` → `references/warehouse-and-sql.md` (reused here for query execution mechanics, not duplicated) |
+| Warehouse / SQL | Your configured warehouse MCP, if any | this skill |
 | Jira ticket volumes/history | Jira MCP | `ba-jira-sync` |
 | Confluence metrics pages | Confluence MCP | this skill, direct read |
-| Production/incident data | log/monitoring tool | `sumo-troubleshooting-workflow` |
-| Spreadsheet/CSV/telemetry exports | Local file | `pm-data-analyst` (delegate raw analysis mechanics, apply this skill's cross-validation and dedup discipline on top) |
+| Production/incident data | Your configured log/monitoring MCP, if any | this skill |
+| Spreadsheet/CSV/telemetry exports | Local file | this skill |
 
-## Relationship to `pm-data-analyst`
+## Scope
 
-`pm-data-analyst` is a separate, generic skill (not written by the BA) built for standalone PM analytics  -  ad hoc CSV/telemetry analysis requested directly by the user outside a BA Assistant decision point. It remains available and untouched for that use.
-
-Inside BA Assistant, `ba-data-investigation` is the canonical data-pairing skill for all 7 hooks listed above. Where the underlying mechanics overlap (running SQL, reading a CSV), this skill delegates the mechanics to `pm-data-analyst`'s `references/warehouse-and-sql.md` rather than duplicating it  -  but the investigation discipline (cross-validation, dedup forensics, annotation, blocking-questions log, caveats register) is owned here, not there.
+`ba-data-investigation` is the only data skill in this package and the canonical data-pairing skill for all 7 hooks listed above. It owns both the query/file mechanics (using whatever data MCPs the BA has configured) and the investigation discipline (cross-validation, dedup forensics, annotation, blocking-questions log, caveats register). Do not create or route to a second data-analyst skill.
 
 ## Challenge Rules
 

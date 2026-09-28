@@ -1,0 +1,27 @@
+name: tests
+
+# Runs the package test suite on the three platforms BAs use.
+# fetch-depth 0: the upgrade tests install the Version 14 commit from history.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Test suite
+        run: python tests/run_all.py
+      - name: Conformance
+        run: python tools/conformance-check.py --root .

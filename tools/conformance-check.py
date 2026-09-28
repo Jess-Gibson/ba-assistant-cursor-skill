@@ -58,7 +58,7 @@ def main():
     for m in re.finditer(r"not all (\d+)", skill_md):
         claimed.add(int(m.group(1)))
     if not claimed:
-        add("WARN", "counts", "No count claims found in SKILL.md (unexpected)")
+        add("PASS", "counts", f"SKILL.md makes no sub-skill count claims, so nothing can drift ({n_active} active sub-skills)")
     elif claimed == {n_active}:
         add("PASS", "counts", f"All SKILL.md count claims = {n_active} actual active sub-skills ({len(superseded)} superseded markers)")
     else:
@@ -142,7 +142,11 @@ def main():
 
     # ---- 7. HARD gates in critical-gates.mdc must name a real, registered script ----
     hooks_dir = os.path.join(root, "hooks")
-    hooks_json_text = read(os.path.join(hooks_dir, "hooks.json")) or ""
+    # Repo layout keeps hooks/hooks.json; an installed ~/.cursor keeps hooks.json at the root.
+    hooks_json_path = os.path.join(root, "hooks.json")
+    if not os.path.isfile(hooks_json_path):
+        hooks_json_path = os.path.join(hooks_dir, "hooks.json")
+    hooks_json_text = read(hooks_json_path) or ""
     hook_files_present = set(os.listdir(hooks_dir)) if os.path.isdir(hooks_dir) else set()
 
     gates_text = read(os.path.join(rules_dir, "critical-gates.mdc")) or ""
@@ -177,18 +181,64 @@ def main():
     else:
         add("PASS", "gate-scripts", "Every HARD gate row in critical-gates.mdc names a script present under hooks/ and registered in hooks.json")
 
+    # ---- 7b. Every script hooks.json runs must exist (a missing one fails silently in Cursor) ----
+    missing_scripts = sorted({s for s in re.findall(r"hooks[/\\]+([A-Za-z0-9_\-]+\.(?:py|ps1|sh))", hooks_json_text)
+                              if s not in hook_files_present})
+    if not hooks_json_text:
+        add("FAIL", "hook-scripts", f"No hooks.json found at {os.path.join(root, 'hooks.json')} or {os.path.join(hooks_dir, 'hooks.json')}")
+    elif missing_scripts:
+        add("FAIL", "hook-scripts", f"{hooks_json_path} runs scripts that are not in {hooks_dir}: {missing_scripts} (re-run the installer or upgrader)")
+    else:
+        add("PASS", "hook-scripts", f"Every script {os.path.basename(hooks_json_path)} runs exists under hooks/")
+
     # ---- 8. Orphan scripts under hooks/ (present but never registered) ----
+    # A helper that a registered hook script calls (by file name) counts as used.
+    registered_scripts_text = ""
+    for fname in hook_files_present:
+        if fname != "hooks.json" and fname in hooks_json_text:
+            registered_scripts_text += read(os.path.join(hooks_dir, fname)) or ""
     orphans = []
     if os.path.isdir(hooks_dir):
         for fname in sorted(hook_files_present):
             if fname == "hooks.json" or os.path.isdir(os.path.join(hooks_dir, fname)):
                 continue
-            if fname not in hooks_json_text:
+            if fname not in hooks_json_text and fname not in registered_scripts_text:
                 orphans.append(fname)
     if orphans:
-        add("WARN", "orphan-scripts", f"Files under hooks/ never referenced in any hooks.json command string: {orphans}")
+        add("WARN", "orphan-scripts", f"Files under hooks/ never referenced in hooks.json or by a registered hook script: {orphans}")
     else:
-        add("PASS", "orphan-scripts", "Every file under hooks/ is referenced in hooks.json")
+        add("PASS", "orphan-scripts", "Every file under hooks/ is registered in hooks.json or called by a registered hook")
+
+    # ---- 9. Referenced mail script must exist ----
+    mail_script = "scan-outlook-mail.py"
+    mail_exists = bool(glob.glob(os.path.join(root, "**", mail_script), recursive=True))
+    mail_refs = []
+    for pattern in ("**/*.md", "**/*.mdc", "**/*.py", "**/*.json"):
+        for f in glob.glob(os.path.join(root, pattern), recursive=True):
+            name = os.path.basename(f)
+            if name in ("CHANGELOG.md", "conformance-check.py"):
+                continue
+            if mail_script in (read(f) or ""):
+                mail_refs.append(os.path.relpath(f, root))
+    if mail_refs and not mail_exists:
+        add("FAIL", "mail-script", f"{mail_script} is referenced but does not exist: {sorted(mail_refs)}")
+    else:
+        add("PASS", "mail-script", f"{mail_script} is not referenced, or it exists")
+
+    # ---- 10. Commands must point at the installed skill path ----
+    cmd_dir = os.path.join(root, "commands")
+    bad_cmd = []
+    for f in sorted(glob.glob(os.path.join(cmd_dir, "*.md"))):
+        for i, line in enumerate((read(f) or "").splitlines(), 1):
+            if not re.search(r"(?<![~/\w.-])skills/ba-assistant/", line):
+                continue
+            if "~/.cursor/skills/" in line:
+                continue  # the sentence also gives the installed path
+            bad_cmd.append(f"{os.path.basename(f)}:{i}")
+    if bad_cmd:
+        add("FAIL", "command-paths", f"commands/*.md read skills/ba-assistant/ without the ~/.cursor/ prefix: {bad_cmd}")
+    else:
+        add("PASS", "command-paths", "commands/*.md use ~/.cursor/skills/ba-assistant/ paths")
 
     # ---- report ----
     width = max(len(c) for _, c, _ in results)

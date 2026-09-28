@@ -228,7 +228,7 @@ Display team members grouped by organisation or function using coloured cards.
 **Build with `layout_create` or `card_create`:**
 - Tertiary header shape (`fill=#fff854 color=#394666` size 64) titled "Stakeholders"
 - Content panel (standard grey pattern)
-- Team labels as text items: `color=#7b14ef size=39` for internal (e.g., "[Organisation]"), `color=#2d9bf0 size=39` underlined for external (e.g., "CXNPL", "GSB")
+- Team labels as text items: `color=#7b14ef size=39` for internal (e.g., "[Organisation]"), `color=#2d9bf0 size=39` underlined for external (e.g., "[external partner]")
 - Cards for each stakeholder, themed by role type (see Pattern D in `design-system.md`):
   - `#af7e04` (amber)  -  BA / PM leads
   - `#fe02a7` (magenta)  -  PM / Commercial

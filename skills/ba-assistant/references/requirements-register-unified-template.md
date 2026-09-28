@@ -115,7 +115,7 @@ Plain business outcome in one or two sentences (`… so that …` inline). **Omi
 
 | Date | Summary |
 |---|---|
-| 2026-07-14 | Audience expanded to all AU in-product users; ARL path = Patch |
+| 2026-07-14 | Audience expanded to all AU in-product users; [your product] path = Patch |
 
 ---
 
@@ -171,9 +171,9 @@ See `requirements-id-migration-manifest.md` for old → new mapping during v1 �
 ```markdown
 **In scope:**
 - Dismissible in-product regulatory-change message
-- Payment and invoice surfaces; [Organisation] Business, AccountRight Live, Solo, Assist
+- Payment and invoice surfaces in [your product] (each product tier in scope)
 - Help/FAQ link; CVP-aligned copy
-- AccountRight Live patch delivery; legal review (PT-105)
+- Patch delivery for [your product]; legal review (PT-105)
 - AU in-product audience (TBC [Team Member])
 
 **Out of scope:**

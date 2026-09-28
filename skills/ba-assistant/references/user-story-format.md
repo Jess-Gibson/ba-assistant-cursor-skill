@@ -148,7 +148,7 @@ Format: `Spike: investigate [question or uncertainty]`
 
 Format: `Bug: [system] [unintended behaviour] [trigger condition]`
 
-**Good:** "Bug: Data Collection verification returns 500 when merchant uploads PDF certificate with >5MB file size"
+**Good:** "Bug: Business verification returns 500 when merchant uploads PDF certificate with >5MB file size"
 **Bad:** "Bug: upload broken" (no trigger, no behaviour, no system)
 
 ### Required sections
@@ -226,20 +226,28 @@ Format: `Enabler: [technical change] so [downstream capability]`
 
 ## 6. DoR checklist (applies to stories and enablers)
 
+The Definition of Ready is the BA's judgement. Only the first block is computed; the second block needs a person (the BA, a developer, a tester or an approver) and is never implied by a script result.
+
 ```markdown
 ## Definition of Ready
-- [ ] Acceptance criteria are specific and testable
-- [ ] Negative case is documented (what should NOT happen)
-- [ ] Linked to at least one requirement (BR-XXX)
-- [ ] Linked to a slice (SL-XX)
-- [ ] No outstanding dependencies blocking start
-- [ ] Estimable by the team (or accompanied by a sized Spike)
-- [ ] Scope is clear (which feature / cohort / slice)
-- [ ] Edge cases identified (at least 2)
-- [ ] Compliance / security implications assessed (or marked N/A with reason)
+
+### Story Readiness Preflight (structural, computed by dor-check.py)
+- [ ] Linked to at least one requirement that is interrogated or confirmed (HLR-XX or HLR-XX.X; older registers may use legacy type-prefixed IDs)
+- [ ] Given/When/Then acceptance criteria present
+- [ ] Dependencies listed (or "None"; TBD doesn't count)
+- [ ] MoSCoW set for the story's scope
+- [ ] Risks logged (or "None identified")
+
+### Human review (not checked by any script)
+- [ ] Business value and scope are clear (which feature / cohort / slice); linked to a slice (SL-XX)
+- [ ] Acceptance criteria are specific, testable and cover the need, including edge cases (at least 2) and a negative case (what should NOT happen)
+- [ ] NFRs (performance, security, accessibility, ...) carried into ACs or marked N/A with reason
+- [ ] Feasible and estimable by the team (or accompanied by a sized Spike); small enough and independent
+- [ ] No outstanding dependency blocks the start
+- [ ] Required design, legal, compliance and stakeholder approvals recorded
 ```
 
-A story that passes DoR on first attempt is a `pass` in the tracker's DoR checks register (raid-format.md); the canvas mirrors this to `status-data.json → dorChecks` on refresh. Partial passes (1-2 missing) are `partial`. Multiple missing items make it `fail`.
+`_workstream/dor-check.py` computes only the first block (the Jira create hook runs the same check and reports "Structural preflight passed" or "not passed", never "DoR met"). `dor-check.py --record` keeps `status-data.json → dorChecks` for the metrics; its `pass` means the structural preflight passed first time, nothing more. In the tracker's DoR checks register (raid-format.md), record the human review separately: a story is `Ready` only when both blocks are done, `partial` when 1-2 items are open, `fail` when more are.
 
 ---
 

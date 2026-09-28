@@ -6,9 +6,12 @@ description: >
   HTML snapshot, Confluence pages, project hub). Produces a divergence report and optionally
   propagates updates. Runs on demand via `/validate-state`, as Step 1 of the session resume flow,
   before `/publish-status`, and at end of any session where canonical state was modified.
+disable-model-invocation: true
 ---
 
 # Skill: State Validator
+
+> **Hook ids:** this skill names `HK-...` ids. Open that row in `~/.cursor/skills/ba-assistant/hook-contracts.md` if you need the contract. Do not read the whole file.
 
 ## Description
 
@@ -22,17 +25,19 @@ This skill detects divergences across canonical state files and downstream artef
 in a single table, and propagates updates on user confirmation. It is **read-mostly** by default,
 never auto-edits without explicit per-divergence approval.
 
-**Exception (standing, 27 Aug 2026):** `/validate-state` **always** updates `/todo` via `sync-ba-actions` (`references/ba-actions-format.md` §3). That write is limited to `_workstream/ba-actions.json` + regenerate `_workstream/ba-actions.md`. Do not wait for artefact-propagation approval.
+**`/validate-state` writes.** `/validate-state` checks this whole chat against the current initiative files and captures anything missing, so a new chat can pick up with nothing lost. Write what this chat decided, learned or produced into the right files: `SESSION-CONTEXT.md`, the tracker, and `status-data.json` where those files already exist, and upsert the BA actions that came from this chat into `~/.cursor/_workstream/ba-actions.json`. Then re-read those files and confirm they match the chat. Do not refresh the workboard. Do not walk every open action. Do not invent files. If something has no obvious home, say so and ask. Regenerate `ba-actions.md` after the upsert.
+
+The read-mostly default below applies when this skill runs on resume or before a publish, not to `/validate-state`.
 
 > **Cross-cutting rule:** Before producing a propagation plan, apply the **"What I'll produce next"
-> declaration** rule from `ba-assistant/SKILL.md`. Validation is read-only; propagation is the
-> artefact-producing step that needs the user to confirm scope.
+> declaration** rule from `ba-assistant/SKILL.md`. On resume and before publish, validation is read-only; propagation is the
+> artefact-producing step that needs the user to confirm scope. `/validate-state` writes this chat's captures (see above).
 
 ## When to invoke
 
 - **`/validate-state`** on demand
-- **Step 1 of Session Resume**  -  catch drift before the user resumes work (silent unless divergences found)
-- **Before `/publish-status`**  -  prevent publishing stale derivatives to Confluence
+- **Step 1 of Session Resume**  -  quick mode: `validate-state.py` only, silent unless divergences found
+- **Before `/publish-status`**  -  full mode: prevent publishing stale derivatives to Confluence
 - **At session end**  -  offer to validate before wrapping, especially if status-data.json or tracker was modified this session
 - **After any requirement change**  -  when a requirement changes mid-flight, dates and dependencies often need to propagate; this skill catches the cases where they didn't
 - **When the user says "is everything up to date" or "did that propagate"**  -  natural language trigger
@@ -70,7 +75,7 @@ This skill enforces `references/canonical-ownership.md`. Quick reference:
 
 ### 1. Establish the validation context
 
-Read the project's analysis folder and identify every live artefact. Default set:
+Full mode only (quick mode on resume goes straight to the script in step 3). List the live artefacts; do not read them all up front, the script and targeted Grep do the comparing. Default set:
 
 - `README.md` (if it exists  -  older initiatives predating this file won't have one; note the gap rather than failing)
 - `initiative-tracker.md`
@@ -122,80 +127,29 @@ This is the source-of-truth alignment step. Without it, the validator would repo
 actually correct (tracker has new info; status-data.json is stale; the validator would wrongly
 suggest "update tracker to match status-data.json").
 
-### 3. Build the fact registry
+### 3 to 5. Fact registry, scan, divergence table: run the script
 
-For each canonical fact in the upstream sources, record:
+These steps are mechanical, so they are a script. Do not rebuild the fact registry or grep every artefact by hand.
 
-- Fact ID (composed from type + key, e.g. `decision:D-04`, `milestone:legal-signoff`)
-- Canonical source file
-- Canonical value
-- Last-modified date (from file mtime or in-file metadata)
+```text
+python3 ~/.cursor/_workstream/validate-state.py --initiative <slug>        (Windows: py)
+```
 
-Fact types to check:
+It compares, read-only: every `D-`/`R-`/`OQ-`/`A-`/`DEP-` item in `initiative-tracker.md` against `status-data.json` (missing items and status mismatches); `status-data.json` freshness against the tracker; `status-snapshot.html` and the initiative canvas against `status-data.json` (both are rendered from it now, so a stale render is the only way they drift); Sponsor / PM / Tech lead / BA names and milestone dates in `Project-hub.md` and `README.md`; the `README.md` status line against `workboard.json`; and unpromoted captures in `SESSION-CONTEXT.md`. It prints the divergence table in the format below and ends with `Gate: state-validation: ALIGNED` or `DRIFT (N)`. Add `--json` if you need to process the rows.
 
-| Type | Examples |
-|---|---|
-| Milestones / key dates | Legal sign-off date, launch date, sprint end |
-| Sprint day number | `sprintDay: 8` in status-data.json vs `SPRINT_DAY = 7` in canvas |
-| Days to deadline | Computed from today's date vs hardcoded values in canvas / HTML / hub |
-| Decision dates and owners | "Decided 18 May 2026, owner: [Team Member]" |
-| Decision register completeness | Tracker has D-001 to D-103; downstream only shows up to D-088 |
-| Knowns / questions register completeness | Same pattern  -  count and last ID |
-| Ticket statuses | PROJ-4287: In Progress |
-| Session completion status | Session shown as "🟡 today" or "M (must attend)" when it's actually "✅ done" |
-| Sponsor / PM / Tech Lead names | Anywhere these names appear |
-| pmApproval state | pending / approved / TBC |
-| Confidence scores | Each of the 6 |
-| Workstream states per scope | Discovery active for Stale Drafts, Delivery active for Quick T2P, etc. |
-| Workspace context | Jira project key, Confluence space, parent page ID |
-| Version strings | Canvas footer, HTML title, hub "last updated"  -  must reflect current sprint day |
-| README.md status line vs `workboard.json` status | README.md says "Active" while `workboard.json` has the initiative at `closed` or `archived` |
-| README.md people/links vs `status-data.json` / `confluence-pages.json` | PM changed in status-data.json, README.md still names the old one |
+You add what the script cannot see:
 
-### 4. Scan downstream artefacts for each fact
+- **Confluence pages (full mode only).** For each live page in `confluence-pages.json`, fetch the body via `getConfluencePage` and check the facts the script reported as canonical (milestone dates, decision counts, names, statuses). Stale status pages, FAQ pages with outdated scope, and pages that reference superseded decisions are the usual culprits. If the Confluence MCP is unavailable, say so in the report header.
+- **Other local files the user points at** (a team extract such as `SESSION-CONTEXT.team.md`, a shared-repo handover): check them with targeted Grep for the specific facts, not a full read.
+- **Judgement on each row:** which way to propagate (the canonical side always wins, see the ownership table above), and whether a row is a real divergence or an intentional historical note.
 
-For every fact in the registry, search every non-canonical artefact for occurrences. Match
-flexibly (date formats vary: "6 Jun 2026", "6-Jun-2026", "2026-06-06"). Record:
+If the script is missing, fall back to the same checks by hand, limited to the files above.
 
-- Where the fact was found
-- What value was found
-- Whether it matches the canonical value
+**Quick mode (resume, Step 2 of `SKILL.md`):** run the script only. No Jira sync, no status-data re-derive, no Confluence fetch. Clean: one line, "State aligned". Drift: show the table and offer to fix. Mention that Confluence is checked before `/publish-status` or on request.
 
-#### Canvas-specific scanning
+**Full mode (before `/publish-status`, "is everything up to date", "did that propagate"):** steps 1 and 2 above, then the script, then the Confluence pages.
 
-Canvas files (`.canvas.tsx`) contain **hardcoded data**  -  they are not data-driven from
-`status-data.json`. This means every fact that changes in canonical sources must be manually
-propagated to matching canvas constants. Key locations to scan:
-
-| Canvas element | What to check | Typical variable / location |
-|---|---|---|
-| Sprint day constant | `const SPRINT_DAY = N` | Top-level constant |
-| Days to deadline | `Stat value="N"` for deadline countdown | Overview tab stats, timeline tab stats |
-| Overview callout | Callout title text with day number + days to go | `<Callout tone="info" title="...">` |
-| Version string | Footer text with last-updated date and day number | `<Text tone="secondary" ...>vX.Y (updated ...)` |
-| Critical path entries | Session/milestone statuses (🟡 vs ✅) | `CRITICAL_PATH` array |
-| Attendance data | Planned (`M`) vs actual (`✅`) for completed sessions | `W1_ATTENDANCE`, `W2_ATTENDANCE` arrays |
-| Risk / blocker tables | Items resolved since last canvas update | `RISKS`, `BLOCKERS` arrays |
-
-Canvases often have the **same fact in multiple locations** (e.g. days-to-deadline appears in
-overview stats, timeline stats, callout text, and version string). Use Grep within the file to
-find all occurrences before reporting.
-
-#### Confluence page scanning
-
-For each live page in `confluence-pages.json`, fetch the page body via `getConfluencePage` and
-scan for fact occurrences. Common divergence sources:
-
-- Status pages with stale milestone dates or decision counts
-- FAQ or reference pages with outdated pricing or scope statements
-- Pages created during earlier phases that reference superseded decisions
-
-If the Confluence MCP is unavailable, skip and note in the validation report header.
-
-### 5. Build the divergence table
-
-Group results by fact. Only include facts where ≥1 downstream artefact has a value that differs
-from canonical. Format:
+### Divergence table format (what the script prints; add Confluence rows in the same shape)
 
 ```
 State validation  -  <Initiative Name>  -  <timestamp>
@@ -206,9 +160,9 @@ Divergences found: <count>
 
 | # | Fact | Canonical | Found in | Found value | Last modified | Suggested action |
 |---|---|---|---|---|---|---|
-| 1 | Legal sign-off date | 6 Jun 2026 (tracker) | status-snapshot.html | 30 May 2026 | 23 May, 2:10pm | Regenerate canvas + HTML |
-| 2 | Legal sign-off date | 6 Jun 2026 (tracker) | Confluence page 1238472 (Status as at 23 May) | 30 May 2026 | 23 May | Mark page superseded; publish new status page |
-| 3 | PROJ-4287 status | In Progress (status-data.json, synced from Jira) | SESSION-CONTEXT.md | To Do | 18 May | Update SESSION-CONTEXT.md |
+| 1 | Legal sign-off date | 6 Jun 2026 (status-data.json) | Project-hub.md:14 | 30 May 2026 | 23 May, 2:10pm | Update Project-hub.md |
+| 2 | Legal sign-off date | 6 Jun 2026 (status-data.json) | Confluence page 1238472 (Status as at 23 May) | 30 May 2026 | 23 May | Mark page superseded; publish new status page |
+| 3 | status-snapshot.html freshness | status-data.json 24 May, 9:00am | status-snapshot.html | rendered 23 May, 2:10pm | 23 May | Run /canvas (render-initiative-canvas.py) |
 ```
 
 If no divergences, output:
@@ -236,13 +190,13 @@ For each divergence the user approved for propagation:
 
 - **Local files (tracker, status-data.json, SESSION-CONTEXT.md, project-hub)**  -  edit in place
   using str_replace or equivalent, log the change
-- **Canvas (.canvas.tsx)**  -  canvas files contain hardcoded data, not data bindings. For canvases
-  driven by `status-data.json` (e.g. a status canvas), invoke ba-project-canvas to regenerate.
+- **Canvas (.canvas.tsx)**  -  the initiative status canvas is rendered from `status-data.json` by
+  `render-initiative-canvas.py`: fix `status-data.json`, then re-run `/canvas`. Never edit it by hand.
   For sprint-plan or other standalone canvases, edit the specific constants and data arrays
   in place (e.g. `SPRINT_DAY`, `CRITICAL_PATH`, attendance arrays, stat values, callout text).
   Use Grep within the canvas file to find all occurrences of the stale value before editing  - 
   the same fact often appears in multiple locations.
-- **HTML snapshot**  -  regenerate from refreshed status-data.json via ba-project-canvas, or
+- **HTML snapshot**  -  re-run `/canvas` (the same script writes it), or
   rebuild manually if the HTML is not canvas-derived
 - **Confluence pages**  -  for "Status as at X" pages, either:
   - Update the existing page (if it's the current status page) using `updateConfluencePage`
@@ -340,7 +294,7 @@ don't promote to patterns yet  -  a single run doesn't establish a pattern.
 
 | Caller | Why |
 |---|---|
-| Session resume flow (Step 2.75 in SKILL.md) | Step 1 of resume  -  catch drift before resuming work |
+| Session resume flow (`SKILL.md` Step 2) | Step 1 of resume  -  catch drift before resuming work |
 | `/publish-status` command | Pre-publish gate  -  never publish stale derivatives |
 | End-of-session checkpoint | Offered when the session modified canonical state |
 | Requirements Interrogator (In-flight mode) | When a requirement changes, run the validator to catch downstream artefacts that need updating |
@@ -371,7 +325,7 @@ The user can defer fixes. But it surfaces drift before it accumulates.
 | Artefact type | Reference standard | Conformance check |
 |---|---|---|
 | Story / spike / bug / enabler ticket | `references/user-story-format.md` | Sections present, INVEST passes, DoR checklist present, scope linked |
-| Story in Jira | + `references/jira-ticket-format.md`, + `jira-templates` | ADF format used, canonical example mirrored, custom fields populated |
+| Story in Jira | + `references/jira-ticket-format.md`, + optional `jira-templates` if installed | ADF format used, canonical example mirrored, custom fields populated |
 | RAID entry (R / A / I / DEP / D / OQ) | `references/raid-format.md` | Required fields present, status in valid set, age-based flags |
 | Requirement entry | `references/requirement-format.md` | Required fields present, interrogator output linked for confirmed, acceptance for met present |
 | MoSCoW matrix | `references/requirement-format.md` | Per-scope coverage, override decisions linked |

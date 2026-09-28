@@ -1,9 +1,9 @@
 # Shared-repo guard — blocks working-file leakage into the shared delivery repo.
 # Wave: hook-reliability (C1b). Used by TWO hook events:
 #
-#   afterFileEdit          → mode "edit":  can't undo the edit, so it WARNS loudly
-#                            (agentMessage) when an edited file under the shared repo
-#                            links to a git-ignored working file.
+#   postToolUse (Write)    → mode "edit":  can't undo the edit, so it WARNS loudly
+#                            (additional_context) when an edited file under the shared
+#                            repo links to a git-ignored working file.
 #   beforeShellExecution   → mode "shell": DENIES git commit/push run inside the shared
 #                            repo while any analysis/ file contains a leak.
 #
@@ -20,9 +20,9 @@ LINKISH = re.compile(r'\]\([^)]*(SESSION-CONTEXT|initiative-tracker|status-data|
                      r'|(\.\./)+[^\s)]*(SESSION-CONTEXT|initiative-tracker|status-data)', re.I)
 
 def out(permission, agent="", user=""):
-    # Cursor hooks docs (checked 5 Jul 2026): snake_case fields; afterFileEdit has no output
-    # fields at all, so the edit-mode warning ALSO ships as additional_context (honoured when
-    # this script is registered under postToolUse). camelCase kept for back-compat.
+    # snake_case fields; the edit-mode warning ships as additional_context, which Cursor
+    # reads on postToolUse (afterFileEdit reads nothing, so it is not registered there).
+    # camelCase kept for back-compat.
     o = {"permission": permission, "agent_message": agent, "user_message": user,
          "agentMessage": agent, "userMessage": user}
     if agent:
@@ -31,7 +31,33 @@ def out(permission, agent="", user=""):
     sys.exit(0)
 
 def repo_root():
-    return os.environ.get("BA_SHARED_REPO_ROOT", "")
+    # paths.sharedRepoRoot in ~/.cursor/rules/ba-assistant-config.mdc (/handover writes it
+    # the first time the BA says where confirmed analysis goes). The env var may override.
+    # Neither set = guard does nothing.
+    env = os.environ.get("BA_SHARED_REPO_ROOT", "")
+    if env:
+        return env
+    # Older or hand-built installs keep paths.* in ba-profile.mdc; config wins.
+    text = ""
+    for name in ("ba-assistant-config.mdc", "ba-profile.mdc"):
+        cfg = os.path.expanduser(os.path.join("~", ".cursor", "rules", name))
+        try:
+            text += open(cfg, encoding="utf-8", errors="ignore").read() + "\n"
+        except Exception:
+            pass
+    m = re.search(r'^\s*sharedRepoRoot\s*:\s*["\']?([^"\'#\n]+)', text, re.M)
+    val = m.group(1).strip() if m else ""
+    if not val or val.startswith("["):   # unset or still a template placeholder
+        return ""
+    return os.path.expanduser(val)
+
+def is_within(path, root):
+    # Containment by path parts, not string prefix: /work/repo-old is NOT inside /work/repo.
+    try:
+        a, b = os.path.realpath(path), os.path.realpath(root)
+        return os.path.commonpath([os.path.normcase(a), os.path.normcase(b)]) == os.path.normcase(b)
+    except ValueError:   # different drives on Windows
+        return False
 
 def scan_file(path):
     try:
@@ -65,7 +91,7 @@ if mode == "edit":
                 path = src[key]; break
         if path:
             break
-    if not path or not root or not os.path.abspath(path).startswith(os.path.abspath(root)):
+    if not path or not root or not is_within(path, root):
         out("allow")
     hits = scan_file(path)
     if hits:
@@ -82,7 +108,15 @@ cmd = str(payload.get("command", payload.get("cmd", "")))
 cwd = str(payload.get("cwd", ""))
 if not re.search(r'\bgit\b.*\b(commit|push)\b', cmd):
     out("allow")
-in_shared = bool(root) and (os.path.abspath(cwd or ".").startswith(os.path.abspath(root)) or root in cmd)
+# Folders the git command runs in: the hook's cwd, any `cd <dir>`, and any `git -C <dir>`.
+# Compared as folders, so a command that merely mentions the repo path elsewhere
+# (or a sibling like repo-old) does not count.
+base = cwd or os.getcwd()
+dirs = [base]
+for m in re.finditer(r'(?:(?<![\w-])cd|\s-C)\s+("[^"]+"|\'[^\']+\'|[^\s;&|]+)', cmd):
+    d = os.path.expanduser(m.group(1).strip("\"'"))
+    dirs.append(d if os.path.isabs(d) else os.path.join(base, d))
+in_shared = bool(root) and any(is_within(d, root) for d in dirs)
 if not in_shared:
     out("allow")
 

@@ -3,19 +3,19 @@
 **Location:** `~/.cursor/skills/ba-assistant/references/workspace-operations.md`  
 **Last reviewed:** 2026-08-03 (Version 10 — cross-platform)
 
-Configurable paths (set in **ba-setup** Step 2.5):
+Configurable paths. `/setup` (and `/handover` for the shared repo) write them to `~/.cursor/rules/ba-assistant-config.mdc`; setup does not set env vars. Skills use the upper-case names below as shorthand for the config value. An env var with that name, if you set one, overrides it.
 
-| Variable | Purpose | Typical default |
-|---|---|---|
-| `BA_DOWNLOADS_PATH` | Transcripts / downloads inbox | `~/Downloads` |
-| `BA_INITIATIVES_ROOT` | Initiative folders root | `~/.cursor/initiatives` |
-| `BA_SHARED_REPO_ROOT` | Shared delivery repo for `/handover` | (optional) |
+| Name in skills | Config key | Purpose | Default |
+|---|---|---|---|
+| `BA_DOWNLOADS_PATH` | `paths.downloadsPath` | Transcripts / downloads inbox | `~/Downloads` |
+| `BA_INITIATIVES_ROOT` | `paths.initiativesRoot` | Initiative folders root | `~/.cursor/initiatives` |
+| `BA_SHARED_REPO_ROOT` | `paths.sharedRepoRoot` | Shared delivery repo (`/handover`) | (unset until first `/handover`) |
 
 ---
 
 ## Downloads / transcripts check
 
-On resume, `/reanchor`, `/workboard`, and `/wrap`: list recent files in `BA_DOWNLOADS_PATH` (all types, not only `.docx`). Flag anything unprocessed vs SESSION-CONTEXT / tracker.
+On resume, `/reanchor`, and `/workboard`: list recent files in `BA_DOWNLOADS_PATH` (all types, not only `.docx`). Flag anything unprocessed vs SESSION-CONTEXT / tracker.
 
 ### Platform commands
 
@@ -31,7 +31,7 @@ On resume, `/reanchor`, `/workboard`, and `/wrap`: list recent files in `BA_DOWN
 |---|---|
 | `/debrief` with `@` attachment | Skip Downloads scan |
 | `/debrief` finding newest transcript | ~3 days |
-| Resume / `/workboard` / `/wrap` | ~7 days |
+| Resume / `/workboard` | ~7 days |
 
 ---
 

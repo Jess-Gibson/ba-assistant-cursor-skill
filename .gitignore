@@ -28,3 +28,7 @@ cursor-agent-scratch/
 # Unzipped build output of build-workboard-overlay-zip.py (the .zip is the
 # tracked deliverable; this folder is regenerated from source on demand)
 dist/ba-workboard-overlay/
+
+# Runtime state written by _workstream scripts (never package content)
+_workstream/processed-transcripts.json
+_workstream/audit-log.jsonl

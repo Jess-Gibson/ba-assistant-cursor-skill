@@ -1,3 +1,9 @@
+---
+name: ba-story-writing
+description: Writes epics, stories, spikes and bugs, and runs the Definition of Ready check before Jira creation.
+disable-model-invocation: true
+---
+
 # Skill: Story Writing
 
 ## Standards used
@@ -17,16 +23,17 @@ The Story Writing skill converts the shaped solution and feature slices into a d
 
 Before drafting any tickets or epics, this skill MUST confirm:
 
-1. **Which Jira project** will the tickets be created in? (e.g., PROJ, SW)
-   - **Wave 4**  -  first read from `status-data.json → initiative.jiraProjectKey` (captured at intake). If present, use it without re-asking; only ask if missing.
+0. **Which initiative** this backlog is for. If it has not been named in this chat, ask. Do not draft against a guessed initiative.
+1. **Which Jira project** will the tickets be created in?
+   - First read `status-data.json → initiative.jiraProjectKey` (captured at intake), else `jira.projectKey` in `~/.cursor/rules/ba-assistant-config.mdc`. Use it without re-asking; only ask if both are missing or still placeholders.
 2. **Which Jira issue type templates** are expected? Some projects use custom templates with specific fields, custom fields, or labels.
    - **Wave 4  -  Jira template story**  -  first read from `status-data.json → initiative.jiraTemplate` (captured at intake). If a template was provided:
      - Use the captured structure (description sections, custom fields, labels) for every new story drafted.
-     - Tell the user: "Using template from PROJ-XXXX (captured at intake). New stories will follow: [list sections]."
+     - Tell the user: "Using template from <template key> (captured at intake). New stories will follow: [list sections]."
      - If user wants a different template, confirm via `AskQuestion`.
    - If no template was captured at intake (user skipped), prompt now: "What template story should I base new tickets on? Paste key, use most recent, or skip and use generic format."
 3. **Which Confluence space** holds the requirements and design documents?
-   - First read from `status-data.json → initiative.confluenceSpace`.
+   - First read from `status-data.json → initiative.confluenceSpace`, else `confluence.spaceKey` in `ba-assistant-config.mdc`.
 4. **What is the parent epic key**, if epics already exist?
 5. **What is the link convention**  -  should stories link to a specific requirements page, a parent epic, or both?
 
@@ -38,9 +45,21 @@ Never assume  -  always ask or confirm.
 
 Before any story is marked as ready, this skill MUST invoke:
 
-1. **Schema Field Validator**  -  for every story that touches a data model,
-   table, or API schema. Stories that propose a field, change a field, or
-   query a field must pass the validator before reaching ready state.
+1. **Schema check** (`HK-DEL-SFV-schema`)  -  for every story that touches a
+   data model, table, or API schema (proposes, changes, or queries a field).
+   If you have your own schema validator skill installed, run it. Otherwise run
+   this internal checklist:
+   - Field already exists (name where), or is new and flagged as new
+   - Name follows the existing naming convention in that model
+   - Type, format, and nullability stated
+   - Owning system / table / API named
+   - Downstream consumers listed (reports, integrations, events), or "none known"
+   - Source cited (schema doc, Confluence page, or query result), not assumed
+
+   Any item unknown: show a visible warning in the story ("Schema check:
+   N items unconfirmed: ...") and ask the BA to confirm before the story goes
+   to review. The BA can accept it as-is; record the open items as OQs.
+   This never blocks on a missing skill.
 
 2. **Requirements Interrogator**  -  for every requirement that a story is
    satisfying. If a story is being written against a requirement that has
@@ -97,8 +116,20 @@ The Delivery Definition skill should produce:
 - **Delivery sequence** – A proposed order for epics and stories, indicating what can be run in parallel, what must be sequential, and where to insert proofs of concept or pilots.  Note critical path considerations.
 - **Definition of ready checklist results** – For each story, summarise the definition of ready (DoR) status (e.g., Requirements ready? Dependencies identified? Acceptance criteria defined? Risks logged? Sign‑offs obtained?).  Highlight any stories that are not ready and what is missing.
 - **Backlog summary** – A brief narrative summarising the backlog contents, sequence rationale, and next steps for engineering and product management.  This summary should be ready to paste into a planning tool or document.
-- **Ready-to-push ticket drafts** – For each story, produce the full ticket text (title, description, acceptance criteria, labels) in the format expected by the confirmed Jira template. Invoke Communication_Drafter if a stakeholder message is needed to accompany the new tickets.
+- **Ready-to-push ticket drafts** – For each story, produce the full ticket text (title, description, acceptance criteria, labels) in the format expected by the confirmed Jira template. These are drafts for the BA's review; see **Jira create** below. Invoke Communication_Drafter if a stakeholder message is needed to accompany the new tickets.
 - **Traceability map** – A table linking every story → slice → requirement → design decision. Each story must trace back to a specific interrogated requirement.
+
+## Jira create (draft → BA approves → create)
+
+Follow `references/jira-ticket-format.md` §2g and §9. In short:
+
+1. Draft every ticket in chat (or a file if the ADF is long) for the BA to review.
+2. AskQuestion: **Create in Jira** / **Edit first** / **Not yet**. No create call before **Create in Jira**.
+3. Create through Runlayer (`references/runlayer-atlassian-mcp.md`: `execute_tool` → `createJiraIssue`; `search_tools` if the schema is unclear). No custom skill is needed.
+4. Stories: run `python3 ~/.cursor/_workstream/dor-check.py --initiative <slug> --title "<summary>" --description-file <draft> --record` first (task 3b below) and show the result. At create time the `external-write-gate` hook re-runs the same Story Readiness Preflight and Cursor asks the BA: "Structural preflight passed ..." (with what it does not confirm), or "Structural preflight not passed ...: <missing>. Approve to create anyway as a BA override." Spikes, bugs, and enablers get the normal Jira approval, no preflight.
+5. If the BA approved a Story whose structural preflight did not pass, record the override as a decision row in the tracker (D-NNN: who, date, story, missing conditions). Write the new keys back to the tracker and `dorChecks.storyKey` (`dor-check.py --key <KEY> --record`).
+
+If Jira is not connected, hand over the approved drafts as copy-paste text.
 
 ## Challenge Rules
 
@@ -121,7 +152,10 @@ This section absorbs the former `ba-definition-of-ready` skill. DoR is the gate 
 
 The Definition of Ready ensures that each epic or story in the backlog meets a clear set of criteria before development begins. It verifies that requirements are understood, dependencies are known, acceptance criteria are defined, risks are logged, MoSCoW rating is captured (warn-and-flag), and necessary sign-offs are obtained. DoR acts as a gatekeeper to reduce churn during development and to give engineering teams confidence that work is actionable.
 
-**Where results land (E-promote):** DoR check results are **written to the tracker's DoR checks register** (`references/raid-format.md § Tracker-owned structured registers`); `status-data.json → dorChecks` is updated only via canvas refresh (derived mirror), never written directly.
+**Two layers. Never merge them in what you tell the BA.**
+
+1. **Story Readiness Preflight (a script, not you).** `_workstream/dor-check.py` recomputes five **structural** conditions from the files every time: a linked requirement that is interrogated or confirmed in the register, Given/When/Then ACs, dependencies listed (even "None"; TBD / TBC / ? don't count), MoSCoW set for the story's scope, and risks logged (even "None identified"). Requirement IDs are read as `HLR-01`, detailed `HLR-01.1` / `HLR-08.21` (a detailed ID is judged on its own status, never its parent's), or legacy type-prefixed IDs in older registers. A pass is reported as **"Structural preflight passed"**, never "DoR met". Never write a `result: pass` row by hand. `--record` writes the row in `status-data.json → dorChecks` for the metrics (the field names are kept for older initiatives; a `pass` there means only the structural preflight passed); write the outcome to the tracker's DoR checks register (`references/raid-format.md § Tracker-owned structured registers`) as well. The hook never reads `dorChecks`: it recomputes.
+2. **Definition of Ready (the BA's judgement, with your help).** The preflight does not check, and you must not claim it checked: business value and scope; semantic AC coverage and edge cases; NFRs; feasibility and sizing; independence; required design, legal, compliance and stakeholder approval. Say a story "meets the Definition of Ready" only when this conversation shows each of those was reviewed (by the BA, or by you with the BA confirming). Otherwise say which are unreviewed.
 
 ### DoR tasks
 
@@ -131,7 +165,7 @@ The Definition of Ready ensures that each epic or story in the backlog meets a c
 
 3. **Track readiness status**  -  Maintain a readiness status (Ready / Not Ready / Partial) for each story and summarise the reasons for items that are not ready. Communicate this to the orchestrator and delivery planning skills.
 
-3b. **Stamp the Jira description (C1  -  the deterministic gate reads this).** A story that passes DoR includes the line `DoR: PASS (<date>)` in its Jira description; a PM override includes `DoR: PASS (override, see decision D-NNN)`. The `jira-dor-gate` hook denies Story creation in Jira when neither marker is present in the payload (its file-lookup fallback also checks the tracker's DoR checks register / status-data pre-E). Spikes, bugs, and enablers are not gated.
+3b. **Run the check, don't assert it.** `python3 ~/.cursor/_workstream/dor-check.py --initiative <slug> --title "<summary exactly as it will go to Jira>" --description-file <draft> --record` (Windows: `py`). It prints each condition (PASS / MISS), `Gate: dor-check: PASS` or `NOT READY (...)` (the gate line is unchanged for older installs), then a `Story Readiness Preflight:` line saying "Structural preflight passed" (plus what it does not confirm) or "Structural preflight not passed". Fix what you can (add ACs, list dependencies, log risks, get MoSCoW set by the PM), then re-run. What you can't fix is the BA's call: at create time the hook asks them, naming the missing criteria, and their approval is the override. Record an approved override as a decision (D-NNN) in the tracker. A `DoR: PASS` line in the ticket text proves nothing. A structural pass is not a Ready status: set Ready only after the human checks in layer 2 are done. Spikes, bugs, and enablers are not preflight-checked.
 
 4. **Enforce stop-the-line**  -  If a critical DoR criterion is missing (e.g., legal sign-off), warn that proceeding may cause rework or delay. Let the user decide to proceed at risk, and log that decision in the tracker.
 
@@ -149,7 +183,7 @@ The Definition of Ready ensures that each epic or story in the backlog meets a c
     | MoSCoW = Could AND blocks a Must on critical path | **Partial  -  priority conflict** | Flag as "low-priority work blocking high-priority". Surface in `/next` for re-sequencing. |
 
     **Why warn-and-flag, not hard block:**
-    - The user's Data Collection Uplift Project 002 reality has rolling cohorts where MoSCoW may not be fully captured for emerging scopes when delivery starts (e.g. Cohort 2 is mid-discovery while Cohort 1 is delivering shared infrastructure).
+    - Many initiatives have rolling cohorts (for example, a sample onboarding initiative) where MoSCoW may not be fully captured for emerging scopes when delivery starts (e.g. Cohort 2 is mid-discovery while Cohort 1 is delivering shared infrastructure).
     - Hard blocking would force MoSCoW capture too early and create friction.
     - Warn-and-flag gives the PM visibility and an explicit override path, with a decision log that becomes the audit trail at playback.
 

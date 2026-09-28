@@ -22,7 +22,7 @@ canvas tab structure.
 **2. Feed downstream outputs**  -  After `status-data.json` is updated, these outputs read from it:
 - `ba-project-canvas` → `.canvas.tsx` (this skill)
 - `status-snapshot.html` (this skill)
-- Status Page Standard Format (in `ba-profile.mdc`) → Confluence markdown body
+- Status Page Standard Format (`references/status-page-format.md`) → Confluence markdown body
 
 **Change the data once, regenerate all three outputs.**
 

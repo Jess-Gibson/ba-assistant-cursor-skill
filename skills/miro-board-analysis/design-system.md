@@ -2,7 +2,7 @@
 
 Single source of truth for all pixel values, colours, fonts, patterns, and DSL snippets. Referenced by `algorithm.md` (Pass 5) and all templates.
 
-Based on two established workshop board templates (Solo Money kickoff Feb 2025, Sample Initiative Surcharging D2 kickoff May 2026).
+Based on two established workshop board templates (a product kickoff board and a Sample Initiative kickoff board).
 
 ---
 
@@ -30,7 +30,7 @@ Based on two established workshop board templates (Solo Money kickoff Feb 2025, 
 
 ## Dimensional Reference Table
 
-Hard pixel values derived from verified reference frame (D2 Kickoff template, board uXjVHDIdgWg=, frame 3458764676276313558). All dimensions in pixels.
+Hard pixel values derived from a verified D2 Kickoff reference frame (board `<boardId>`, frame `<widgetId>`). All dimensions in pixels.
 
 ### Element Dimensions
 
@@ -99,7 +99,7 @@ Hard pixel values derived from verified reference frame (D2 Kickoff template, bo
 |---|---|---|---|---|---|
 | **Primary** (strong) | `#7b14ef` (deep purple) | `#ffffff` (white) | 64-72 | Main section headers, key structural areas | "Problem statement", "High level scope", "High level service design", "Actions & Owners" |
 | **Secondary** (medium) | `#c497fe` (light purple) | `#7b14ef` (purple) | 48-100 | Sub-headers, categories, labeled zones, clickable callouts | "Questions" (size 100), "IN", "OUT", "Future scope", "Current state", "RAID" (size 64), "Things worth remembering" |
-| **Tertiary** (accent/data) | `#fff854` (bright yellow) | `#394666` (dark blue-grey) | 59-64 | Attention-drawing headers, data/metric sections | "Agenda", "Success metrics", "High level requirements", "Stakeholders", "Next steps", "CXNPL - SLAs" |
+| **Tertiary** (accent/data) | `#fff854` (bright yellow) | `#394666` (dark blue-grey) | 59-64 | Attention-drawing headers, data/metric sections | "Agenda", "Success metrics", "High level requirements", "Stakeholders", "Next steps", "[external partner] - SLAs" |
 | **Dark** (structural) | `#232428` (near-black) | `#ffffff` (white) | 64 | Structural/foundational sections, action-oriented | "Docs & references", "Draft high level plan", "Actions & follow ups" |
 | **Black** (alternate) | `#000000` (black) | `#ffffff` (white) | 59 | Supporting / secondary structural | "Supporting data" |
 
@@ -147,7 +147,7 @@ Two patterns. **Default for narrative panels (Purpose, asks, summaries, briefs):
 
 ### Pattern A: Accent Card (DEFAULT for narrative  -  Aug 2026)
 
-[BA name] gold-standard reference: board `uXjVHz3VP9I=`, widget `3458764680340520413` ("What we need from you").
+[BA name] gold-standard reference: board `<boardId>`, widget `<widgetId>` ("What we need from you").
 
 ```
 ┌──────────────────────────────────────┐
@@ -204,7 +204,7 @@ text_x  = card_left + rail_w + 44 + text_w/2
 
 ### Accent Card sizing algorithm (width + height from text)
 
-**Gold calibration (10 Aug 2026):** [BA name]-fixed clone [`3458764680341236141`](https://miro.com/app/board/uXjVHz3VP9I=/?moveToWidget=3458764680341236141) vs agent card `3458764680341042233`. Prefer [BA name] geometry when they diverge.
+**Gold calibration (10 Aug 2026):** [BA name]-fixed clone [`<widgetId>`](https://miro.com/app/board/{boardId}/?moveToWidget={widgetId}) vs agent card `<widgetId>`. Prefer [BA name] geometry when they diverge.
 
 **Order matters:** pick width first (wrap depends on it), then height from rendered text. Never pick a fixed tall card and hope.
 
@@ -596,7 +596,7 @@ The "High level scope" area uses layered shapes to create visual depth:
 
 **Layout:** Columns of pairs, x-spacing ~450px, y-spacing between Q and A ~180px, y-spacing between pairs ~470px.
 
-### Pattern B: Q&A Grid (variant  -  used in Solo Money kickoff)
+### Pattern B: Q&A Grid (variant  -  used in a product kickoff board)
 
 | DSL color | Role |
 |---|---|

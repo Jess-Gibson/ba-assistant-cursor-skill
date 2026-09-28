@@ -1,3 +1,9 @@
+---
+name: ba-intake-reviewer
+description: Reviews a PM's all-in-one or initial brief, challenges vague statements, and sets up the initiative's starting files.
+disable-model-invocation: true
+---
+
 # Skill: Intake Reviewer
 
 ## Description
@@ -82,7 +88,7 @@ Not every intake needs the full Phase 0 treatment. Adapt depth to size of work.
 
 **Override the user's pick** when the situation demands it. Examples: compliance work in scope → Lean → Standard; multi-cohort scope → Standard → Full; sparse 1-line brief with nothing found → Lean → Standard. Always tell the user what you bumped and why. They can re-override and accept the risk; log the decision in the tracker.
 
-**Compliance scope expansion warning:** When a regulatory/compliance keyword is detected (Sample Initiative, [regulator], APRA, ACCC, OAIC, ACMA, ATO, etc.), surface this risk flag: *"Compliance initiatives frequently expand in scope once implementation complexity is understood. Even 'simple registration' tasks have historically grown into multi-week architecture and lifecycle work. Budget for scope discovery  -  consult engineering on Day 1 before committing to timelines."* (Added 23 Jun 2026 Sample-Compliance-Initiative retro  -  initiative went from "2-day fix" to multi-week architecture piece once engineering was consulted.)
+**Compliance scope expansion warning:** When a regulatory/compliance keyword is detected ([regulator] and the regulators/standards configured for your jurisdiction per CUSTOMIZATION.md §6), surface this risk flag: *"Compliance initiatives frequently expand in scope once implementation complexity is understood. Even 'simple registration' tasks have historically grown into multi-week architecture and lifecycle work. Budget for scope discovery  -  consult engineering on Day 1 before committing to timelines."* (Added 23 Jun 2026 Sample-Compliance-Initiative retro  -  initiative went from "2-day fix" to multi-week architecture piece once engineering was consulted.)
 
 **Recording:** write `initiative.complexity` to `status-data.json` after the user picks. The canvas and other skills read this to tune behaviour.
 
@@ -109,7 +115,7 @@ For every source, capture and surface:
 when you find content that might be stale, AI-generated, or unverified  -  using
 `AskQuestion` with clear options (use it / verify it / ignore it).
 
-This stance is informed by the Glean `confidence-signals` skill and the always-active
+This stance is informed by the Glean `confidence-signals` skill and, if your organisation installs one, a
 `glean-result-vetting.mdc` rule. Apply the same rigour to non-Glean sources.
 
 ---
@@ -140,9 +146,9 @@ interviewed.
 
 Capture:
 
-- **Jira project key**  -  e.g. PROJ, SW
+- **Jira project key**  -  default `jira.projectKey` from `ba-assistant-config.mdc`; confirm, don't ask blank
 - **Jira template story** (optional)  -  paste a key (e.g. `PROJ-XXXX`) to use its structure as the template for new stories, or "use most recent" to pick the project's latest, or "skip" (ask again at Delivery Definition). Stored as `initiative.jiraTemplateKey`.
-- **Confluence space + parent page**  -  record page IDs in `confluence-pages.json`
+- **Confluence space + parent page**  -  default `confluence.spaceKey` / `confluence.parentPageUrl` from config; record page IDs in `confluence-pages.json`
 - **All-in-one / intake doc link**  -  Confluence URL, PM brief, BRD, PRD, or pasted text
 - **Repositories**  -  if technical
 - **Slack / Teams channel**  -  where initiative comms happen

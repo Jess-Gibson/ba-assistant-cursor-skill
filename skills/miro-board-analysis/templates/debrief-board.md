@@ -25,7 +25,7 @@ When populating a meeting debrief into an existing frame that already has facili
 | Attendance | Accent Card (Pattern A) | If not already in facilitation content |
 
 **CRITICAL: Tables must be wrapped in labelled sections.** A bare Miro table on the board with no header or visual container is unreadable when zoomed out  -  the viewer cannot tell what the table represents without reading individual cells. Every table MUST have:
-1. A coloured header shape directly above it identifying the section (e.g. "Decisions (D-053 to D-059)")
+1. A coloured header shape directly above it identifying the section (e.g. "Decisions (D-01 to D-07)")
 2. A grey backdrop rectangle sized to contain the table with padding
 3. The header and backdrop visually grouped so the section reads as one unit
 

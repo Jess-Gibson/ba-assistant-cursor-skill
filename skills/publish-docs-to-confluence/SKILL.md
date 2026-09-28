@@ -18,7 +18,7 @@ Publish or update Confluence pages from local Markdown (e.g. specs, PRDs, audits
 ## MCP (best / fastest / cheapest)
 
 1. **Server:** `user-runlayer-plugin` → `execute_tool` only.
-2. **cloudId:** Confluence cloud UUID for your site (e.g. `your-confluence.atlassian.net`). Do not use the Jira UUID for pages. See [runlayer-atlassian-mcp.md](../ba-assistant/references/runlayer-atlassian-mcp.md) for how to resolve it.
+2. **cloudId:** Confluence cloud UUID for your site (the host of `confluence.parentPageUrl` in `ba-assistant-config.mdc`; default space `confluence.spaceKey`). Do not use the Jira UUID for pages. See [runlayer-atlassian-mcp.md](../ba-assistant/references/runlayer-atlassian-mcp.md) for how to resolve it.
 3. **Skip `search_tools`** for `updateConfluencePage`, `createConfluencePage`, `getConfluencePage`, `searchConfluenceUsingCql`.
 4. **Skip** `getAccessibleAtlassianResources` unless the site is unknown (it almost never is once configured).
 5. Pin from `_workstream/atlassian-cloud-ids.json` → `confluence.cloudId`.

@@ -10,8 +10,11 @@ in the name never matters, so a write can't hide behind a read verb):
 
   1. deny   email send / reply / forward / draft, or composing email
             (compose / generate / create / prepare / write / new + email, mail,
-            Outlook). BA Assistant never sends email or creates Outlook drafts;
-            the text goes in chat (or a local .md file) for the BA to copy.
+            Outlook). Also denied: any call whose arguments carry email
+            recipients (to / cc / bcc / *Recipients holding an address), so a
+            generic tool name (execute, sendNotification) can't carry an email
+            past the gate. BA Assistant never sends email or creates Outlook
+            drafts; the text goes in chat (or a local .md file) for the BA to copy.
   2. ask    any write verb anywhere in the name: Jira, Confluence, calendar,
             Miro, Slack/Teams posts. Cursor shows an approval dialog; the BA's
             click is the decision. findAndReplacePage asks, it is not a read.
@@ -76,6 +79,10 @@ PREFLIGHT_SCOPE = ("It confirms a linked requirement, Given/When/Then acceptance
                    "MoSCoW and risks are present. It does not confirm semantic completeness, required "
                    "sign-offs, feasibility, sizing or NFR coverage.")
 
+# Argument keys that mean "email recipients" when they hold an address.
+RECIPIENT_KEYS = {"to", "cc", "bcc", "torecipients", "ccrecipients", "bccrecipients", "recipients"}
+EMAIL_ADDRESS = re.compile(r"[\w.+-]+@[\w-]+(\.[\w-]+)+")
+
 MAIL_DENY_USER = "BA Assistant doesn't send email. The text is in chat for you to copy."
 MAIL_DENY_AGENT = (
     "BLOCKED by policy (external-write-gate): BA Assistant never sends, replies to, forwards "
@@ -138,6 +145,24 @@ def classify(name):
     if tokset & READ_VERBS:
         return "allow", "read"
     return "ask", "unrecognised MCP call"
+
+
+def has_mail_recipients(args):
+    """True when the arguments address an email: a to/cc/bcc/*Recipients key
+    whose value (string, list or nested dict) contains an email address."""
+    for _parent, k, v in _walk(args):
+        if re.sub(r"[^a-z]", "", str(k).lower()) in RECIPIENT_KEYS and EMAIL_ADDRESS.search(json.dumps(v, default=str)):
+            return True
+    return False
+
+
+def classify_call(name, args):
+    """classify() plus the payload check: email recipients in the arguments deny
+    unless the name is clearly about a non-email tool (calendar, Jira, chat)."""
+    decision, reason = classify(name)
+    if decision != "deny" and not set(tokens(name)) & NOT_MAIL_CONTEXT and has_mail_recipients(args):
+        return "deny", "email recipients in arguments"
+    return decision, reason
 
 
 def is_issue_create(name):
@@ -241,7 +266,7 @@ def main():
 
     name, _args, wrapped = unwrap(payload)
     shown = name or ("Runlayer execute_tool (no tool name)" if wrapped else "unknown MCP tool")
-    decision, reason = classify(name)
+    decision, reason = classify_call(name, _args)
 
     user = agent = ""
     if decision == "deny":

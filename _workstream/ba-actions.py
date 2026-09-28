@@ -128,10 +128,18 @@ def find_match(data: dict, row: dict) -> dict | None:
         for existing in data["actions"]:
             if existing.get("tracker_ref") == ref and existing.get("initiative") == row.get("initiative"):
                 return existing
+    # Exact wording matches only within the same initiative: two initiatives can
+    # both have "Send meeting notes", and matching across them would move the
+    # row to the other initiative. A row with no initiative yet can still match
+    # (quick capture first, initiative added later).
     print_ = fingerprint(row.get("task", ""))
     for existing in data["actions"]:
-        if fingerprint(existing.get("task", "")) == print_:
-            return existing
+        if fingerprint(existing.get("task", "")) != print_:
+            continue
+        mine, theirs = row.get("initiative"), existing.get("initiative")
+        if mine and theirs and mine != theirs:
+            continue
+        return existing
     # Fuzzy: same initiative, mostly the same words, and due dates (when both
     # are set) within 2 days. Only open work is matched this way, so a new
     # action is never folded into an old closed one by a loose match.
@@ -223,8 +231,9 @@ def upsert(data: dict, raw: dict, today: date) -> tuple[str, dict]:
     if "blocked" in row and existing.get("status") not in CLOSED and existing.get("blocked") != row["blocked"]:
         existing["blocked"] = row["blocked"]
         changed = True
-    if raw.get("source") or raw.get("source_type") or raw.get("source_label"):
+    if (raw.get("source") or raw.get("source_type") or raw.get("source_label")) and existing.get("source") != row["source"]:
         existing["source"] = row["source"]
+        changed = True
     if changed:
         existing["last_updated"] = stamp
         return "updated", existing

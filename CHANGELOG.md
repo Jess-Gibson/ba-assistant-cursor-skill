@@ -13,6 +13,13 @@ Version 14 QA fixes (from the fork review) plus the fixes below.
 
 **Compatibility:** the `dor-check.py` file name, arguments, exit codes (0 / 3 / 1), the `Gate: dor-check: PASS | NOT READY (...)` line, the `--json` fields and the `status-data.json → dorChecks` fields are unchanged (JSON gains a `check` field). `dorChecks` rows keep their names; a `pass` there now means the structural preflight passed. Audit rows keep `dor: pass | fail | error`; the `reason` text changed. A story that relied on "Dependencies: TBD" or a stray "risk" word will now show those conditions as not passed, and the BA can still approve it as an override. No initiative data is migrated or rewritten.
 
+### PR review follow-up
+
+- **Write gate reads the arguments for email.** A call whose arguments carry email recipients (`to` / `cc` / `bcc` / `*Recipients` holding an address) is denied even when the tool name is generic (`execute`, `run_action`). Calendar, Jira and chat tools by name are unaffected.
+- **Actions: exact-wording matches stay inside their initiative.** Two initiatives can each have "Draft AC for refunds"; the second no longer moves the first row across. A row with no initiative can still match.
+- **Actions: a source-only change is saved.** Before, it was reported "Already there" and not written.
+- `/undo` with unsaved edits was checked and is correct (reverts the last saved change, keeps the edits as their own version); a regression test now pins it.
+
 ### Safety and control (independent review, author's addendum)
 
 - **One gate for every Runlayer call** (`hooks/external-write-gate.py`, `beforeMCPExecution`, fail-closed). Reads run without prompts. Every other external write (Jira, Confluence, calendar, Miro, Slack/Teams) asks you first. **Email is never sent, replied to, forwarded or drafted**: the text goes in chat for you to copy. Each decision is logged to `_workstream/audit-log.jsonl`.

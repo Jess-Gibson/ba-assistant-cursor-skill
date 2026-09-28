@@ -90,6 +90,17 @@ def actions_tests(tmp):
     code, out = run(script, *T, "upsert", "--json", "-", stdin=rows)
     check("Actions: upsert adds a batch in one call", code == 0 and "2 added" in out, out)
 
+    code, out = run(script, *T, "add", "--task", "Draft AC for refunds", "--initiative", "payroll")
+    data = json.loads(store.read_text(encoding="utf-8"))
+    check("Actions: same wording in another initiative is a new row, the first stays put",
+          len(data["actions"]) == 5 and data["actions"][2]["initiative"] == "payments"
+          and data["actions"][4]["initiative"] == "payroll", out)
+    code, out = run(script, *T, "add", "--task", "Book playback", "--initiative", "payments",
+                    "--source-type", "debrief", "--source-label", "Playback prep")
+    data = json.loads(store.read_text(encoding="utf-8"))
+    check("Actions: a source-only change is saved and reported as updated",
+          "Updated" in out and data["actions"][3]["source"]["label"] == "Playback prep", out)
+
     code, out = run(script, *T, "eod-scan", "--closeout-date", "2026-09-28", "--json")
     scan = json.loads(out)
     walk = [a["id"] for a in scan["walk"]]

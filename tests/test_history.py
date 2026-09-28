@@ -102,6 +102,9 @@ def main():
               and not (init / "debriefs" / "steerco.md").exists(), out)
         check("undo keeps unsaved edits recoverable (saved as 'Before undo' first)",
               "Before undo (edits not saved yet)" in git_log(init), str(git_log(init)))
+        check("undo with unsaved edits reverts only the last saved change (the capture before it stays)",
+              "Use the ledger API for refunds" in "".join(p.read_text(encoding="utf-8") for p in init.glob("*.md"))
+              and "Captured 1 item" in out, out)
         code, out = hist(home, "undo", "--initiative", "refunds")
         check("undo is itself undoable (undo again brings the change back)",
               "wrong decision" in (init / "initiative-tracker.md").read_text(encoding="utf-8"), out)

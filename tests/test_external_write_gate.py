@@ -73,6 +73,19 @@ def main():
         check("Jira Story create is never allowed without the BA (DoR check runs)",
               out["permission"] in ("ask", "deny"), str(out))
 
+        # --- email hidden behind a generic tool name: the arguments give it away ---
+        for tool, args in (("execute", {"to": "priya@example.com", "subject": "Refunds", "body": "Hi"}),
+                           ("sendNotification", {"toRecipients": [{"emailAddress": {"address": "a@b.co.nz"}}]}),
+                           ("run_action", {"cc": ["x@y.com"], "text": "fyi"})):
+            code, out = run_gate(runlayer(tool, args), home)
+            check(f"email recipients in arguments deny: {tool}",
+                  out["permission"] == "deny" and out["user_message"] == MAIL_MSG, str(out))
+        for tool, args in (("outlook_calendar_create_event", {"attendees": [{"email": "a@b.com"}], "to": "a@b.com"}),
+                           ("transitionJiraIssue", {"to": "Done"}),
+                           ("execute", {"query": "status"})):
+            code, out = run_gate(runlayer(tool, args), home)
+            check(f"no email recipients, not denied: {tool}", out["permission"] == "ask", str(out))
+
         # --- email: always deny, with the copy-and-paste message ---
         for tool in ("send_mail", "outlook_send_email", "outlook__send_mail", "sendMail", "reply_to_message",
                      "replyAll", "forward_message", "outlook_mail_forward", "create_draft",

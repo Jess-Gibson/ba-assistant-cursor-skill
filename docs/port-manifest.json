@@ -8,7 +8,7 @@
     },
     "_workstream/ba-actions.py": {
       "category": "behaviour-critical",
-      "reason": "New: /todo, action sync and end of day 5a/5b write ba-actions.json through one script (ids, dedupe, no reopen, MD regenerate)"
+      "reason": "New: /todo, action sync and end of day 5a/5b write ba-actions.json through one script (ids, dedupe, no reopen, MD regenerate); exact-wording matches stay within their initiative; a source-only change is saved"
     },
     "_workstream/capture.py": {
       "category": "behaviour-critical",
@@ -452,7 +452,7 @@
     },
     "hooks/external-write-gate.py": {
       "category": "behaviour-critical",
-      "reason": "One beforeMCPExecution gate: unwraps Runlayer execute_tool, denies email send/reply/forward/draft, asks on other external writes, allows reads, runs dor-check.py on Story creates, writes audit-log.jsonl; a write verb anywhere in the name asks (no first-verb shortcut); email compose denied; Story Readiness Preflight wording (never \"DoR met\")"
+      "reason": "One beforeMCPExecution gate: unwraps Runlayer execute_tool, denies email send/reply/forward/draft, asks on other external writes, allows reads, runs dor-check.py on Story creates, writes audit-log.jsonl; a write verb anywhere in the name asks (no first-verb shortcut); email compose denied; Story Readiness Preflight wording (never \"DoR met\"); email recipients in the arguments deny"
     },
     "hooks/hooks.json": {
       "category": "behaviour-critical",

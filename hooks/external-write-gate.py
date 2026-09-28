@@ -157,10 +157,12 @@ def has_mail_recipients(args):
 
 
 def classify_call(name, args):
-    """classify() plus the payload check: email recipients in the arguments deny
-    unless the name is clearly about a non-email tool (calendar, Jira, chat)."""
+    """classify() plus the payload check: a write or unknown call whose arguments
+    carry email recipients is denied, unless the name is clearly about a non-email
+    tool (calendar, Jira, chat). Reads are never denied here: a mail search
+    filtered by recipient ("to": "someone@...") is a read, not a send."""
     decision, reason = classify(name)
-    if decision != "deny" and not set(tokens(name)) & NOT_MAIL_CONTEXT and has_mail_recipients(args):
+    if decision == "ask" and not set(tokens(name)) & NOT_MAIL_CONTEXT and has_mail_recipients(args):
         return "deny", "email recipients in arguments"
     return decision, reason
 

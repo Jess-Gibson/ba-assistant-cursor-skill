@@ -64,8 +64,8 @@ def resolve_canvas_path(cursor_home: Path) -> str:
 
 
 def resolve_initiatives_root(cursor_home: Path, rules_text: str) -> str:
-    env = os.environ.get("BA_INITIATIVES_ROOT")
-    if env:
+    env = (os.environ.get("BA_INITIATIVES_ROOT") or "").strip()
+    if env and Path(env).expanduser().is_dir():   # a stale, missing folder is ignored
         return posix(Path(env).expanduser())
     # initiativesRoot is what /setup writes; the other two are older spellings.
     for key in ("initiativesRoot", "initiatives_root", "BA_INITIATIVES_ROOT"):
@@ -446,6 +446,30 @@ def build_apply_prompt_prefix(config: dict) -> str:
     )
 
 
+# The canvas embeds its data, and a board carrying every initiative's full
+# history (long key_dates lists, tracker extras) grew big enough that Cursor's
+# canvas host stopped ("The service was stopped"). Everything is still
+# computed from the full data; only these fields, the ones the template reads,
+# are written into the canvas. workboard.json and the actions file keep it all.
+CANVAS_INITIATIVE_FIELDS = ("slug", "name", "phase", "status", "next_milestone", "top_blocker",
+                            "top_risk", "next_action")
+CANVAS_ACTION_FIELDS = ("id", "task", "status", "due", "priority", "notes", "initiative", "initiativeName")
+CANVAS_KEY_DATES = 5
+
+
+def canvas_initiative(item: dict) -> dict:
+    row = {k: item.get(k) for k in CANVAS_INITIATIVE_FIELDS}
+    open_dates = [{"what": d.get("what"), "date": d.get("date"), "note": d.get("note")}
+                  for d in item.get("key_dates") or []
+                  if isinstance(d, dict) and not d.get("done") and not str(d.get("note") or "").upper().startswith("DONE")]
+    row["key_dates"] = open_dates[:CANVAS_KEY_DATES]
+    return row
+
+
+def canvas_action(action: dict) -> dict:
+    return {k: action.get(k) for k in CANVAS_ACTION_FIELDS}
+
+
 def build_data(workboard: dict, actions_data: dict, calendar: dict, today: str, config: dict) -> dict:
     initiatives = workboard.get("initiatives") or []
     names = {str(item.get("slug")): str(item.get("name") or item.get("slug")) for item in initiatives if item.get("slug")}
@@ -484,8 +508,8 @@ def build_data(workboard: dict, actions_data: dict, calendar: dict, today: str, 
         "today": today,
         "refreshed": workboard.get("last_refreshed") or "Not refreshed yet",
         "actionsSync": actions_data.get("last_synced") or "",
-        "initiatives": initiatives,
-        "actions": actions,
+        "initiatives": [canvas_initiative(item) for item in initiatives if isinstance(item, dict)],
+        "actions": [canvas_action(action) for action in actions],
         "meetings": meetings,
         "calendarBlocks": calendar_blocks,
         "freeBlocks": free_blocks,

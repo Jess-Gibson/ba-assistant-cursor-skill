@@ -166,8 +166,10 @@ def folder_key(path) -> tuple | str:
 
 
 def initiative_roots(cursor_home: Path) -> list[Path]:
-    roots = [os.environ.get("BA_INITIATIVES_ROOT", "") or config_initiatives_root(cursor_home),
-             str(cursor_home / "initiatives"), str(cursor_home / "Initiatives"), str(cursor_home / "blueprints")]
+    # Env and config are both tried: a stale BA_INITIATIVES_ROOT (not a folder)
+    # is skipped by the isdir check below instead of hiding the config path.
+    roots = [os.path.expanduser(os.environ.get("BA_INITIATIVES_ROOT", "").strip()),
+             config_initiatives_root(cursor_home), str(cursor_home / "initiatives"), str(cursor_home / "Initiatives"), str(cursor_home / "blueprints")]
     out: list[Path] = []
     keys: set = set()
     for r in roots:

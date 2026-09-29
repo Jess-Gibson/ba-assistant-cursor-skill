@@ -106,7 +106,7 @@ def parse_rule_value(text: str, key: str) -> str | None:
 def initiatives_root(cursor_home: Path) -> Path:
     """Same order as hooks/session-init.py: env, then config, then the default."""
     env = os.environ.get("BA_INITIATIVES_ROOT", "").strip()
-    if env:
+    if env and os.path.isdir(os.path.expanduser(env)):   # a stale, missing folder is ignored
         return Path(os.path.expanduser(env))
     for name in ("ba-assistant-config.mdc", "ba-profile.mdc"):
         path = cursor_home / "rules" / name

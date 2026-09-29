@@ -26,7 +26,7 @@ picking one arbitrarily:
     missing).
   - "OTHER NEW DOWNLOADS" (non-transcript) block and .vtt extension support:
     only session-init.ps1 had these. Ported from the .ps1.
-  - Search roots: BA_INITIATIVES_ROOT if set, else paths.initiativesRoot from
+  - Search roots: BA_INITIATIVES_ROOT if set and a folder, then paths.initiativesRoot from
     ~/.cursor/rules/ba-assistant-config.mdc (what setup writes), then always
     ~/.cursor/initiatives (the installer default). The older roots
     (~/.cursor/Initiatives, ~/.cursor/blueprints, ~/ba-initiatives,
@@ -138,9 +138,16 @@ def downloads_folders() -> list[str]:
 
 def search_roots() -> list[str]:
     roots = []
-    initiatives_root = os.environ.get("BA_INITIATIVES_ROOT") or config_initiatives_root()
-    if initiatives_root:
-        roots.append(initiatives_root)
+    # A BA_INITIATIVES_ROOT that is not a folder (stale, from an old install) is
+    # ignored, so it can't hide every initiative; the config path still applies.
+    env_root = os.path.expanduser((os.environ.get("BA_INITIATIVES_ROOT") or "").strip())
+    if env_root and os.path.isdir(env_root):
+        roots.append(env_root)
+    elif env_root:
+        eprint(f"BA_INITIATIVES_ROOT is set but is not a folder, ignored: {env_root}")
+    config_root = config_initiatives_root()
+    if config_root and config_root not in roots:
+        roots.append(config_root)
     home = str(Path.home())
     roots.append(str(Path(home) / ".cursor" / "initiatives"))
     # Legacy fallbacks so an older setup (e.g. a blueprints folder) still works.

@@ -13,6 +13,12 @@ Version 14 QA fixes (from the fork review) plus the fixes below.
 
 **Compatibility:** the `dor-check.py` file name, arguments, exit codes (0 / 3 / 1), the `Gate: dor-check: PASS | NOT READY (...)` line, the `--json` fields and the `status-data.json → dorChecks` fields are unchanged (JSON gains a `check` field). `dorChecks` rows keep their names; a `pass` there now means the structural preflight passed. Audit rows keep `dor: pass | fail | error`; the `reason` text changed. A story that relied on "Dependencies: TBD" or a stray "risk" word will now show those conditions as not passed, and the BA can still approve it as an override. No initiative data is migrated or rewritten.
 
+### Fixes from the first personalised upgrade
+
+- **A stale `BA_INITIATIVES_ROOT` no longer hides your initiatives.** If that setting points at a folder that doesn't exist (left over from an old install), every script now ignores it and uses `paths.initiativesRoot` from your config or profile. Before, session start, `/validate-state`, snapshots, capture, metrics, undo, the DoR preflight and both canvases found no initiatives at all. Session start also says the setting was ignored.
+- **Mail searches filtered by recipient are reads again.** The PR review check that denies a call carrying email recipients also caught reads, so an Outlook mail search with a `to` filter (the end-of-day mail fallback) was blocked. It now applies only to writes and unknown tools.
+- **The workboard canvas no longer stops loading on a big board.** The canvas used to embed every initiative and action in full, including long `key_dates` histories, and a large board made Cursor's canvas host stop ("The service was stopped"). It now embeds only the fields the canvas shows, with at most 5 open key dates per initiative. Priorities are still worked out from the full data, and `workboard.json` and the actions file are unchanged.
+
 ### PR review follow-up
 
 - **Write gate reads the arguments for email.** A call whose arguments carry email recipients (`to` / `cc` / `bcc` / `*Recipients` holding an address) is denied even when the tool name is generic (`execute`, `run_action`). Calendar, Jira and chat tools by name are unaffected.

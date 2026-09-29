@@ -85,6 +85,9 @@ def main():
                            ("execute", {"query": "status"})):
             code, out = run_gate(runlayer(tool, args), home)
             check(f"no email recipients, not denied: {tool}", out["permission"] == "ask", str(out))
+        for tool in ("outlook_mail_search", "search_messages", "list_emails", "getMessages"):
+            code, out = run_gate(runlayer(tool, {"to": "someone@example.com", "since": "2026-09-28"}), home)
+            check(f"a read filtered by recipient is still a read (allowed): {tool}", out["permission"] == "allow", str(out))
 
         # --- email: always deny, with the copy-and-paste message ---
         for tool in ("send_mail", "outlook_send_email", "outlook__send_mail", "sendMail", "reply_to_message",

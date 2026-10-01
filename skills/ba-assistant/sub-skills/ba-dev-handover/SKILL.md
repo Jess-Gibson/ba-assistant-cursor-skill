@@ -20,15 +20,15 @@ disable-model-invocation: true
 
 ## Description
 
-The Dev Handover skill moves **confirmed** analysis across the boundary from the BA workspace into the shared delivery repo the devs and delivery agents read. It is the delivery-facing sibling of `/publish-status`: where that derives a Confluence page for stakeholders, this derives handover artefacts for engineering, from the same source of truth (`register.md`, the tracker, status-data.json).
+The Dev Handover skill moves **confirmed** analysis across the boundary from the BA workspace into the shared delivery repo the devs and delivery agents read. It is the delivery-facing sibling of `/publish-status`: where that derives a Confluence page for stakeholders, this derives handover artefacts for engineering, from the same source of truth (`requirements-register.md`, the tracker, status-data.json).
 
 It exists because a bad handover fails downstream. A spike request with no decision link bounces back with "what do you actually want." A story pack with untestable ACs gets rejected at pickup. Every bounce is rework, and rework is where BA value looks muted. This skill's job is to stop bad handovers leaving: it assembles what is confirmed, gates it, and refuses to publish what isn't ready.
 
-**Core principle: derive, don't re-author.** The source of truth stays in the BA workspace (`register.md` for requirements, `initiative-tracker.md` for RAID, Solution Shaping outputs for options/ADRs). This skill reads confirmed entries, renders them into the dev-facing shape, and publishes. It does not become a second place requirements live. If a requirement isn't `status: confirmed` in the register, it does not go in a handover.
+**Core principle: derive, don't re-author.** The source of truth stays in the BA workspace (`requirements-register.md` for requirements, `initiative-tracker.md` for RAID, Solution Shaping outputs for options/ADRs). This skill reads confirmed entries, renders them into the dev-facing shape, and publishes. It does not become a second place requirements live. If a requirement isn't `status: confirmed` in the register, it does not go in a handover.
 
 **Two distinct events, never conflated:**
 
-1. **Confirmation**  -  a requirement is promoted to `status: confirmed` in `register.md`. Happens in the BA workspace, via the Interrogator conversation and stakeholder agreement. This skill never performs confirmation.
+1. **Confirmation**  -  a requirement is promoted to `status: confirmed` in `requirements-register.md`. Happens in the BA workspace, via the Interrogator conversation and stakeholder agreement. This skill never performs confirmation.
 2. **Publication**  -  already-confirmed content is rendered and written to the shared repo. This is the only event this skill owns.
 
 If a handover needs something that isn't confirmed yet, the handover stops and event 1 happens first, separately (see the Interrogator hook below). Publishing does not confirm, and confirming does not publish.
@@ -62,7 +62,7 @@ Each maps to the SDD canonical set (requirements → design → tasks) plus the 
 
 | Type | What it is | Derived from | Feeds |
 |---|---|---|---|
-| **Requirements pack** | Confirmed requirements for a scope, rendered EARS-style, with embedded RAID summary and grounded facts | `register.md` (status: confirmed) + tracker RAID + Data Investigation evidence | repo `confirmed/requirements.md` |
+| **Requirements pack** | Confirmed requirements for a scope, rendered EARS-style, with embedded RAID summary and grounded facts | `requirements-register.md` (status: confirmed) + tracker RAID + Data Investigation evidence | repo `confirmed/requirements.md` |
 | **Spike request** | A decision-linked investigation question for the devs | Solution Shaping spike list + confirmed context | repo `exchanges/` + Jira spike ticket |
 | **ADR request** | A request for the devs to make and record an architecture decision | Solution Shaping ADR list + confirmed requirements + current state + gap | repo `exchanges/` + (optionally) Jira |
 | **Story pack** | DoR-passed stories with traceability, for delivery | `ba-story-writing` output + slices + confirmed requirements | repo `confirmed/stories/` + Jira stories |

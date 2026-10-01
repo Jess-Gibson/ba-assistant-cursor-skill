@@ -82,7 +82,7 @@ Then Step 1. Do not list every internal step.
 
 ### Step 1 — Who are you?
 
-**One AskQuestion panel**, two questions.
+**One AskQuestion panel**, three questions.
 
 **A — Name**
 
@@ -103,7 +103,15 @@ Empty free-text is not an answer; ask once more. Never invent name chips.
 - `pa` — Product Analyst
 - `other` — Other (type in the free-text field)
 
-Capture: `name`, `role`.
+**C — Working hours** (local time on this computer; used to time the catch-up nudge)
+
+> What are your usual working hours?
+
+- `9to5` — 09:00 to 17:00 (Recommended)
+- `custom` — Something else (type it in the free-text field, e.g. 08:30-16:30)
+- `any` — Any time on weekdays
+
+Capture: `name`, `role`, `catchupHours` (`"09:00-17:00"`, the typed range as `"HH:MM-HH:MM"`, or `""` for any).
 
 ---
 
@@ -274,7 +282,7 @@ Write `~/.cursor/rules/ba-assistant-config.mdc` from
 `~/.cursor/skills/ba-assistant/ba-profile.template.mdc`. Keep the template's
 frontmatter (`alwaysApply: true`) at the top so the config loads in every chat.
 Keep this file short: settings only, no procedures. Fill every key captured above
-(`name`, `role`, `team`, `domain`, `domainDocs`, `jira.*`, `confluence.*`, `paths.*`);
+(`name`, `role`, `catchupHours`, `team`, `domain`, `domainDocs`, `jira.*`, `confluence.*`, `paths.*`);
 the rest of the assistant reads them from here instead of asking again.
 
 **Do not overwrite** always-on `ba-profile.mdc` (persona).

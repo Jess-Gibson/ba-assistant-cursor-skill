@@ -23,7 +23,9 @@ than the last one.
 
 ## When to invoke
 
-| Trigger | Mode |
+**A retro runs only on `/retro` or when the user explicitly asks** (`execution-router.mdc`). The rows below are moments to **offer** one, in a single line, and only if the BA hasn't already declined this session. Never start a retro from these on your own.
+
+| Moment to offer | Mode |
 |---|---|
 | Pre-mortem trigger present (see Type 0 triggers above) and user accepts the offer | Type 0 (Pre-mortem) |
 | User says "what could go wrong", "I'm a bit nervous about this", "let's pre-mortem this" | Type 0 (Pre-mortem) |
@@ -185,8 +187,9 @@ This calibration data feeds the cross-initiative learnings  -  a pre-mortem that
 
 When a retro produces a recommendation of the form "check X after N days/weeks",
 don't just write the date in prose. Either:
-1. Add it to `workboard.json` as a dated personal task (so `/workboard` surfaces
-   it automatically), or
+1. Add it to `_workstream/ba-actions.json` as a dated BA action with `remind_on`
+   (via `sync-ba-actions`, `references/ba-actions-format.md`), so `/workboard`
+   surfaces it automatically, or
 2. Name it explicitly in the retro's own "Recommendations" section with the
    exact file/metric to check next time this skill runs.
 

@@ -48,7 +48,7 @@ Current State Assessment" as an assumption in the tracker.
 
 ### Hook 1  -  Requirements Interrogator (per requirement)
 
-A requirement enters `register.md` immediately on capture, at `status:
+A requirement enters `requirements-register.md` immediately on capture, at `status:
 proposed`  -  interrogation is **not** a gate on entry (see `requirement-format.md`
 §3 and Task 6 below). What this hook governs is what happens next: this skill
 MUST invoke **Requirements Interrogator** in Discovery mode for every `proposed`
@@ -100,7 +100,7 @@ is re-interrogated and a confirmed statement is produced.
 
 5. **Stakeholder interviews** – Generate targeted question sets for each stakeholder type (PM, compliance, legal, engineering, operations, design, service design) based on scope.  Tailor questions to *this initiative*, not generic stakeholder type templates. Capture their answers and summarise themes and gaps.
 
-6. **Requirement capture and interrogation** – Requirements enter `register.md` immediately on capture, at `status: proposed`, from any intake (transcript, Confluence, verbal, Jira, workshop)  -  as a one-line intake row, not the full write-up (see `requirement-format.md` §3a). Interrogation is not a gate on entry; it's what advances a requirement past `proposed`. For each candidate requirement:
+6. **Requirement capture and interrogation** – Requirements enter `requirements-register.md` immediately on capture, at `status: proposed`, from any intake (transcript, Confluence, verbal, Jira, workshop)  -  as a one-line intake row, not the full write-up (see `requirement-format.md` §3a). Interrogation is not a gate on entry; it's what advances a requirement past `proposed`. For each candidate requirement:
    - **Invoke Requirements Interrogator** in Discovery mode to move it from `proposed` to `interrogated`
    - Once interrogated, build out the full entry (statement, rationale, acceptance-for-met, linked elements, history) per `requirement-format.md` §3
    - If something is blocking sign-off (a spike, an open question, design, compliance, or a decision), set `blockedOn` accordingly rather than holding the requirement back from `interrogated`  -  see `requirement-format.md` §3c
@@ -182,7 +182,7 @@ is re-interrogated and a confirmed statement is produced.
     4. Recapture when a new scope (feature/cohort/slice) is added  -  prompt the PM to rate existing requirements for the new scope.
 
     **Warn-and-flag gate (Wave 3  -  not a hard block):**
-    - Any Jira story being moved into `In Progress` without a MoSCoW rating for its scope triggers a **warning** (red in `/status` workstream grid, flagged in Tracker tab → MoSCoW warnings section).
+    - Any Jira story found `In Progress` (at `/status`; nothing watches transitions live) without a MoSCoW rating for its scope triggers a **warning** (red in `/status` workstream grid, flagged in Tracker tab → MoSCoW warnings section).
     - The PM can explicitly proceed (override)  -  the decision is logged in the decisions table with rationale.
     - The warning persists in `/status` and on the canvas until either the MoSCoW is rated or the override is logged.
     - Stories with `Won't` rating for their scope auto-flag as anti-pattern ("building something explicitly out of scope").

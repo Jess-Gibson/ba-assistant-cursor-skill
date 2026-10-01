@@ -130,7 +130,9 @@ Slash commands trigger orchestrator-driven flows. Type the slash in chat; if Cur
 | `/undo` | Undo the last change to an initiative's files. Every capture, debrief, `/wrap`, end of day and reply is saved as a version in a private history inside the initiative folder (no git knowledge needed, nothing leaves the machine) |
 | `/fast-track` | Condensed phase structure for time-critical initiatives |
 | `/next` | Top 3 next actions across all active workstreams and scopes, ranked by urgency, unblock potential, and critical-path criticality |
-| `/status` | Full current state in chat  -  workstream grid, feature status, critical path, blockers, living tracker, quality metrics, confidence scores. Offers `/canvas` for the visual |
+| `/status` | Chat status from current data (workstream grid, critical path, blockers, living tracker, metrics). Brings `status-data.json` up to date via `status-refresh.md` (targeted updates; Jira only when stale). Offers `/canvas` for the visual |
+| `/catchup` | Debrief Slack, Teams and Outlook since the last catch-up (`ba-comms-debrief`). Review card first; nothing written until you approve |
+| `/eod` / `/EOD` | Full end-of-day closeout (same as `/workboard end-of-day`): mail, commitment scan, catch-up step, actions, calendar roll |
 | `/publish-status` | Generate and publish the formal status page (Confluence + HTML snapshot) |
 | `/report` | Full comprehensive report  -  all major outputs in a single document, ready to share |
 | `/snapshot` | Living tracker snapshot  -  high-risk items, unresolved unknowns, what changed since last view |
@@ -140,8 +142,8 @@ Slash commands trigger orchestrator-driven flows. Type the slash in chat; if Cur
 | `/reanchor <initiative>` | Pick an initiative back up, or re-read its state when a long thread has drifted. Without a name it lists your initiatives and asks |
 | `/audit-standards` | Run a conformance check against all reference standards across the live initiative. Reports artefacts that don't conform |
 | `/validate-state` | Writes what this chat captured into the initiative files (`SESSION-CONTEXT.md`, tracker, `status-data.json` where they exist) and upserts this chat's BA actions into `ba-actions.json`. No workboard refresh, no walk of every action. Asks if something has no obvious home |
-| `/wrap` | Chat-scoped checkpoint. Captures this thread's decisions, actions, and outputs, promotes its unpromoted items to the tracker, syncs BA actions changed in this chat, and checkpoints SESSION-CONTEXT. Does not refresh the workboard or reconcile the calendar (that is `/workboard end-of-day`) |
-| `/workboard` | Cross-initiative priorities view. Shows all initiatives, top tasks, today's meetings, sync status. `/workboard end-of-day` is the daily closeout (calendar reconcile, full action runthrough, workboard refresh) |
+| `/wrap` | Chat-scoped checkpoint. Captures this thread's decisions, actions, and outputs, promotes its unpromoted items to the tracker, syncs BA actions changed in this chat, and checkpoints SESSION-CONTEXT. Does not refresh the workboard or reconcile the calendar (that is `/eod` / `/workboard end-of-day`) |
+| `/workboard` | Cross-initiative priorities view. Shows all initiatives, top tasks, today's meetings, sync status. `/workboard end-of-day` (or `/eod`) is the daily closeout |
 
 **Note on Cursor slash menus:** Cursor uses `AskQuestion` with clickable options for decision points (not a separate persistent chip row above the input). Slash commands may or may not appear in the autocomplete menu  -  typing the command word in chat always works because the orchestrator honours them.
 
@@ -309,7 +311,8 @@ You don't need to invoke skills by name. The orchestrator picks them from what y
 | `ba-risk-and-tracker` | The living tracker: RAID, decisions, OQs |
 | `ba-project-canvas` | Initiative canvas and `status-data.json` (`/canvas`; metrics for `/status`) |
 | `ba-state-validator` | Checks files agree with each other and with this chat (`/validate-state`) |
-| `ba-commitment-scan` | Read-only scan of mail/chat for what you promised (`/workboard end-of-day`) |
+| `ba-commitment-scan` | Read-only scan of mail/chat for what you promised (`/eod` / `/workboard end-of-day`) |
+| `ba-comms-debrief` | Catch-up debrief of Slack, Teams and Outlook (`/catchup`; also EOD step 1c) |
 | `ba-retrospective-and-learning` | Retros on request (`/retro`), learnings |
 | `ba-solution-evaluation` | Post-launch: actual vs expected, continue/adjust/sunset |
 | `ba-initiative-closeout` | Closes an initiative cleanly (`/close`) |

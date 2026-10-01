@@ -10,6 +10,7 @@ Run:
     python3 tests/test_efficiency_scripts.py      (Windows: py tests/test_efficiency_scripts.py)
 """
 import json
+from datetime import datetime, timedelta
 import os
 import re
 import shutil
@@ -111,6 +112,16 @@ def actions_tests(tmp):
 
     code, out = run(script, *T, "set", "BA-404", "--status", "done")
     check("Actions: unknown id fails clearly", code == 1 and "no action BA-404" in out, out)
+
+    code, out = run(script, *T, "add", "--task", "Reply to request from Slack",
+                    "--source-type", "comms", "--source-label", "Slack DM Sam")
+    data = json.loads(store.read_text(encoding="utf-8"))
+    check("Actions: --source-type comms is accepted",
+          code == 0 and any(a.get("source", {}).get("type") == "comms" for a in data["actions"]), out)
+
+    code, out = run(script, *T, "add", "--task", "Should fail", "--source-type", "nonsense")
+    check("Actions: unknown --source-type is rejected",
+          code != 0 and "invalid choice" in out and "comms" in out, out)
 
 
 def capture_tests(tmp):
@@ -215,8 +226,66 @@ def validate_tests(tmp):
     (clean / "status-data.json").write_text(json.dumps({"initiative": {"name": "Clean"}}), encoding="utf-8")
     code, out = run(script, "--cursor-home", home, "--initiative", "clean")
     check("Validate: a clean initiative is ALIGNED", code == 0 and "ALIGNED" in out, out)
+    recent = (datetime.now().astimezone() - timedelta(minutes=90)).isoformat(timespec="minutes")
+    (clean / "status-data.json").write_text(json.dumps({"initiative": {"name": "Clean"}, "tickets": [
+        {"key": "PAY-1", "status": "Done", "lastJiraSync": "2026-01-01T09:00:00+13:00"},
+        {"key": "PAY-2", "status": "To Do", "lastJiraSync": recent}]}), encoding="utf-8")
+    code, out = run(script, "--cursor-home", home, "--initiative", "clean", "--json")
+    summary = json.loads(out)["summary"]
+    check("Validate: reports the newest Jira sync and its age", summary["jiraSyncedAt"] == recent
+          and 85 <= (summary["jiraSyncAgeMinutes"] or 0) <= 95 and summary["tickets"] == 2, str(summary))
+    code, out = run(script, "--cursor-home", home, "--initiative", "clean")
+    check("Validate: Jira freshness line, gate still last", "Jira last synced: 1h 3" in out
+          and out.strip().splitlines()[-1].startswith("Gate: state-validation:"), out)
+    old = (datetime.now().astimezone() - timedelta(days=50)).isoformat(timespec="minutes")
+    (clean / "status-data.json").write_text(json.dumps({"initiative": {"name": "Clean"}, "tickets": [
+        {"key": "PAY-1", "status": "Done", "lastJiraSync": old}]}), encoding="utf-8")
+    code, out = run(script, "--cursor-home", home, "--initiative", "clean")
+    check("Validate: a sync 48 hours or more ago is shown in days", "Jira last synced: 50 days ago" in out, out[-300:])
     code, out = run(script, "--cursor-home", home, "--initiative", "missing")
     check("Validate: missing folder exits 1", code == 1, out)
+
+
+def catchup_tests(tmp):
+    home = make_home(tmp, "catchup")
+    shutil.copy(REPO / "tools" / "catchup-watch.py", home / "_workstream" / "catchup-watch.py")
+    init = home / "initiatives" / "refunds"
+    init.mkdir(parents=True)
+    (init / "SESSION-CONTEXT.md").write_text("# Refunds\n", encoding="utf-8")
+    (init / "initiative-tracker.md").write_text(
+        "### D-01 · Use the existing ledger API\n**Status:** Confirmed\n### D-02 · Threshold stays at $500\n**Status:** Pending\n"
+        "### OQ-01 · Do Amex return categories?\n**Status:** Open\n", encoding="utf-8")
+    script = home / "_workstream" / "catchup-watch.py"
+    env = {**ENV, "HOME": str(home.parent), "USERPROFILE": str(home.parent)}   # catchup-watch reads ~/.cursor
+
+    def run(script, *args):
+        p = subprocess.run([PY, str(script), *[str(a) for a in args]], capture_output=True, text=True,
+                           encoding="utf-8", timeout=60, env=env)
+        return p.returncode, p.stdout + p.stderr
+
+    cfg = home / "rules" / "ba-assistant-config.mdc"
+    base_cfg = cfg.read_text(encoding="utf-8")
+    cfg.write_text(base_cfg + 'catchupEveryMinutes: 180\ncatchupHours: "00:00-23:59"\n', encoding="utf-8")
+    code, out = run(script, "plan")
+    try:
+        plan = json.loads(out)
+    except ValueError:
+        plan = {}
+    watch = [w["id"] for i in plan.get("initiatives", []) for w in i.get("watch", [])]
+    check("Catch-up: plan returns JSON with a since window", code == 0 and bool(plan.get("since")), out[-300:])
+    check("Catch-up: open question and pending decision are on the watch list", {"OQ-01", "D-02"} <= set(watch), str(watch))
+    check("Catch-up: a confirmed decision is not on the watch list", "D-01" not in watch, str(watch))
+    weekday = datetime.now().weekday() < 5
+    code, out = run(script, "due")
+    if weekday:
+        check("Catch-up: never run means due", '"due": true' in out and "never run" in out, out)
+    code, out = run(script, "stamp")
+    check("Catch-up: stamp records the run", code == 0 and (home / "_workstream" / "catchup-state.json").exists(), out)
+    code, out = run(script, "due")
+    check("Catch-up: just stamped means not due", '"due": false' in out, out)
+    cfg.write_text(base_cfg + "catchupEveryMinutes: 0\n", encoding="utf-8")
+    code, out = run(script, "due")
+    check("Catch-up: catchupEveryMinutes 0 turns it off", '"due": false' in out and "off" in out, out)
 
 
 def metrics_tests(tmp):
@@ -366,7 +435,7 @@ def always_on_tests():
                          ("ba-profile.mdc", "Strict sequencing"), ("ba-profile.mdc", "Decisions are always a table"),
                          ("ba-profile.mdc", "Priority types"), ("execution-router.mdc", "Publish guard"),
                          ("execution-router.mdc", "Anti-Pattern Detector"), ("execution-router.mdc", "Context Capture"),
-                         ("execution-router.mdc", "Mid-thread opt-out"), ("critical-gates.mdc", "Interrogate before register"),
+                         ("execution-router.mdc", "Mid-thread opt-out"), ("critical-gates.mdc", "Interrogate before confirming"),
                          ("critical-gates.mdc", "Jira story preflight")):
         check(f"Always-on: {name} still has '{needle}'", needle in text[name])
     commands = [c.stem for c in (REPO / "commands").glob("*.md")]
@@ -380,6 +449,7 @@ def main():
         actions_tests(tmp)
         capture_tests(tmp)
         validate_tests(tmp)
+        catchup_tests(tmp)
         metrics_tests(tmp)
         canvas_tests(tmp)
         snapshot_slice_tests(tmp)

@@ -2,7 +2,7 @@
 
 This document explains what to personalize after installing the BA Assistant package. The package ships with generic defaults — customize these to match your role, org, and tooling.
 
-> **New users:** The BA Assistant includes a first-run setup wizard that handles most of this automatically. On first launch, if `ba-profile.mdc` still contains `[Your Name]` placeholders, the wizard will guide you through configuration interactively. You only need this guide if you want to go deeper than what the wizard covers, or to customize manually.
+> **New users:** The BA Assistant includes a first-run setup wizard that handles most of this automatically. On first launch, if `~/.cursor/rules/ba-assistant-config.mdc` doesn't exist yet (or still has `[Your Name]`), the wizard guides you through configuration and writes your settings there. It never edits `ba-profile.mdc`, which is the shared persona. You only need this guide if you want to go deeper than what the wizard covers, or to customize manually.
 
 ---
 
@@ -15,7 +15,7 @@ This is the most important file to customize. It defines your BA persona, comman
 | Section | What to do |
 |---------|-----------|
 | Title and role description | Replace with your name and how you want the assistant to behave |
-| Specialist Skills table | Add or remove skills based on your workflow |
+| Skills and activities | Not in this file any more: see `references/activity-map.md`, and `skills-routing.mdc` for what loads when |
 | Status Page Standard Format | Customize sections for your org's status reporting needs |
 | Communication Style | Adjust to match your preferences |
 

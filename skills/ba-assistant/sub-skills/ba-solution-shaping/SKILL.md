@@ -25,11 +25,13 @@ MUST invoke:
    Requirements Interrogator first. Do not proceed to design until the
    requirement is genuinely understood (not just documented).
 
-2. **Schema Field Validator**  -  for every proposed field on a data model,
-   table, or API response. The validator runs the five-question check
-   (requirement → produced by process → authoritative source → consumer
-   question → storage justification) before the field is committed to the
-   schema.
+2. **Schema check** (`HK-DEL-SFV-schema`)  -  for every proposed field on a data
+   model, table, or API response. There is no separate validator skill: if the
+   BA has their own schema validator installed, run it; otherwise run the
+   schema checklist in `ba-story-writing` (exists or new, naming, type and
+   nullability, owning system, consumers, cited source) plus the question
+   "which requirement needs this field stored?" before the field is committed
+   to the schema.
 
 3. **Data Investigation** (`HK-SOL-BDI-viability`)  -  before recording
    "confidence in viability" for any option, or finalising the options table.
@@ -132,7 +134,7 @@ The Solution Shaping skill should produce:
 The Solution Shaping skill should guard against:
 
 - **Designing against an uninterrogated requirement**  -  if a design element is justified by a requirement that has no Requirements Interrogator output, halt and invoke the interrogator before proceeding. This is the single most common failure mode.
-- **Adding fields without validation**  -  every proposed schema field must pass the Schema Field Validator before being included. No exceptions, even for "obvious" fields.
+- **Adding fields without validation**  -  every proposed schema field must pass the schema check (step 2 above) before being included. No exceptions, even for "obvious" fields.
 - **Locking into a single solution too early** – Always ask the user to consider multiple options.  If only one option is proposed, challenge them to brainstorm alternatives.
 - **Ignoring trade‑offs** – Require pros/cons and risks for each option.  If the user cannot articulate trade‑offs, mark it as an assumption and prompt to revisit.
 - **Compliance and legal oversight** – Always ask whether there are any compliance or legal constraints on data retention, privacy, accessibility, or other policies.  Suggest consulting the appropriate teams.

@@ -100,7 +100,7 @@ After extraction is complete, present everything in one card:
 WILL WRITE TO SESSION-CONTEXT.md:
   + DEC-XX: [decision text] (decider: [name], date: [date])
   + OQ-XX: [open question]
-  + A-XX: [action] (owner: [name], due: [date])
+  + ACT-XX: [action] (owner: [name], due: [date])  (A- is an assumption in the tracker)
   + RISK-XX: [risk text]
 
 WILL UPDATE initiative-tracker.md:
@@ -148,7 +148,7 @@ If a meeting touches multiple initiatives (e.g. a program-level sync), the batch
 
 Sample Initiative updates:
   + DEC-XX: ...
-  + A-XX: ...
+  + ACT-XX: ...
 
 Sample onboarding initiative updates:
   + OQ-XX: ...

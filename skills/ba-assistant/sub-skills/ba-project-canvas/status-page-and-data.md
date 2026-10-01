@@ -8,14 +8,14 @@ See `references/canvas-data-model.md` for the canonical schema,
 workstream state transition rules, metric computation rules, and
 canvas tab structure.
 
-**Regenerate-before-read (E-demote):** before any read of status-data.json for canvas, `/status`, or `/metrics`, regenerate it from the tracker + Jira (same pattern as metrics-cache.json). This includes re-deriving the four tracker-owned registers (DoR checks, MoSCoW, PM approval, sign-offs  -  see `references/raid-format.md § Tracker-owned structured registers`). A stale copy stops mattering because it is rebuilt each time.
+**Check-before-read:** before any read of status-data.json for canvas, `/status`, `/publish-status` or `/metrics`, run the freshness check in `references/status-refresh.md` (`validate-state.py`) and update only what it reports as out of date, including the four tracker-owned registers (DoR checks, MoSCoW, PM approval, sign-offs  -  see `references/raid-format.md § Tracker-owned structured registers`) when the tracker changed after the file. Jira only when the last sync is 60 minutes old or more. A full rebuild only when the file is missing or broken, or the user asks for one.
 
 ### Data tasks (formerly ba-status-data-model)
 
 **1. Create or update `status-data.json`**  -  When `/status` or `/publish-status` is invoked:
 - If `status-data.json` does not exist, create it from the current state (SESSION-CONTEXT, Jira, open-questions, etc.).
-- If it exists, read it and update only the fields that have changed.
-- Always invoke `ba-jira-sync` before updating ticket statuses.
+- If it exists, update only the fields that have changed (`references/status-refresh.md` says which).
+- Ticket statuses come from `ba-jira-sync` (one JQL query), run when the last sync is 60 minutes old or more.
 - Compute `daysOverdue` for each blocker by comparing `targetDate` to today's date.
 - Compute `ageDays` for each open action and unknown.
 
@@ -52,7 +52,7 @@ canvas tab structure.
 
 - **Never update a downstream output directly without also updating `status-data.json`**  -  if someone asks to change a status, update the JSON first, then regenerate.
 - **Never add a ticket to `status-data.json` without a Jira key**  -  all tickets must be traceable.
-- **Never skip the Jira sync**  -  stale ticket data is worse than no data.
+- **Never show stale ticket data without saying so**  -  if Jira was not checked, the output says when tickets were last synced.
 - **Never store computed fields** (`daysOverdue`, `ageDays`, `moscowFlag`)  -  recalculate on every read so they're always current.
 - **Computing a metric as 0% when data is missing.** If a metric can't be computed, show `n/a`. Fabricated zeros look like real signals and trigger false alarms.
 - **Caching metrics longer than 1 hour.** Stale metric values create false confidence. Recompute on every status output.

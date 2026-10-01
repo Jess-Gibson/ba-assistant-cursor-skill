@@ -743,7 +743,7 @@ function requirementInterrogationRate(scopeId) {
 
 **Source:** requirements register cross-referenced with the existence of an interrogation artefact (either inline in the requirement entry or in a separate `interrogations/` folder). Discovery and Requirements should already be writing these.
 
-Warning threshold: <95% on any scope past Discovery completion. Below 95% means at least one requirement entered the register without challenge  -  which is the failure mode the Interrogator exists to prevent.
+Warning threshold: <95% on any scope past Discovery completion. Below 95% means at least one requirement moved past `proposed` without challenge  -  which is the failure mode the Interrogator exists to prevent.
 
 ### Sign-off cycle time
 
@@ -785,7 +785,7 @@ Anything older than 1 hour is recomputed on next request.
 
 ## 5. State sync triggers
 
-**Regenerate-before-read (E-demote):** before any read of status-data.json for canvas, `/status`, or `/metrics`, **regenerate it from the tracker + Jira** (same pattern as metrics-cache.json). A stale copy stops mattering because it is rebuilt each time. status-data.json is a derived cache except for Jira-synced ticket statuses, workstream states, and confidence scores, which remain status-data-canonical.
+**Check-before-read:** before any read of status-data.json for canvas, `/status`, `/publish-status` or `/metrics`, run the freshness check in `references/status-refresh.md` and **update only what it reports as out of date** (Jira only when the last sync is 60 minutes old or more; a full rebuild only when the file is missing or broken, or the user asks). status-data.json is a derived cache except for Jira-synced ticket statuses, workstream states, and confidence scores, which remain status-data-canonical.
 
 Other skills update `status-data.json` via these triggers:
 

@@ -7,4 +7,6 @@ Run the BA Assistant meeting debrief (~/.cursor/skills/ba-assistant/sub-skills/b
 
 **Downloads (debrief only — not the full folder):** skip the orchestrator resume 7-day Downloads check. If a transcript path was attached, **do not scan Downloads** — use that path only. Otherwise follow the debrief sub-skill's 3-day Downloads triage (`workspace-operations.md` for the platform-appropriate listing, `BA_DOWNLOADS_PATH`).
 
+**Catch-up check** (after the debrief card is answered): `py ~/.cursor/_workstream/catchup-watch.py due`. Skip this if the chat has no Slack, Teams or Outlook connectors, or `/catchup` already ran in this chat. If it says due, run `/catchup` (`ba-comms-debrief`) next: messages after a meeting often add to it. Skip anything the debrief just wrote.
+
 **Docx sources:** follow the debrief sub-skill's docx ingestion section — never nested `powershell -Command`, nested `powershell -File`, or `Expand-Archive` for `.docx`.

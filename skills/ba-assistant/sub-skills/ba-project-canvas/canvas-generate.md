@@ -13,13 +13,15 @@ The one the user named, or the session banner's `INITIATIVE CONTEXT`, else ask (
 
 ## 2. Bring `status-data.json` up to date (read only what you need)
 
-Per `status-page-and-data.md` (regenerate-before-read):
+Follow `references/status-refresh.md`: one `validate-state.py --json` call, then change only what it reports as out of date. Jira only when the last sync is 60 minutes old or more (`ba-jira-sync`: one JQL query; Jira wins over markdown for tickets). A full rebuild only when the file is missing or broken, or the user asks for a refresh.
 
-1. **Jira** (`ba-jira-sync`, when the MCP is reachable; Jira wins over markdown for tickets). JQL for the initiative's epics and their stories (`project = <key> AND parent = <epic>`). Per story write `key`, `title`, `status`, `scope`, `moscow`, `storyPoints`, `linkedRequirements`, `linkedSlice`, and `dependsOn` (inward "blocks" links). For stories that will show on the timeline, take `startedAt` (To Do → In Progress) and `doneAt` (→ Done) from the changelog; never use sprint dates as a start date. Skip Won't Do / Duplicate. No Jira: say "Jira: unable to check" and use the tracker.
-2. **Tracker** (`initiative-tracker.md`): re-derive decisions, RAID, open questions, milestones, sign-offs, DoR checks, MoSCoW and PM approval. Use Grep or the sections you need, not a top-to-bottom read of a large tracker.
-3. **Recent context:** the tail of `SESSION-CONTEXT.md` (the session banner already has it) for the `narrative` (2 to 4 sentences, plain English) and anything captured today but not yet promoted.
-4. **Optional blocks** the script uses when present (see the script header): `initiative.deadline`, `initiative.drivers`, `timeline` {`lanes`, `bars`} for extra swimlanes such as an Analysis lane, `dependencyGraph` {`nodes`, `edges`} when the dependency picture is richer than `raid.dependencies[].blocks`, `workstreamChanges`.
-5. **Ask the user only for genuine gaps** (deadline, parent epic, a sponsor name) and only once.
+When you do touch tickets, per story keep `key`, `title`, `status`, `scope`, `moscow`, `storyPoints`, `linkedRequirements`, `linkedSlice`, and `dependsOn` (inward "blocks" links). For stories that show on the timeline, take `startedAt` (To Do → In Progress) and `doneAt` (→ Done) from the changelog, only for tickets whose status changed since the last sync; never use sprint dates as a start date. Skip Won't Do / Duplicate.
+
+Also, only if missing or out of date:
+
+1. **Narrative:** 2 to 4 plain-English sentences from the tail of `SESSION-CONTEXT.md` (the session banner already has it).
+2. **Optional blocks** the script uses when present (see the script header): `initiative.deadline`, `initiative.drivers`, `timeline` {`lanes`, `bars`} for extra swimlanes such as an Analysis lane, `dependencyGraph` {`nodes`, `edges`} when the dependency picture is richer than `raid.dependencies[].blocks`, `workstreamChanges`.
+3. **Ask the user only for genuine gaps** (deadline, parent epic, a sponsor name) and only once.
 
 Data rules that keep the canvas honest (the script cannot judge these):
 

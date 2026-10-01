@@ -85,7 +85,7 @@ Commands below use `python3` (Mac/Linux); on Windows, substitute `py`.
 | `priority` | Yes | `high`, `medium`, `low` |
 | `blocked` | Yes | Boolean; if true, set `status` to `blocked` or `open` with `blocked: true` |
 | `blocker_notes` | No | Why blocked |
-| `source.type` | Yes | `debrief`, `tracker`, `session`, `quick-capture`, `wrap` |
+| `source.type` | Yes | `debrief`, `tracker`, `session`, `quick-capture`, `wrap`, `comms` (commitment scan or `/catchup`; `source.label` names the person and channel) |
 | `source.label` | Yes | Human-readable origin (meeting name + date) |
 | `source.file` | No | Relative path to debrief or artefact |
 | `source.date` | Yes | ISO date of source event |

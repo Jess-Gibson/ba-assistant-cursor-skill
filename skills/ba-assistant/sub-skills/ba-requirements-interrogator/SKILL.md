@@ -510,7 +510,7 @@ Read codebase (if accessible):
   - Search for code related to the requirement by keyword
   - Check git log for recent commits mentioning this requirement
   - List open branches that may contain WIP code
-  - Identify migrations, schema changes, or rosetta stones already run
+  - Identify migrations, schema changes, or data backfills already run
 ```
 
 **If tools are not connected:** produce a manual checklist with exactly
@@ -643,10 +643,10 @@ See **Kickoff HLR review (Mode 4)** → Step 4 session log section. Kickoff clos
 
 ## What this skill does NOT do
 
-- It does not write the final requirements document  -  the requirement-gatherer
-  does that once interrogation is complete
-- It does not create Jira tickets  -  the Jira integrator does that based on
-  interrogation outputs
+- It does not write the final requirements document  -  `ba-discovery-and-requirements`
+  and the register do that once interrogation is complete
+- It does not create Jira tickets  -  `ba-story-writing` does that (DoR-gated)
+  from interrogated requirements
 - It does not design solutions  -  solution shaping happens after requirements
   are confirmed
 - It does not make decisions  -  it surfaces them for the PM/PO/BA to confirm

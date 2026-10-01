@@ -9,6 +9,7 @@ disable-model-invocation: true
 ## Standards used
 
 - `references/ba-actions-format.md` — action IDs, fields, sync and regenerate rules
+- `references/comms-retrieval.md`: how to search Outlook, Slack and Teams (shared with `ba-comms-debrief`). At end of day use passes 1, 2 and 4 for the closeout day (pass 3 is for `/catchup` only). Hand the same evidence to `ba-comms-debrief` in EOD step 1c instead of searching twice.
 
 If standards conflict with skill-specific guidance below, the standard wins.
 
@@ -78,7 +79,7 @@ Classify each deduplicated real-world item as one of:
 ### Update rules
 
 1. Match existing actions by tracker reference, then task fingerprint, then initiative plus date proximity.
-2. Create an action only for an owned, concrete next step. Use the next `BA-NNN` per `references/ba-actions-format.md`.
+2. Create an action only for an owned, concrete next step. Use the next `BA-NNN` per `references/ba-actions-format.md`. A concrete **request to the BA** becomes an action even if they never replied: requester and permalink in `notes` and `source`, `source.type: comms`, due date only if the requester gave one. A vague request ("thoughts?") becomes an action only if it names a deliverable; otherwise list it under exceptions for the BA to decide.
 3. Update a due date, reminder, source link or notes when supported by evidence.
 4. Mark `done` only on explicit completion evidence. Mark `cancelled` only when the work is explicitly dropped.
 5. If evidence conflicts or does not identify ownership, keep the action open and add a short evidence note or capture an open question.
@@ -109,4 +110,4 @@ Run after mail triage and before meeting reconciliation. Its updates are inputs 
 
 ## Working-hours rule for any focus block found during reconciliation
 
-Read the user's working-hours preferences file in `_workstream/` before proposing or booking a focus block, if one exists. Focus blocks must stay within the user's configured working hours, avoid the protected lunch window, and sit only in a free calendar gap with no existing meetings, unless the user explicitly asks for an exception. Check live Outlook immediately before creating or updating an event.
+This skill never books anything. It may **propose** a focus block in its findings; booking happens only in `/workboard end-of-day` (`references/eod-closeout-procedure.md`), after the user confirms that specific block. When proposing, read the user's working-hours preferences file in `_workstream/` first, if one exists. Focus blocks must stay within the user's configured working hours, avoid the protected lunch window, and sit only in a free calendar gap with no existing meetings, unless the user explicitly asks for an exception. The end-of-day step checks live Outlook immediately before it creates or updates an event.

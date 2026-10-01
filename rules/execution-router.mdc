@@ -26,7 +26,7 @@ Read the workspace root's `AGENTS.md` as primary context, else `README.md`. Do n
 | **Non-BA** | debug code, syntax, generic explain | Project README/AGENTS only | Skip BA orchestrator |
 | **Ambiguous** | "help me think through something", short message either way | — | Ask once via AskQuestion: BA Assistant (recommended) / Quick chat / Specific skill. "Quick chat" = orchestrator stays off for the thread. |
 | **Chat checkpoint** | wrap up, close out this chat, checkpoint, `/wrap` | `~/.cursor/commands/wrap.md` | Run `/wrap`: chat-only checkpoint into `SESSION-CONTEXT.md` and the tracker. Not a retro, not end of day. |
-| **End of day** | done for tonight, I'm done for the day, end of day, `/workboard end-of-day` | `~/.cursor/commands/workboard.md` | Run `/workboard end-of-day` per `references/eod-closeout-procedure.md`. Do **not** load `ba-retrospective-and-learning`. |
+| **End of day** | done for tonight, end of day, `/EOD`, `/eod`, `/workboard end-of-day` | `commands/eod.md` | Full closeout per `eod-closeout-procedure.md`. No retrospective. |
 | **Retro** | `/retro`, or the user explicitly asks for a retro / retrospective / lessons learned | `SESSION-CONTEXT.md` (tail) | Load **ba-retrospective-and-learning**: Type 1 default; Type 2 if tooling/process failure this session. Only on explicit request. |
 
 Also classify the **activity** (Frame / Discover / Shape / Deliver / Run — see `references/activity-map.md`). Do not print model-tier nudges (Auto-balance handles model selection).
@@ -95,4 +95,4 @@ After every user message in a BA thread, scan for decisions, requirements, actio
 
 ## 6. Required visible outputs (BA-resume reply) — the Re-entry Card
 
-On a BA-resume reply, read `~/.cursor/skills/ba-assistant/references/re-entry-card.md` and show that card (one screen: where we are, next action, today's meetings, new transcripts, Jira delta, sync status), then AskQuestion with the recommended next action first. "Resume" with no initiative named: the cross-initiative mini-workboard in the same file. Non-negotiables: read state files before the card (never from memory), always include the next action, always include the AskQuestion, Jira delta is best-effort.
+On a BA-resume reply, read `~/.cursor/skills/ba-assistant/references/re-entry-card.md` and show that card (one screen: where we are, next action, today's meetings, new transcripts, Jira age, sync status), then AskQuestion with the recommended next action first. "Resume" with no initiative named: the cross-initiative mini-workboard in the same file. Non-negotiables: read state files before the card (never from memory), always include the next action, always include the AskQuestion, no Jira query.

@@ -13,12 +13,12 @@ This file is the canonical source for Confluence status page structure. Any sub-
 Before generating the status page content, run **all 5 checks**  -  do not publish if any fail:
 
 1. **Sync check**  -  run a quick sync gate (per `sync-gates.mdc` → `references/sync-procedures.md`). If unpromoted items exist in SESSION-CONTEXT, promote them to the tracker first. Do not publish stale data.
-2. **Check Jira**  -  query all active tickets using `getJiraIssue` with `expand: "changelog"`. Update any ticket statuses that have changed.
+2. **Check Jira**  -  run the freshness check in `references/status-refresh.md`. Before a publish, sync Jira if the last sync is more than 15 minutes old (one JQL query via `ba-jira-sync`). Do not query tickets one by one.
 3. **Check `confluence-pages.json`**  -  determine whether to update or create.
 4. **Check SESSION-CONTEXT.md**  -  ensure the latest decisions, blockers, and open questions are captured.
-5. **Log the publish**  -  after successful publish, append an entry to `metrics/publish-log.jsonl`:
+5. **Log the publish**  -  after successful publish, update this page's entry in `confluence-pages.json` (no separate log file; metrics live in `metrics-cache.json`):
    ```json
-   {"ts":"ISO","initiative":"slug","page_id":"123","title":"Status as at...","decisions_included":["DEC-001","DEC-002"]}
+   {"pageId":"123","title":"Status as at...","lastPublishedAt":"ISO","decisionsIncluded":["DEC-001","DEC-002"]}
    ```
    This enables decision-to-publish cycle time measurement.
 

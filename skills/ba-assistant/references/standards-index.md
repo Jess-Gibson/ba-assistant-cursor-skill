@@ -13,6 +13,7 @@ matters turn to turn.
 | `references/canvas-data-model.md` | status-data.json schema, canvas tabs, metric computation | ba-project-canvas, all status-data writers |
 | `references/user-story-format.md` | Stories, spikes, bugs, enablers, DoR checklist | ba-story-writing |
 | `references/raid-format.md` | RAID, decisions, open questions | ba-risk-and-tracker, ba-discovery-and-requirements |
+| `references/status-refresh.md` | Keeping status-data.json current: check, targeted update, Jira only when stale | /status, /canvas, /publish-status, /metrics |
 | `references/status-page-format.md` | Confluence status pages | ba-project-canvas (HTML snapshot) |
 | `references/requirement-format.md` | Requirement register, MoSCoW matrix, JTBD | ba-discovery-and-requirements |
 | `references/jira-ticket-format.md` | Cross-cutting Jira write rules (positioning file) | any project-specific Jira skill |

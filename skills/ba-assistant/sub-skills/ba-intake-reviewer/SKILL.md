@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 ## Description
 
-The Intake Reviewer is the first specialist skill invoked by the BA Initiative Navigator.  It reviews the PM's **all‑in‑one** or initial brief to extract key context about the initiative.  It asks clarifying questions to challenge vague statements, identifies early scope ambiguities, surfaces obvious risks and assumptions, and prepares preliminary RAID items.  The goal is to provide a clear starting point and agenda for subsequent stakeholder alignment.
+The Intake Reviewer is the first specialist skill the BA Assistant orchestrator runs after `ba-new-initiative`.  It reviews the PM's **all‑in‑one** or initial brief to extract key context about the initiative.  It asks clarifying questions to challenge vague statements, identifies early scope ambiguities, surfaces obvious risks and assumptions, and prepares preliminary RAID items.  The goal is to provide a clear starting point and agenda for subsequent stakeholder alignment.
 
 > **Cross-cutting rule:** This skill produces multiple artefact-class outputs (Project-hub, SESSION-CONTEXT, initiative-tracker, status-data.json, confluence-pages.json, optionally workshop pack). Before generating outputs, apply the **"What I'll produce next" declaration** rule from `references/co-thinking-protocol.md`, surface planned artefacts upfront and ask the user to select which to produce. The exit gate (final step) is the highest-risk point for over-production. There is no canvas step here, canvas is on demand only (`/canvas`, `/status`).
 
@@ -37,7 +37,7 @@ Open with (workspace context and research already happened in `ba-new-initiative
 
 ## Intake sequence
 
-Run these steps in order. The user sees them as a numbered Phase 0 progress checklist in chat; the table below is internal sequencing.
+Run these steps in order. Show the user the five step names as a short checklist in chat and tick them off as you go. The numbered **Tasks** further down are the detail inside these steps: Task 1 is step 1; Tasks 2 and 3 are step 2; Task 4 is step 3; Task 5 is step 4; Tasks 6 to 10 are step 5.
 
 **Before step 1:** `ba-new-initiative` already scaffolded the folder, ran workspace
 context, and did the multi-source research (Confluence, Jira, Glean, web, regulator
@@ -54,7 +54,7 @@ its output is missing or clearly stale.
 | 5 | **Phase 0 exit gate** | Present the intake summary + draft RAID back to the user. No canvas here, canvas is on demand only (`/canvas`, `/status`). Every v1 artefact (problem statement, success metrics, scope, RAID) is marked "draft pending PM approval" by default. Record the PM name and approval status in the **tracker's PM approval register** (`raid-format.md` § Tracker-owned structured registers); the `status-data.json → initiative.pmApproval` mirror follows on next canvas refresh, whenever that happens. End with an `AskQuestion` offering proceed / refine problem / refine metrics / pull more context / request PM review now. Never auto-advance to Phase 1. Never present v1 outputs as authoritative until PM sign-off is captured. |  -  (this skill) |
 
 Show a visible status header to the user every time a sub-skill is invoked, e.g.
-`> Running: Requirements Interrogator (Discovery mode) → problem statement`. See Phase 0 progress checklist in the orchestrator for the user-facing step names.
+`> Running: Requirements Interrogator (Discovery mode) → problem statement`. The user-facing step names are the five in the table above.
 
 If step 2 or 3 surfaces that the problem or metrics need more thinking, log them
 as unknowns in the tracker and still proceed to steps 4-5. The Phase 0 gate gives
@@ -184,7 +184,7 @@ intake conversation and close out Phase 0.
 6. **Questions for PM** – For everything *other than* problem, success metrics, and slicing axes (stakeholders, deadlines, constraints, untested claims from source material, missing baselines), build the `questions-for-pm.md` list per the Output Guidelines template. Put each question to the user in chat  -  they may have the answer informally from the PM (capture with verbal provenance), or it goes on the list for the PM-BA alignment meeting.
 7. **Scope and out-of-scope exploration** – Challenge proposed scope: what's in, what's out, what dependencies on other teams or systems exist, where might scope creep occur.
 8. **Early RAID identification** – Highlight obvious Risks, Assumptions, Issues, and Dependencies. Record in preliminary RAID log (handed to Risk & Tracker skill). Decisions table format: `ID | Decision | Owner / Made by | Date | Status`.
-9. **Prepare kickoff agenda items** – Suggest agenda points and questions for the stakeholder kickoff meeting based on gaps identified. Hand to Kickoff Preparation skill.
+9. **Prepare kickoff agenda items** – Suggest agenda points and questions for the stakeholder kickoff meeting based on gaps identified. Hand to `ba-workshop-design` (Template 1, kickoff).
 10. **Phase 0 exit gate** – Present the intake summary table + draft RAID + confidence scores + `questions-for-pm.md`. No canvas here, canvas is on demand (`/canvas`, `/status`). Confirm PM name and capture approval status in the **tracker's PM approval register**; the status-data mirror follows whenever the canvas is next refreshed. Make the approval state visible everywhere v1 outputs appear (project hub, status page, and the canvas whenever it exists). End with `AskQuestion`: proceed to Phase 1 / request PM review now (draft message) / refine problem statement / refine success metrics / pull more context first. Never auto-advance.
 
 ## Typical Questions to Ask

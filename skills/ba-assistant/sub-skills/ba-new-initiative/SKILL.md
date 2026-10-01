@@ -46,7 +46,7 @@ If neither applies, skip this skill. Resuming an existing initiative never runs 
    {slug}/ (or short-term/{slug}/)
        README.md                <- starter template, one paragraph, kept current
        SESSION-CONTEXT.md       <- starter template
-       initiative-tracker.md    <- starter template, empty RAID tables
+       initiative-tracker.md    <- from templates/initiative-tracker.md.template (empty RAID tables)
        Project-hub.md           <- starter template
        confluence-pages.json    <- empty array []
        outputs/

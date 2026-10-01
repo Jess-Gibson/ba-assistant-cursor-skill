@@ -24,11 +24,11 @@ Specific triggers to watch for, by skill:
 | Watching | Trigger | Anti-pattern flagged |
 |---|---|---|
 | Solution Shaping | A design element is justified by a requirement with no Requirements Interrogator output | Solutioning ahead of understanding |
-| Solution Shaping | A schema field is proposed without Schema Field Validator output | Unvalidated schema |
+| Solution Shaping | A schema field is proposed without the schema check (`HK-DEL-SFV-schema` checklist) | Unvalidated schema |
 | Delivery Definition | A story is being written against an uninterrogated requirement | Story without grounding |
-| Delivery Definition | A story touches a schema and Schema Field Validator hasn't run | Story without schema validation |
+| Story Writing | A story touches a schema and the schema check hasn't run | Story without schema validation |
 | Delivery Definition | A story enters Jira without a MoSCoW rating for its scope | Missing MoSCoW (warn-and-flag) |
-| Discovery and Requirements | A requirement enters the register without interrogation | Documented ≠ understood |
+| Discovery and Requirements | A requirement moves past `proposed`, or is designed or written into stories, without interrogation (capture at `proposed` is fine) | Documented ≠ understood |
 | Discovery and Requirements | Engineering / compliance / legal / ops not represented | Missing stakeholder |
 | Risk and Tracker | Risk identified, no owner | Orphaned risk |
 | Critical Path and Priority | Long-lead item not started despite deadline approaching | Critical path slipping |

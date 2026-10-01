@@ -356,7 +356,7 @@ AskQuestion: approve board, skip Miro, or I'll do it manually
 - AskQuestion: approve invite text, edit, send reminder manually (text stays in chat for the BA to copy; never an Outlook draft or send)
 
 **Step 7: Add to workboard + calendar**
-- Add the workshop as a personal task in `_workstream/workboard.json` (with prep checklist)
+- Add the workshop prep as a BA action in `_workstream/ba-actions.json` via `ba-actions.py upsert` (prep checklist in `notes`, `remind_on` the day before)
 - Note: the actual calendar invite is sent by the user (Cursor can't send Outlook invites via COM)
 - Confirm: "Workshop pack ready. Send the invite, share the pre-read, and you're set."
 
@@ -377,7 +377,7 @@ Invite:     [drafted / skipped]
 
 Files created/updated:
   - ~/.cursor/initiatives/{slug}/workshops/[name].md (workshop pack)
-  - _workstream/workboard.json (prep task added)
+  - _workstream/ba-actions.json (prep action added)
 
 Next: Send the invite, share the pre-read, review the Miro board.
 ---

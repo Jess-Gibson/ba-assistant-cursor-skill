@@ -63,8 +63,10 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-TRANSCRIPT_EXTENSIONS = {".docx", ".vtt"}
+TRANSCRIPT_EXTENSIONS = {".docx", ".vtt", ".srt", ".txt"}
+TRANSCRIPT_NAME_HINT = "transcript"
 OTHER_EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg", ".xlsx", ".csv", ".txt", ".md", ".pptx"}
+DEFAULT_CATCHUP_EVERY_MIN = 180
 TAIL_LINES = 45
 MAX_OTHER_LISTED = 10
 MAX_TRANSCRIPTS_LISTED = 10
@@ -363,7 +365,8 @@ def scan_downloads(folders: list[str], since_mtime: float, transcript_since: flo
             except OSError:
                 continue
             ext = f.suffix.lower()
-            if ext in TRANSCRIPT_EXTENSIONS:
+            is_transcript = ext in TRANSCRIPT_EXTENSIONS or TRANSCRIPT_NAME_HINT in f.name.lower()
+            if is_transcript:
                 if st.st_mtime <= transcript_since or same_file_key(f) in processed:
                     continue
             elif st.st_mtime <= since_mtime:
@@ -374,7 +377,7 @@ def scan_downloads(folders: list[str], since_mtime: float, transcript_since: flo
                 "modified": datetime.fromtimestamp(st.st_mtime).strftime("%Y-%m-%d %H:%M"),
                 "folder": str(folder_path),
             }
-            if ext in TRANSCRIPT_EXTENSIONS:
+            if is_transcript:
                 new_transcripts.append(entry)
             elif ext in OTHER_EXTENSIONS:
                 other_new.append(entry)
@@ -382,6 +385,39 @@ def scan_downloads(folders: list[str], since_mtime: float, transcript_since: flo
 
 
 OPEN_ACTION_STATUSES = {"open", "in_progress", "blocked"}
+
+
+def catchup_block() -> str:
+    """CATCH-UP DUE line. Reads catchupEveryMinutes / catchupHours through
+    config_path_value (ba-assistant-config.mdc then ba-profile.mdc). Default
+    interval 180 minutes. Never on weekends or outside catchupHours. The hook
+    cannot read Slack/Teams/Outlook."""
+    raw_every = config_path_value("catchupEveryMinutes")
+    try:
+        every = int(raw_every) if raw_every else DEFAULT_CATCHUP_EVERY_MIN
+    except ValueError:
+        every = DEFAULT_CATCHUP_EVERY_MIN
+    now = datetime.now()
+    if every <= 0 or now.weekday() >= 5:
+        return ""
+    hours = re.match(r"^\s*(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})\s*$", config_path_value("catchupHours") or "")
+    if hours:
+        h1, m1, h2, m2 = (int(x) for x in hours.groups())
+        if not (now.replace(hour=h1, minute=m1) <= now <= now.replace(hour=h2, minute=m2)):
+            return ""
+    last = None
+    try:
+        state = json.loads((Path.home() / ".cursor" / "_workstream" / "catchup-state.json").read_text(encoding="utf-8"))
+        last = datetime.fromisoformat(str(state.get("lastRun"))).astimezone().replace(tzinfo=None)
+    except (OSError, ValueError, TypeError, AttributeError):
+        last = None
+    if last is not None and (now - last).total_seconds() < every * 60:
+        return ""
+    when = "never run" if last is None else f"last run {last.strftime('%a %H:%M')}"
+    return (f"\nCATCH-UP DUE ({when}; every {every // 60}h{every % 60:02d}m): Slack/Teams/Outlook may hold updates "
+            "for the initiatives. If those connectors are available: on a resume or /workboard, run /catchup "
+            "(ba-comms-debrief) and show its review card; otherwise answer the user's ask first, then offer "
+            "/catchup in one line. It is read-only until the user approves the card.")
 
 
 def workboard_block() -> str:
@@ -574,7 +610,10 @@ def main() -> int:
     run_calendar_refresh()
     cal_block = calendar_block()
 
-    full_context = context_block + transcript_block + wb_block + cal_block
+    if not context_block.startswith("BA Assistant"):
+        context_block = f"BA Assistant session context.\n\n{context_block}"
+    catchup = catchup_block()
+    full_context = context_block + transcript_block + wb_block + cal_block + catchup
 
     output = {
         "additional_context": full_context,
@@ -583,6 +622,7 @@ def main() -> int:
             "CURSOR_LAST_SESSION": last_session_time.isoformat() if last_session_time else "",
             "CURSOR_NEW_TRANSCRIPTS": ";".join(t["path"] for t in new_transcripts),
             "CURSOR_NEW_TRANSCRIPT_COUNT": str(len(new_transcripts)),
+            "CURSOR_CATCHUP_DUE": "1" if catchup else "",
         },
     }
     print(json.dumps(output, ensure_ascii=False))

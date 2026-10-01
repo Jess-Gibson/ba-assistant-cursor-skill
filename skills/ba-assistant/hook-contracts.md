@@ -59,6 +59,23 @@ These run as scripts from `~/.cursor/hooks.json`, whatever skill is loaded. `cri
 
 ---
 
+## Legacy names used in this file
+
+Callee names below are the original contract names. They map to shipped skills like this:
+
+| Name in this file | What to load |
+|---|---|
+| `Communication_Drafter` | `ba-playback-and-enablement` (comms section) |
+| `Visual_Storytelling` | `ba-visual-storytelling` (standard: `references/visual-output-format.md`) |
+| `Risk_and_Tracker` | `ba-risk-and-tracker` |
+| `Requirements_Interrogator` | `ba-requirements-interrogator` |
+| `Current_State_Assessment` | `ba-current-state-assessment` |
+| `Sponsor_Engagement` | `ba-sponsor-engagement` |
+| `Anti_Pattern_Detector` | `ba-anti-pattern-detector` |
+| `Meeting_Debrief` | `ba-meeting-debrief` |
+| Delivery Definition / DoR section | `ba-story-writing` |
+| Kickoff Preparation | `ba-workshop-design` (Template 1) |
+
 ## Hub skills (called by many)
 
 These skills receive the most hooks. Changes to them are highest-risk.
@@ -119,7 +136,7 @@ These skills receive the most hooks. Changes to them are highest-risk.
 | Hook ID | Callee | Trigger | Inputs | Outputs | Failure mode | Status |
 |---|---|---|---|---|---|---|
 | HK-DISC-CSA-pre | Current_State_Assessment | Before any requirements extraction (unless current state is fresh) | Initiative context | Current state report | Block by default; user can override and log as 🧨 risk | 🟢 |
-| HK-DISC-INT-pre-register | Requirements_Interrogator | Before any requirement enters the register | Stated requirement, source | Provisional requirement statement | Block  -  uninterrogated requirements never enter the register | 🟢 |
+| HK-DISC-INT-pre-register | Requirements_Interrogator | Before a requirement moves past `proposed` (to `interrogated` / `confirmed`), or is used for design, slicing, stories or handover. Capture into the register at `proposed` is always allowed (`requirement-format.md §3`) | Register entry, source | Interrogation closure confirmed by the BA | Block  -  no requirement leaves `proposed` without interrogation. The id keeps its old name for compatibility | 🟢 |
 | HK-DISC-INT-register-lock | Requirements_Interrogator | Before editing a register section whose parent `status` is `interrogated` or `confirmed` | Target HLR section, proposed diff | [BA name] explicit approval for that section in-thread, or draft-only target (`proposed`) | Block  -  no silent edits to signed-off requirements; propose diff instead | 🟢 |
 | HK-DISC-RT-state-changes | Risk_and_Tracker | Every requirement lifecycle state change | Requirement ID, from state, to state, reason, owner | Change log entry | Block  -  silent state changes break traceability | 🟡 W2 |
 | HK-DISC-INT-jtbd | Requirements_Interrogator (JTBD lens) | When the requirement is user-experience-related | Stated requirement | JTBD breakdown (functional / emotional / social) | Optional  -  skip for non-UX requirements | 🟡 W2 |

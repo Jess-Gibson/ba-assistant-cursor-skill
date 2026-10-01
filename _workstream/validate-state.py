@@ -19,6 +19,9 @@ Checks (all read-only):
   5. Status line: README.md "Status:" vs workboard.json for this initiative.
   6. Unpromoted captures in SESSION-CONTEXT.md (DEC-/REQ-/RISK-/OQ-/ASM-/ACT-/DEP-
      lines without [promoted]).
+  7. Jira freshness (reported, not a divergence): when tickets in status-data.json were
+     last synced (newest `lastJiraSync`), so /status and /canvas can skip Jira when it
+     is recent.
 
   python3 _workstream/validate-state.py --initiative payments
   python3 _workstream/validate-state.py --initiative payments --json
@@ -175,6 +178,28 @@ def when(ts: float | None) -> str:
     return datetime.fromtimestamp(ts).strftime("%d %b, %H:%M") if ts else "?"
 
 
+def parse_stamp(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        stamp = datetime.fromisoformat(str(value).strip().replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return stamp if stamp.tzinfo else stamp.astimezone()
+
+
+def sync_sort_key(value: str) -> float:
+    stamp = parse_stamp(value)
+    return stamp.timestamp() if stamp else 0.0
+
+
+def age_minutes(value: str | None) -> int | None:
+    stamp = parse_stamp(value)
+    if not stamp:
+        return None
+    return max(0, int((datetime.now().astimezone() - stamp).total_seconds() // 60))
+
+
 def find_canvas(home: Path, slug: str) -> Path | None:
     name = f"{Path(slug).name}-status.canvas.tsx"
     found = sorted((home / "projects").glob(f"*/canvases/{name}")) + sorted((home / "canvases").glob(name))
@@ -277,8 +302,16 @@ def validate(root: Path, slug: str, home: Path) -> tuple[list[dict], dict]:
     # 6. Unpromoted captures.
     unpromoted = [line.strip() for line in read(session_path).splitlines()
                   if re.match(r"^\s*[-*]?\s*(DEC|REQ|RISK|OQ|ASM|ACT|DEP)-", line.strip()) and "[promoted]" not in line]
+    # 7. Jira freshness: newest lastJiraSync across tickets (or a top-level sync block).
+    stamps = [str(t.get("lastJiraSync")) for t in sd.get("tickets") or [] if isinstance(t, dict) and t.get("lastJiraSync")]
+    sync_block = sd.get("sync") if isinstance(sd.get("sync"), dict) else {}
+    if sync_block.get("lastJiraSync"):
+        stamps.append(str(sync_block["lastJiraSync"]))
+    jira_synced = max(stamps, key=sync_sort_key) if stamps else None
     summary = {"initiative": slug, "root": str(root), "trackerItems": len(t_items), "statusDataItems": len(s_items),
-               "artefactsScanned": [p.name for p in downstream], "unpromoted": unpromoted}
+               "artefactsScanned": [p.name for p in downstream], "unpromoted": unpromoted,
+               "statusDataWritten": when(s_m) if s_m else None, "tickets": len(sd.get("tickets") or []),
+               "jiraSyncedAt": jira_synced, "jiraSyncAgeMinutes": age_minutes(jira_synced)}
     return divergences, summary
 
 
@@ -317,6 +350,9 @@ def main(argv: list[str] | None = None) -> int:
         print("|---|---|---|---|---|---|---|")
         for i, d in enumerate(divergences, 1):
             print(f"| {i} | {d['fact']} | {d['canonical']} | {d['found_in']} | {d['found']} | {d['modified']} | {d['action']} |")
+    age = summary["jiraSyncAgeMinutes"]
+    if summary["tickets"]:
+        print(f"\nJira last synced: {'never' if age is None else f'{age // 60}h {age % 60}m ago'} ({summary['tickets']} tickets in status-data.json)")
     if summary["unpromoted"]:
         print(f"\nUnpromoted captures in SESSION-CONTEXT.md: {len(summary['unpromoted'])} (promote at /wrap or end of day)")
     print(f"Gate: state-validation: {'DRIFT (' + str(len(divergences)) + ')' if divergences else 'ALIGNED'}")

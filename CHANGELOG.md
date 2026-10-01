@@ -1,5 +1,38 @@
 # Changelog
 
+## Version 16 - 2026-10-01
+
+Lean status and catch-up for every BA who clones or upgrades this package. No extra patch step.
+
+### Lean `/status` and `/canvas`
+
+- **`status-data.json` is updated, not regenerated.** New procedure: `references/status-refresh.md`. One `validate-state.py --json` call, change only what is out of date, query Jira only if the last sync is 60 minutes old or more. Full rebuild only when the file is missing or broken, or you say `/status full`.
+- **`validate-state.py`** reports Jira freshness (`jiraSyncedAt`, `jiraSyncAgeMinutes`) so status and canvas can skip Jira when recent.
+- **`ba-jira-sync`** uses one `searchJiraIssuesUsingJql` query and stamps `lastJiraSync` on returned tickets.
+- **Resume** no longer queries Jira. The re-entry card shows sync age from the state check.
+- Commands `/status`, `/canvas`, and `/metrics` all use `status-refresh.md`. `/status` still never renders the canvas.
+
+### Catch-up and end of day
+
+- **`/catchup`** (`ba-comms-debrief`): debriefs Slack, Teams and Outlook since the last catch-up. Review card first; nothing written until you approve. Shared search procedure: `references/comms-retrieval.md`.
+- **`catchup-watch.py`**: watch list and due timing (config keys `catchupEveryMinutes`, `catchupHours` in `ba-assistant-config.mdc`).
+- Session start lists broader transcript types (`.txt`, `.srt`, and names containing "transcript") and can nudge `CATCH-UP DUE`.
+- **`/eod`**: shortcut for the full end-of-day closeout (same as `/workboard end-of-day`), including commitment scan and catch-up step 1c.
+
+### Leftovers cleanup
+
+- Gate renamed **Interrogate before confirming** (requirements may enter the register at `proposed`).
+- `register.md` renamed to `requirements-register.md` in skills and visuals.
+- Schema Field Validator pointer replaced by the checklist in `ba-story-writing`.
+- Retro and workshop prep write follow-ups to BA actions, not `workboard.json`.
+- Commitment scan never books; booking stays end of day's job after you confirm.
+- Debrief card captures tracker actions as `ACT-XX` (`A-` means assumption in this package).
+
+### Other
+
+- Starter `templates/initiative-tracker.md.template` for new initiatives.
+- Config template documents `catchupEveryMinutes` / `catchupHours`.
+
 ## Version 15 - 2026-09-27
 
 Version 14 QA fixes (from the fork review) plus the fixes below.

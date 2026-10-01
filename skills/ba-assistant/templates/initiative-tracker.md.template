@@ -1,0 +1,57 @@
+# Initiative Tracker: {{INITIATIVE_NAME}}
+
+**Last updated:** {{DATE}}
+**Status:** Discovery. Not a committed delivery plan.
+**BA:** [BA name]
+
+## Purpose
+
+{{ONE_PARAGRAPH_PURPOSE}}
+
+## Decisions
+
+| ID | Decision | Owner / Made by | Date | Status | Source |
+|---|---|---|---|---|---|
+| | | | | | |
+
+## Open questions
+
+| ID | Question | Owner | Required by | Status | Source |
+|---|---|---|---|---|---|
+| | | | | | |
+
+## Risks
+
+| ID | Risk | Impact | Mitigation | Status | Source |
+|---|---|---|---|---|---|
+| | | | | | |
+
+## Assumptions
+
+| ID | Assumption | Status | Source |
+|---|---|---|---|
+| | | | |
+
+## Dependencies
+
+| ID | Dependency | Owner | Impact | Status | Source |
+|---|---|---|---|---|---|
+| | | | | | |
+
+## Actions
+
+BA-owned actions live in `_workstream/ba-actions.json` (each row has its own `source`). Team actions:
+
+| ID | Action | Owner | Due | Status | Source |
+|---|---|---|---|---|---|
+| | | | | | |
+
+## Sign-offs
+
+| Artefact | Approver | Status | Due | Source |
+|---|---|---|---|---|
+| | | | | |
+
+---
+
+**Source column (required):** where the row came from. Prefer meeting name + date (+ speaker), or Slack/Teams/Outlook + who + date + permalink, or artefact name. Use `chat with [BA name]` only when they stated it in Cursor. Never leave blank on a new row — use `TBC` only while chasing the origin.

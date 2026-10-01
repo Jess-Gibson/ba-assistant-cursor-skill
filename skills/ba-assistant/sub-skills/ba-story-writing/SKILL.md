@@ -171,7 +171,7 @@ The Definition of Ready ensures that each epic or story in the backlog meets a c
 
 5. **Update the definition**  -  Over time, refine and adjust the DoR criteria based on feedback from engineering and product teams. Capture lessons learned about what information is truly required for smooth development.
 
-6. **MoSCoW warn-and-flag gate (Wave 3)**  -  Before a story moves into `In Progress`, check that the linked requirement(s) have a MoSCoW rating for the story's **scope** (initiative / feature / cohort / slice). MoSCoW is captured in `ba-discovery-and-requirements` Task 13 as a matrix per requirement.
+6. **MoSCoW warn-and-flag gate (Wave 3)**  -  When a story is drafted or created, check that the linked requirement(s) have a MoSCoW rating for the story's **scope** (initiative / feature / cohort / slice). Nothing watches Jira transitions live: a story that reaches `In Progress` without one is caught on the next `/status` (warn-and-flag, `moscowFlag: missing`). MoSCoW is captured in `ba-discovery-and-requirements` Task 13 as a matrix per requirement.
 
     **Gate behaviour  -  warn-and-flag, NOT hard block:**
 

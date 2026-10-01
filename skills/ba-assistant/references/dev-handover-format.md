@@ -20,7 +20,7 @@ Two kinds of thing, kept physically apart.
 
 The BA workspace already git-ignores its state files (`.gitignore`: SESSION-CONTEXT.md, initiative-tracker.md, status-data.json, etc.). The shared repo is a **separate** repo (the devs' repo). Nothing from the working set is ever written to it, and nothing in it may ever **link** to a working file  -  a link to a git-ignored file points at nothing the devs can see. Where a handover needs working-side content (RAID entries, tracker decisions), that content is **embedded** as a summary, with its tracker ID preserved for BA-side traceability.
 
-**Confirmation and publication are two separate events.** Confirmation = the requirement reaches `status: confirmed` in `register.md` (Interrogator pass + stakeholder agreement, in the workspace). Publication = the confirmed content is rendered and written to the shared repo. Confirmation always happens first, as its own event; publishing never confirms anything as a side effect.
+**Confirmation and publication are two separate events.** Confirmation = the requirement reaches `status: confirmed` in `requirements-register.md` (Interrogator pass + stakeholder agreement, in the workspace). Publication = the confirmed content is rendered and written to the shared repo. Confirmation always happens first, as its own event; publishing never confirms anything as a side effect.
 
 ---
 
@@ -125,7 +125,7 @@ The Dev Handover skill checks these before rendering. Gaps trigger the mandatory
 ## 5. Artefact shapes
 
 ### Requirements pack
-Header (initiative, scope, date, source = register.md), then confirmed requirements rendered EARS-style per `ears-translation.md`, grouped by type (COMP first, then BR, FR, NFR, CON). Each carries its trace ID and evidence tag. **Relevant RAID embedded as a summary table at the end** (tracker IDs preserved; the tracker itself is git-ignored and never linked). This is a derived view; it says so in the header and points back to the register by name (not link) as the workspace source of truth.
+Header (initiative, scope, date, source = requirements-register.md), then confirmed requirements rendered EARS-style per `ears-translation.md`, grouped by type (COMP first, then BR, FR, NFR, CON). Each carries its trace ID and evidence tag. **Relevant RAID embedded as a summary table at the end** (tracker IDs preserved; the tracker itself is git-ignored and never linked). This is a derived view; it says so in the header and points back to the register by name (not link) as the workspace source of truth.
 
 ### Spike request
 Reuses the spike structure from `user-story-format.md §3` (Question being answered, Why this is a spike, Time-box, Method, Acceptance for closure, Outcome capture, Scope), plus two handover additions:

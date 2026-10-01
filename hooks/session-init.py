@@ -71,6 +71,9 @@ TAIL_LINES = 45
 MAX_OTHER_LISTED = 10
 MAX_TRANSCRIPTS_LISTED = 10
 TRANSCRIPT_WINDOW_DAYS = 7   # transcripts stay listed until debriefed, for up to this long
+SESSION_BANNER = ("BA Assistant session context. BA Assistant is on (its session hook ran). In your first reply in this "
+                  "chat, whatever the ask, start with the one-line `> **Session context:**` report "
+                  "(execution-router.mdc section 5) so the user can see BA Assistant is loaded.")
 
 
 def eprint(msg: str) -> None:
@@ -610,8 +613,9 @@ def main() -> int:
     run_calendar_refresh()
     cal_block = calendar_block()
 
-    if not context_block.startswith("BA Assistant"):
-        context_block = f"BA Assistant session context.\n\n{context_block}"
+    # Say up front that BA Assistant is loaded: the first reply shows the session line,
+    # so the user can tell at a glance whether the hook ran (and smoke checks can too).
+    context_block = SESSION_BANNER + "\n\n" + context_block
     catchup = catchup_block()
     full_context = context_block + transcript_block + wb_block + cal_block + catchup
 

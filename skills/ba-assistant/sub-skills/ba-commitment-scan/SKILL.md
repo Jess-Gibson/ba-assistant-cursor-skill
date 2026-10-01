@@ -9,7 +9,7 @@ disable-model-invocation: true
 ## Standards used
 
 - `references/ba-actions-format.md` — action IDs, fields, sync and regenerate rules
-- `references/comms-retrieval.md` — how to search Outlook, Slack and Teams (shared with `ba-comms-debrief`). At end of day use passes 1, 2 and 4 for the closeout day (pass 3 is for `/catchup` only). Hand the same evidence to `ba-comms-debrief` in EOD step 1c instead of searching twice.
+- `references/comms-retrieval.md`: how to search Outlook, Slack and Teams (shared with `ba-comms-debrief`). At end of day use passes 1, 2 and 4 for the closeout day (pass 3 is for `/catchup` only). Hand the same evidence to `ba-comms-debrief` in EOD step 1c instead of searching twice.
 
 If standards conflict with skill-specific guidance below, the standard wins.
 

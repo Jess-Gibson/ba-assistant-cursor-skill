@@ -18,6 +18,7 @@ Read first, then follow:
 Initiative state lives under the folder configured in `ba-assistant-config.mdc` (`paths.initiativesRoot`, default `~/.cursor/initiatives/{slug}/`). Read `SESSION-CONTEXT.md` (tail about 50 lines) and `initiative-tracker.md` when present.
 
 Then:
+0. **Catch-up check** (morning and mid-day refresh only; end of day runs it as step 1c): `py ~/.cursor/_workstream/catchup-watch.py due`. Skip this if the chat has no Slack, Teams or Outlook connectors, or `/catchup` already ran in this chat. If it says due, run `/catchup` (`ba-comms-debrief`) first and show its review card, then carry on once it's answered, so approved asks land in today's queue.
 1. Refresh calendar for today and the next working day into `workboard.json`.
 2. Morning-prep scan of BA actions: overdue; `remind_on` today or overdue; due today; blocked items that today's meetings could unblock; then high-priority due tomorrow. Surface these first in chat.
 3. For each initiative, refresh phase, milestone, blocker, risk, next action, and status from canonical files. Score status using `workboard-format.md`.

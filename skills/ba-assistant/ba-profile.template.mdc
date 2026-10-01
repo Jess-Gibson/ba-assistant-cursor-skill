@@ -50,8 +50,8 @@ calendar_highlight_substrings: ""   # e.g. Weekly 1:1, Steering
 mail_noise_subjects: ""             # e.g. Weekly numbers, Build report
 mail_ignore_folders: ""             # e.g. Newsletters
 mail_noise_repos: ""                # e.g. team-repo (noise unless you are @-mentioned)
-catchupEveryMinutes: 180
-catchupHours: "10:30-19:30"
+catchupEveryMinutes: 180   # 0 = off
+catchupHours: "09:00-17:00"
 ```
 
 ## Preferences

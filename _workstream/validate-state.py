@@ -200,6 +200,15 @@ def age_minutes(value: str | None) -> int | None:
     return max(0, int((datetime.now().astimezone() - stamp).total_seconds() // 60))
 
 
+def age_text(minutes: int | None) -> str:
+    """'never', '25m ago', '3h 10m ago', or '50 days ago' once it is 48 hours or more."""
+    if minutes is None:
+        return "never"
+    if minutes >= 48 * 60:
+        return f"{minutes // (24 * 60)} days ago"
+    return f"{minutes // 60}h {minutes % 60}m ago" if minutes >= 60 else f"{minutes}m ago"
+
+
 def find_canvas(home: Path, slug: str) -> Path | None:
     name = f"{Path(slug).name}-status.canvas.tsx"
     found = sorted((home / "projects").glob(f"*/canvases/{name}")) + sorted((home / "canvases").glob(name))
@@ -352,7 +361,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"| {i} | {d['fact']} | {d['canonical']} | {d['found_in']} | {d['found']} | {d['modified']} | {d['action']} |")
     age = summary["jiraSyncAgeMinutes"]
     if summary["tickets"]:
-        print(f"\nJira last synced: {'never' if age is None else f'{age // 60}h {age % 60}m ago'} ({summary['tickets']} tickets in status-data.json)")
+        print(f"\nJira last synced: {age_text(age)} ({summary['tickets']} tickets in status-data.json)")
     if summary["unpromoted"]:
         print(f"\nUnpromoted captures in SESSION-CONTEXT.md: {len(summary['unpromoted'])} (promote at /wrap or end of day)")
     print(f"Gate: state-validation: {'DRIFT (' + str(len(divergences)) + ')' if divergences else 'ALIGNED'}")

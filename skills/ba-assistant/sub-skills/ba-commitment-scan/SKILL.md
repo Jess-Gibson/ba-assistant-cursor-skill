@@ -79,7 +79,7 @@ Classify each deduplicated real-world item as one of:
 ### Update rules
 
 1. Match existing actions by tracker reference, then task fingerprint, then initiative plus date proximity.
-2. Create an action only for an owned, concrete next step. Use the next `BA-NNN` per `references/ba-actions-format.md`.
+2. Create an action only for an owned, concrete next step. Use the next `BA-NNN` per `references/ba-actions-format.md`. A concrete **request to the BA** becomes an action even if they never replied: requester and permalink in `notes` and `source`, `source.type: comms`, due date only if the requester gave one. A vague request ("thoughts?") becomes an action only if it names a deliverable; otherwise list it under exceptions for the BA to decide.
 3. Update a due date, reminder, source link or notes when supported by evidence.
 4. Mark `done` only on explicit completion evidence. Mark `cancelled` only when the work is explicitly dropped.
 5. If evidence conflicts or does not identify ownership, keep the action open and add a short evidence note or capture an open question.

@@ -113,6 +113,16 @@ def actions_tests(tmp):
     code, out = run(script, *T, "set", "BA-404", "--status", "done")
     check("Actions: unknown id fails clearly", code == 1 and "no action BA-404" in out, out)
 
+    code, out = run(script, *T, "add", "--task", "Reply to request from Slack",
+                    "--source-type", "comms", "--source-label", "Slack DM Sam")
+    data = json.loads(store.read_text(encoding="utf-8"))
+    check("Actions: --source-type comms is accepted",
+          code == 0 and any(a.get("source", {}).get("type") == "comms" for a in data["actions"]), out)
+
+    code, out = run(script, *T, "add", "--task", "Should fail", "--source-type", "nonsense")
+    check("Actions: unknown --source-type is rejected",
+          code != 0 and "invalid choice" in out and "comms" in out, out)
+
 
 def capture_tests(tmp):
     home = make_home(tmp, "capture")

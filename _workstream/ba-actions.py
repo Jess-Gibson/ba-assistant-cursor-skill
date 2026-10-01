@@ -36,7 +36,7 @@ ACTIVE = {"open", "in_progress", "blocked"}
 CLOSED = {"done", "cancelled"}
 STATUSES = ACTIVE | CLOSED
 PRIORITIES = ("high", "medium", "low")
-SOURCE_TYPES = ("debrief", "tracker", "session", "quick-capture", "wrap")
+SOURCE_TYPES = ("debrief", "tracker", "session", "quick-capture", "wrap", "comms")
 PRIORITY_ORDER = {"high": 0, "medium": 1, "low": 2}
 
 

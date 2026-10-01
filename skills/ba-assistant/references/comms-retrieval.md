@@ -25,7 +25,7 @@ Search inside the window only. Run the passes in this order and stop expanding o
 These are the highest-signal messages and the most often missed.
 
 - **Outlook:** Inbox and Sent in the window. Skip notifications and auto-replies unless they change a real work item.
-- **Slack:** **every** DM and group DM with a message in the window, **including ones the BA hasn't replied to** (an unanswered "can you look at this?" is exactly what this pass exists for). All @mentions of the BA. Replies in threads the BA started, replied to or reacted to.
+- **Slack:** **every** DM and group DM with a message in the window, **including ones the BA hasn't replied to** (an unanswered "hey Sam, can you look at this?" is exactly what this pass exists for). All @mentions of the BA. Replies in threads the BA started, replied to or reacted to.
 - **Teams:** every 1:1 and group chat with a message in the window (again, including unreplied ones). Channel posts and replies where the BA is @mentioned or has replied.
 
 Resolve the BA's own user id first where the tool needs it.

@@ -24,11 +24,11 @@ Specific triggers to watch for, by skill:
 | Watching | Trigger | Anti-pattern flagged |
 |---|---|---|
 | Solution Shaping | A design element is justified by a requirement with no Requirements Interrogator output | Solutioning ahead of understanding |
-| Solution Shaping | A schema field is proposed without Schema Field Validator output | Unvalidated schema |
+| Solution Shaping | A schema field is proposed without the schema check (`HK-DEL-SFV-schema` checklist) | Unvalidated schema |
 | Delivery Definition | A story is being written against an uninterrogated requirement | Story without grounding |
-| Delivery Definition | A story touches a schema and Schema Field Validator hasn't run | Story without schema validation |
+| Story Writing | A story touches a schema and the schema check hasn't run | Story without schema validation |
 | Delivery Definition | A story enters Jira without a MoSCoW rating for its scope | Missing MoSCoW (warn-and-flag) |
-| Discovery and Requirements | A requirement enters the register without interrogation | Documented ≠ understood |
+| Discovery and Requirements | A requirement moves past `proposed`, or is designed or written into stories, without interrogation (capture at `proposed` is fine) | Documented ≠ understood |
 | Discovery and Requirements | Engineering / compliance / legal / ops not represented | Missing stakeholder |
 | Risk and Tracker | Risk identified, no owner | Orphaned risk |
 | Critical Path and Priority | Long-lead item not started despite deadline approaching | Critical path slipping |
@@ -53,7 +53,7 @@ Specific triggers to watch for, by skill:
 | Discovery and Requirements | Compliance requirement (COMP-) priority set to anything other than `Must` | Compliance optionalisation (added Wave 7) |
 | Discovery and Requirements | MoSCoW values for one requirement changed >2 times in 30 days | Unstable scope (added Wave 7) |
 | Status page publisher | Outcome health section absent or stale >14 days | Outcomes ignored  -  process metrics may mislead (added Wave 7) |
-| Status page publisher | Previous status page not marked superseded after new one published | Stale status page live (added Wave 7) |
+| Status page publisher | Status page published as a new page instead of updating the tracked page in place | Duplicate status pages live (added Wave 7) |
 | Status page publisher | Page published without DRAFT banner when `pmApproval.status` not approved | Approval gate bypassed (added Wave 7) |
 | Status page publisher | RAID inline with full narrative content (should link to tracker) | Status page becoming tracker (added Wave 7) |
 | Any Jira write | `createJiraIssue` or material `editJiraIssue` invoked without prior `AskQuestion` in session | Clarification gate skipped (added Wave 7) |

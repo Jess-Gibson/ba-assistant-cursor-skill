@@ -59,6 +59,7 @@ This map replaces the old "Specialist Skills" table in `ba-profile.mdc`. Activit
 | ba-retrospective-and-learning | Run | Explicit (`/retro`) + auto-suggest |
 | ba-initiative-closeout | Run | Explicit (`/close`) |
 | ba-commitment-scan | Run | Explicit (end-of-day reconciliation, or "what did I promise/complete?") |
+| ba-comms-debrief | Run | Explicit (`/catchup`, CATCH-UP DUE, EOD step 1c) |
 | ba-risk-and-tracker | Cross-cutting | Monitor + specialist writes |
 | ba-anti-pattern-detector | Cross-cutting | Monitor |
 | ba-context-capture | Cross-cutting | Monitor |
@@ -80,6 +81,8 @@ Notes:
 5. Monitors are always notionally on; their triggers live in `execution-router.mdc`.
 
 ## 5. Versioning
+
+v1.5 (2026-10-01, Version 16). Lean `/status`/`/canvas` via `status-refresh.md` (update in place, Jira when stale). Added ba-comms-debrief (`/catchup`) and `/eod`.
 
 v1.4 (2026-09-27, Version 15). `/status` no longer renders the canvas; `/canvas` renders it with `render-initiative-canvas.py`.
 

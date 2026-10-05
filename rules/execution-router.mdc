@@ -26,7 +26,7 @@ Read the workspace root's `AGENTS.md` as primary context, else `README.md`. Do n
 | **Non-BA** | debug code, syntax, generic explain | Project README/AGENTS only | Skip BA orchestrator |
 | **Ambiguous** | "help me think through something", short message either way | — | Ask once via AskQuestion: BA Assistant (recommended) / Quick chat / Specific skill. "Quick chat" = orchestrator stays off for the thread. |
 | **Chat checkpoint** | wrap up, close out this chat, checkpoint, `/wrap` | `~/.cursor/commands/wrap.md` | Run `/wrap`: chat-only checkpoint into `SESSION-CONTEXT.md` and the tracker. Not a retro, not end of day. |
-| **End of day** | done for tonight, I'm done for the day, end of day, `/workboard end-of-day` | `~/.cursor/commands/workboard.md` | Run `/workboard end-of-day` per `references/eod-closeout-procedure.md`. Do **not** load `ba-retrospective-and-learning`. |
+| **End of day** | done for tonight, end of day, `/EOD`, `/eod`, `/workboard end-of-day` | `commands/eod.md` | Full closeout per `eod-closeout-procedure.md`. No retrospective. |
 | **Retro** | `/retro`, or the user explicitly asks for a retro / retrospective / lessons learned | `SESSION-CONTEXT.md` (tail) | Load **ba-retrospective-and-learning**: Type 1 default; Type 2 if tooling/process failure this session. Only on explicit request. |
 
 Also classify the **activity** (Frame / Discover / Shape / Deliver / Run — see `references/activity-map.md`). Do not print model-tier nudges (Auto-balance handles model selection).
@@ -56,43 +56,28 @@ Also classify the **activity** (Frame / Discover / Shape / Deliver / Run — see
 
 **Routing:** on a BA or matched intent, **Read** `skills-routing.mdc` (agent-requested; not always injected). Load **one primary** skill for the turn. Load a **second** only when intents are clearly complementary (e.g. workshop design + Miro board analysis). Prefer the more specific row on conflicts. **Never** read all BA sub-skills before the first reply. **Never** skip `SKILL.md` Step 2 file reads on a resume thread.
 
-**Report loads inline:** every skill load/invocation gets a one-line header — `> **Skill loaded:** [name] — [reason]`. Skip for internal tool calls.
+**Report loads inline:** `> Running: <Skill> → <intent>`. Skip for internal tool calls.
 
 ## 4. Continuous monitors (every BA turn, silent unless triggered)
 
 ### Anti-Pattern Detector (quick scan)
 
-After any BA output, self-check against the top triggers. If one fires, load `ba-anti-pattern-detector` for the full rule set and surface an inline warning. Otherwise proceed silently.
-
-| # | Check | Pattern |
-|---|---|---|
-| 1 | Premature solutioning | Solution proposed without confirmed requirements |
-| 2 | Missing interrogation | Requirement/decision accepted unchallenged |
-| 3 | Skipped slicing | Epics/stories without feature slices |
-| 4 | Scope creep unlogged | Scope changed, no SESSION-CONTEXT entry |
-| 5 | Thread drift | >20 turns AND topic shifted from opening intent |
-| 6 | Long session unsynced | >20 turns regardless of topic — the stop-hook sync check will also flag unpromoted items |
+After any BA output, quick-scan for: premature solutioning; unchallenged requirement; epics without slices; unlogged scope creep; thread drift (>20 turns + topic shift); long session unsynced. If one fires, load `ba-anti-pattern-detector` (full rules there). Otherwise proceed silently.
 
 ### Context Capture (passive)
 
-After every user message in a BA thread, scan for decisions, requirements, actions, answered questions, assumptions, risks, blockers, facts and corrections. When something is found, write it the same turn with one `_workstream/capture.py` call (`--source chat-user` for what the BA said, else the real source) and add a `📝 Captured:` line (per `ba-context-capture`). Nothing found: stay silent, write nothing. Debriefing a transcript or pasted document: skip this, its items go on the debrief card.
+After every user message in a BA thread, scan for decisions, requirements, actions, answered questions, assumptions, risks, blockers, facts and corrections. When something is found, write it the same turn with one `_workstream/capture.py` call (`--source chat-user` for what the BA said, else the real source) and add a `📝 Captured:` line (per `ba-context-capture`). Nothing found: stay silent. Debriefing a transcript or pasted document: skip this, its items go on the debrief card.
 
-### Skill nudges (content-aware routing)
+### Skill nudges
 
-| Signal | Consider loading |
-|---|---|
-| "requirement", "acceptance criteria", "AC" | ba-requirements-interrogator |
-| "option A/B", "trade-off", "solution design" | ba-solution-shaping |
-| "stakeholder", "RACI", "who owns/decides" | ba-stakeholder-strategy |
-| "change management", "adoption", "rollout comms" | ba-change-strategy |
-| "current state", "as-is", "how does it work today" | ba-current-state-assessment |
-| "playback", "sign-off", "presentation to" | ba-playback-and-enablement |
-| "hand to devs", "spike request", "ADR request" | ba-dev-handover |
+Nudges: requirement/AC → interrogator; options/trade-off → solution-shaping; stakeholder/RACI → stakeholder-strategy; change/adoption → change-strategy; as-is → current-state; playback → playback; handover/spike/ADR → ba-dev-handover.
 
 ## 5. Report (one line)
+
+BA turns only; Non-BA turns skip it.
 
 > **Session context:** [class] | Activity: [activity] | Skills: [loaded] | BA: [active/skipped]
 
 ## 6. Required visible outputs (BA-resume reply) — the Re-entry Card
 
-On a BA-resume reply, read `~/.cursor/skills/ba-assistant/references/re-entry-card.md` and show that card (one screen: where we are, next action, today's meetings, new transcripts, Jira delta, sync status), then AskQuestion with the recommended next action first. "Resume" with no initiative named: the cross-initiative mini-workboard in the same file. Non-negotiables: read state files before the card (never from memory), always include the next action, always include the AskQuestion, Jira delta is best-effort.
+On a BA-resume reply, read `references/re-entry-card.md` and show that card, then AskQuestion with the recommended next action first. Cross-initiative "resume": mini-workboard in the same file. Non-negotiables: read state before inventing; always include next action + AskQuestion; Jira best-effort.

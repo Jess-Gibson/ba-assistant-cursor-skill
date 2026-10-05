@@ -156,17 +156,17 @@ Steps:
    Then offer to trim my config (see "Trim your config file" in docs/PERSONALISED-UPGRADE.md): after apply-staging, show me <session>/stage-home/.cursor/rules/ba-assistant-config.mdc next to a trimmed version laid out like the package's ba-profile.template.mdc. Keep every value I have set, including any keys the template does not have. Drop only the prose sections. Write it in staging only when I say yes.
    If a finding says there is no config file, ask whether to set create_config. After apply-staging, fill in the created <session>/stage-home/.cursor/rules/ba-assistant-config.mdc with me (name, Jira, Confluence, paths, and the optional workboard and mail keys). Lift my old hard-coded values (meeting highlights, mail noise subjects, ignored folders, repo names) from my current _workstream scripts into those keys, and show me what you are adding.
 8. Run apply-staging. Then test in staging, always through `run --session <session> -- <command>` (S below is <session>/stage-home/.cursor):
-   - session start: `run -- py S/hooks/session-init.py`. It must list my initiatives (not "No SESSION-CONTEXT.md found"). With several, it must ask rather than guess.
-   - DoR gate: write a createJiraIssue Story payload for one of my ready stories (ACs, dependencies, risks, MoSCoW, confirmed requirement) to a temp file and `run --stdin <file> -- py S/hooks/external-write-gate.py`. It must answer `ask` with "Structural preflight passed". A `send_mail` payload must answer `deny`.
-   - end of day: `run -- py S/_workstream/generate-workboard-canvas.py --cursor-home S --canvas <temp file>` (no --eod-roll) and show me the End of Day prompt. It must point at eod-closeout-procedure.md and roll the calendar once.
-   - snapshots: `run -- py S/_workstream/generate-initiative-snapshots.py`, then `--ensure <one of my slugs>`. Must say FRESH or REFRESHED.
-   - actions: `run -- py S/_workstream/ba-actions.py list`. It must list my open actions (read-only).
-   - drift check: `run -- py S/_workstream/validate-state.py --initiative <one of my slugs>`. It must end with a `Gate: state-validation:` line (read-only).
-   - canvas: `run -- py S/_workstream/render-initiative-canvas.py --initiative <slug> --canvas <temp file> --html <temp file>`. It must print `Gate: canvas-render: PASS` (temp outputs, so nothing in my initiative changes).
-   - mail: `run -- py S/_workstream/scan-outlook-mail.py`. It must either print a triage or one "Mail: unable to check" line, never a traceback.
+   - session start: `run -- python3 S/hooks/session-init.py` (Windows: `py`). It must list my initiatives (not "No SESSION-CONTEXT.md found"). With several, it must ask rather than guess.
+   - DoR gate: write a createJiraIssue Story payload for one of my ready stories (ACs, dependencies, risks, MoSCoW, confirmed requirement) to a temp file and `run --stdin <file> -- python3 S/hooks/external-write-gate.py` (Windows: `py`). It must answer `ask` with "Structural preflight passed". A `send_mail` payload must answer `deny`.
+   - end of day: `run -- python3 S/_workstream/generate-workboard-canvas.py --cursor-home S --canvas <temp file>` (Windows: `py`; no `--eod-roll`) and show me the End of Day prompt. It must point at eod-closeout-procedure.md and roll the calendar once.
+   - snapshots: `run -- python3 S/_workstream/generate-initiative-snapshots.py` (Windows: `py`), then `--ensure <one of my slugs>`. Must say FRESH or REFRESHED.
+   - actions: `run -- python3 S/_workstream/ba-actions.py list` (Windows: `py`). It must list my open actions (read-only).
+   - drift check: `run -- python3 S/_workstream/validate-state.py --initiative <one of my slugs>` (Windows: `py`). It must end with a `Gate: state-validation:` line (read-only).
+   - canvas: `run -- python3 S/_workstream/render-initiative-canvas.py --initiative <slug> --canvas <temp file> --html <temp file>` (Windows: `py`). It must print `Gate: canvas-render: PASS` (temp outputs, so nothing in my initiative changes).
+   - mail: `run -- python3 S/_workstream/scan-outlook-mail.py` (Windows: `py`). It must either print a triage or one "Mail: unable to check" line, never a traceback.
    - read my profile, tone rules and one of my own skills in staging and confirm they are intact.
 9. Run deploy-plan. Show me the counts and any "personal" or "generated" rows. Wait for my go.
-10. Run deploy with the plan id. Show me the result. Then start the undo history once (deploy does not): `py ~/.cursor/_workstream/initiative-history.py ensure --all`, and show me its lines ("left alone" means my .cursor folder is itself a git repo; undo stays off there).
+10. Run deploy with the plan id. Show me the result. Then start the undo history once (deploy does not): `python3 ~/.cursor/_workstream/initiative-history.py ensure --all` (Windows: `py`), and show me its lines ("left alone" means my .cursor folder is itself a git repo; undo stays off there).
 11. Walk me through the smoke test in "After you deploy" in docs/PERSONALISED-UPGRADE.md, one step at a time, in new chats. Remind me of the rollback command and where the session folder is.
 ```
 

@@ -72,6 +72,7 @@ Resolve the Confluence cloud UUID for your site once (see [runlayer-atlassian-mc
 - **Update:** `execute_tool` → `updateConfluencePage` with `{ cloudId, pageId, body, contentFormat: "markdown" }`.
 - **Create:** `execute_tool` → `createConfluencePage` with `{ cloudId, spaceId, body, title?, parentId?, contentFormat: "markdown" }`.
 - Read the source `.md` file and pass its entire content as `body`.
+- **Status page exception:** initiative Confluence status pages are not Markdown publishes. Follow `skills/ba-assistant/references/status-page-format.md`: fill `references/status-page-template.adf.json` and send `contentFormat: "adf"` on create/update.
 
 ### Micro-edits: banners, notices, and one-line redirects
 

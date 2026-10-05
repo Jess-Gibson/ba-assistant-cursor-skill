@@ -1,6 +1,6 @@
 # BA Assistant for Cursor — Setup Guide
 
-**Version 15** - see [CHANGELOG.md](CHANGELOG.md) and [README.md](README.md).
+**Version 16** - see [CHANGELOG.md](CHANGELOG.md) and [README.md](README.md).
 
 > Built iteratively across real BA initiatives using agent-assisted development.
 
@@ -99,7 +99,7 @@ python tools/upgrade-ba-assistant.py --package /path/to/ba-assistant-cursor-skil
 python tools/upgrade-ba-assistant.py --package /path/to/ba-assistant-cursor-skill --apply
 ```
 
-Personalised install (edited skills or rules, your own naming)? Use `tools/ba-merge-upgrade.py` instead: see [docs/PERSONALISED-UPGRADE.md](docs/PERSONALISED-UPGRADE.md).
+The plain upgrader replaces package skills, rules, commands and hooks. If you applied retro patches or edited package files, use `tools/ba-merge-upgrade.py` instead and check `_workstream/local-skill-patches.md` afterwards: see [docs/PERSONALISED-UPGRADE.md](docs/PERSONALISED-UPGRADE.md).
 
 ---
 
@@ -132,9 +132,10 @@ Full cold-start procedure: `skills/ba-assistant/references/context-bootstrap.md`
 
 Cursor's auto-run setting decides whether you click to approve each terminal command and MCP call. Pick whatever you are comfortable with; BA Assistant does not require one. The hooks are the safety net whatever you choose:
 
-- every Jira, Confluence, calendar, Miro or chat **write** still asks you first (the `external-write-gate` hook), and **email is never sent or drafted**;
+- every Jira, Confluence, calendar, Miro or chat **write** through MCP still asks you first (the `external-write-gate` hook), and email is never sent or drafted through MCP connectors. The assistant is also told never to script mail from the terminal, but no hook checks terminal commands for mail;
 - a Story that doesn't meet the Definition of Ready tells you what is missing before you approve;
 - every change to an initiative folder can be undone with `/undo`.
+- cloud and background agents do not run `sessionStart` or `beforeMCPExecution` hooks. Keep BA Assistant writes in local agent chats, and keep automated catch-up or end-of-day work read-only.
 
 If clicking approve on every helper script gets tiring, a narrow allowlist is enough: the package's own scripts only, `python3 ~/.cursor/_workstream/` (Mac) or `py ~/.cursor/_workstream/` (Windows). Runlayer reads (search, get, list) are safe to auto-run because the hook still stops writes.
 
@@ -254,7 +255,7 @@ py tools\install-ba-assistant.py --apply --hooks-strategy replace
 
 (Mac: `python3`, and `tools/...`.) `--hooks-strategy replace` puts back that version's hooks exactly; your current `hooks.json` is backed up first (`hooks.json.bak-<time>` next to it), so any hooks of your own can be copied back from there. The skills folder is backed up to `~/.cursor/ba-assistant-backups/` before it is replaced. Start a new chat afterwards.
 
-If the tag is not on the main repository yet, get it from the working fork instead: `git fetch https://github.com/jessgibson/ba-assistant-cursor-skill tag v14.0` before `git checkout v14.0`.
+If the tag is not on the main repository yet, get it from the working fork instead: `git fetch https://github.com/Jess-Gibson/ba-assistant-cursor-skill tag v14.0` before `git checkout v14.0`.
 
 **Last resort:** restore the copy of your whole `.cursor` folder you made before upgrading (recommended in the upgrade guides).
 

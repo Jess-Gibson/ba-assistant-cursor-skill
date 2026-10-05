@@ -4,7 +4,7 @@
 **Owner:** ba-dev-handover (applies this at export), this standard (format)
 **Last reviewed:** 2026-07-05
 
-This file defines how a confirmed requirement from `register.md` is rendered into EARS form **at handover export time**. It exists so the delivery repo and the devs' agents receive requirements in a structured, parseable "shall" form, without changing how requirements are authored in the register.
+This file defines how a confirmed requirement from `requirements-register.md` is rendered into EARS form **at handover export time**. It exists so the delivery repo and the devs' agents receive requirements in a structured, parseable "shall" form, without changing how requirements are authored in the register.
 
 **Key rule: the register is not touched.** Requirements are authored per `references/requirement-format.md` (prose Statement + Acceptance for met). EARS is generated from that content when a requirements pack is published. If the register and the EARS render ever disagree, the register wins and the render is regenerated.
 
@@ -80,7 +80,7 @@ the Onboarding Notification service shall include the support contact channel.
 If a decline reason maps to a specific failed check,
 then the Onboarding Notification service shall NOT reveal which check failed.
 
-Trace: BR-013  ·  Evidence: SO-04 register (data)  ·  Source: register.md
+Trace: BR-013  ·  Evidence: SO-04 register (data)  ·  Source: requirements-register.md
 ```
 
 Three EARS statements from one requirement: event-driven, event-driven, unwanted-behaviour. Each traces back to BR-013.

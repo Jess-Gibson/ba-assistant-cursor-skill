@@ -156,15 +156,50 @@ def has_mail_recipients(args):
     return False
 
 
-def classify_call(name, args):
-    """classify() plus the payload check: a write or unknown call whose arguments
-    carry email recipients is denied, unless the name is clearly about a non-email
-    tool (calendar, Jira, chat). Reads are never denied here: a mail search
-    filtered by recipient ("to": "someone@...") is a read, not a send."""
-    decision, reason = classify(name)
-    if decision == "ask" and not set(tokens(name)) & NOT_MAIL_CONTEXT and has_mail_recipients(args):
-        return "deny", "email recipients in arguments"
-    return decision, reason
+def is_mail_tool_name(name_toks):
+    """Tool name carries mail/email/outlook plus a send/reply/forward/draft verb.
+
+    Compose verbs stay in classify(), which still respects NOT_MAIL_CONTEXT so
+    outlook_calendar_create_event asks instead of denying as mail.
+    """
+    return bool(name_toks & MAIL_WORDS and name_toks & MAIL_SEND_WORDS)
+
+
+def classify_call(name, args, server=""):
+    """classify() plus the server name and the payload check.
+
+    Order: (1) mail word plus a send verb in the tool name always denies,
+    regardless of server. Email recipients in the payload also deny for
+    non-reads (writes/unknown), regardless of server; reads stay allowed.
+    (2) Then use mcp_server_name so bare send_message/reply on slack/teams
+    asks instead of denying as mail. A server token in MAIL_WORDS treats
+    send/reply/forward/draft as mail. Runlayer's outer name matches neither
+    set, so a wrapped call stays on the tool name.
+    """
+    server_toks = set(tokens(server))
+    name_toks = set(tokens(name))
+    if is_mail_tool_name(name_toks):
+        return "deny", "email send/reply/forward/draft"
+    # Recipients deny non-reads regardless of server. Calendar/chat/Jira tool
+    # names keep their own context: a calendar invite with attendees is a write
+    # ask, not a mail deny. Mail searches (reads) with a to-filter stay allowed.
+    if has_mail_recipients(args) and not name_toks & NOT_MAIL_CONTEXT:
+        decision, reason = classify(name)
+        if decision != "allow":
+            return "deny", "email recipients in arguments"
+        return decision, reason
+    if server_toks & NOT_MAIL_CONTEXT:
+        decision, reason = classify(name)
+        if decision == "deny":
+            if name_toks & WRITE_VERBS:
+                return "ask", "external write"
+            if name_toks & READ_VERBS:
+                return "allow", "read"
+            return "ask", "unrecognised MCP call"
+        return decision, reason
+    if server_toks & MAIL_WORDS and name_toks & MAIL_SEND_WORDS:
+        return "deny", "email send/reply/forward/draft"
+    return classify(name)
 
 
 def is_issue_create(name):
@@ -236,12 +271,13 @@ def dor_outcome(args):
         return None, f"DoR check error: {exc}"
 
 
-def audit(tool, decision, reason, extra=None):
+def audit(tool, decision, reason, extra=None, server=""):
     try:
         path = os.path.join(os.path.expanduser("~"), ".cursor", "_workstream", "audit-log.jsonl")
         os.makedirs(os.path.dirname(path), exist_ok=True)
         row = {"ts": datetime.datetime.now().isoformat(timespec="seconds"),
-               "hook": "external-write-gate", "tool": tool, "decision": decision, "reason": reason}
+               "hook": "external-write-gate", "tool": tool, "server": server,
+               "decision": decision, "reason": reason}
         if extra:
             row.update(extra)
         with open(path, "a", encoding="utf-8") as f:
@@ -267,8 +303,9 @@ def main():
              "Hook payload unreadable; the BA must approve.")
 
     name, _args, wrapped = unwrap(payload)
+    server = str(payload.get("mcp_server_name") or "")
     shown = name or ("Runlayer execute_tool (no tool name)" if wrapped else "unknown MCP tool")
-    decision, reason = classify_call(name, _args)
+    decision, reason = classify_call(name, _args, "" if wrapped else server)
 
     user = agent = ""
     if decision == "deny":
@@ -308,7 +345,7 @@ def main():
                      "fix the gaps and re-run _workstream/dor-check.py.")
             extra = {"dor": "fail", "story": outcome["story"], "missing": outcome["missing"]}
 
-    audit(shown, decision, reason, extra)
+    audit(shown, decision, reason, extra, server=server)
     emit(decision, user, agent)
 
 

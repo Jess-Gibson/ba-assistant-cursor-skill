@@ -1,0 +1,142 @@
+{
+  "type": "doc",
+  "version": 1,
+  "content": [
+    {
+      "type": "panel",
+      "attrs": { "panelType": "info" },
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [{ "type": "text", "text": "{{HEADER_TITLE}}" }]
+        },
+        {
+          "type": "paragraph",
+          "content": [{ "type": "text", "text": "{{HEADER_PEOPLE}}" }]
+        },
+        {
+          "type": "paragraph",
+          "content": [{ "type": "text", "text": "{{HEADER_PHASE_APPROVAL_FRESHNESS}}" }]
+        }
+      ]
+    },
+    {
+      "type": "panel",
+      "attrs": { "panelType": "error" },
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [{ "type": "text", "text": "{{DRAFT_BANNER_OR_DELETE_THIS_PANEL}}" }]
+        }
+      ]
+    },
+    {
+      "type": "panel",
+      "attrs": { "panelType": "{{SUMMARY_PANEL_TYPE}}" },
+      "content": [
+        {
+          "type": "bulletList",
+          "content": [
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [{ "type": "text", "text": "{{SUMMARY_BULLET}}" }]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "attrs": { "level": 2 },
+      "content": [{ "type": "text", "text": "Outcome health" }]
+    },
+    {
+      "type": "paragraph",
+      "content": [{ "type": "text", "text": "{{OUTCOME_HEALTH}}" }]
+    },
+    {
+      "type": "heading",
+      "attrs": { "level": 2 },
+      "content": [{ "type": "text", "text": "Quality metrics" }]
+    },
+    {
+      "type": "paragraph",
+      "content": [{ "type": "text", "text": "{{QUALITY_METRICS}}" }]
+    },
+    {
+      "type": "heading",
+      "attrs": { "level": 2 },
+      "content": [{ "type": "text", "text": "Workstream and scope" }]
+    },
+    {
+      "type": "paragraph",
+      "content": [{ "type": "text", "text": "{{WORKSTREAM_GRID}}" }]
+    },
+    {
+      "type": "heading",
+      "attrs": { "level": 2 },
+      "content": [{ "type": "text", "text": "Top focus this week" }]
+    },
+    {
+      "type": "paragraph",
+      "content": [{ "type": "text", "text": "{{TOP_FOCUS}}" }]
+    },
+    {
+      "type": "heading",
+      "attrs": { "level": 2 },
+      "content": [{ "type": "text", "text": "RAID summary" }]
+    },
+    {
+      "type": "paragraph",
+      "content": [{ "type": "text", "text": "{{RAID_SUMMARY}}" }]
+    },
+    {
+      "type": "heading",
+      "attrs": { "level": 2 },
+      "content": [{ "type": "text", "text": "Decisions and open questions" }]
+    },
+    {
+      "type": "paragraph",
+      "content": [{ "type": "text", "text": "{{DECISIONS_AND_QUESTIONS}}" }]
+    },
+    {
+      "type": "heading",
+      "attrs": { "level": 2 },
+      "content": [{ "type": "text", "text": "Sign-offs" }]
+    },
+    {
+      "type": "paragraph",
+      "content": [{ "type": "text", "text": "{{SIGN_OFFS}}" }]
+    },
+    {
+      "type": "heading",
+      "attrs": { "level": 2 },
+      "content": [{ "type": "text", "text": "Upcoming milestones" }]
+    },
+    {
+      "type": "paragraph",
+      "content": [{ "type": "text", "text": "{{MILESTONES}}" }]
+    },
+    {
+      "type": "heading",
+      "attrs": { "level": 2 },
+      "content": [{ "type": "text", "text": "Detail and appendix links" }]
+    },
+    {
+      "type": "paragraph",
+      "content": [{ "type": "text", "text": "{{APPENDIX_LINKS}}" }]
+    },
+    {
+      "type": "rule"
+    },
+    {
+      "type": "paragraph",
+      "content": [{ "type": "text", "text": "Page audit. {{FOOTER_AUDIT}}" }]
+    }
+  ]
+}

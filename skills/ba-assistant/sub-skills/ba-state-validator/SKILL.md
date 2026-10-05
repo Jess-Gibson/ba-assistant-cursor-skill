@@ -66,8 +66,8 @@ This skill enforces `references/canonical-ownership.md`. Quick reference:
 
 | Hook | When | Why |
 |---|---|---|
-| **ba-jira-sync** | Before validation | Refresh ticket statuses so Jira-derived facts in status-data.json are current before comparison |
-| **ba-project-canvas (Data Model section  -  status-page-and-data.md)** | Before validation | Refresh status-data.json from tracker so structured view matches narrative source |
+| **ba-jira-sync** | Before validation | Jira only if `status-refresh.md` says the sync is 60 minutes old or more. |
+| **ba-project-canvas (Data Model section  -  status-page-and-data.md)** | Before validation | Apply targeted updates per `status-refresh.md`. |
 | **Anti-Pattern Detector** | After validation | Log every divergence type observed so patterns can promote to the watchlist |
 | **Communication_Drafter** (in Playback) | If divergences include Confluence pages that need superseding | Draft the supersede banner content |
 
@@ -118,9 +118,8 @@ when the tracker updates but the team file doesn't.
 
 Before comparing, refresh the structured layer from the narrative layer:
 
-1. **Run ba-jira-sync**  -  pull current ticket statuses into status-data.json
-2. **Re-derive status-data.json from initiative-tracker.md**  -  for any decision / RAID item / OQ
-   present in the tracker but absent or stale in status-data.json, update status-data.json
+1. **Run `validate-state.py --json` and follow `status-refresh.md`**. Sync Jira only when the last sync is 60 minutes old or more.
+2. **Update only the items it reports**. For a decision, RAID item, or open question present in the tracker but absent or stale in status-data.json, update status-data.json.
 3. **Log every refresh action** so the user can see what changed before validation runs
 
 This is the source-of-truth alignment step. Without it, the validator would report drift that's
@@ -161,7 +160,7 @@ Divergences found: <count>
 | # | Fact | Canonical | Found in | Found value | Last modified | Suggested action |
 |---|---|---|---|---|---|---|
 | 1 | Legal sign-off date | 6 Jun 2026 (status-data.json) | Project-hub.md:14 | 30 May 2026 | 23 May, 2:10pm | Update Project-hub.md |
-| 2 | Legal sign-off date | 6 Jun 2026 (status-data.json) | Confluence page 1238472 (Status as at 23 May) | 30 May 2026 | 23 May | Mark page superseded; publish new status page |
+| 2 | Legal sign-off date | 6 Jun 2026 (status-data.json) | Confluence page 1238472 (Status as at 23 May) | 30 May 2026 | 23 May | Update the tracked status page in place with current data |
 | 3 | status-snapshot.html freshness | status-data.json 24 May, 9:00am | status-snapshot.html | rendered 23 May, 2:10pm | 23 May | Run /canvas (render-initiative-canvas.py) |
 ```
 
@@ -329,7 +328,7 @@ The user can defer fixes. But it surfaces drift before it accumulates.
 | RAID entry (R / A / I / DEP / D / OQ) | `references/raid-format.md` | Required fields present, status in valid set, age-based flags |
 | Requirement entry | `references/requirement-format.md` | Required fields present, interrogator output linked for confirmed, acceptance for met present |
 | MoSCoW matrix | `references/requirement-format.md` | Per-scope coverage, override decisions linked |
-| Confluence status page | `references/status-page-format.md` | Section order, outcome health present, DRAFT banner if applicable, supersede chain correct |
+| Confluence status page | `references/status-page-format.md` | Section order, outcome health present, DRAFT banner if applicable, update-in-place on the tracked page id |
 | Visual (flowchart, etc.) | `references/visual-output-format.md` | Template used, colour taxonomy applied, node detail complete |
 | status-data.json | `references/canvas-data-model.md` | Schema match, required fields, valid state values |
 | Dev handover (requirements pack / spike / ADR / story pack) | `references/dev-handover-format.md` + `references/ears-translation.md` | No working-file links (workspace content embedded only); requirements all confirmed; published value matches current register (freshness); handover note present |

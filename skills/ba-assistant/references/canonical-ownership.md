@@ -5,7 +5,7 @@
 
 The BA Assistant uses multiple state files. Each owns specific facts. The State Validator enforces consistency between them and downstream artefacts.
 
-**Exception:** `status-data.json` is a **derived cache**, regenerated from the tracker + Jira before any canvas/status/metrics read, except for Jira-synced ticket statuses, workstream states, and confidence scores, which remain status-data-canonical.
+**Exception:** `status-data.json` is a **derived cache**, kept up to date in place by `references/status-refresh.md` through targeted updates. A full rebuild occurs only when the file is missing or broken, or the BA asks. Jira-synced ticket statuses, workstream states, and confidence scores remain status-data-canonical.
 
 ## Ownership table
 
@@ -47,7 +47,7 @@ When the same fact appears in multiple files with different values:
 
 When a skill records new facts:
 
-- Decisions, RAID, OQs, assumptions, dependencies → write to **`initiative-tracker.md` first**. Project Canvas regenerates the structured view into status-data.json on next refresh.
+- Decisions, RAID, OQs, assumptions, dependencies → write to **`initiative-tracker.md` first**. `status-refresh.md` updates the structured view in status-data.json only where it is out of date.
 - Ticket status changes → **`status-data.json`** (via Jira Sync).
 - Workstream state changes → **`status-data.json`**.
 - Session-scoped notes (meeting outcomes, today's tentative decisions) → **`SESSION-CONTEXT.md`**.
@@ -56,4 +56,4 @@ The Anti-Pattern Detector triggers when:
 
 - A new fact is written to status-data.json without a corresponding tracker entry (likely wrong source)
 - A decision is logged in SESSION-CONTEXT.md but not promoted to the tracker by session end
-- The canvas or HTML is regenerated without first regenerating status-data.json from the tracker
+- The canvas or HTML is regenerated without running the freshness check in `status-refresh.md`

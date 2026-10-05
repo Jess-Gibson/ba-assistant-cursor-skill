@@ -11,7 +11,8 @@ Use what `SKILL.md` Step 2 already read (snapshot or files); do not read the sam
 2b. Read `_workstream/ba-actions.json` — count open/blocked; note overdue. Full list: `_workstream/ba-actions.md`.
 3. Read `_workstream/calendar-feed.json` for today's meetings
 4. Check `CURSOR_NEW_TRANSCRIPT_COUNT` / `CURSOR_NEW_TRANSCRIPTS` (set by the sessionStart hook)
-5. If the initiative has a Jira project key, run a quick Jira status delta
+5. Jira: no query on resume. Show the sync age from the state check (`validate-state.py` → "Jira sync (oldest ticket)"). The user can say "refresh" or run `/status` for current tickets
+6. If the session context says `CATCH-UP DUE`, run `/catchup` (`ba-comms-debrief`) after the card and show its review card
 
 ### Card format
 
@@ -23,8 +24,9 @@ Next action: [The single most valuable thing to do right now]
 
 Today's meetings: [count] ([names])
 New transcripts: [count or "none"]
-Jira delta: [tickets moved since last check, or "no changes"]
+Jira: [synced Xh ago / never synced / no tickets]
 Sync status: [ok / N items unpromoted / stale pages]
+Catch-up: [ran HH:MM / due: running now / connectors unavailable]
 
 ---
 ```
@@ -58,4 +60,4 @@ Today: [count] meetings | [count] new transcripts
 - Always include the next action
 - Always include AskQuestion — the card without options is a dead end
 - Keep it one screen; `/status` is the deep view
-- Jira delta is best-effort — "Jira: unable to check" and proceed on MCP failure
+- Jira is not queried on resume; the card shows the last sync age

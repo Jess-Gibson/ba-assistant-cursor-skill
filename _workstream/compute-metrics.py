@@ -24,7 +24,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 THRESHOLDS = {"moscowCoverage": 0.80, "dorHitRate": 0.70, "interrogationRate": 0.95}
-INTERROGATED_STATES = {"interrogated", "accepted", "in-flight", "delivered", "evaluated"}
+INTERROGATED_STATES = {"interrogated", "confirmed", "in-flight", "delivered", "evaluated", "accepted"}  # accepted: pre-v2 data
 
 
 def parse_rule_value(text: str, key: str) -> str | None:

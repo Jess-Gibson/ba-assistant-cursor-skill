@@ -500,7 +500,7 @@ def main() -> int:
     # Hook scripts + hooks.json merge (same merge the installer uses)
     hooks_pkg = pkg / "hooks"
     if hooks_pkg.exists():
-        for src in sorted(hooks_pkg.glob("*.py")):
+        for src in sorted(list(hooks_pkg.glob("*.py")) + list(hooks_pkg.glob("*.ps1"))):
             plan.append(f"UPDATE hook {src.name}")
             if not dry_run:
                 (home / "hooks").mkdir(parents=True, exist_ok=True)
@@ -546,6 +546,13 @@ def main() -> int:
     if not dry_run:
         skills_dest.mkdir(parents=True, exist_ok=True)
         (skills_dest / "VERSION").write_text(VERSION + "\n", encoding="utf-8")
+
+    patches = workstream / "local-skill-patches.md"
+    if patches.exists() and patches.stat().st_size > 0:
+        plan.append(
+            "WARN local-skill-patches.md is non-empty: the plain upgrader replaces package "
+            "skills/rules/commands/hooks. Use tools/ba-merge-upgrade.py to keep those edits."
+        )
 
     log("")
     log("=== PLAN ===")

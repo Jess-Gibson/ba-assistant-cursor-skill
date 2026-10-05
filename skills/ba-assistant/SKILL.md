@@ -80,7 +80,7 @@ Signals: `/reanchor`, continue, resume, named initiative, or an analysis folder 
 7. AskQuestion: continue recommended / different focus / `/status` / validate / canvas.
 8. Drop into the active work. Help progress it in this conversation; do not stop at a status dump.
 
-**End of session:** offer `/wrap` → `~/.cursor/commands/wrap.md` (chat-only checkpoint, never automatic). End of day is `/workboard end-of-day`.
+**End of session:** offer `/wrap` → `~/.cursor/commands/wrap.md` (chat-only checkpoint, never automatic). End of day is `/eod` → `~/.cursor/commands/eod.md` (same procedure as `/workboard end-of-day`).
 
 ## Step 3 - Phase 0 handoff (new initiatives only)
 
@@ -89,6 +89,7 @@ After `ba-new-initiative` has scaffolded, invoke `sub-skills/ba-intake-reviewer/
 ## Canvas, `/status`, `/next`
 
 - **Canvas:** on demand only via `ba-project-canvas` on `/canvas` (rendered by `render-initiative-canvas.py`). `/status` offers it but never renders it. Never auto at Phase 0, gates, or decisions.
-- **`/status`:** `~/.cursor/commands/status.md`
+- **`/status`:** `~/.cursor/commands/status.md` → `references/status-refresh.md` (targeted update of `status-data.json`; Jira only when stale)
+- **`/catchup`:** `ba-comms-debrief` (message debrief review card)
 - **`/next`:** `~/.cursor/commands/next.md`
 - **`/reanchor`:** `~/.cursor/commands/reanchor.md`, then this Step 2.

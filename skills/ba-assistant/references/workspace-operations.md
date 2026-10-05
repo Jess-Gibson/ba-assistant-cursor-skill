@@ -54,7 +54,7 @@ Multi-root Cursor workspaces are fine. Classify by **user intent**, not which fo
 
 Populate `_workstream/calendar-feed.json` via:
 
-- Windows: `references/sample-scripts/get-calendar.ps1` (Outlook COM)
-- macOS: `references/sample-scripts/get-calendar.mac.sh` (Calendar.app)
+- Windows: `hooks/get-calendar.ps1` (Outlook COM; installer copies it into `~/.cursor/hooks/`). Supports `-DaysAhead` and `-DaysBehind`. Session start uses `-DaysBehind` so Teams `.docx` transcripts can match recent meeting subjects. That look-behind matching is **Windows-only** (Outlook COM).
+- macOS: `references/sample-scripts/get-calendar.mac.sh` (Calendar.app). Ahead-only; no `-DaysBehind` equivalent.
 
 Not required for `/workboard`.

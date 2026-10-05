@@ -88,7 +88,7 @@ Before any story is marked as ready, this skill MUST invoke:
 3. **Define spikes and technical investigations** – Identify technical questions or uncertainties that require investigation before coding.  Write spikes with clear objectives and expected outcomes.
 4. **Document acceptance criteria** – For each story and spike, define acceptance criteria that are specific, measurable, and testable.  Base these on requirements, compliance/legal considerations, data expectations, and design outcomes.
 5. **Identify dependencies** – Note any dependencies between stories (e.g., one story must be completed before another).  Mark dependencies on external teams, systems, design, compliance, or data availability.
-6. **Check definition of ready** – Ensure each story is ready for development: requirements are clear, dependencies identified, acceptance criteria defined, and risks logged.  Use the Definition of Ready skill to validate readiness.
+6. **Check definition of ready** – Ensure each story is ready for development: requirements are clear, dependencies identified, acceptance criteria defined, and risks logged. Use the Definition of Ready section in this file to validate readiness.
 7. **Propose delivery sequencing** – Based on the sequencing plan from the slicing skill, assign an order to epics and stories.  Identify parallel opportunities.  Suggest staging (e.g., proof of concept, alpha release) if appropriate.
 8. **Prepare backlog summary** – Provide a structured backlog overview that product managers, engineers, and stakeholders can review and approve.
 
@@ -171,7 +171,7 @@ The Definition of Ready ensures that each epic or story in the backlog meets a c
 
 5. **Update the definition**  -  Over time, refine and adjust the DoR criteria based on feedback from engineering and product teams. Capture lessons learned about what information is truly required for smooth development.
 
-6. **MoSCoW warn-and-flag gate (Wave 3)**  -  Before a story moves into `In Progress`, check that the linked requirement(s) have a MoSCoW rating for the story's **scope** (initiative / feature / cohort / slice). MoSCoW is captured in `ba-discovery-and-requirements` Task 13 as a matrix per requirement.
+6. **MoSCoW warn-and-flag gate (Wave 3)**  -  When a story is drafted or created, check that the linked requirement(s) have a MoSCoW rating for the story's **scope** (initiative / feature / cohort / slice). Nothing watches Jira transitions live: a story that reaches `In Progress` without one is caught on the next `/status` (warn-and-flag, `moscowFlag: missing`). MoSCoW is captured in `ba-discovery-and-requirements` Task 13 as a matrix per requirement.
 
     **Gate behaviour  -  warn-and-flag, NOT hard block:**
 

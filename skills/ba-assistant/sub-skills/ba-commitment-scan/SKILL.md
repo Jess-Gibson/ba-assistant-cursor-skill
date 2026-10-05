@@ -9,6 +9,7 @@ disable-model-invocation: true
 ## Standards used
 
 - `references/ba-actions-format.md` — action IDs, fields, sync and regenerate rules
+- `references/comms-retrieval.md`: how to search Outlook, Slack and Teams (shared with `ba-comms-debrief`). At end of day use passes 1, 2 and 4 for the closeout day (pass 3 is for `/catchup` only). Hand the same evidence to `ba-comms-debrief` in EOD step 1c instead of searching twice.
 
 If standards conflict with skill-specific guidance below, the standard wins.
 
@@ -77,14 +78,31 @@ Classify each deduplicated real-world item as one of:
 
 ### Update rules
 
-1. Match existing actions by tracker reference, then task fingerprint, then initiative plus date proximity.
-2. Create an action only for an owned, concrete next step. Use the next `BA-NNN` per `references/ba-actions-format.md`.
-3. Update a due date, reminder, source link or notes when supported by evidence.
-4. Mark `done` only on explicit completion evidence. Mark `cancelled` only when the work is explicitly dropped.
-5. If evidence conflicts or does not identify ownership, keep the action open and add a short evidence note or capture an open question.
-6. Append an attributed, dated `📝 Captured:` entry to the appropriate `SESSION-CONTEXT.md`.
-7. Promote unambiguous material RAID items through the ordinary EOD promotion process. Do not change reviewed or confirmed requirements without the normal review-control diff and approval.
-8. Regenerate `_workstream/ba-actions.md` after any JSON mutation.
+Match existing actions by tracker reference, then task fingerprint, then initiative plus date proximity. A meeting the BA ran, or a thread they started, does not make another person's words evidence of the BA's commitment.
+
+**Tier 1, apply now.** Write only when the owner is unambiguous and no inference is needed. Evidence is either:
+
+- **BA-authored:** an exact message from the BA's account, or an observable action by them.
+- **Addressed request:** a message explicitly addressed to the BA, with a concrete deliverable. It can create an action or set a due date only. It cannot mark work done or change a status.
+
+| Change | Evidence allowed |
+|---|---|
+| New BA action | BA-authored or addressed request |
+| Due date set or changed | BA-authored or addressed request |
+| BA action marked `done` | BA-authored only |
+| Reminder or notes | BA-authored only |
+| Capture to `SESSION-CONTEXT.md` | Evidence allowed by the row, tagged `[unverified]` when needed |
+
+Use the next `BA-NNN` per `references/ba-actions-format.md`. Tier 1 writes go through `ba-actions.py` and `capture.py`. Before the first Tier 1 write, snapshot the initiative. Regenerate `_workstream/ba-actions.md` once at the end.
+
+**Tier 2, review card.** Propose only. Write these to `_workstream/eod-staged-commitments.json` and apply them only after BA approval:
+
+- Changes to a decision, requirement, approval, sign-off, priority, scope or RAID status.
+- Marking an action `cancelled`.
+- Promoting anything to the tracker.
+- Actions owned by someone else, unclear ownership, implied agreement, reactions, or conflicting messages.
+
+Write the staged file atomically. At the start of end of day, carry forward items from an earlier run. After the review card, remove only approved or rejected items. Cancel or failure leaves the file intact. Never sync this file.
 
 ## Output
 
@@ -109,4 +127,4 @@ Run after mail triage and before meeting reconciliation. Its updates are inputs 
 
 ## Working-hours rule for any focus block found during reconciliation
 
-Read the user's working-hours preferences file in `_workstream/` before proposing or booking a focus block, if one exists. Focus blocks must stay within the user's configured working hours, avoid the protected lunch window, and sit only in a free calendar gap with no existing meetings, unless the user explicitly asks for an exception. Check live Outlook immediately before creating or updating an event.
+This skill never books anything. It may propose focus blocks. End of day books them automatically only when the BA's working-preferences file in `_workstream/` has `autoBookFocus: true`; otherwise after the BA confirms. Read that preferences file first. Focus blocks must stay within configured working hours, avoid lunch, and sit in a free calendar gap unless the BA explicitly asks for an exception. The end-of-day step checks live Outlook immediately before it creates or updates an event.

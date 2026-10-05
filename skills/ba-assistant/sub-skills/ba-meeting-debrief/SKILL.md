@@ -100,7 +100,7 @@ After extraction is complete, present everything in one card:
 WILL WRITE TO SESSION-CONTEXT.md:
   + DEC-XX: [decision text] (decider: [name], date: [date])
   + OQ-XX: [open question]
-  + A-XX: [action] (owner: [name], due: [date])
+  + ACT-XX: [action] (owner: [name], due: [date])  (A- is an assumption in the tracker)
   + RISK-XX: [risk text]
 
 WILL UPDATE initiative-tracker.md:
@@ -139,6 +139,18 @@ Use AskQuestion to present options. On "Approve all", execute all writes in sequ
 6. Offer to draft comms
 7. Save a version after the writes (silent): `python3 ~/.cursor/_workstream/initiative-history.py snapshot --initiative <slug> --label "Debrief: <meeting>"`. The BA can undo the whole debrief with `/undo`.
 
+### After approval
+
+Chat review is the quality gate. After an explicit Approve option only:
+
+1. Execute the write sequence above (snapshot, SESSION-CONTEXT, tracker, status-data, BA actions, sync gate) from the approved card. Additive tracker rows and session appends only. Do not publish, update Jira or Confluence, alter a requirements register, or rewrite an existing tracker row without the owning skill and a separate review.
+2. Report the exact applied operations in chat, then run the normal sync gate.
+3. After the BA approves the debrief card (any option except cancel), mark the transcript processed:
+   `python3 ~/.cursor/_workstream/list-downloads-recent.py --mark-processed "FULL_PATH"`
+   (Windows: `py`). Extraction alone never marks it. Same rule for every format (`.docx`, `.vtt`, `.txt`, `.srt`).
+
+For **Edit before approving**, revise the chat card and re-ask. Never treat an edited card as already approved.
+
 ### Cross-initiative debriefs
 
 If a meeting touches multiple initiatives (e.g. a program-level sync), the batch card groups updates by initiative:
@@ -148,7 +160,7 @@ If a meeting touches multiple initiatives (e.g. a program-level sync), the batch
 
 Sample Initiative updates:
   + DEC-XX: ...
-  + A-XX: ...
+  + ACT-XX: ...
 
 Sample onboarding initiative updates:
   + OQ-XX: ...
@@ -194,7 +206,7 @@ python3 _workstream/extract-docx-text.py --docx-path "FULL_PATH_TO.docx" --out-p
 
 (Windows: use `py` instead of `python3`.)
 
-Extracting a transcript marks it as debriefed, so session start stops listing it under "TRANSCRIPTS NOT DEBRIEFED YET". For a `.vtt` or `.txt` transcript you read directly, mark it after the card is approved: `python3 ~/.cursor/_workstream/list-downloads-recent.py --mark-processed "FULL_PATH"`.
+Do not mark the file processed during extraction. Mark it after the debrief card is approved (see After approval step 3), including for `.docx`.
 
 **Before running it:** check whether `--out-path` already exists and is newer than the source docx. If so, **skip extraction** and Read the out file directly.
 

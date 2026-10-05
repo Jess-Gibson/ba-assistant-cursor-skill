@@ -54,8 +54,16 @@ You should see `PROTECT` on JSON and profile, `KEEP` on your `/workboard` comman
 
 ### 3. Apply (still does not touch the live canvas)
 
+**Windows:**
+
 ```powershell
 py tools\upgrade-workboard.py --package . --apply
+```
+
+**macOS / Linux:**
+
+```bash
+python3 tools/upgrade-workboard.py --package . --apply
 ```
 
 Backup: `~/.cursor/ba-assistant-backups/workboard-overlay-YYYYMMDD-HHMMSS/`.
@@ -66,8 +74,16 @@ Open **`ba-workboard-overlay-preview.canvas.tsx`** in Cursor (same canvases fold
 
 In a new chat, ask the agent to regenerate the live canvas from your existing JSON, or run:
 
+**Windows:**
+
 ```powershell
 py $env:USERPROFILE\.cursor\_workstream\generate-workboard-canvas.py --canvas "<your canvases folder>\ba-workboard.canvas.tsx"
+```
+
+**macOS / Linux:**
+
+```bash
+python3 ~/.cursor/_workstream/generate-workboard-canvas.py --canvas "<your canvases folder>/ba-workboard.canvas.tsx"
 ```
 
 ---

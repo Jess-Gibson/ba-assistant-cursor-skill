@@ -12,7 +12,7 @@ This file is the canonical source for requirement structure, requirements regist
 
 | Location | What | Canonical for |
 |---|---|---|
-| `<initiative>/outputs/requirements-register.md` (or `requirements/register.md`) | **Unified register**  -  high-level + detailed + interrogation in one file | Requirement content, lifecycle, handover evidence |
+| `<initiative>/outputs/requirements-register.md` (or `requirements/requirements-register.md`) | **Unified register**  -  high-level + detailed + interrogation in one file | Requirement content, lifecycle, handover evidence |
 | `<initiative>/requirements/moscow-matrix.md` | Per-scope MoSCoW classification | Prioritisation per scope |
 | `status-data.json → stories[].linkedRequirements` | Story-to-requirement traceability | Forward linkage |
 | Confluence requirements page | Published view for stakeholders | Sharing only  -  derived |
@@ -42,11 +42,11 @@ ID numbering is unique within each type. BR-001 and FR-001 can coexist. Within a
 
 ## 3. Requirement entry structure
 
-**Entry rule:** a requirement enters `register.md` the moment it's captured, at `status: proposed`, from any intake (transcript, Confluence, verbal, Jira, workshop). Interrogation is not a gate on entry  -  it's what moves a requirement forward from `proposed`. Logging something you haven't interrogated yet is the point: it makes the backlog of un-interrogated items visible instead of losing them in a transcript.
+**Entry rule:** a requirement enters `requirements-register.md` the moment it's captured, at `status: proposed`, from any intake (transcript, Confluence, verbal, Jira, workshop). Interrogation is not a gate on entry  -  it's what moves a requirement forward from `proposed`. Logging something you haven't interrogated yet is the point: it makes the backlog of un-interrogated items visible instead of losing them in a transcript.
 
 **Write-up effort scales with status** (see §3a below)  -  don't write the full block for something that might get rejected on first interrogation pass.
 
-Each requirement in `register.md`, once at `interrogated` or later:
+Each requirement in `requirements-register.md`, once at `interrogated` or later:
 
 ```markdown
 ### BR-005 · Merchant identity must be verified to NZ AML/CFT Act standard
@@ -158,7 +158,7 @@ A requirement can be fully interrogated (we understand what it means) without be
 
 ## 4. Requirements register layout
 
-`register.md` is organised by **type**, then **scope**. Each requirement appears under its primary scope. Cross-scope requirements appear under "Initiative-wide".
+`requirements-register.md` is organised by **type**, then **scope**. Each requirement appears under its primary scope. Cross-scope requirements appear under "Initiative-wide".
 
 ```markdown
 # Requirements register  -  <Initiative name>
@@ -313,7 +313,7 @@ OOS entries don't carry MoSCoW values. They're informational.
 
 ## 10. Confluence requirements page
 
-Published view, derived from `register.md`. Structure:
+Published view, derived from `requirements-register.md`. Structure:
 
 1. Header: initiative name, last refreshed timestamp, link to register source
 2. Summary table (total counts, coverage)
@@ -323,7 +323,7 @@ Published view, derived from `register.md`. Structure:
 6. Out-of-scope section at the end
 7. Footer with format version
 
-Published page is regenerated from register.md, not edited directly in Confluence. State Validator catches drift.
+Published page is regenerated from requirements-register.md, not edited directly in Confluence. State Validator catches drift.
 
 ---
 
@@ -389,7 +389,7 @@ v1.0 (2026-05-30). Changes to required fields, new requirement type, or MoSCoW r
 
 v2.0 (2026-07-14)  -  Sample Initiative kickoff pipeline reconciliation:
 - **Single `status` field** replaces the old two-vocabulary split (`draft/confirmed/superseded/descoped/deferred` vs the discovery skill's separate `proposed/interrogated/accepted/in-flight/delivered/evaluated/deferred/rejected`). Canonical lifecycle now: `proposed → interrogated → confirmed → in-flight → delivered → evaluated`, with `deferred`/`rejected` off `interrogated` and `descoped`/`superseded` off `confirmed`. `accepted` is retired  -  `confirmed` is the sign-off state everything downstream (dev-handover, anti-pattern detector) already checks.
-- **Register entry rule changed**: requirements now enter `register.md` immediately at `proposed` on capture. Interrogation is no longer a gate on entry  -  it's what advances a requirement past `proposed`. (Previously `ba-discovery-and-requirements.md` Task 6 said only PROCEED-verdict requirements could enter the register; that line is now corrected there too.)
+- **Register entry rule changed**: requirements now enter `requirements-register.md` immediately at `proposed` on capture. Interrogation is no longer a gate on entry  -  it's what advances a requirement past `proposed`. (Previously `ba-discovery-and-requirements.md` Task 6 said only PROCEED-verdict requirements could enter the register; that line is now corrected there too.)
 - **New `blockedOn` field** (`none / spike / open-question / design / compliance / decision`) captures why an `interrogated` requirement isn't `confirmed` yet, without needing new top-level lifecycle states.
 - **`linkedElements` extended** with `spikes` and `openQuestions` slots so a `blockedOn` value is always traceable to a real linked item.
 - **Write-up effort now scales with status** (§3a): `proposed` = one-line intake row only; full entry structure (statement/rationale/acceptance/linked elements/history) built from `interrogated` onward.

@@ -1,5 +1,98 @@
 # Changelog
 
+## Version 16 - 2026-10-01
+
+Lean status and catch-up for every BA who clones or upgrades this package. No extra patch step.
+
+### Lean `/status` and `/canvas`
+
+- **`status-data.json` is updated, not regenerated.** New procedure: `references/status-refresh.md`. One `validate-state.py --json` call, change only what is out of date, query Jira only if the last sync is 60 minutes old or more. Full rebuild only when the file is missing or broken, or you say `/status full`.
+- **`validate-state.py`** reports Jira freshness (`jiraSyncedAt`, `jiraSyncAgeMinutes`) so status and canvas can skip Jira when recent.
+- **`ba-jira-sync`** uses one `searchJiraIssuesUsingJql` query and stamps `lastJiraSync` on returned tickets.
+- **Resume** no longer queries Jira. The re-entry card shows sync age from the state check.
+- Commands `/status`, `/canvas`, and `/metrics` all use `status-refresh.md`. `/status` still never renders the canvas.
+
+### Catch-up and end of day
+
+- **`/catchup`** (`ba-comms-debrief`): debriefs Slack, Teams and Outlook since the last catch-up. Review card first; nothing written until you approve. Shared search procedure: `references/comms-retrieval.md`.
+- **`catchup-watch.py`**: watch list and due timing (config keys `catchupEveryMinutes`, `catchupHours` in `ba-assistant-config.mdc`).
+- Session start lists broader transcript types (`.txt`, `.srt`, and names containing "transcript") and can nudge `CATCH-UP DUE`.
+- **`/eod`**: shortcut for the full end-of-day closeout (same as `/workboard end-of-day`), including commitment scan and catch-up step 1c.
+
+### Leftovers cleanup
+
+- Gate renamed **Interrogate before confirming** (requirements may enter the register at `proposed`).
+- `register.md` renamed to `requirements-register.md` in skills and visuals.
+- Schema Field Validator pointer replaced by the checklist in `ba-story-writing`.
+- Retro and workshop prep write follow-ups to BA actions, not `workboard.json`.
+- Commitment scan never books; booking stays end of day's job after you confirm.
+- Debrief card captures tracker actions as `ACT-XX` (`A-` means assumption in this package).
+
+### Other
+
+- Starter `templates/initiative-tracker.md.template` for new initiatives.
+- Config template documents `catchupEveryMinutes` / `catchupHours`.
+
+### Fixes before release
+
+Grouped by area. One line per fix ID from the Version 16 review pack.
+
+**Catch-up and session start**
+- F01: Catch-up commands use `python3` with a Windows `py` note, not `py` alone.
+- F02: A bad `catchupHours` value warns and is ignored; session start never crashes on it.
+- F03: The session banner only asks for the BA report line in BA chats.
+- F05: Catch-up reads requirement status from the Status column header, not a fixed column.
+- F06 / 8b: Short-term initiative folders resolve by bare slug; validate-state supports `--all`.
+- F16: Calendar look-behind plus meeting-name transcript detection for Teams `.docx` files (Windows-only Outlook COM look-behind).
+- F17: Transcripts are marked processed only after debrief approval (`list-downloads-recent.py --mark-processed`).
+
+**Status, Jira, and registers**
+- F04: Starter tracker registers include PM approval, DoR checks, MoSCoW and Sign-offs.
+- F07: Status model wording aligned (sync, canvas refresh, validator).
+- F08: Jira refresh uses a 60-minute rule everywhere status and canvas need it.
+- F09: Jira age uses the oldest ticket stamp; missing tickets are ignored; stale tickets are counted.
+- F14: DoR preflight reads the unified requirements register (index, then metadata).
+- F15: Metrics treat `confirmed` as interrogated (keeps `accepted` for older data); discovery lifecycle prose uses `confirmed`.
+- C9: Status pages are ADF from `references/status-page-template.adf.json`, updated in place; RAG maps Green/Amber/Red to success/warning/error.
+
+**Workboard and end of day**
+- F12: End of day applies clear BA-owned updates, cards the rest, and books focus blocks when `autoBookFocus` is true (chat confirm otherwise; external-write gate still asks).
+- F18: Archived initiatives are not counted as active on the workboard.
+- F19: Workboard calendar view uses workingHours +/- 30 (else catchupHours, else 08:30-17:30), widened for meetings, capped 06:00 to 22:00.
+- F20: End of Day continues the full `/EOD` closeout sequence.
+
+**Safety, docs, and packaging**
+- F13: Always-on rules trimmed; suite budget lowered to 22,000 characters; skill-nudge list restored in the router.
+- F21: External write gate denies mail tool names and recipient payloads first; `mcp_server_name` only steers bare chat sends.
+- F22: Email claims cover MCP and shell; SETUP states shell mail is a rule, not a hook.
+- F23: Cloud and background agent limits documented.
+- F24: Missing Python fail-open note is visible when the gate is not fail-closed.
+- F25: Snapshot-first resume already present at baseline, verified.
+- F26: Retro package edits log to `local-skill-patches.md`; plain upgrader warns; use the merge tool to keep them.
+- F27: Shared-repo postToolUse matcher stays `Write|Edit` (BOM fail-open deferred).
+- F29: Intake canvas skeleton already present at baseline, verified.
+- F30: `regenerate-ba-actions-md.py --help` does not rewrite files.
+- F10 / F11: Package labels say Version 16; GitHub URL uses `Jess-Gibson`.
+- F35: Remaining guidance contradictions closed (including C14 learnings wording).
+
+**Also in this release**
+- CUSTOMIZATION retitle for Version 16.
+- Audit-log records `mcp_server_name` (server field) on gate decisions.
+- Focus-block kickoff section in the proactive assistance protocol.
+- Report-loads-inline router line (`> Running: <Skill> → <intent>`).
+- Catch-up depth-2 scan for short-term initiative folders.
+
+### Review fixes
+
+Second pass on the Version 16 review findings (repo commit after the pre-release pack):
+
+- Calendar-feed readers accept UTF-8 BOM from `get-calendar.ps1`.
+- F21 deny-first mail order; F19 workingHours-first calendar view; C9 status-page ADF path, placeholder table, and supersede removals.
+- F17 drops the local-only `apply-debrief-review.py` helper from the debrief skill.
+- F08 / F12 / F04 / F13 / F15 / F16 (merge copies `hooks/*.ps1`) and related tests.
+
+**Deferred** (Stage D after merge): F31, F32, F34 legacy tidy; F33 native skills; L11 Jira query split; F27 BOM fail-open. F28 remains a manual smoke test (`SMOKE-TESTS.md`).
+
 ## Version 15 - 2026-09-27
 
 Version 14 QA fixes (from the fork review) plus the fixes below.

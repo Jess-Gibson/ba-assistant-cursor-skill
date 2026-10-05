@@ -136,6 +136,36 @@ def main():
             code, out = run_gate(bad, home)
             check(f"malformed payload {bad!r} asks, exit 0", code == 0 and out["permission"] == "ask", str(out))
 
+        # --- F21: mail name / recipients deny first; mcp_server_name only for bare names ---
+        code, out = run_gate(json.dumps({
+            "tool_name": "send_email", "mcp_server_name": "slack", "tool_input": {},
+        }), home)
+        check("[F21] send_email + slack still denies (server never relaxes mail)",
+              out["permission"] == "deny", str(out))
+        code, out = run_gate(json.dumps({
+            "tool_name": "send_email", "mcp_server_name": "teams", "tool_input": {},
+        }), home)
+        check("[F21] send_email + teams still denies", out["permission"] == "deny", str(out))
+        code, out = run_gate(json.dumps({
+            "tool_name": "sendNotification", "mcp_server_name": "ms365-teams",
+            "tool_input": {"to": "a@example.com"},
+        }), home)
+        check("[F21] recipients on ms365-teams deny", out["permission"] == "deny", str(out))
+        code, out = run_gate(json.dumps({
+            "tool_name": "send_message", "mcp_server_name": "slack", "tool_input": "{}",
+        }), home)
+        check("[F21] slack send_message asks (not mail deny)", out["permission"] == "ask", str(out))
+        code, out = run_gate(json.dumps({
+            "tool_name": "send_message", "mcp_server_name": "outlook", "tool_input": "{}",
+        }), home)
+        check("[F21] outlook send_message denies as mail",
+              out["permission"] == "deny" and out["user_message"] == MAIL_MSG, str(out))
+        code, out = run_gate(json.dumps({"tool_name": "send_mail", "tool_input": "{}"}), home)
+        check("[F21] send_mail denies", out["permission"] == "deny", str(out))
+        code, out = run_gate(runlayer("send_mail"), home)
+        check("[F21] Runlayer-wrapped execute_tool with inner send_mail is still denied",
+              out["permission"] == "deny", str(out))
+
         # --- audit log: one line per call, tool + decision, never payload text ---
         log = os.path.join(home, ".cursor", "_workstream", "audit-log.jsonl")
         rows = [json.loads(l) for l in open(log, encoding="utf-8")] if os.path.exists(log) else []

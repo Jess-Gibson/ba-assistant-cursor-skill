@@ -15,6 +15,7 @@ plain text extraction discards.
 Usage:
   python3 extract-docx-text.py --docx-path meeting.docx --out-path out.txt
   python3 extract-docx-text.py --docx-path meeting.docx --out-path out.xml --raw-xml
+  python3 extract-docx-text.py --docx-path meeting.docx --out-path out.txt --mark-processed
 """
 from __future__ import annotations
 
@@ -87,6 +88,11 @@ def main() -> int:
         action="store_true",
         help="Dump word/document.xml raw instead of extracted readable text",
     )
+    ap.add_argument(
+        "--mark-processed",
+        action="store_true",
+        help="Record this transcript as debriefed after a successful extract (opt-in; debrief marks after approval)",
+    )
     args = ap.parse_args()
 
     docx_path = args.docx_path.expanduser().resolve()
@@ -116,7 +122,8 @@ def main() -> int:
         content = fence(f"transcript:{docx_path.name}", content)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(content, encoding="utf-8")
-    mark_processed(docx_path)
+    if args.mark_processed:
+        mark_processed(docx_path)
     kind = "raw XML" if args.raw_xml else "extracted text"
     print(f"Wrote {kind} ({len(content)} chars) -> {out_path}")
     return 0

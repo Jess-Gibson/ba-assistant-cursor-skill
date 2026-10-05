@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from datetime import date, datetime
@@ -83,7 +84,13 @@ def sort_open(actions: list[dict]) -> list[dict]:
 
 
 def main() -> int:
-    data = json.loads(JSON_PATH.read_text(encoding="utf-8"))
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--json", default=str(JSON_PATH), help="Canonical ba-actions JSON path")
+    parser.add_argument("--out", default=str(MD_PATH), help="Generated Markdown output path")
+    args = parser.parse_args()
+    json_path = Path(args.json)
+    md_path = Path(args.out)
+    data = json.loads(json_path.read_text(encoding="utf-8"))
     sync_iso = data.get("last_synced") or datetime.now().astimezone().isoformat()
     sync_dt = datetime.fromisoformat(sync_iso.replace("Z", "+00:00"))
     if sync_dt.tzinfo:
@@ -216,12 +223,12 @@ def main() -> int:
         ]
     )
 
-    MD_PATH.write_text("\n".join(lines), encoding="utf-8")
+    md_path.write_text("\n".join(lines), encoding="utf-8")
 
     now = datetime.now().astimezone().isoformat()
     data["last_generated_md"] = now
-    JSON_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    print(f"Regenerated {MD_PATH} ({len(open_actions)} open, {len(closed_actions)} closed)")
+    json_path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(f"Regenerated {md_path} ({len(open_actions)} open, {len(closed_actions)} closed)")
     return 0
 
 

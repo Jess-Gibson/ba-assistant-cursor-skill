@@ -107,7 +107,7 @@ File: `canvases/ba-workboard.canvas.tsx` (from `templates/ba-workboard.canvas.ts
 | **Open actions** | Editable drafts (status, due, notes) |
 | **Stakeholder raise** | Optional when `stakeholder_raise.name` is set and open items exist |
 
-**End of Day** is a header button (starts `/wrap` via embedded prompt), not a tab.
+**End of Day** is a header button (starts `/EOD` via embedded prompt), not a tab.
 
 ### Interaction rules
 

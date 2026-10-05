@@ -77,3 +77,17 @@ For an upcoming meeting where a prep file, unresolved actions or an obvious deci
 5. A short opening line the user can use.
 
 The brief is preparation, not a substitute for a meeting debrief. After a meeting, offer the existing debrief flow only when the user is back in chat or provides notes/transcript.
+
+## Focus-block kickoff
+
+The always-on rule names the block, lists its actions, offers the first move, and asks only what would change the draft. Use this shape:
+
+> Focus block is now: [subject], [start]-[end] local time. Let's get started.
+>
+> [action 1]
+> [action 2]
+> Done = [from calendar].
+>
+> I can draft [the artefact] now. Questions: ...
+
+It cannot interrupt a quiet IDE. Do not start a local sleep loop. Offer a Cursor Automation or `/loop` only if the user asks for a clock ping with chat closed.

@@ -2,22 +2,24 @@
 
 This document explains what to personalize after installing the BA Assistant package. The package ships with generic defaults — customize these to match your role, org, and tooling.
 
-> **New users:** The BA Assistant includes a first-run setup wizard that handles most of this automatically. On first launch, if `ba-profile.mdc` still contains `[Your Name]` placeholders, the wizard will guide you through configuration interactively. You only need this guide if you want to go deeper than what the wizard covers, or to customize manually.
+> **New users:** The BA Assistant includes a first-run setup wizard that handles most of this automatically. On first launch, if `~/.cursor/rules/ba-assistant-config.mdc` doesn't exist yet (or still has `[Your Name]`), the wizard guides you through configuration and writes your settings there. It never edits `ba-profile.mdc`, which is the shared persona. You only need this guide if you want to go deeper than what the wizard covers, or to customize manually.
 
 ---
 
-## 1. BA Profile Rule (`rules/ba-profile.mdc`)
+## 1. Personal configuration (`rules/ba-assistant-config.mdc`)
 
-This is the most important file to customize. It defines your BA persona, commands, living tracker format, and status page structure.
+This is your personal settings file. `/setup` creates it and upgrades do not overwrite it.
 
 ### What to change
 
 | Section | What to do |
 |---------|-----------|
-| Title and role description | Replace with your name and how you want the assistant to behave |
-| Specialist Skills table | Add or remove skills based on your workflow |
-| Status Page Standard Format | Customize sections for your org's status reporting needs |
-| Communication Style | Adjust to match your preferences |
+| Name, role and domain | Set the values that describe your work |
+| Paths and integrations | Set initiative folders, Jira and Confluence details |
+| Workboard preferences | Set calendar, catch-up and mail-noise preferences |
+| Personal voice | Create an own-named rule such as `your-name-voice-and-style.mdc` |
+
+Do not treat package `rules/ba-profile.mdc` as your configuration file. If you need to change the shared persona, create an own-named profile rule and keep it separate so package upgrades remain straightforward.
 
 ### Status page sections
 

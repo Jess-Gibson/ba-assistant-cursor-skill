@@ -425,6 +425,30 @@ def main():
         check("Untrusted: mail scan output helper fences and defuses a fake end marker",
               fenced.count("<<<END UNTRUSTED>>>") == 1 and fenced.endswith("<<<END UNTRUSTED>>>"), fenced)
 
+        # --- F24: fail-open note only when external-write-gate failClosed is false ---
+        h24 = make_home(tmp, initiatives=("solo",))
+        note = "BA write gate is registered fail-open"
+        (h24 / ".cursor" / "hooks.json").write_text(json.dumps({"hooks": {"beforeMCPExecution": [
+            {"command": 'py "./hooks/external-write-gate.py"', "failClosed": False}]}}), encoding="utf-8")
+        ctx = session_init(h24)["additional_context"]
+        check("[F24] failClosed false shows fail-open note", note in ctx, ctx[-400:])
+        (h24 / ".cursor" / "hooks.json").write_text(json.dumps({"hooks": {"beforeMCPExecution": [
+            {"command": 'py "./hooks/external-write-gate.py"', "failClosed": True}]}}), encoding="utf-8")
+        ctx = session_init(h24)["additional_context"]
+        check("[F24] failClosed true omits fail-open note", note not in ctx, ctx[-400:])
+        (h24 / ".cursor" / "hooks.json").write_text(json.dumps({"hooks": {"beforeMCPExecution": [
+            {"command": 'py "./hooks/gate-miro-preflight.py"', "failClosed": False}]}}), encoding="utf-8")
+        ctx = session_init(h24)["additional_context"]
+        check("[F24] other gate failClosed false does not add write-gate note", note not in ctx, ctx[-400:])
+
+        # --- F27: shared-repo postToolUse matcher stays Write|Edit ---
+        matcher = None
+        for entry in pkg.get("postToolUse") or []:
+            if isinstance(entry, dict) and "shared-repo-guard" in str(entry.get("command") or ""):
+                matcher = entry.get("matcher")
+                break
+        check("[F27] shared-repo-guard postToolUse matcher is Write|Edit", matcher == "Write|Edit", str(matcher))
+
     print(f"\n{'All hook tests passed.' if not FAILURES else f'{len(FAILURES)} failed.'}")
     return 1 if FAILURES else 0
 

@@ -156,16 +156,38 @@ def has_mail_recipients(args):
     return False
 
 
-def classify_call(name, args, server=""):
-    """classify() plus server context and the payload check.
+def is_mail_tool_name(name_toks):
+    """Tool name carries mail/email/outlook plus a send/reply/forward/draft verb.
 
-    A non-mail server such as Slack, Teams or a calendar can safely make a
-    write or read call whose tool name alone resembles mail. A mail server
-    still denies send, reply, forward and draft operations. Wrapped Runlayer
-    calls classify from the underlying tool name instead.
+    Compose verbs stay in classify(), which still respects NOT_MAIL_CONTEXT so
+    outlook_calendar_create_event asks instead of denying as mail.
+    """
+    return bool(name_toks & MAIL_WORDS and name_toks & MAIL_SEND_WORDS)
+
+
+def classify_call(name, args, server=""):
+    """classify() plus the server name and the payload check.
+
+    Order: (1) mail word plus a send verb in the tool name always denies,
+    regardless of server. Email recipients in the payload also deny for
+    non-reads (writes/unknown), regardless of server; reads stay allowed.
+    (2) Then use mcp_server_name so bare send_message/reply on slack/teams
+    asks instead of denying as mail. A server token in MAIL_WORDS treats
+    send/reply/forward/draft as mail. Runlayer's outer name matches neither
+    set, so a wrapped call stays on the tool name.
     """
     server_toks = set(tokens(server))
     name_toks = set(tokens(name))
+    if is_mail_tool_name(name_toks):
+        return "deny", "email send/reply/forward/draft"
+    # Recipients deny non-reads regardless of server. Calendar/chat/Jira tool
+    # names keep their own context: a calendar invite with attendees is a write
+    # ask, not a mail deny. Mail searches (reads) with a to-filter stay allowed.
+    if has_mail_recipients(args) and not name_toks & NOT_MAIL_CONTEXT:
+        decision, reason = classify(name)
+        if decision != "allow":
+            return "deny", "email recipients in arguments"
+        return decision, reason
     if server_toks & NOT_MAIL_CONTEXT:
         decision, reason = classify(name)
         if decision == "deny":
@@ -177,10 +199,7 @@ def classify_call(name, args, server=""):
         return decision, reason
     if server_toks & MAIL_WORDS and name_toks & MAIL_SEND_WORDS:
         return "deny", "email send/reply/forward/draft"
-    decision, reason = classify(name)
-    if decision == "ask" and not name_toks & NOT_MAIL_CONTEXT and has_mail_recipients(args):
-        return "deny", "email recipients in arguments"
-    return decision, reason
+    return classify(name)
 
 
 def is_issue_create(name):

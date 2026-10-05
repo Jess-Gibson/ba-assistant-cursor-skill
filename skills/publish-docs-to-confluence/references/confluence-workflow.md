@@ -12,6 +12,7 @@
 - **Required:** `cloudId`, `pageId`, `body`
 - **Optional:** `title`, `status` ("current" | "draft"), `spaceId`, `parentId`, `contentFormat` ("markdown" | "adf"), `versionMessage`
 - Use `contentFormat: "markdown"` when sending Markdown.
+- **Status pages:** use `contentFormat: "adf"` and the filled body from `skills/ba-assistant/references/status-page-template.adf.json` per `status-page-format.md` (not Markdown).
 
 ### createConfluencePage
 

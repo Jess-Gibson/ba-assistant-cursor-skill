@@ -136,7 +136,21 @@ def main():
             code, out = run_gate(bad, home)
             check(f"malformed payload {bad!r} asks, exit 0", code == 0 and out["permission"] == "ask", str(out))
 
-        # --- F21: mcp_server_name steers mail vs chat for bare send_message ---
+        # --- F21: mail name / recipients deny first; mcp_server_name only for bare names ---
+        code, out = run_gate(json.dumps({
+            "tool_name": "send_email", "mcp_server_name": "slack", "tool_input": {},
+        }), home)
+        check("[F21] send_email + slack still denies (server never relaxes mail)",
+              out["permission"] == "deny", str(out))
+        code, out = run_gate(json.dumps({
+            "tool_name": "send_email", "mcp_server_name": "teams", "tool_input": {},
+        }), home)
+        check("[F21] send_email + teams still denies", out["permission"] == "deny", str(out))
+        code, out = run_gate(json.dumps({
+            "tool_name": "sendNotification", "mcp_server_name": "ms365-teams",
+            "tool_input": {"to": "a@example.com"},
+        }), home)
+        check("[F21] recipients on ms365-teams deny", out["permission"] == "deny", str(out))
         code, out = run_gate(json.dumps({
             "tool_name": "send_message", "mcp_server_name": "slack", "tool_input": "{}",
         }), home)

@@ -556,6 +556,8 @@ def package_map(pkg: Path, layout: dict) -> dict[str, Path]:
         out[f"commands/{p.name}"] = p
     for p in sorted((pkg / "hooks").glob("*.py")) if (pkg / "hooks").exists() else []:
         out[f"hooks/{p.name}"] = p
+    for p in sorted((pkg / "hooks").glob("*.ps1")) if (pkg / "hooks").exists() else []:
+        out[f"hooks/{p.name}"] = p
     if (pkg / "hooks" / "hooks.json").exists():
         out["hooks.json"] = pkg / "hooks" / "hooks.json"
     for name in layout["ws_tool_scripts"]:

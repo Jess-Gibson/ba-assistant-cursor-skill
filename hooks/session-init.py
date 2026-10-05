@@ -77,7 +77,7 @@ TRANSCRIPT_WINDOW_DAYS = 7   # transcripts stay listed until debriefed, for up t
 _COPY_SUFFIX_RE = re.compile(r"\s*\(\d+\)\s*$")
 SESSION_BANNER = ("BA Assistant session context (its session hook ran). If this chat is BA work (an initiative, a BA "
                   "command, or a BA question) or the workspace is an initiative folder, start your first reply with the "
-                  "one-line `> **Session context:**` report (execution-router.mdc section 6). Otherwise ignore this "
+                  "one-line `> **Session context:**` report (execution-router.mdc section 5). Otherwise ignore this "
                   "block and answer normally; do not mention BA Assistant.")
 
 
@@ -591,7 +591,7 @@ def calendar_block() -> str:
     if not calendar_path.exists():
         return ""
     try:
-        cal = json.loads(calendar_path.read_text(encoding="utf-8"))
+        cal = json.loads(calendar_path.read_text(encoding="utf-8-sig"))
     except (OSError, json.JSONDecodeError):
         return ""
     meetings = cal.get("meetings") or []

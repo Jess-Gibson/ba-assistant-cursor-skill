@@ -125,6 +125,25 @@ def test_f03_banner():
             ctx = out
         check("[F03] banner has Otherwise ignore this block", "Otherwise ignore this" in ctx)
         check("[F03] banner drops whatever the ask", "whatever the ask" not in ctx)
+        check("[F03] banner points at execution-router section 5",
+              "execution-router.mdc section 5" in ctx, ctx[:400])
+
+
+def test_f02_session_init_bad_catchup_hours():
+    with tempfile.TemporaryDirectory() as td:
+        tmp = Path(td)
+        home = make_home(tmp)
+        cfg = home / "rules" / "ba-assistant-config.mdc"
+        text = cfg.read_text(encoding="utf-8")
+        text = re.sub(r'^catchupHours:.*$', 'catchupHours: "00:00-24:00"', text, flags=re.M)
+        cfg.write_text(text, encoding="utf-8")
+        rc, out = run(home / "hooks" / "session-init.py", home=tmp, stdin="{}")
+        check("[F02] session-init exits 0 on catchupHours 00:00-24:00", rc == 0, out[:300])
+        try:
+            ctx = json.loads(out).get("additional_context", "")
+        except json.JSONDecodeError:
+            ctx = out
+        check("[F02] session-init notes bad catchupHours", "not understood" in ctx, ctx[:500])
 
 
 def test_f09_oldest_jira():
@@ -339,15 +358,16 @@ def _load_workboard_gen():
 
 def test_f19_calendar_window():
     gen = _load_workboard_gen()
-    # Stage A scratch: catchup 09:00-17:00 +/- 30, early 07:00 widens to 420, late past 22:00 clipped,
-    # working 11:00-19:00, lunch 14:00-15:00 skipped in free blocks.
+    # Synthetic: working 09:00-17:00 drives view; lunch 12:00-13:00 skipped in free blocks.
     config = {
-        "catchup_start": 9 * 60,
-        "catchup_end": 17 * 60,
-        "work_start": 11 * 60,
-        "work_end": 19 * 60,
-        "lunch_start": 14 * 60,
-        "lunch_end": 15 * 60,
+        "catchup_start": 10 * 60,
+        "catchup_end": 18 * 60,
+        "view_start": 9 * 60,
+        "view_end": 17 * 60,
+        "work_start": 9 * 60,
+        "work_end": 17 * 60,
+        "lunch_start": 12 * 60,
+        "lunch_end": 13 * 60,
     }
     meetings = [
         {"subject": "Early sync", "start": "07:00", "end": "07:30"},
@@ -368,14 +388,155 @@ def test_f19_calendar_window():
           str(late))
     free_starts = [b["start"] for b in cal["freeBlocks"]]
     free_spans = [(b["start"], b["end"]) for b in cal["freeBlocks"]]
-    check("[F19] free blocks skip lunch (starts 11:00 and 15:00)",
-          free_starts == [660, 900], str(free_starts))
-    check("[F19] free block spans match Stage A scratch",
-          free_spans == [(660, 840), (900, 1140)], str(free_spans))
+    # Stand-up occupies 09:00-09:15, so the first free block starts at 09:15.
+    check("[F19] free blocks skip lunch (starts 09:15 and 13:00)",
+          free_starts == [555, 780], str(free_starts))
+    check("[F19] free block spans stay inside working hours",
+          free_spans == [(555, 720), (780, 1020)], str(free_spans))
+
+    # Fallback levels with no meetings: workingHours → catchupHours → 08:30-17:30.
+    empty = []
+    working_only = {
+        "catchup_start": 10 * 60, "catchup_end": 18 * 60,
+        "view_start": 9 * 60, "view_end": 17 * 60,
+        "work_start": 9 * 60, "work_end": 17 * 60,
+        "lunch_start": None, "lunch_end": None,
+    }
+    cal_w = gen.build_calendar(empty, working_only)
+    # 09:00-17:00 +/-30 -> 08:30-17:30 -> hour-round 08:00-18:00
+    check("[F19] workingHours view is 08:00-18:00 after +/-30 and hour round",
+          cal_w["calendarStart"] == 8 * 60 and cal_w["calendarEnd"] == 18 * 60,
+          f"{cal_w['calendarStart']}-{cal_w['calendarEnd']}")
+
+    catchup_only = {
+        "catchup_start": 10 * 60, "catchup_end": 18 * 60,
+        "view_start": 10 * 60, "view_end": 18 * 60,
+        "work_start": 10 * 60, "work_end": 18 * 60,
+        "lunch_start": None, "lunch_end": None,
+    }
+    cal_c = gen.build_calendar(empty, catchup_only)
+    # 10:00-18:00 +/-30 -> 09:30-18:30 -> hour-round 09:00-19:00
+    check("[F19] catchupHours fallback view is 09:00-19:00 after +/-30 and hour round",
+          cal_c["calendarStart"] == 9 * 60 and cal_c["calendarEnd"] == 19 * 60,
+          f"{cal_c['calendarStart']}-{cal_c['calendarEnd']}")
+
+    default_only = {
+        "catchup_start": 8 * 60 + 30, "catchup_end": 17 * 60 + 30,
+        "view_start": 8 * 60 + 30, "view_end": 17 * 60 + 30,
+        "work_start": 8 * 60 + 30, "work_end": 17 * 60 + 30,
+        "lunch_start": None, "lunch_end": None,
+    }
+    cal_d = gen.build_calendar(empty, default_only)
+    check("[F19] default 08:30-17:30 view is 08:00-18:00 after +/-30 and hour round",
+          cal_d["calendarStart"] == 8 * 60 and cal_d["calendarEnd"] == 18 * 60,
+          f"{cal_d['calendarStart']}-{cal_d['calendarEnd']}")
+
+
+def test_calendar_feed_bom():
+    """get-calendar.ps1 writes UTF-8 with BOM; readers must use utf-8-sig."""
+    si = _load_session_init()
+    with tempfile.TemporaryDirectory() as td:
+        tmp = Path(td)
+        home = make_home(tmp)
+        feed = home / "_workstream" / "calendar-feed.json"
+        today = datetime.now().astimezone().replace(hour=10, minute=0, second=0, microsecond=0)
+        payload = {
+            "meetings": [
+                {
+                    "subject": "Stand-up",
+                    "start": today.isoformat(),
+                    "end": (today + timedelta(minutes=15)).isoformat(),
+                }
+            ],
+            "meeting_count": 1,
+        }
+        feed.write_bytes(b"\xef\xbb\xbf" + json.dumps(payload).encode("utf-8"))
+        old_up = os.environ.get("USERPROFILE")
+        old_home = os.environ.get("HOME")
+        try:
+            os.environ["USERPROFILE"] = str(tmp)
+            os.environ["HOME"] = str(tmp)
+            block = si.calendar_block()
+            subjects = si.calendar_meeting_subjects()
+        finally:
+            if old_up is None:
+                os.environ.pop("USERPROFILE", None)
+            else:
+                os.environ["USERPROFILE"] = old_up
+            if old_home is None:
+                os.environ.pop("HOME", None)
+            else:
+                os.environ["HOME"] = old_home
+        check("[BOM] calendar_block reads BOM feed", "CALENDAR:" in block and "1 meeting" in block, block)
+        check("[BOM] calendar_meeting_subjects reads BOM feed", "stand-up" in subjects, str(subjects))
+
+
+def test_f04_tracker_table_columns():
+    text = (REPO / "skills" / "ba-assistant" / "templates" / "initiative-tracker.md.template").read_text(
+        encoding="utf-8"
+    )
+    lines = text.splitlines()
+    mismatches = []
+    i = 0
+    while i < len(lines) - 1:
+        header = lines[i]
+        sep = lines[i + 1]
+        if header.startswith("|") and sep.startswith("|") and re.fullmatch(r"\|?(?:\s*:?-{3,}:?\s*\|)+", sep):
+            h_cols = [c for c in header.strip().strip("|").split("|")]
+            s_cols = [c for c in sep.strip().strip("|").split("|")]
+            if len(h_cols) != len(s_cols):
+                mismatches.append((i + 1, len(h_cols), len(s_cols), header.strip()))
+            i += 2
+            continue
+        i += 1
+    check("[F04] every tracker template table has matching header/separator columns",
+          not mismatches, str(mismatches))
+
+
+def test_f16_merge_upgrade_copies_ps1():
+    import importlib.util
+
+    path = REPO / "tools" / "ba-merge-upgrade.py"
+    spec = importlib.util.spec_from_file_location("ba_merge_upgrade_f16", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    layout = mod.package_layout(REPO)
+    mapping = mod.package_map(REPO, layout)
+    check("[F16] package_map includes hooks/get-calendar.ps1",
+          "hooks/get-calendar.ps1" in mapping, str(sorted(k for k in mapping if k.startswith("hooks/"))))
+
+
+def test_f21_mail_deny_before_server():
+    gate = REPO / "hooks" / "external-write-gate.py"
+    with tempfile.TemporaryDirectory() as td:
+        tmp = Path(td)
+        home = tmp / ".cursor"
+        (home / "hooks").mkdir(parents=True)
+        (home / "_workstream").mkdir(parents=True)
+        shutil.copy(gate, home / "hooks" / "external-write-gate.py")
+        cases = [
+            ('{"tool_name":"send_email","mcp_server_name":"slack","tool_input":{}}', "deny"),
+            ('{"tool_name":"send_email","mcp_server_name":"teams","tool_input":{}}', "deny"),
+            ('{"tool_name":"sendNotification","mcp_server_name":"ms365-teams","tool_input":{"to":"a@example.com"}}', "deny"),
+            ('{"tool_name":"send_message","mcp_server_name":"slack","tool_input":{}}', "ask"),
+        ]
+        for payload, expected in cases:
+            p = subprocess.run(
+                [PY, str(home / "hooks" / "external-write-gate.py")],
+                input=payload,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                env={**ENV, "USERPROFILE": str(tmp), "HOME": str(tmp)},
+                timeout=30,
+            )
+            out = json.loads(p.stdout.strip().splitlines()[-1])
+            check(f"[F21] {payload[:40]}... -> {expected}", out.get("permission") == expected, str(out))
 
 
 def main() -> int:
     test_f02_catchup_hours()
+    test_f02_session_init_bad_catchup_hours()
     test_f03_banner()
     test_f09_oldest_jira()
     test_8b_short_term()
@@ -386,6 +547,10 @@ def main() -> int:
     test_f06_short_term_in_plan()
     test_f16_transcript_detection()
     test_f19_calendar_window()
+    test_calendar_feed_bom()
+    test_f04_tracker_table_columns()
+    test_f16_merge_upgrade_copies_ps1()
+    test_f21_mail_deny_before_server()
     print()
     if FAILURES:
         print(f"{len(FAILURES)} v16 fix checks failed")

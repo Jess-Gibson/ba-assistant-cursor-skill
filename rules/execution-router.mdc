@@ -70,7 +70,7 @@ After every user message in a BA thread, scan for decisions, requirements, actio
 
 ### Skill nudges
 
-Content-aware skill triggers: see `skills-routing.mdc` (and the Specialist tier in `references/activity-map.md`).
+Nudges: requirement/AC → interrogator; options/trade-off → solution-shaping; stakeholder/RACI → stakeholder-strategy; change/adoption → change-strategy; as-is → current-state; playback → playback; handover/spike/ADR → ba-dev-handover.
 
 ## 5. Report (one line)
 

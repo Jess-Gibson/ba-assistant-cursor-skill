@@ -139,25 +139,17 @@ Use AskQuestion to present options. On "Approve all", execute all writes in sequ
 6. Offer to draft comms
 7. Save a version after the writes (silent): `python3 ~/.cursor/_workstream/initiative-history.py snapshot --initiative <slug> --label "Debrief: <meeting>"`. The BA can undo the whole debrief with `/undo`.
 
-### Approved-review payload and safe apply
+### After approval
 
-Chat review is the quality gate. Before asking for approval, show the complete extraction and `WILL WRITE TO...` card, then render a `debrief-review-<slug>-<date>.json` payload containing exactly those rows and session note. Do not run the helper yet.
+Chat review is the quality gate. After an explicit Approve option only:
 
-The payload includes the initiative slug and root, meeting name/date, an approval block, `markdownUpdates`, and `baActions`.
+1. Execute the write sequence above (snapshot, SESSION-CONTEXT, tracker, status-data, BA actions, sync gate) from the approved card. Additive tracker rows and session appends only. Do not publish, update Jira or Confluence, alter a requirements register, or rewrite an existing tracker row without the owning skill and a separate review.
+2. Report the exact applied operations in chat, then run the normal sync gate.
+3. After the BA approves the debrief card (any option except cancel), mark the transcript processed:
+   `python3 ~/.cursor/_workstream/list-downloads-recent.py --mark-processed "FULL_PATH"`
+   (Windows: `py`). Extraction alone never marks it. Same rule for every format (`.docx`, `.vtt`, `.txt`, `.srt`).
 
-After an explicit Approve option only:
-
-1. Set `approval.approved` to `true`, then record `reviewedBy` and `reviewedAt`, without changing proposed content.
-2. Run a dry run: `python3 _workstream/apply-debrief-review.py <payload-path>` (Windows: `py`).
-3. Show the dry-run operations in chat. If they differ from the approved card, stop.
-4. Apply: `python3 _workstream/apply-debrief-review.py <payload-path> --apply` (Windows: `py`).
-5. The helper regenerates `ba-actions.md` only when `baActions` changed.
-6. Report exact applied operations, then run the normal sync gate.
-7. After the BA approves the card (any option except cancel), mark the transcript processed. Extraction alone never marks it.
-
-The helper permits only additive tracker table rows, session-context appends, and BA-action upserts. It cannot publish, update Jira or Confluence, alter a requirements register, or rewrite an existing tracker row. Those changes need their owning skill and a separate review.
-
-For **Edit before approving**, revise the chat card and regenerate the payload. Never modify a previously reviewed payload in place and call it approved.
+For **Edit before approving**, revise the chat card and re-ask. Never treat an edited card as already approved.
 
 ### Cross-initiative debriefs
 
@@ -214,7 +206,7 @@ python3 _workstream/extract-docx-text.py --docx-path "FULL_PATH_TO.docx" --out-p
 
 (Windows: use `py` instead of `python3`.)
 
-Extracting a transcript marks it as debriefed, so session start stops listing it under "TRANSCRIPTS NOT DEBRIEFED YET". For a `.vtt` or `.txt` transcript you read directly, mark it after the card is approved: `python3 ~/.cursor/_workstream/list-downloads-recent.py --mark-processed "FULL_PATH"`.
+Do not mark the file processed during extraction. Mark it after the debrief card is approved (see After approval step 3), including for `.docx`.
 
 **Before running it:** check whether `--out-path` already exists and is newer than the source docx. If so, **skip extraction** and Read the out file directly.
 

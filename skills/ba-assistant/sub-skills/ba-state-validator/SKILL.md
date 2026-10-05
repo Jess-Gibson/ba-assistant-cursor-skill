@@ -160,7 +160,7 @@ Divergences found: <count>
 | # | Fact | Canonical | Found in | Found value | Last modified | Suggested action |
 |---|---|---|---|---|---|---|
 | 1 | Legal sign-off date | 6 Jun 2026 (status-data.json) | Project-hub.md:14 | 30 May 2026 | 23 May, 2:10pm | Update Project-hub.md |
-| 2 | Legal sign-off date | 6 Jun 2026 (status-data.json) | Confluence page 1238472 (Status as at 23 May) | 30 May 2026 | 23 May | Mark page superseded; publish new status page |
+| 2 | Legal sign-off date | 6 Jun 2026 (status-data.json) | Confluence page 1238472 (Status as at 23 May) | 30 May 2026 | 23 May | Update the tracked status page in place with current data |
 | 3 | status-snapshot.html freshness | status-data.json 24 May, 9:00am | status-snapshot.html | rendered 23 May, 2:10pm | 23 May | Run /canvas (render-initiative-canvas.py) |
 ```
 
@@ -328,7 +328,7 @@ The user can defer fixes. But it surfaces drift before it accumulates.
 | RAID entry (R / A / I / DEP / D / OQ) | `references/raid-format.md` | Required fields present, status in valid set, age-based flags |
 | Requirement entry | `references/requirement-format.md` | Required fields present, interrogator output linked for confirmed, acceptance for met present |
 | MoSCoW matrix | `references/requirement-format.md` | Per-scope coverage, override decisions linked |
-| Confluence status page | `references/status-page-format.md` | Section order, outcome health present, DRAFT banner if applicable, supersede chain correct |
+| Confluence status page | `references/status-page-format.md` | Section order, outcome health present, DRAFT banner if applicable, update-in-place on the tracked page id |
 | Visual (flowchart, etc.) | `references/visual-output-format.md` | Template used, colour taxonomy applied, node detail complete |
 | status-data.json | `references/canvas-data-model.md` | Schema match, required fields, valid state values |
 | Dev handover (requirements pack / spike / ADR / story pack) | `references/dev-handover-format.md` + `references/ears-translation.md` | No working-file links (workspace content embedded only); requirements all confirmed; published value matches current register (freshness); handover note present |

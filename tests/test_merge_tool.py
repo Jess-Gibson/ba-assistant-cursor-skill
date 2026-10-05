@@ -316,18 +316,23 @@ def main():
         touched_by_new = [p for p in pkg_files if rel(p) in changed and (REPO / rel(p)).exists()
                           and "ba-actions" not in (REPO / rel(p)).read_text(encoding="utf-8")]
         # When the new tree changed almost everything since v14, invent three package
-        # files that are identical in base (v14), new (REPO), and the live install so
-        # B / CRLF / G class meaning stays valid.
-        synthetic_repo_paths = []
+        # files that are identical in base (v14), a temp "new" package, and the live
+        # install so B / CRLF / G class meaning stays valid. Never write into REPO.
+        new_pkg = REPO
         if len(untouched_by_new) < 3:
+            new_pkg = tmp / "pkg-new"
+            shutil.copytree(
+                REPO,
+                new_pkg,
+                ignore=shutil.ignore_patterns(".git", "dist", "__pycache__", "*.pyc", ".pytest_cache"),
+            )
             fixture_body = "# Merge-tool fixture\n\nIdentical in base and new. Used only by tests/test_merge_tool.py.\n"
             for name in ("merge-fixture-b.md", "merge-fixture-crlf.md", "merge-fixture-g.md"):
                 rel_path = f"skills/ba-assistant/references/{name}"
-                for root in (v14, REPO, cursor):
+                for root in (v14, new_pkg, cursor):
                     dest = root / rel_path
                     dest.parent.mkdir(parents=True, exist_ok=True)
                     dest.write_bytes(fixture_body.encode("utf-8"))
-                synthetic_repo_paths.append(REPO / rel_path)
                 untouched_by_new.append(cursor / rel_path)
         try:
             b_file, crlf_file, g_file = untouched_by_new[0], untouched_by_new[1], untouched_by_new[2]
@@ -355,7 +360,7 @@ def main():
             check("Backup: ROLLBACK.md written", (session / "ROLLBACK.md").exists())
             code, out = run([TOOL, "stage", "--session", session], home)
             check("Stage: OK", code == 0, out[-500:])
-            code, out = run([TOOL, "classify", "--session", session, "--base", v14, "--new", REPO, "--rules", rules], home)
+            code, out = run([TOOL, "classify", "--session", session, "--base", v14, "--new", new_pkg, "--rules", rules], home)
             check("Classify: OK", code == 0, out[-1500:])
             for line in out.splitlines():
                 if line.startswith("  "):
@@ -459,11 +464,7 @@ def main():
 
             personalised_layout_scenario(tmp, v14)
         finally:
-            for p in synthetic_repo_paths:
-                try:
-                    p.unlink(missing_ok=True)
-                except OSError:
-                    pass
+            pass
 
     print(f"\n{'All merge tool tests passed.' if not FAILURES else f'{len(FAILURES)} failed.'}")
     return 1 if FAILURES else 0

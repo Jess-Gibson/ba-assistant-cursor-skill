@@ -67,7 +67,7 @@ BA-owned actions live in `_workstream/ba-actions.json` (each row has its own `so
 ## Sign-offs
 
 | ID | Artefact | Requested | Approved | Owner | Source |
-|---|---|---|---|---|
+|---|---|---|---|---|---|
 | | | | | | |
 
 ---

@@ -53,7 +53,7 @@ Specific triggers to watch for, by skill:
 | Discovery and Requirements | Compliance requirement (COMP-) priority set to anything other than `Must` | Compliance optionalisation (added Wave 7) |
 | Discovery and Requirements | MoSCoW values for one requirement changed >2 times in 30 days | Unstable scope (added Wave 7) |
 | Status page publisher | Outcome health section absent or stale >14 days | Outcomes ignored  -  process metrics may mislead (added Wave 7) |
-| Status page publisher | Previous status page not marked superseded after new one published | Stale status page live (added Wave 7) |
+| Status page publisher | Status page published as a new page instead of updating the tracked page in place | Duplicate status pages live (added Wave 7) |
 | Status page publisher | Page published without DRAFT banner when `pmApproval.status` not approved | Approval gate bypassed (added Wave 7) |
 | Status page publisher | RAID inline with full narrative content (should link to tracker) | Status page becoming tracker (added Wave 7) |
 | Any Jira write | `createJiraIssue` or material `editJiraIssue` invoked without prior `AskQuestion` in session | Clarification gate skipped (added Wave 7) |

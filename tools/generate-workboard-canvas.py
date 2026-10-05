@@ -128,9 +128,15 @@ def load_workboard_config(cursor_home: Path) -> dict:
         or str(Path.home() / "Downloads")
     )
     downloads = posix(Path(downloads).expanduser())
+    # View window: workingHours (preferences), else catchupHours, else 08:30-17:30.
     catchup = parse_hours(parse_rule_value(rules_text, "catchupHours")) or DEFAULT_CATCHUP
     prefs = load_working_preferences(workstream)
     working = parse_hours(prefs.get("workingHours")) or catchup
+    view_base = (
+        parse_hours(prefs.get("workingHours"))
+        or parse_hours(parse_rule_value(rules_text, "catchupHours"))
+        or DEFAULT_CATCHUP
+    )
     lunch = parse_hours(prefs.get("lunchHours"))
 
     return {
@@ -158,6 +164,8 @@ def load_workboard_config(cursor_home: Path) -> dict:
         "wrap_command": posix(home / "commands" / "wrap.md"),
         "catchup_start": catchup[0],
         "catchup_end": catchup[1],
+        "view_start": view_base[0],
+        "view_end": view_base[1],
         "work_start": working[0],
         "work_end": working[1],
         "lunch_start": lunch[0] if lunch else None,
@@ -319,10 +327,12 @@ def _free_blocks(occupied: list[tuple[int, int]], free_start: int, free_end: int
 
 
 def build_calendar(meetings: list[dict], config: dict) -> dict:
-    """View = catchupHours +/- 30, widened for meetings, capped 06:00-22:00."""
-    catchup_start, catchup_end = int(config["catchup_start"]), int(config["catchup_end"])
+    """View = workingHours +/- 30 (else catchupHours +/- 30, else 08:30-17:30 +/- 30),
+    widened for meetings, capped 06:00-22:00. Free blocks stay inside workingHours
+    (preferences) or catchupHours, skipping lunch."""
     work_start, work_end = int(config["work_start"]), int(config["work_end"])
-    view_start, view_end = catchup_start - 30, catchup_end + 30
+    view_start = int(config.get("view_start", config["catchup_start"])) - 30
+    view_end = int(config.get("view_end", config["catchup_end"])) + 30
     calendar_blocks, outside_blocks, all_day_blocks, occupied = [], [], [], []
     for raw in meetings:
         start, end = _meeting_times(raw)

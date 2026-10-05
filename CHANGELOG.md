@@ -43,8 +43,8 @@ Grouped by area. One line per fix ID from the Version 16 review pack.
 - F03: The session banner only asks for the BA report line in BA chats.
 - F05: Catch-up reads requirement status from the Status column header, not a fixed column.
 - F06 / 8b: Short-term initiative folders resolve by bare slug; validate-state supports `--all`.
-- F16: Calendar look-behind plus meeting-name transcript detection for Teams `.docx` files.
-- F17: Transcripts are marked processed only after debrief approval.
+- F16: Calendar look-behind plus meeting-name transcript detection for Teams `.docx` files (Windows-only Outlook COM look-behind).
+- F17: Transcripts are marked processed only after debrief approval (`list-downloads-recent.py --mark-processed`).
 
 **Status, Jira, and registers**
 - F04: Starter tracker registers include PM approval, DoR checks, MoSCoW and Sign-offs.
@@ -52,29 +52,46 @@ Grouped by area. One line per fix ID from the Version 16 review pack.
 - F08: Jira refresh uses a 60-minute rule everywhere status and canvas need it.
 - F09: Jira age uses the oldest ticket stamp; missing tickets are ignored; stale tickets are counted.
 - F14: DoR preflight reads the unified requirements register (index, then metadata).
-- F15: Metrics treat `confirmed` as interrogated (keeps `accepted` for older data).
-- C9: Status pages are ADF from a template, updated in place; RAG maps Green/Amber/Red to success/warning/error.
+- F15: Metrics treat `confirmed` as interrogated (keeps `accepted` for older data); discovery lifecycle prose uses `confirmed`.
+- C9: Status pages are ADF from `references/status-page-template.adf.json`, updated in place; RAG maps Green/Amber/Red to success/warning/error.
 
 **Workboard and end of day**
-- F12: End of day applies clear BA-owned updates, cards the rest, and books focus blocks only when preferences say so.
+- F12: End of day applies clear BA-owned updates, cards the rest, and books focus blocks when `autoBookFocus` is true (chat confirm otherwise; external-write gate still asks).
 - F18: Archived initiatives are not counted as active on the workboard.
-- F19: Workboard calendar follows catch-up hours plus or minus 30 minutes, widened for meetings, capped 06:00 to 22:00.
+- F19: Workboard calendar view uses workingHours +/- 30 (else catchupHours, else 08:30-17:30), widened for meetings, capped 06:00 to 22:00.
 - F20: End of Day continues the full `/EOD` closeout sequence.
 
 **Safety, docs, and packaging**
-- F13: Always-on rules trimmed; suite budget lowered to 22,000 characters.
-- F21: External write gate reads `mcp_server_name` so Slack/Teams writes ask instead of denying as mail.
+- F13: Always-on rules trimmed; suite budget lowered to 22,000 characters; skill-nudge list restored in the router.
+- F21: External write gate denies mail tool names and recipient payloads first; `mcp_server_name` only steers bare chat sends.
 - F22: Email claims cover MCP and shell; SETUP states shell mail is a rule, not a hook.
 - F23: Cloud and background agent limits documented.
 - F24: Missing Python fail-open note is visible when the gate is not fail-closed.
-- F25: Snapshot-first resume matches the orchestrator read order.
+- F25: Snapshot-first resume already present at baseline, verified.
 - F26: Retro package edits log to `local-skill-patches.md`; plain upgrader warns; use the merge tool to keep them.
 - F27: Shared-repo postToolUse matcher stays `Write|Edit` (BOM fail-open deferred).
-- F29: Intake canvas skeleton uses real form controls.
+- F29: Intake canvas skeleton already present at baseline, verified.
 - F30: `regenerate-ba-actions-md.py --help` does not rewrite files.
 - F10 / F11: Package labels say Version 16; GitHub URL uses `Jess-Gibson`.
+- F35: Remaining guidance contradictions closed (including C14 learnings wording).
 
-**Deferred** (see `WAITING.md` and Stage D): F31, F32, F34 legacy tidy; F33 native skills; L11 Jira query split; F27 BOM fail-open; W1 focus-block gate allow-list; W2 standalone `/catchup` tiers.
+**Also in this release**
+- CUSTOMIZATION retitle for Version 16.
+- Audit-log records `mcp_server_name` (server field) on gate decisions.
+- Focus-block kickoff section in the proactive assistance protocol.
+- Report-loads-inline router line (`> Running: <Skill> → <intent>`).
+- Catch-up depth-2 scan for short-term initiative folders.
+
+### Review fixes
+
+Second pass on the Version 16 review findings (repo commit after the pre-release pack):
+
+- Calendar-feed readers accept UTF-8 BOM from `get-calendar.ps1`.
+- F21 deny-first mail order; F19 workingHours-first calendar view; C9 status-page ADF path, placeholder table, and supersede removals.
+- F17 drops the local-only `apply-debrief-review.py` helper from the debrief skill.
+- F08 / F12 / F04 / F13 / F15 / F16 (merge copies `hooks/*.ps1`) and related tests.
+
+**Deferred** (Stage D after merge): F31, F32, F34 legacy tidy; F33 native skills; L11 Jira query split; F27 BOM fail-open. F28 remains a manual smoke test (`SMOKE-TESTS.md`).
 
 ## Version 15 - 2026-09-27
 

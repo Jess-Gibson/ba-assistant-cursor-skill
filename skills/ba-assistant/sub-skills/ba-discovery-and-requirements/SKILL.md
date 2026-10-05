@@ -147,10 +147,10 @@ is re-interrogated and a confirmed statement is produced.
     Also log: *content changes* (when the wording or scope of the requirement changes). Each change carries date, what changed, why, and triggers `Requirements_Interrogator` in **Rethink mode** automatically.
 
     **Why this matters:**
-    - Sponsor and stakeholders can see which requirements are mature (accepted/in-flight/delivered) vs immature (proposed/interrogated)
+    - Sponsor and stakeholders can see which requirements are mature (confirmed/in-flight/delivered) vs immature (proposed/interrogated)
     - Solution Evaluation knows what to evaluate (only `delivered` requirements)
     - In-flight requirement changes are surfaced and trigger impact assessment (preventing silent scope drift)
-    - Retro can analyse where the most drop-off happens (e.g. "lots of `proposed` requirements never reached `accepted`  -  why?")
+    - Retro can analyse where the most drop-off happens (e.g. "lots of `proposed` requirements never reached `confirmed`  -  why?")
 
     **What this is NOT**  -  this is not a full requirements management tool. No version trees, no traceability matrices to atomic test cases. Just state + lightweight change history.
 
@@ -220,7 +220,7 @@ The Discovery and Requirements skill should produce:
 - **Requirements lists** – Two lists:
   - *High‑level requirements*: broad statements of intent that align with the problem and solution scope.
   - *Lower‑level requirements*: detailed behaviour, including functional requirements (features/capabilities), non‑functional requirements (performance, security, availability), compliance/legal requirements, data/reporting requirements, design/content requirements, operational/process requirements, and acceptance considerations.
-  Each requirement should include: identifier (e.g., REQ‑001), description, type, priority (high/medium/low  -  legacy field, retained for cross-system compatibility), source, dependencies (if any), acceptance criteria (if known), **lifecycle state** (proposed / interrogated / accepted / in-flight / delivered / evaluated / deferred / rejected), a **change log** (date | from state | to state | reason | owner; plus any content changes), and a **MoSCoW matrix** (per scope  -  initiative / each feature / each cohort or slice  -  see Task 13).
+  Each requirement should include: identifier (e.g., REQ‑001), description, type, priority (high/medium/low  -  legacy field, retained for cross-system compatibility), source, dependencies (if any), acceptance criteria (if known), **lifecycle state** (proposed / interrogated / confirmed / in-flight / delivered / evaluated / deferred / rejected), a **change log** (date | from state | to state | reason | owner; plus any content changes), and a **MoSCoW matrix** (per scope  -  initiative / each feature / each cohort or slice  -  see Task 13).
 - **Missing requirements log** – A list of requirements that are suspected or implied but not yet confirmed.  For each, note the stakeholder to consult and questions to ask.  Mark them as unknowns in the tracker.
 - **Evidence suggestions** – Recommended data queries or analysis to validate assumptions and quantify pain points.  Describe what data to collect and what metrics to analyse.
 

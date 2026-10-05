@@ -26,7 +26,7 @@ picking one arbitrarily:
     missing).
   - "OTHER NEW DOWNLOADS" (non-transcript) block and .vtt extension support:
     only session-init.ps1 had these. Ported from the .ps1.
-  - Search roots: BA_INITIATIVES_ROOT if set and a folder, then paths.initiativesRoot from
+  - Search roots: BA_INITIATIVES_ROOT if set, else paths.initiativesRoot from
     ~/.cursor/rules/ba-assistant-config.mdc (what setup writes), then always
     ~/.cursor/initiatives (the installer default). The older roots
     (~/.cursor/Initiatives, ~/.cursor/blueprints, ~/ba-initiatives,
@@ -63,17 +63,22 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-TRANSCRIPT_EXTENSIONS = {".docx", ".vtt", ".srt", ".txt"}
-TRANSCRIPT_NAME_HINT = "transcript"
-OTHER_EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg", ".xlsx", ".csv", ".txt", ".md", ".pptx"}
+# .vtt / .srt are always transcripts (caption formats).
+CAPTION_TRANSCRIPT_EXTENSIONS = {".vtt", ".srt"}
+# .docx / .txt only when the name looks like a meeting (hints or calendar subject).
+NAME_GATED_TRANSCRIPT_EXTENSIONS = {".docx", ".txt"}
+TRANSCRIPT_NAME_HINTS = ("transcript", "meeting", "recording", "minutes")
+OTHER_EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg", ".xlsx", ".csv", ".txt", ".md", ".pptx", ".docx"}
 DEFAULT_CATCHUP_EVERY_MIN = 180
 TAIL_LINES = 45
 MAX_OTHER_LISTED = 10
 MAX_TRANSCRIPTS_LISTED = 10
 TRANSCRIPT_WINDOW_DAYS = 7   # transcripts stay listed until debriefed, for up to this long
-SESSION_BANNER = ("BA Assistant session context. BA Assistant is on (its session hook ran). In your first reply in this "
-                  "chat, whatever the ask, start with the one-line `> **Session context:**` report "
-                  "(execution-router.mdc section 5) so the user can see BA Assistant is loaded.")
+_COPY_SUFFIX_RE = re.compile(r"\s*\(\d+\)\s*$")
+SESSION_BANNER = ("BA Assistant session context (its session hook ran). If this chat is BA work (an initiative, a BA "
+                  "command, or a BA question) or the workspace is an initiative folder, start your first reply with the "
+                  "one-line `> **Session context:**` report (execution-router.mdc section 6). Otherwise ignore this "
+                  "block and answer normally; do not mention BA Assistant.")
 
 
 def eprint(msg: str) -> None:
@@ -143,14 +148,14 @@ def downloads_folders() -> list[str]:
 
 def search_roots() -> list[str]:
     roots = []
-    # A BA_INITIATIVES_ROOT that is not a folder (stale, from an old install) is
-    # ignored, so it can't hide every initiative; the config path still applies.
-    env_root = os.path.expanduser((os.environ.get("BA_INITIATIVES_ROOT") or "").strip())
-    if env_root and os.path.isdir(env_root):
-        roots.append(env_root)
-    elif env_root:
-        eprint(f"BA_INITIATIVES_ROOT is set but is not a folder, ignored: {env_root}")
+    env_root = (os.environ.get("BA_INITIATIVES_ROOT") or "").strip()
     config_root = config_initiatives_root()
+    # Prefer a live env root; if it is missing/wrong, still use the profile path
+    # so a stale BA_INITIATIVES_ROOT cannot hide every initiative.
+    if env_root and Path(os.path.expanduser(env_root)).is_dir():
+        roots.append(str(Path(os.path.expanduser(env_root))))
+    elif env_root:
+        eprint(f"BA_INITIATIVES_ROOT is set but not a directory: {env_root}")
     if config_root and config_root not in roots:
         roots.append(config_root)
     home = str(Path.home())
@@ -319,8 +324,8 @@ def windows_dir_files(folder: Path) -> list[Path]:
 
 
 def processed_transcripts() -> set[str]:
-    """Transcripts already debriefed: extract-docx-text.py and
-    list-downloads-recent.py --mark-processed record them here."""
+    """Transcripts already debriefed: list-downloads-recent.py --mark-processed
+    (and extract-docx-text.py --mark-processed when opted in) record them here."""
     path = Path.home() / ".cursor" / "_workstream" / "processed-transcripts.json"
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
@@ -340,12 +345,67 @@ def same_file_key(path) -> str:
         return os.path.normcase(str(path))
 
 
+def normalize_meeting_title(value: str) -> str:
+    """Lower-case, collapse spaces, strip a trailing Windows ' (N)' copy suffix."""
+    text = _COPY_SUFFIX_RE.sub("", (value or "").strip().lower())
+    return re.sub(r"\s+", " ", text)
+
+
+def calendar_meeting_subjects() -> set[str]:
+    """Subjects from calendar-feed.json (used to spot Teams .docx named like the meeting)."""
+    calendar_path = Path.home() / ".cursor" / "_workstream" / "calendar-feed.json"
+    if not calendar_path.exists():
+        return set()
+    try:
+        cal = json.loads(calendar_path.read_text(encoding="utf-8-sig"))
+    except (OSError, ValueError):
+        return set()
+    subjects: set[str] = set()
+    for meeting in cal.get("meetings") or []:
+        if not isinstance(meeting, dict):
+            continue
+        norm = normalize_meeting_title(str(meeting.get("subject") or ""))
+        if norm:
+            subjects.add(norm)
+    return subjects
+
+
+def matches_calendar_subject(stem: str, subjects: set[str]) -> bool:
+    """True when a Downloads stem matches a calendar meeting subject (Teams export naming)."""
+    norm = normalize_meeting_title(stem)
+    if not norm or len(norm) < 3:
+        return False
+    if norm in subjects:
+        return True
+    for subject in subjects:
+        if len(subject) < 3:
+            continue
+        if norm.startswith(subject + " -") or norm.startswith(subject + ":"):
+            return True
+    return False
+
+
+def is_transcript_file(path: Path, calendar_subjects: set[str] | None = None) -> bool:
+    """Caption formats always; .docx/.txt only with meeting-like names or calendar match."""
+    ext = path.suffix.lower()
+    if ext in CAPTION_TRANSCRIPT_EXTENSIONS:
+        return True
+    if ext not in NAME_GATED_TRANSCRIPT_EXTENSIONS:
+        return False
+    name_lower = path.name.lower()
+    if any(hint in name_lower for hint in TRANSCRIPT_NAME_HINTS):
+        return True
+    return matches_calendar_subject(path.stem, calendar_subjects or set())
+
+
 def scan_downloads(folders: list[str], since_mtime: float, transcript_since: float = 0.0,
-                   processed: set[str] | None = None) -> tuple[list[dict], list[dict]]:
+                   processed: set[str] | None = None,
+                   calendar_subjects: set[str] | None = None) -> tuple[list[dict], list[dict]]:
     """Transcripts: every one from the last TRANSCRIPT_WINDOW_DAYS not yet debriefed
     (so a transcript is not lost just because another chat opened first). Other
     downloads: new since the last session."""
     processed = processed or set()
+    subjects = calendar_subjects if calendar_subjects is not None else calendar_meeting_subjects()
     new_transcripts: list[dict] = []
     other_new: list[dict] = []
     seen = set()
@@ -368,7 +428,7 @@ def scan_downloads(folders: list[str], since_mtime: float, transcript_since: flo
             except OSError:
                 continue
             ext = f.suffix.lower()
-            is_transcript = ext in TRANSCRIPT_EXTENSIONS or TRANSCRIPT_NAME_HINT in f.name.lower()
+            is_transcript = is_transcript_file(f, subjects)
             if is_transcript:
                 if st.st_mtime <= transcript_since or same_file_key(f) in processed:
                     continue
@@ -390,23 +450,45 @@ def scan_downloads(folders: list[str], since_mtime: float, transcript_since: flo
 OPEN_ACTION_STATUSES = {"open", "in_progress", "blocked"}
 
 
+def parse_hours(value):
+    """'HH:MM-HH:MM' within one day -> (start_minutes, end_minutes), else None.
+    Accepts 00:00 to 23:59, start before end. Anything else is not understood."""
+    m = re.match(r"^\s*(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})\s*$", value or "")
+    if not m:
+        return None
+    h1, m1, h2, m2 = (int(x) for x in m.groups())
+    if h1 > 23 or h2 > 23 or m1 > 59 or m2 > 59:
+        return None
+    start, end = h1 * 60 + m1, h2 * 60 + m2
+    return (start, end) if start < end else None
+
+
 def catchup_block() -> str:
     """CATCH-UP DUE line. Reads catchupEveryMinutes / catchupHours through
-    config_path_value (ba-assistant-config.mdc then ba-profile.mdc). Default
-    interval 180 minutes. Never on weekends or outside catchupHours. The hook
-    cannot read Slack/Teams/Outlook."""
+    config_path_value (same reader as paths.*: ba-assistant-config.mdc then
+    ba-profile.mdc). Default interval 180 minutes. Never on weekends
+    or outside an understood same-day catchupHours. A value that is set but
+    not understood applies no hours restriction. The hook cannot read
+    Slack/Teams/Outlook."""
     raw_every = config_path_value("catchupEveryMinutes")
     try:
         every = int(raw_every) if raw_every else DEFAULT_CATCHUP_EVERY_MIN
     except ValueError:
         every = DEFAULT_CATCHUP_EVERY_MIN
+    hours_raw = (config_path_value("catchupHours") or "").strip()
+    window = parse_hours(hours_raw) if hours_raw else None
+    hours_note = ""
+    if hours_raw and window is None:
+        hours_note = (
+            f'\ncatchupHours "{hours_raw}" not understood: use same-day HH:MM-HH:MM, '
+            "e.g. 08:30-17:00. Ignoring it."
+        )
     now = datetime.now()
     if every <= 0 or now.weekday() >= 5:
-        return ""
-    hours = re.match(r"^\s*(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})\s*$", config_path_value("catchupHours") or "")
-    if hours:
-        h1, m1, h2, m2 = (int(x) for x in hours.groups())
-        if not (now.replace(hour=h1, minute=m1) <= now <= now.replace(hour=h2, minute=m2)):
+        return hours_note
+    if window is not None:
+        minute = now.hour * 60 + now.minute
+        if not (window[0] <= minute <= window[1]):
             return ""
     last = None
     try:
@@ -415,12 +497,12 @@ def catchup_block() -> str:
     except (OSError, ValueError, TypeError, AttributeError):
         last = None
     if last is not None and (now - last).total_seconds() < every * 60:
-        return ""
+        return hours_note
     when = "never run" if last is None else f"last run {last.strftime('%a %H:%M')}"
     return (f"\nCATCH-UP DUE ({when}; every {every // 60}h{every % 60:02d}m): Slack/Teams/Outlook may hold updates "
             "for the initiatives. If those connectors are available: on a resume or /workboard, run /catchup "
             "(ba-comms-debrief) and show its review card; otherwise answer the user's ask first, then offer "
-            "/catchup in one line. It is read-only until the user approves the card.")
+            "/catchup in one line. It is read-only until the user approves the card.") + hours_note
 
 
 def workboard_block() -> str:
@@ -478,6 +560,9 @@ def run_calendar_refresh() -> None:
     get-calendar.mac.sh) is installed automatically; this only runs one if the
     user has copied it into ~/.cursor/hooks/ themselves, and is a silent
     no-op otherwise (same as the old hooks when the script was missing).
+
+    Pulls TRANSCRIPT_WINDOW_DAYS behind as well as 2 days ahead so Teams .docx
+    named like the calendar meeting can be recognised as transcripts.
     """
     hooks_dir = Path.home() / ".cursor" / "hooks"
     try:
@@ -485,8 +570,13 @@ def run_calendar_refresh() -> None:
             script = hooks_dir / "get-calendar.ps1"
             if script.exists():
                 subprocess.run(
-                    ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(script), "-DaysAhead", "2"],
-                    capture_output=True, timeout=4, check=False,
+                    [
+                        "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass",
+                        "-File", str(script),
+                        "-DaysAhead", "2",
+                        "-DaysBehind", str(TRANSCRIPT_WINDOW_DAYS),
+                    ],
+                    capture_output=True, timeout=8, check=False,
                 )
         elif sys.platform == "darwin":
             script = hooks_dir / "get-calendar.mac.sh"
@@ -522,6 +612,26 @@ def calendar_block() -> str:
     return ""
 
 
+def write_gate_fail_open_note() -> str:
+    """One line when the write gate was installed fail-open. Absent when it is fail-closed."""
+    path = Path.home() / ".cursor" / "hooks.json"
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return ""
+    hooks = data.get("hooks") if isinstance(data, dict) else None
+    if not isinstance(hooks, dict):
+        return ""
+    for entry in hooks.get("beforeMCPExecution") or []:
+        if not isinstance(entry, dict):
+            continue
+        command = str(entry.get("command") or "")
+        if "external-write-gate.py" in command and entry.get("failClosed") is False:
+            return ("\n\nNote: the BA write gate is registered fail-open (Python was missing at install). "
+                    "Re-run the installer to make it fail-closed.")
+    return ""
+
+
 def main() -> int:
     # Windows terminals commonly default stdout/stderr to a legacy codepage
     # (cp1252), which raises UnicodeEncodeError on non-ASCII content that can
@@ -553,8 +663,9 @@ def main() -> int:
     )
     if not initiatives:
         context_block = (
-            "No SESSION-CONTEXT.md found under the initiatives folder "
-            "(paths.initiativesRoot in ba-assistant-config.mdc, default ~/.cursor/initiatives)."
+            "BA Assistant: No SESSION-CONTEXT.md found under the initiatives folder "
+            "(paths.initiativesRoot in ba-profile.mdc / ba-assistant-config.mdc, "
+            "or BA_INITIATIVES_ROOT; default ~/.cursor/initiatives)."
         )
     elif selected is not None:
         modified = datetime.fromtimestamp(selected.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
@@ -582,9 +693,17 @@ def main() -> int:
         )
 
     # --- 2. Deterministic downloads check (D5) ---
+    # Refresh calendar first so .docx named like a meeting subject can match.
+    history_snapshot_all()
+    wb_block = workboard_block()
+    run_calendar_refresh()
+    cal_block = calendar_block()
     since = last_session_time.timestamp() if last_session_time else 0.0
     transcript_since = (datetime.now().timestamp() - TRANSCRIPT_WINDOW_DAYS * 86400)
-    new_transcripts, other_new = scan_downloads(downloads_folders(), since, transcript_since, processed_transcripts())
+    new_transcripts, other_new = scan_downloads(
+        downloads_folders(), since, transcript_since, processed_transcripts(),
+        calendar_meeting_subjects(),
+    )
 
     transcript_block = ""
     if new_transcripts:
@@ -607,17 +726,14 @@ def main() -> int:
             "Triage per the workspace-operations reference before asking the user what they need."
         )
 
-    # --- 3 & 4. Workboard + calendar ---
-    history_snapshot_all()
-    wb_block = workboard_block()
-    run_calendar_refresh()
-    cal_block = calendar_block()
-
     # Say up front that BA Assistant is loaded: the first reply shows the session line,
     # so the user can tell at a glance whether the hook ran (and smoke checks can too).
     context_block = SESSION_BANNER + "\n\n" + context_block
-    catchup = catchup_block()
-    full_context = context_block + transcript_block + wb_block + cal_block + catchup
+    try:
+        catchup = catchup_block()
+    except Exception:
+        catchup = ""
+    full_context = context_block + transcript_block + wb_block + cal_block + catchup + write_gate_fail_open_note()
 
     output = {
         "additional_context": full_context,
@@ -626,7 +742,7 @@ def main() -> int:
             "CURSOR_LAST_SESSION": last_session_time.isoformat() if last_session_time else "",
             "CURSOR_NEW_TRANSCRIPTS": ";".join(t["path"] for t in new_transcripts),
             "CURSOR_NEW_TRANSCRIPT_COUNT": str(len(new_transcripts)),
-            "CURSOR_CATCHUP_DUE": "1" if catchup else "",
+            "CURSOR_CATCHUP_DUE": "1" if "CATCH-UP DUE" in catchup else "",
         },
     }
     print(json.dumps(output, ensure_ascii=False))

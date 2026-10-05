@@ -136,6 +136,22 @@ def main():
             code, out = run_gate(bad, home)
             check(f"malformed payload {bad!r} asks, exit 0", code == 0 and out["permission"] == "ask", str(out))
 
+        # --- F21: mcp_server_name steers mail vs chat for bare send_message ---
+        code, out = run_gate(json.dumps({
+            "tool_name": "send_message", "mcp_server_name": "slack", "tool_input": "{}",
+        }), home)
+        check("[F21] slack send_message asks (not mail deny)", out["permission"] == "ask", str(out))
+        code, out = run_gate(json.dumps({
+            "tool_name": "send_message", "mcp_server_name": "outlook", "tool_input": "{}",
+        }), home)
+        check("[F21] outlook send_message denies as mail",
+              out["permission"] == "deny" and out["user_message"] == MAIL_MSG, str(out))
+        code, out = run_gate(json.dumps({"tool_name": "send_mail", "tool_input": "{}"}), home)
+        check("[F21] send_mail denies", out["permission"] == "deny", str(out))
+        code, out = run_gate(runlayer("send_mail"), home)
+        check("[F21] Runlayer-wrapped execute_tool with inner send_mail is still denied",
+              out["permission"] == "deny", str(out))
+
         # --- audit log: one line per call, tool + decision, never payload text ---
         log = os.path.join(home, ".cursor", "_workstream", "audit-log.jsonl")
         rows = [json.loads(l) for l in open(log, encoding="utf-8")] if os.path.exists(log) else []

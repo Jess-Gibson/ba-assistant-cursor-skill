@@ -16,7 +16,7 @@ the tracker. Read-only except `stamp`.
   python3 ~/.cursor/_workstream/catchup-watch.py due
 
 Config keys (in ba-assistant-config.mdc): catchupEveryMinutes (default 180, 0 = off),
-catchupHours ("10:30-19:30"; empty = any time on weekdays).
+catchupHours ("09:00-17:00"; empty = any time on weekdays).
 Windows: py instead of python3. Standard library only.
 """
 from __future__ import annotations
@@ -112,13 +112,23 @@ def every_minutes() -> int:
         return DEFAULT_EVERY_MIN
 
 
-def working_window(now: datetime):
-    m = re.match(r"^\s*(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})\s*$", config_value("catchupHours"))
+def parse_hours(value):
+    """'HH:MM-HH:MM' within one day -> (start_minutes, end_minutes), else None.
+    Accepts 00:00 to 23:59, start before end. Anything else is not understood."""
+    m = re.match(r"^\s*(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})\s*$", value or "")
     if not m:
         return None
     h1, m1, h2, m2 = (int(x) for x in m.groups())
-    return (now.replace(hour=h1, minute=m1, second=0, microsecond=0),
-            now.replace(hour=h2, minute=m2, second=0, microsecond=0))
+    if h1 > 23 or h2 > 23 or m1 > 59 or m2 > 59:
+        return None
+    start, end = h1 * 60 + m1, h2 * 60 + m2
+    return (start, end) if start < end else None
+
+
+def working_window(now: datetime):
+    """Same-day minute window, or None when unset or not understood."""
+    del now
+    return parse_hours(config_value("catchupHours"))
 
 
 def due_status(now: datetime | None = None) -> dict:
@@ -128,11 +138,18 @@ def due_status(now: datetime | None = None) -> dict:
     every = every_minutes()
     last = parse_iso(read_state().get("lastRun"))
     out = {"every_minutes": every, "last_run": last.isoformat(timespec="minutes") if last else None, "due": False, "reason": ""}
+    hours_raw = (config_value("catchupHours") or "").strip()
+    window = parse_hours(hours_raw) if hours_raw else None
+    if hours_raw and window is None:
+        out["warning"] = (
+            f'catchupHours "{hours_raw}" not understood: use same-day HH:MM-HH:MM, '
+            "e.g. 08:30-17:00. Ignoring it."
+        )
     if every <= 0:
         out["reason"] = "off (catchupEveryMinutes: 0)"
     elif now.weekday() >= 5:
         out["reason"] = "weekend"
-    elif (w := working_window(now)) and not (w[0] <= now <= w[1]):
+    elif window and not (window[0] <= now.hour * 60 + now.minute <= window[1]):
         out["reason"] = "outside catchupHours"
     elif last is None:
         out.update(due=True, reason="never run")
@@ -151,21 +168,59 @@ def read_json(path: Path, default):
         return default
 
 
+def _skip_depth1(name: str) -> bool:
+    return name in {"_archive", "archive", "closed"} or name.startswith(".") or name.startswith("_")
+
+
+def _live_initiative(folder: Path) -> bool:
+    if not folder.is_dir() or not (folder / "SESSION-CONTEXT.md").is_file():
+        return False
+    status = str(((read_json(folder / "status-data.json", {}) or {}).get("initiative") or {}).get("status", "")).lower()
+    return status not in ("closed", "archived", "complete", "completed", "cancelled")
+
+
+def _collect_initiatives(root: Path) -> list[Path]:
+    """SESSION-CONTEXT.md at depth 1, or depth 2 (short-term/slug). No deeper."""
+    out = []
+    if not root.is_dir():
+        return out
+    for folder in sorted(p for p in root.iterdir() if p.is_dir()):
+        if _skip_depth1(folder.name):
+            continue
+        if _live_initiative(folder):
+            out.append(folder.resolve())
+        try:
+            children = [p for p in folder.iterdir() if p.is_dir()]
+        except OSError:
+            continue
+        for child in sorted(children):
+            if _live_initiative(child):
+                out.append(child.resolve())
+    return out
+
+
 def initiative_dirs(only: str | None) -> list[Path]:
     root = VS.initiatives_root(cursor_home())
     if only:
-        for p in (Path(os.path.expanduser(only)), root / only):
-            if p.is_dir():
-                return [p.resolve()]
-        raise SystemExit(f"ERROR: initiative not found: {only}")
-    out = []
-    if root.is_dir():
-        for d in sorted(root.iterdir()):
-            if d.is_dir() and (d / "SESSION-CONTEXT.md").exists():
-                status = str(((read_json(d / "status-data.json", {}) or {}).get("initiative") or {}).get("status", "")).lower()
-                if status not in ("closed", "archived", "complete", "completed", "cancelled"):
-                    out.append(d.resolve())
-    return out
+        expanded = Path(os.path.expanduser(only))
+        if expanded.is_dir():
+            return [expanded.resolve()]
+        candidate = root / only
+        if candidate.is_dir():
+            return [candidate.resolve()]
+        wanted = only.replace("\\", "/").strip("/")
+        matches = []
+        for folder in _collect_initiatives(root):
+            try:
+                rel = folder.resolve().relative_to(root.resolve()).as_posix()
+            except ValueError:
+                rel = folder.name
+            if rel == wanted or folder.name == wanted:
+                matches.append(folder)
+        if not matches:
+            raise SystemExit(f"ERROR: initiative not found: {only}")
+        return matches
+    return _collect_initiatives(root)
 
 
 def short(text, n=110) -> str:
@@ -204,26 +259,104 @@ def tracker_watch(folder: Path) -> list[dict]:
 
 
 def register_watch(folder: Path) -> list[dict]:
+    """Open requirements. Status comes from the column named status, not a fixed column.
+    Tables with no status column are skipped. Index rows win over a later heading metadata row."""
     reg = folder / "requirements-register.md"
     if not reg.exists():
         reg = folder / "register.md"
     if not reg.exists():
         return []
-    out = []
-    for m in re.finditer(r"^\|\s*((?:HLR|BR|FR|NFR|CON|COMP|REQ)-\d+(?:\.\d+)*)\s*\|\s*([^|]+)\|\s*([^|]+)\|", reg.read_text(encoding="utf-8", errors="ignore"), re.M):
-        state = m.group(3).strip().lower()
-        if state not in DONE_REQ and state != "status":
-            out.append({"id": m.group(1), "kind": "requirement", "text": short(m.group(2)), "status": state})
-    return out
+    id_re = re.compile(r"^(?:HLR|BR|FR|NFR|CON|COMP|REQ)-\d+(?:\.\d+)*$")
+    heading_re = re.compile(
+        r"^##\s+((?:HLR|BR|FR|NFR|CON|COMP|REQ)-\d+(?:\.\d+)*)\s+[\u00b7\u2013\u2014.\-]\s+(.+?)\s*$"
+    )
+
+    def cells(line: str):
+        stripped = line.strip()
+        if not stripped.startswith("|"):
+            return None
+        return [cell.strip() for cell in stripped.strip("|").split("|")]
+
+    def separator(line: str) -> bool:
+        row = cells(line)
+        return bool(row) and all(re.fullmatch(r":?-{3,}:?", cell.replace(" ", "")) for cell in row)
+
+    def clean_id(value: str) -> str:
+        return value.strip().strip("`").strip("*").strip()
+
+    def clean_state(value: str) -> str:
+        return value.strip().strip("`").strip("*").strip().lower()
+
+    lines = reg.read_text(encoding="utf-8", errors="ignore").splitlines()
+    found = {}
+    order = []
+    heading = None
+    i = 0
+    while i < len(lines):
+        heading_match = heading_re.match(lines[i].strip())
+        if heading_match:
+            name = re.sub(r"\s+\{#.*\}\s*$", "", heading_match.group(2)).strip()
+            heading = (heading_match.group(1), name)
+            i += 1
+            continue
+        header = cells(lines[i])
+        if header and i + 1 < len(lines) and separator(lines[i + 1]):
+            status_idx = next((n for n, name in enumerate(header) if clean_state(name) == "status"), None)
+            i += 2
+            while i < len(lines):
+                row = cells(lines[i])
+                if row is None or separator(lines[i]):
+                    break
+                rid = clean_id(row[0]) if row else ""
+                if status_idx is not None and id_re.match(rid):
+                    state = clean_state(row[status_idx]) if status_idx < len(row) else ""
+                    text = row[1].strip() if len(row) > 1 else ""
+                    if rid not in found:
+                        order.append(rid)
+                    if state not in DONE_REQ and state != "status":
+                        found[rid] = {"id": rid, "kind": "requirement", "text": short(text), "status": state}
+                    else:
+                        found[rid] = None
+                elif status_idx is None and heading and len(row) >= 2 and clean_state(row[0]) == "status":
+                    rid, name = heading
+                    if rid not in found:
+                        state = clean_state(row[1])
+                        order.append(rid)
+                        if state not in DONE_REQ and state != "status":
+                            found[rid] = {"id": rid, "kind": "requirement", "text": short(name), "status": state}
+                        else:
+                            found[rid] = None
+                i += 1
+            continue
+        loose = cells(lines[i])
+        if heading and loose and len(loose) >= 2 and clean_state(loose[0]) == "status":
+            rid, name = heading
+            if rid not in found:
+                state = clean_state(loose[1])
+                order.append(rid)
+                if state not in DONE_REQ and state != "status":
+                    found[rid] = {"id": rid, "kind": "requirement", "text": short(name), "status": state}
+                else:
+                    found[rid] = None
+            heading = None
+        i += 1
+    return [found[rid] for rid in order if found.get(rid)]
 
 
-def actions_watch(slug: str) -> list[dict]:
+def actions_watch(slug: str, display_name: str | None = None, relative_key: str | None = None) -> list[dict]:
+    """Match ba-actions.json by folder slug, then display name.
+    A relative key (short-term/slug) is included when that is how actions are stored."""
+    keys = {slug}
+    if display_name:
+        keys.add(display_name)
+    if relative_key:
+        keys.add(relative_key)
     for name in ACTION_FILES:
         data = read_json(cursor_home() / "_workstream" / name, None)
         if isinstance(data, dict):
             return [{"id": a.get("id"), "kind": "BA action", "text": short(a.get("task")), "status": a.get("status")}
                     for a in data.get("actions") or [] if isinstance(a, dict)
-                    and a.get("initiative") == slug and a.get("status") in OPEN_ACTION]
+                    and a.get("initiative") in keys and a.get("status") in OPEN_ACTION]
     return []
 
 
@@ -237,10 +370,17 @@ def cmd_plan(args) -> int:
     else:
         note = "since the last catch-up"
     initiatives = []
+    root = VS.initiatives_root(cursor_home())
     for folder in initiative_dirs(args.initiative):
         sd = read_json(folder / "status-data.json", {}) or {}
         ini = sd.get("initiative") or {}
-        watch = tracker_watch(folder) + register_watch(folder) + actions_watch(folder.name)
+        try:
+            rel = folder.resolve().relative_to(root.resolve()).as_posix()
+        except ValueError:
+            rel = folder.name
+        display = ini.get("name") if isinstance(ini.get("name"), str) and ini.get("name") else None
+        watch = tracker_watch(folder) + register_watch(folder) + actions_watch(
+            folder.name, display, rel if rel != folder.name else None)
         pm = ini.get("pmApproval") or {}
         if str(pm.get("status", "")).lower() not in ("", "approved"):
             watch.append({"id": "PM-approval", "kind": "PM approval", "text": "PM approval of v1 outputs",

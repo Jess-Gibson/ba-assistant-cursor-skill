@@ -826,6 +826,52 @@ def initiatives_root(home: Path) -> Path:
     return home / "initiatives"
 
 
+def _load_validate_state():
+    import importlib.util
+
+    here = Path(__file__).resolve().parent
+    for candidate in (here / "validate-state.py", Path.home() / ".cursor" / "_workstream" / "validate-state.py"):
+        if candidate.exists():
+            spec = importlib.util.spec_from_file_location("ba_validate_state_for_canvas", candidate)
+            mod = importlib.util.module_from_spec(spec)
+            assert spec.loader is not None
+            spec.loader.exec_module(mod)
+            return mod
+    return None
+
+
+def resolve_initiative_folder(home: Path, slug: str) -> tuple[Path, str]:
+    """Resolve an ordinary or short-term initiative slug."""
+    vs = _load_validate_state()
+    if vs is not None and hasattr(vs, "resolve_initiative"):
+        return vs.resolve_initiative(home, slug)
+    raw = (slug or "").strip()
+    if not raw:
+        raise SystemExit("Canvas: FAIL (empty --initiative)")
+    expanded = Path(os.path.expanduser(raw))
+    if expanded.is_absolute() and expanded.is_dir():
+        return expanded.resolve(), expanded.name
+    root = initiatives_root(home)
+    wanted = raw.replace("\\", "/").strip("/")
+    if wanted.startswith("short-term/"):
+        leaf = wanted.split("/", 1)[1].strip("/")
+        candidate = root / "short-term" / leaf
+        if candidate.is_dir():
+            return candidate.resolve(), leaf
+        raise SystemExit(f"Canvas: FAIL (no initiative folder at {candidate})")
+    primary = root / wanted
+    nested = root / "short-term" / wanted
+    if primary.is_dir() and nested.is_dir():
+        raise SystemExit(
+            f"Canvas: FAIL (ambiguous --initiative {wanted!r}: both {primary} and {nested} exist)"
+        )
+    if primary.is_dir():
+        return primary.resolve(), wanted
+    if nested.is_dir():
+        return nested.resolve(), wanted
+    raise SystemExit(f"Canvas: FAIL (no initiative folder at {primary} or {nested})")
+
+
 def default_canvas_path(home: Path, slug: str) -> Path:
     name = f"{Path(slug).name}-status.canvas.tsx"
     existing = sorted((home / "projects").glob(f"*/canvases/{name}"))
@@ -863,7 +909,16 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     home = Path(os.path.expanduser(args.cursor_home))
-    source = Path(os.path.expanduser(args.status_data)) if args.status_data else initiatives_root(home) / args.initiative / "status-data.json"
+    if args.status_data:
+        source = Path(os.path.expanduser(args.status_data))
+        slug = args.initiative or source.parent.name
+    else:
+        try:
+            folder, slug = resolve_initiative_folder(home, args.initiative)
+        except SystemExit as exc:
+            print(exc)
+            return 1
+        source = folder / "status-data.json"
     if not source.exists():
         print(f"Canvas: FAIL (no status-data.json at {source}). Build it from the tracker first (status-page-and-data.md).")
         return 1
@@ -874,7 +929,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     today = date.fromisoformat(args.today) if args.today else date.today()
     data, gaps = build_data(sd, today, source)
-    slug = args.initiative or data["initiative"]["slug"]
+    slug = slug or data["initiative"]["slug"]
 
     canvas = Path(os.path.expanduser(args.canvas)) if args.canvas else default_canvas_path(home, slug)
     body = template_path(home).read_text(encoding="utf-8").replace("/* CANVAS_DATA */", json.dumps(data, indent=1, ensure_ascii=False))

@@ -22,7 +22,7 @@ Before generating the status page content, run **all 5 checks**  -  do not publi
    ```
    This enables decision-to-publish cycle time measurement.
 
-Generate content in **markdown** format (`contentFormat: "markdown"`). **Always update the existing status page** (check `confluence-pages.json` for the page ID) using `updateConfluencePage`; only create a new page if no status page exists yet. After publishing, update `confluence-pages.json` and `SESSION-CONTEXT.md`.
+Generate content from `templates/status-page-template.adf.json` in **ADF** format (`contentFormat: "adf"`). **Always update the existing status page** (check `confluence-pages.json` for the page ID) using `updateConfluencePage`; only create a new page if no status page exists yet. Read the page back after publishing and verify the header `info` panel, summary panel, and footer are present before updating `confluence-pages.json` and `SESSION-CONTEXT.md`.
 
 ---
 
@@ -40,9 +40,9 @@ Date is the day the page is published, not the day data was last refreshed. If d
 
 ### Page hierarchy
 
-Status pages live under: `<Initiative space> / <Initiative name> / Status updates / <page>`
+Status pages live under: `<Initiative space> / <Initiative name> / Status updates / <page>`.
 
-Each new status page is created as a child of the `Status updates` parent. The previous status page is marked superseded (see Section 9).
+The first create puts the page under the `Status updates` parent. Later publishes update that same page. Do not create a new page for each status.
 
 ### Page ID tracking
 
@@ -55,8 +55,7 @@ The page ID is recorded in `confluence-pages.json`:
   "pageId": "1245891",
   "title": "Status as at 30 May 2026  -  Sample onboarding initiative",
   "createdAt": "2026-05-30",
-  "parentPageId": "1102453",
-  "supersedes": "1238472"
+  "parentPageId": "1102453"
 }
 ```
 
@@ -110,7 +109,7 @@ The DRAFT banner has a red `error` panel background to make it visually unmissab
 
 ## 4. Section: TL;DR
 
-ADF `success` panel. 3-5 bullets max. Each bullet is one sentence.
+ADF summary panel. Map the overall health token: Green → `success`, Amber → `warning`, Red → `error`. Use `info` only when no health assessment exists. Include 3-5 bullets max, each one sentence.
 
 What goes in:
 - The single most important outcome update
@@ -287,7 +286,7 @@ Bulleted list of links:
 
 ## 14. Section: Footer
 
-ADF `info` panel at bottom of page. Required content:
+The footer is an ADF `rule` followed by a paragraph, not a panel. Required content:
 
 ```
 📋 Page audit
@@ -304,25 +303,14 @@ If any source data is stale (>24 hours old at generation), the footer flags it.
 
 ---
 
-## 15. Superseding previous status pages
+## 15. Read-back after publish
 
-When a new status page is published:
+Update the existing page. Confluence version history is the record. Do not create a replacement page or add a replaced-page banner.
 
-1. Create the new page first
-2. Verify the new page renders correctly
-3. Update the previous page by adding a banner at the top:
-
-```
-⚠️ This status page has been superseded.
-
-For the current status, see: <link to new page>
-
-This page is preserved for historical reference.
-```
-
-4. Update `confluence-pages.json` and `superseded-pages.json` (per Wave 5 State Validator)
-
-Never delete the previous page. Historical status pages are part of the audit trail and should remain readable.
+1. Write with `contentFormat` `adf`.
+2. Read the same page with `getConfluencePage` and `contentFormat` `adf`.
+3. Stop if the header `info` panel, summary panel, or footer text is missing.
+4. If the write was rejected, report the tool result and stop. Do not retry with markdown, HTML, or a rebuilt panel structure.
 
 ---
 

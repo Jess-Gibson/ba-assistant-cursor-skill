@@ -88,7 +88,7 @@ Before any story is marked as ready, this skill MUST invoke:
 3. **Define spikes and technical investigations** – Identify technical questions or uncertainties that require investigation before coding.  Write spikes with clear objectives and expected outcomes.
 4. **Document acceptance criteria** – For each story and spike, define acceptance criteria that are specific, measurable, and testable.  Base these on requirements, compliance/legal considerations, data expectations, and design outcomes.
 5. **Identify dependencies** – Note any dependencies between stories (e.g., one story must be completed before another).  Mark dependencies on external teams, systems, design, compliance, or data availability.
-6. **Check definition of ready** – Ensure each story is ready for development: requirements are clear, dependencies identified, acceptance criteria defined, and risks logged.  Use the Definition of Ready skill to validate readiness.
+6. **Check definition of ready** – Ensure each story is ready for development: requirements are clear, dependencies identified, acceptance criteria defined, and risks logged. Use the Definition of Ready section in this file to validate readiness.
 7. **Propose delivery sequencing** – Based on the sequencing plan from the slicing skill, assign an order to epics and stories.  Identify parallel opportunities.  Suggest staging (e.g., proof of concept, alpha release) if appropriate.
 8. **Prepare backlog summary** – Provide a structured backlog overview that product managers, engineers, and stakeholders can review and approve.
 

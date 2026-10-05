@@ -17,6 +17,6 @@ Then follow **SKILL.md Step 2** (resume): state validator, snapshot if available
 
 Confirm current work and the **single most useful next action**. If a cheap reversible artefact is grounded, prepare or draft it in the same reply (`~/.cursor/skills/ba-assistant/references/proactive-assistance-protocol.md`). Do not invent work.
 
-**Catch-up check:** `py ~/.cursor/_workstream/catchup-watch.py due`. Skip this if the chat has no Slack, Teams or Outlook connectors, or `/catchup` already ran in this chat. If it says due, run `/catchup` (`ba-comms-debrief`) right after the re-entry card and show its review card; new answers and asks can change the next action.
+**Catch-up check:** `python3 ~/.cursor/_workstream/catchup-watch.py due` (Windows: `py`). Skip this if the chat has no Slack, Teams or Outlook connectors, or `/catchup` already ran in this chat. If it says due, run `/catchup` (`ba-comms-debrief`) right after the re-entry card and show its review card; new answers and asks can change the next action.
 
 End with AskQuestion: continue recommended / debrief a flagged new file / re-prioritise. If no initiative has been named and none can be confirmed, ask. Do not invent one.

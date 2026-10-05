@@ -522,6 +522,11 @@ If "Review each": present each patch in turn with [Apply this one] [Skip] [Modif
 If "Defer": save the patches to `retro-patches-<date>.md` in the initiative's analysis folder. The Intake Reviewer reads pending patches at the start of the next session and offers to apply them.
 If "Discard": log in tracker as a deliberate decision not to act on the retro, with reason.
 
+Whenever a patch is applied to local package files, append a row to
+`~/.cursor/_workstream/local-skill-patches.md`: date, source retro, file,
+summary, and the BA who approved it. This is the local patch log, not a
+replacement for the public package history.
+
 ### Pattern → trigger cross-reference (required field)
 
 Each drafted patch for the Anti-Pattern Detector MUST include the pattern from `learnings.md` it derives from, by ID. The reverse is also enforced: every pattern row in `learnings.md` must reference its corresponding APD trigger ID (or be marked `no trigger  -  pattern is observational only`). The State Validator (Wave 5) cross-checks this consistency.

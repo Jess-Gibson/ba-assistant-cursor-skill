@@ -113,6 +113,8 @@ Empty free-text is not an answer; ask once more. Never invent name chips.
 
 Capture: `name`, `role`, `catchupHours` (`"09:00-17:00"`, the typed range as `"HH:MM-HH:MM"`, or `""` for any).
 
+If they typed a custom range, validate it is a same-day window: hours 00 to 23, minutes 00 to 59, start before end. Overnight windows (for example `22:00-06:00`) are not supported. If invalid, re-ask once with that rule.
+
 ---
 
 ### Step 2 — Domain (keep this — personalises later questions)

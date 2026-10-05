@@ -19,7 +19,7 @@ State drift is the number one workflow pain. Enforcement is layered:
 
 **`/wrap`** follows `~/.cursor/commands/wrap.md` only (do not open `sync-procedures.md` for it). It is a chat-only checkpoint and does not refresh the workboard.
 
-**End of day** is `~/.cursor/skills/ba-assistant/references/eod-closeout-procedure.md`, loaded only when `/workboard end-of-day` fires.
+**End of day** is `~/.cursor/skills/ba-assistant/references/eod-closeout-procedure.md`, loaded when `/eod` or legacy `/workboard end-of-day` fires.
 
 Canonical file hierarchy on conflict: tracker > status-data > SESSION-CONTEXT > everything else (full ownership table: `~/.cursor/skills/ba-assistant/references/canonical-ownership.md`).
 

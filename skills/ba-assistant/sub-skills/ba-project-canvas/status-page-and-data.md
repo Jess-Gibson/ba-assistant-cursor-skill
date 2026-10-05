@@ -52,7 +52,7 @@ canvas tab structure.
 
 - **Never update a downstream output directly without also updating `status-data.json`**  -  if someone asks to change a status, update the JSON first, then regenerate.
 - **Never add a ticket to `status-data.json` without a Jira key**  -  all tickets must be traceable.
-- **Never show stale ticket data without saying so**  -  if Jira was not checked, the output says when tickets were last synced.
+- **Never show stale ticket data without saying so**  -  if Jira was not checked, the output says the Jira sync age (oldest ticket).
 - **Never store computed fields** (`daysOverdue`, `ageDays`, `moscowFlag`)  -  recalculate on every read so they're always current.
 - **Computing a metric as 0% when data is missing.** If a metric can't be computed, show `n/a`. Fabricated zeros look like real signals and trigger false alarms.
 - **Caching metrics longer than 1 hour.** Stale metric values create false confidence. Recompute on every status output.

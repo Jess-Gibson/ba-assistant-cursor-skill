@@ -94,6 +94,7 @@ REQ_ID = r"[A-Z][A-Z0-9]{0,9}-\d{1,4}(?:\.\d{1,3})*[a-z]?"
 REQ_ID_FULL_RE = re.compile(rf"^{REQ_ID}$")
 REG_HEADING_RE = re.compile(rf"^#{{2,5}}\s+({REQ_ID})(?![\w.])", re.M)
 STATUS_LINE_RE = re.compile(r"^\s*(?:[-*]\s*)?(?:\*\*)?status(?:\*\*)?\s*[:|]\s*(?:\*\*)?\s*([A-Za-z\-]+)", re.I | re.M)
+META_STATUS_RE = re.compile(r"^\|\s*status\s*\|\s*([A-Za-z\-]+)\s*\|", re.I | re.M)
 
 
 # ---------- helpers ----------
@@ -223,8 +224,11 @@ def locate_initiative(cursor_home: Path, title: str, key: str, hint: str = "") -
 
 
 def register_statuses(init_dir: Path) -> dict[str, str]:
-    """{requirement id: status} from the requirements register (headings with a
-    Status line, and index tables with ID and status columns)."""
+    """{requirement id: status} from the requirements register.
+
+    First match wins: the index table, then a metadata row inside the
+    requirement block, then a heading status line.
+    """
     files = []
     for pattern in ("**/requirements-register.md", "**/register.md", "**/requirements/register.md"):
         files += glob.glob(str(init_dir / pattern), recursive=True)
@@ -234,12 +238,6 @@ def register_statuses(init_dir: Path) -> dict[str, str]:
             text = Path(f).read_text(encoding="utf-8", errors="ignore")
         except OSError:
             continue
-        heads = list(REG_HEADING_RE.finditer(text))
-        for i, h in enumerate(heads):
-            block = text[h.end(): heads[i + 1].start() if i + 1 < len(heads) else len(text)]
-            m = STATUS_LINE_RE.search(block)
-            if m:
-                statuses.setdefault(h.group(1), m.group(1).lower())
         cols = None
         for line in text.splitlines():
             if not line.strip().startswith("|"):
@@ -247,11 +245,21 @@ def register_statuses(init_dir: Path) -> dict[str, str]:
                 continue
             cells = [c.strip().strip("*`") for c in line.strip().strip("|").split("|")]
             lower = [c.lower() for c in cells]
-            if "status" in lower and "id" in lower:
-                cols = (lower.index("id"), lower.index("status"))
+            id_col = next((lower.index(n) for n in ("id", "hlr", "requirement id") if n in lower), None)
+            if "status" in lower and id_col is not None:
+                cols = (id_col, lower.index("status"))
                 continue
             if cols and len(cells) > max(cols) and REQ_ID_FULL_RE.match(cells[cols[0]]):
                 statuses.setdefault(cells[cols[0]], cells[cols[1]].lower())
+        heads = list(REG_HEADING_RE.finditer(text))
+        for i, h in enumerate(heads):
+            block = text[h.end(): heads[i + 1].start() if i + 1 < len(heads) else len(text)]
+            meta = META_STATUS_RE.search(block)
+            if meta:
+                statuses.setdefault(h.group(1), meta.group(1).lower())
+            m = STATUS_LINE_RE.search(block)
+            if m:
+                statuses.setdefault(h.group(1), m.group(1).lower())
     return statuses
 
 

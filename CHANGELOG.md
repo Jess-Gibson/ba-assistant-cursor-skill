@@ -33,6 +33,49 @@ Lean status and catch-up for every BA who clones or upgrades this package. No ex
 - Starter `templates/initiative-tracker.md.template` for new initiatives.
 - Config template documents `catchupEveryMinutes` / `catchupHours`.
 
+### Fixes before release
+
+Grouped by area. One line per fix ID from the Version 16 review pack.
+
+**Catch-up and session start**
+- F01: Catch-up commands use `python3` with a Windows `py` note, not `py` alone.
+- F02: A bad `catchupHours` value warns and is ignored; session start never crashes on it.
+- F03: The session banner only asks for the BA report line in BA chats.
+- F05: Catch-up reads requirement status from the Status column header, not a fixed column.
+- F06 / 8b: Short-term initiative folders resolve by bare slug; validate-state supports `--all`.
+- F16: Calendar look-behind plus meeting-name transcript detection for Teams `.docx` files.
+- F17: Transcripts are marked processed only after debrief approval.
+
+**Status, Jira, and registers**
+- F04: Starter tracker registers include PM approval, DoR checks, MoSCoW and Sign-offs.
+- F07: Status model wording aligned (sync, canvas refresh, validator).
+- F08: Jira refresh uses a 60-minute rule everywhere status and canvas need it.
+- F09: Jira age uses the oldest ticket stamp; missing tickets are ignored; stale tickets are counted.
+- F14: DoR preflight reads the unified requirements register (index, then metadata).
+- F15: Metrics treat `confirmed` as interrogated (keeps `accepted` for older data).
+- C9: Status pages are ADF from a template, updated in place; RAG maps Green/Amber/Red to success/warning/error.
+
+**Workboard and end of day**
+- F12: End of day applies clear BA-owned updates, cards the rest, and books focus blocks only when preferences say so.
+- F18: Archived initiatives are not counted as active on the workboard.
+- F19: Workboard calendar follows catch-up hours plus or minus 30 minutes, widened for meetings, capped 06:00 to 22:00.
+- F20: End of Day continues the full `/EOD` closeout sequence.
+
+**Safety, docs, and packaging**
+- F13: Always-on rules trimmed; suite budget lowered to 22,000 characters.
+- F21: External write gate reads `mcp_server_name` so Slack/Teams writes ask instead of denying as mail.
+- F22: Email claims cover MCP and shell; SETUP states shell mail is a rule, not a hook.
+- F23: Cloud and background agent limits documented.
+- F24: Missing Python fail-open note is visible when the gate is not fail-closed.
+- F25: Snapshot-first resume matches the orchestrator read order.
+- F26: Retro package edits log to `local-skill-patches.md`; plain upgrader warns; use the merge tool to keep them.
+- F27: Shared-repo postToolUse matcher stays `Write|Edit` (BOM fail-open deferred).
+- F29: Intake canvas skeleton uses real form controls.
+- F30: `regenerate-ba-actions-md.py --help` does not rewrite files.
+- F10 / F11: Package labels say Version 16; GitHub URL uses `Jess-Gibson`.
+
+**Deferred** (see `WAITING.md` and Stage D): F31, F32, F34 legacy tidy; F33 native skills; L11 Jira query split; F27 BOM fail-open; W1 focus-block gate allow-list; W2 standalone `/catchup` tiers.
+
 ## Version 15 - 2026-09-27
 
 Version 14 QA fixes (from the fork review) plus the fixes below.

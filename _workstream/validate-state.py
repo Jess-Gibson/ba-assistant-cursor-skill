@@ -19,15 +19,16 @@ Checks (all read-only):
   5. Status line: README.md "Status:" vs workboard.json for this initiative.
   6. Unpromoted captures in SESSION-CONTEXT.md (DEC-/REQ-/RISK-/OQ-/ASM-/ACT-/DEP-
      lines without [promoted]).
-  7. Jira freshness (reported, not a divergence): when tickets in status-data.json were
-     last synced (newest `lastJiraSync`), so /status and /canvas can skip Jira when it
-     is recent.
+  7. Jira freshness (reported, not a divergence): oldest ticket `lastJiraSync` in
+     status-data.json (ignoring tickets marked jiraMissing), so /status and /canvas
+     can skip Jira when it is recent. Printed as "Jira sync (oldest ticket)".
 
   python3 _workstream/validate-state.py --initiative payments
   python3 _workstream/validate-state.py --initiative payments --json
+  python3 _workstream/validate-state.py --all --json
 
 Windows: use `py`. Exit 0 when the scan ran (the last line says ALIGNED or DRIFT),
-1 initiative folder not found.
+1 initiative folder not found. --all exits 0 when every initiative scanned, 1 if none found.
 """
 
 from __future__ import annotations
@@ -75,6 +76,94 @@ def initiatives_root(home: Path) -> Path:
             if value:
                 return Path(os.path.expanduser(value))
     return home / "initiatives"
+
+
+def _skip_depth1(name: str) -> bool:
+    return name in {"_archive", "archive", "closed"} or name.startswith(".") or name.startswith("_")
+
+
+def _read_json(path: Path, default):
+    try:
+        return json.loads(path.read_text(encoding="utf-8-sig"))
+    except (OSError, ValueError):
+        return default
+
+
+def _live_initiative(folder: Path) -> bool:
+    """Match catchup-watch: SESSION-CONTEXT present and initiative.status not closed."""
+    if not folder.is_dir() or not (folder / "SESSION-CONTEXT.md").is_file():
+        return False
+    status = str(
+        ((_read_json(folder / "status-data.json", {}) or {}).get("initiative") or {}).get("status", "")
+    ).lower()
+    return status not in ("closed", "archived", "complete", "completed", "cancelled")
+
+
+def collect_live_initiatives(root: Path) -> list[Path]:
+    """SESSION-CONTEXT.md at depth 1, or depth 2 (short-term\\slug). Same list as catch-up plan."""
+    out: list[Path] = []
+    if not root.is_dir():
+        return out
+    for folder in sorted(p for p in root.iterdir() if p.is_dir()):
+        if _skip_depth1(folder.name):
+            continue
+        if _live_initiative(folder):
+            out.append(folder.resolve())
+        try:
+            children = [p for p in folder.iterdir() if p.is_dir()]
+        except OSError:
+            continue
+        for child in sorted(children):
+            if _live_initiative(child):
+                out.append(child.resolve())
+    return out
+
+
+def resolve_initiative(home: Path, slug: str) -> tuple[Path, str]:
+    """Resolve --initiative to a folder.
+
+    Accepts bare <slug> or short-term/<slug>. Checks initiativesRoot/<slug>
+    then initiativesRoot/short-term/<slug>. Errors if both exist, or if none match.
+    Absolute paths that already exist are accepted as-is.
+    """
+    raw = (slug or "").strip()
+    if not raw:
+        raise SystemExit("State validation: FAIL (empty --initiative)")
+    expanded = Path(os.path.expanduser(raw))
+    if expanded.is_absolute() and expanded.is_dir():
+        return expanded.resolve(), expanded.name
+
+    root = initiatives_root(home)
+    wanted = raw.replace("\\", "/").strip("/")
+
+    if wanted.startswith("short-term/"):
+        leaf = wanted.split("/", 1)[1].strip("/")
+        if not leaf or "/" in leaf:
+            raise SystemExit(
+                f"State validation: FAIL (invalid short-term initiative {wanted!r})"
+            )
+        candidate = root / "short-term" / leaf
+        if candidate.is_dir():
+            return candidate.resolve(), leaf
+        raise SystemExit(f"State validation: FAIL (no initiative folder at {candidate})")
+
+    primary = root / wanted
+    nested = root / "short-term" / wanted
+    primary_ok = primary.is_dir()
+    nested_ok = nested.is_dir()
+    if primary_ok and nested_ok:
+        raise SystemExit(
+            "State validation: FAIL (ambiguous --initiative "
+            f"{wanted!r}: both {primary} and {nested} exist). "
+            f"Pass short-term/{wanted} or --root <path>."
+        )
+    if primary_ok:
+        return primary.resolve(), wanted
+    if nested_ok:
+        return nested.resolve(), wanted
+    raise SystemExit(
+        f"State validation: FAIL (no initiative folder at {primary} or {nested})"
+    )
 
 
 def read(path: Path) -> str:
@@ -311,17 +400,77 @@ def validate(root: Path, slug: str, home: Path) -> tuple[list[dict], dict]:
     # 6. Unpromoted captures.
     unpromoted = [line.strip() for line in read(session_path).splitlines()
                   if re.match(r"^\s*[-*]?\s*(DEC|REQ|RISK|OQ|ASM|ACT|DEP)-", line.strip()) and "[promoted]" not in line]
-    # 7. Jira freshness: newest lastJiraSync across tickets (or a top-level sync block).
-    stamps = [str(t.get("lastJiraSync")) for t in sd.get("tickets") or [] if isinstance(t, dict) and t.get("lastJiraSync")]
+    # 7. Jira freshness: oldest lastJiraSync across tickets still in Jira.
+    # A top-level sync.lastJiraSync counts as the older of itself and that oldest ticket.
+    # Tickets with jiraMissing true are ignored (set only on definitive evidence).
+    ticket_stamps: list[str | None] = []
+    stale_tickets = 0
+    for ticket in sd.get("tickets") or []:
+        if not isinstance(ticket, dict) or ticket.get("jiraMissing") is True:
+            continue
+        raw = ticket.get("lastJiraSync")
+        stamp = str(raw) if raw else None
+        ticket_stamps.append(stamp)
+        ticket_age = age_minutes(stamp)
+        if ticket_age is None or ticket_age >= 60:
+            stale_tickets += 1
+    if any(stamp is None for stamp in ticket_stamps):
+        oldest_ticket: str | None = None
+    elif ticket_stamps:
+        oldest_ticket = min((stamp for stamp in ticket_stamps if stamp is not None), key=sync_sort_key)
+    else:
+        oldest_ticket = None
     sync_block = sd.get("sync") if isinstance(sd.get("sync"), dict) else {}
-    if sync_block.get("lastJiraSync"):
-        stamps.append(str(sync_block["lastJiraSync"]))
-    jira_synced = max(stamps, key=sync_sort_key) if stamps else None
+    block_stamp = str(sync_block["lastJiraSync"]) if sync_block.get("lastJiraSync") else None
+    if ticket_stamps and oldest_ticket is None:
+        jira_synced = None
+    elif ticket_stamps and block_stamp and oldest_ticket is not None:
+        jira_synced = min((oldest_ticket, block_stamp), key=sync_sort_key)
+    elif ticket_stamps:
+        jira_synced = oldest_ticket
+    else:
+        jira_synced = block_stamp
     summary = {"initiative": slug, "root": str(root), "trackerItems": len(t_items), "statusDataItems": len(s_items),
                "artefactsScanned": [p.name for p in downstream], "unpromoted": unpromoted,
                "statusDataWritten": when(s_m) if s_m else None, "tickets": len(sd.get("tickets") or []),
-               "jiraSyncedAt": jira_synced, "jiraSyncAgeMinutes": age_minutes(jira_synced)}
+               "jiraSyncedAt": jira_synced, "jiraSyncAgeMinutes": age_minutes(jira_synced),
+               "jiraStaleTickets": stale_tickets}
     return divergences, summary
+
+
+def _print_text_report(slug: str, summary: dict, divergences: list) -> None:
+    stamp = datetime.now().strftime("%d %b %Y, %H:%M")
+    print(f"State validation - {slug} - {stamp} (local files; Confluence not checked by this script)")
+    print(
+        f"Artefacts scanned: tracker ({summary['trackerItems']} items), "
+        f"status-data.json ({summary['statusDataItems']} items)"
+        + (", " + ", ".join(summary["artefactsScanned"]) if summary["artefactsScanned"] else "")
+    )
+    if not divergences:
+        print("✓ All local artefacts aligned with canonical state. Nothing to propagate.")
+    else:
+        print(f"Divergences found: {len(divergences)}\n")
+        print("| # | Fact | Canonical | Found in | Found value | Last modified | Suggested action |")
+        print("|---|---|---|---|---|---|---|")
+        for i, d in enumerate(divergences, 1):
+            print(
+                f"| {i} | {d['fact']} | {d['canonical']} | {d['found_in']} | "
+                f"{d['found']} | {d['modified']} | {d['action']} |"
+            )
+    age = summary["jiraSyncAgeMinutes"]
+    if summary["tickets"]:
+        stale = summary["jiraStaleTickets"]
+        stale_note = f", {stale} over an hour old" if stale else ""
+        print(
+            f"\nJira sync (oldest ticket): {age_text(age)} "
+            f"({summary['tickets']} tickets in status-data.json{stale_note})"
+        )
+    if summary["unpromoted"]:
+        print(
+            f"\nUnpromoted captures in SESSION-CONTEXT.md: "
+            f"{len(summary['unpromoted'])} (promote at /wrap or end of day)"
+        )
+    print(f"Gate: state-validation: {'DRIFT (' + str(len(divergences)) + ')' if divergences else 'ALIGNED'}")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -332,39 +481,62 @@ def main(argv: list[str] | None = None) -> int:
             pass
     parser = argparse.ArgumentParser(description="Local drift scan for one initiative (read-only)")
     where = parser.add_mutually_exclusive_group(required=True)
-    where.add_argument("--initiative", help="initiative slug")
+    where.add_argument("--initiative", help="initiative slug (bare or short-term/<slug>)")
     where.add_argument("--root", help="explicit initiative folder")
+    where.add_argument(
+        "--all",
+        action="store_true",
+        help="scan every live initiative (same list as catch-up plan)",
+    )
     parser.add_argument("--cursor-home", default=str(Path.home() / ".cursor"))
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
     home = Path(os.path.expanduser(args.cursor_home))
-    root = Path(os.path.expanduser(args.root)) if args.root else initiatives_root(home) / args.initiative
-    slug = args.initiative or root.name
-    if not root.is_dir():
-        print(f"State validation: FAIL (no initiative folder at {root})")
-        return 1
+
+    if args.all:
+        folders = collect_live_initiatives(initiatives_root(home))
+        if not folders:
+            print("State validation: FAIL (no live initiatives found)")
+            return 1
+        results = []
+        root_base = initiatives_root(home).resolve()
+        for folder in folders:
+            try:
+                rel = folder.resolve().relative_to(root_base).as_posix()
+            except ValueError:
+                rel = folder.name
+            slug = folder.name
+            divergences, summary = validate(folder, slug, home)
+            summary = dict(summary)
+            summary["initiativeKey"] = rel
+            results.append({"summary": summary, "divergences": divergences})
+            if not args.json:
+                _print_text_report(rel, summary, divergences)
+                print()
+        if args.json:
+            print(json.dumps({"initiatives": results, "count": len(results)}, indent=2, ensure_ascii=False))
+        else:
+            print(f"Gate: state-validation-all: {len(results)} initiatives scanned")
+        return 0
+
+    if args.root:
+        root = Path(os.path.expanduser(args.root))
+        slug = root.name
+        if not root.is_dir():
+            print(f"State validation: FAIL (no initiative folder at {root})")
+            return 1
+    else:
+        try:
+            root, slug = resolve_initiative(home, args.initiative)
+        except SystemExit as exc:
+            print(exc)
+            return 1
+
     divergences, summary = validate(root, slug, home)
     if args.json:
         print(json.dumps({"summary": summary, "divergences": divergences}, indent=2, ensure_ascii=False))
         return 0
-    stamp = datetime.now().strftime("%d %b %Y, %H:%M")
-    print(f"State validation - {slug} - {stamp} (local files; Confluence not checked by this script)")
-    print(f"Artefacts scanned: tracker ({summary['trackerItems']} items), status-data.json ({summary['statusDataItems']} items)"
-          + (", " + ", ".join(summary["artefactsScanned"]) if summary["artefactsScanned"] else ""))
-    if not divergences:
-        print("✓ All local artefacts aligned with canonical state. Nothing to propagate.")
-    else:
-        print(f"Divergences found: {len(divergences)}\n")
-        print("| # | Fact | Canonical | Found in | Found value | Last modified | Suggested action |")
-        print("|---|---|---|---|---|---|---|")
-        for i, d in enumerate(divergences, 1):
-            print(f"| {i} | {d['fact']} | {d['canonical']} | {d['found_in']} | {d['found']} | {d['modified']} | {d['action']} |")
-    age = summary["jiraSyncAgeMinutes"]
-    if summary["tickets"]:
-        print(f"\nJira last synced: {age_text(age)} ({summary['tickets']} tickets in status-data.json)")
-    if summary["unpromoted"]:
-        print(f"\nUnpromoted captures in SESSION-CONTEXT.md: {len(summary['unpromoted'])} (promote at /wrap or end of day)")
-    print(f"Gate: state-validation: {'DRIFT (' + str(len(divergences)) + ')' if divergences else 'ALIGNED'}")
+    _print_text_report(slug, summary, divergences)
     return 0
 
 

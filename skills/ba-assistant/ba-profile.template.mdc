@@ -51,7 +51,7 @@ mail_noise_subjects: ""             # e.g. Weekly numbers, Build report
 mail_ignore_folders: ""             # e.g. Newsletters
 mail_noise_repos: ""                # e.g. team-repo (noise unless you are @-mentioned)
 catchupEveryMinutes: 180   # 0 = off
-catchupHours: "09:00-17:00"
+catchupHours: "09:00-17:00"   # same day, HH:MM-HH:MM, 00:00 to 23:59
 ```
 
 ## Preferences

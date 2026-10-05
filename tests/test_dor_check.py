@@ -295,6 +295,43 @@ def main():
         ch = req_check("### REQ-1 · One\n**Status:** Confirmed\n### REQ-10 · Ten\n**Status:** Proposed\n", "REQ-10")
         check("REQ-10 does not also link REQ-1", ch["ok"] is False and ch["detail"] == "not interrogated/confirmed: REQ-10 (proposed)", str(ch))
 
+        # --- F14: unified register (HLR column + metadata); index wins ---
+        unified = (REPO / "tests" / "fixtures" / "register-unified.md").read_text(encoding="utf-8")
+        h14 = Path(tempfile.mkdtemp(dir=tmp))
+        make_initiative(h14, "retry", register=unified)
+        desc = "Requirement: HLR-01\n" + GWT + "\nMoSCoW: Must\nDependencies: none\nRisks: none"
+        code, txt = dor_cli(h14, "--initiative", "retry", "--title", "Retry soft declines",
+                            "--json", "--description", desc)
+        res = json.loads(txt)
+        check("[F14] unified register: confirmed HLR-01 parent passes",
+              res["checks"]["requirement"]["ok"] is True, str(res["checks"]["requirement"]))
+        desc2 = "Requirement: HLR-02\n" + GWT + "\nMoSCoW: Must\nDependencies: none\nRisks: none"
+        code, txt = dor_cli(h14, "--initiative", "retry", "--title", "Merchant messaging",
+                            "--json", "--description", desc2)
+        res = json.loads(txt)
+        check("[F14] unified register: proposed HLR-02 fails requirement check",
+              res["checks"]["requirement"]["ok"] is False
+              and "no interrogated/confirmed requirement linked" not in res["checks"]["requirement"]["detail"],
+              str(res["checks"]["requirement"]))
+        conflict = unified.replace(
+            "| HLR-01 | Automatic retry of failed payments | Nov 2026 | confirmed | none |",
+            "| HLR-01 | Automatic retry of failed payments | Nov 2026 | confirmed | none |",
+            1,
+        )
+        # Index confirmed; flip only the heading metadata to proposed — index must win.
+        conflict = conflict.replace(
+            "## HLR-01 · Automatic retry of failed payments {#hlr-01}\n\n### Delivery metadata\n\n| Field | Value |\n|---|---|\n| status | confirmed |",
+            "## HLR-01 · Automatic retry of failed payments {#hlr-01}\n\n### Delivery metadata\n\n| Field | Value |\n|---|---|\n| status | proposed |",
+            1,
+        )
+        h14b = Path(tempfile.mkdtemp(dir=tmp))
+        make_initiative(h14b, "retry2", register=conflict)
+        code, txt = dor_cli(h14b, "--initiative", "retry2", "--title", "Retry soft declines",
+                            "--json", "--description", desc)
+        res = json.loads(txt)
+        check("[F14] index status wins over metadata row",
+              res["checks"]["requirement"]["ok"] is True, str(res["checks"]["requirement"]))
+
     passed = sum(results)
     print(f"\n{passed}/{len(results)} DoR checks passed")
     return 0 if passed == len(results) else 1

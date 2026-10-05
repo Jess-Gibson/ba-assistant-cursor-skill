@@ -47,6 +47,10 @@ For each ticket, compare the Jira response to the current `status-data.json` ent
 
 Set `tickets[].lastJiraSync` to the current ISO 8601 timestamp on every ticket the query returned (changed or not), so the next freshness check knows they are current.
 
+Also write the top-level sync block stamp, `sync.lastJiraSync`, to that same timestamp, even when the query returns nothing. An initiative with a Jira project and no tickets yet still gets this stamp, so it is not queried again for an hour.
+
+A ticket the query did not return is not marked missing. Leave its `lastJiraSync` unchanged, so it stays stale and is retried next time. List each such key once in chat as "not returned".
+
 ### 4. Surface changes
 
 After syncing, produce a short change summary:
@@ -62,7 +66,7 @@ If any ticket has changed status, flag it so the calling skill (canvas, status p
 
 ### 5. Handle errors
 
-- If a ticket key returns 404 (deleted or moved), log it as a warning and remove from `tickets[]`
+- Set `"jiraMissing": true` only on definitive, key-specific evidence: a per-key "does not exist" or 404 from a follow-up lookup of that one key, or Jira's explicit error naming that key. Never on a partial response, a permissions error, a timeout, or a query error. Never delete tickets automatically. A ticket the batch query did not return keeps its old stamp (step 3).
 - If the Jira MCP is unavailable, log the failure and proceed with stale data  -  but add a warning to the status output: "Jira sync failed  -  ticket statuses may be stale"
 - Never block status generation on a Jira failure  -  degrade gracefully
 

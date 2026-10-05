@@ -23,7 +23,7 @@ Then **start the first item in this reply**. Do not wait for a second click if t
 
 End with **AskQuestion** (clickable): do this first / text is ready to copy / tweak the text / skip to item 2 / pick a different focus.
 
-**Catch-up check:** `py ~/.cursor/_workstream/catchup-watch.py due`. Skip this if the chat has no Slack, Teams or Outlook connectors, or `/catchup` already ran in this chat. If it says due, say so in one line at the top and make "Catch up on messages first (/catchup)" an AskQuestion option: new asks can change what's next.
+**Catch-up check:** `python3 ~/.cursor/_workstream/catchup-watch.py due` (Windows: `py`). Skip this if the chat has no Slack, Teams or Outlook connectors, or `/catchup` already ran in this chat. If it says due, say so in one line at the top and make "Catch up on messages first (/catchup)" an AskQuestion option: new asks can change what's next.
 
 ## Do not
 

@@ -447,7 +447,7 @@ Flat alternative (backwards-compatible):
       "description": "string",
       "type": "functional | non-functional | compliance | data | design | operational | acceptance",
       "source": "string",
-      "lifecycleState": "proposed | interrogated | accepted | in-flight | delivered | evaluated | deferred | rejected",
+      "lifecycleState": "proposed | interrogated | confirmed | accepted | in-flight | delivered | evaluated | deferred | rejected",
       "interrogated": "boolean",
       "jtbdBreakdown": {
         "functional": "string | null",
@@ -791,10 +791,10 @@ Other skills update `status-data.json` via these triggers:
 
 | Source | Trigger | Updates |
 |---|---|---|
-| Jira Sync | Every `/status`, every resume, on demand | `stories[].status`, `tickets[].status`, derived workstream states |
-| Project Canvas (Data Model section) | Before every canvas render | Re-derives structured view from `initiative-tracker.md` (incl. the four tracker-owned registers: dorChecks, moscowMatrix, pmApproval, signOffs) |
+| Jira Sync | When `status-refresh.md` finds the last sync 60 minutes old or more, or on demand. Never on resume | `stories[].status`, `tickets[].status`, derived workstream states |
+| Project Canvas (Data Model section) | Before a canvas render, via `status-refresh.md` | Update only what validation reports as out of date |
 | Discovery and Requirements | New requirement entered | `confidenceScores.requirementsCompleteness.current` re-evaluated |
-| Delivery Definition | DoR check performed | Writes the tracker's DoR checks register **and** upserts `dorChecks` in the same step (`storyTitle`, `storyKey` if known, `result`). Do not wait for a canvas refresh: the Jira DoR gate reads `dorChecks`. |
+| Delivery Definition | DoR check performed | Writes the tracker's DoR checks register; `dorChecks` mirror follows on refresh |
 | Sponsor Engagement | Touchpoint complete | Appends to RAID if outcomes warrant |
 | State Validator | Detects drift | On resume / before publish: reports only. On `/validate-state`: writes what this chat captured into `SESSION-CONTEXT.md`, the tracker, and `status-data.json` where they exist, and upserts this chat's BA actions |
 
@@ -865,7 +865,7 @@ Both always regenerate together. Never one without the other.
 | Any skill | Updates `confidenceScores` without an entry in `history` | Score change without provenance |
 | Any skill | Sets `confidenceScores.*.current` to `high` or `medium` with `evidence.type` missing entirely | Score set without evidence tagging  -  retrofit as `not-yet-assessed` at minimum |
 | Any skill | Writes a workstream state transition not in Section 7's valid list | Invalid state transition |
-| Project Canvas | Regenerates `.tsx` or `.html` and `status-data.json` was not refreshed from `initiative-tracker.md` | Stale derived output |
+| Project Canvas | Regenerates `.tsx` or `.html` and `status-data.json` was not refreshed through `status-refresh.md` | Stale derived output |
 | State Validator | Field disagreement between `initiative-tracker.md` and `status-data.json` for >24 hours | Tracker/data drift |
 | Any skill | Updates a downstream output (canvas, HTML, Confluence) without also updating `status-data.json` | Bypassed single source of truth |
 | Any skill | Adds a ticket to `status-data.json` without a Jira key | Untraceable ticket |

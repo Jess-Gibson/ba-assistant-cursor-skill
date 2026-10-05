@@ -2,10 +2,10 @@
 Scan Outlook Inbox and Sent for BA workboard / EOD mail triage.
 
 Usage:
-  py _workstream/scan-outlook-mail.py
-  py _workstream/scan-outlook-mail.py --since 2026-09-18 --out _workstream/mail-triage-latest.json
+  python3 _workstream/scan-outlook-mail.py
+  python3 _workstream/scan-outlook-mail.py --since 2026-09-18 --out _workstream/mail-triage-latest.json
 
-Requires Windows, the Outlook desktop app and pywin32 (`py -m pip install pywin32`).
+On Windows, use `py` instead of `python3`. Requires Windows, the Outlook desktop app and pywin32 (`python3 -m pip install pywin32`; Windows: `py -m pip install pywin32`).
 Read-only: never sends, moves or marks mail.
 
 Exit codes (end of day step 1 relies on these):
@@ -351,7 +351,7 @@ def main() -> int:
     try:
         import win32com.client  # type: ignore
     except ImportError:
-        print(f"{UNABLE} (pywin32 not installed: py -m pip install pywin32)")
+        print(f"{UNABLE} (pywin32 not installed: python3 -m pip install pywin32; Windows: py -m pip install pywin32)")
         return 2
     try:
         outlook = win32com.client.Dispatch("Outlook.Application")

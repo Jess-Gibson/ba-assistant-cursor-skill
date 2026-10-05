@@ -461,7 +461,11 @@ def guard_dor_gate_interpreter(pkg_hooks: dict) -> list[str]:
     """
     logs: list[str] = []
     interpreter = package_python_command()
-    allow_json = '{"permission":"allow","agent_message":"","user_message":""}'
+    allow_json = (
+        '{"permission":"allow",'
+        '"agent_message":"The BA external-write gate could not run. Ask the BA before any write, and never send email.",'
+        '"user_message":"BA write gate is not running (Python not found). Writes are NOT being checked. Reinstall Python, then re-run the installer."}'
+    )
     for entries in pkg_hooks.values():
         if not isinstance(entries, list):
             continue
@@ -476,7 +480,8 @@ def guard_dor_gate_interpreter(pkg_hooks: dict) -> list[str]:
                     entry["failClosed"] = False
                     logs.append(
                         f"WARN '{interpreter}' not found: MCP gate registered with failClosed:false "
-                        "so MCP calls are not blocked. Install Python and re-run the installer."
+                        "so MCP calls are not blocked. Writes are NOT being checked. "
+                        "Install Python and re-run the installer."
                     )
                 continue
             if cmd.startswith("sh -c"):

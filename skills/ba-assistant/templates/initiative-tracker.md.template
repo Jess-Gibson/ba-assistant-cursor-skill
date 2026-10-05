@@ -46,11 +46,29 @@ BA-owned actions live in `_workstream/ba-actions.json` (each row has its own `so
 |---|---|---|---|---|---|
 | | | | | | |
 
-## Sign-offs
+## PM approval
 
-| Artefact | Approver | Status | Due | Source |
+| PM | Status (pending/requested/approved) | Date | Source |
+|---|---|---|---|
+| | | | |
+
+## DoR checks
+
+| Story title | Story key (if known) | First attempt (pass/partial/fail) | Result (pass/partial/fail) | Date | Scope | Source |
+|---|---|---|---|---|---|---|
+| | | | | | | |
+
+## MoSCoW (per scope)
+
+| Requirement | Scope | Rating | Override decision (D-NNN if any) | Source |
 |---|---|---|---|---|
 | | | | | |
+
+## Sign-offs
+
+| ID | Artefact | Requested | Approved | Owner | Source |
+|---|---|---|---|---|
+| | | | | | |
 
 ---
 

@@ -311,137 +311,159 @@ def main():
         pkg_files = sorted(p for p in sub_root.rglob("*.md") if "sam-" not in str(p) and "sam-actions" not in p.name)
         rel = lambda p: "skills/ba-assistant/" + p.relative_to(sub_root).as_posix()
         untouched_by_new = [p for p in pkg_files if rel(p) not in changed
+                            and (REPO / rel(p)).exists()
                             and "ba-actions" not in (REPO / rel(p)).read_text(encoding="utf-8")]
         touched_by_new = [p for p in pkg_files if rel(p) in changed and (REPO / rel(p)).exists()
                           and "ba-actions" not in (REPO / rel(p)).read_text(encoding="utf-8")]
-        b_file, crlf_file, g_file = untouched_by_new[0], untouched_by_new[1], untouched_by_new[2]
-        d_file = touched_by_new[0]
-        b_file.write_text(b_file.read_text(encoding="utf-8") + "\nSAM EDIT B\n", encoding="utf-8")
-        d_file.write_text(d_file.read_text(encoding="utf-8") + "\nSAM EDIT D\n", encoding="utf-8")
-        crlf_file.write_bytes(crlf_file.read_bytes().replace(b"\r\n", b"\n").replace(b"\n", b"\r\n"))
-        g_file.unlink()
+        # When the new tree changed almost everything since v14, invent three package
+        # files that are identical in base (v14), new (REPO), and the live install so
+        # B / CRLF / G class meaning stays valid.
+        synthetic_repo_paths = []
+        if len(untouched_by_new) < 3:
+            fixture_body = "# Merge-tool fixture\n\nIdentical in base and new. Used only by tests/test_merge_tool.py.\n"
+            for name in ("merge-fixture-b.md", "merge-fixture-crlf.md", "merge-fixture-g.md"):
+                rel_path = f"skills/ba-assistant/references/{name}"
+                for root in (v14, REPO, cursor):
+                    dest = root / rel_path
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    dest.write_bytes(fixture_body.encode("utf-8"))
+                synthetic_repo_paths.append(REPO / rel_path)
+                untouched_by_new.append(cursor / rel_path)
+        try:
+            b_file, crlf_file, g_file = untouched_by_new[0], untouched_by_new[1], untouched_by_new[2]
+            d_file = touched_by_new[0]
+            b_file.write_text(b_file.read_text(encoding="utf-8") + "\nSAM EDIT B\n", encoding="utf-8")
+            d_file.write_text(d_file.read_text(encoding="utf-8") + "\nSAM EDIT D\n", encoding="utf-8")
+            crlf_file.write_bytes(crlf_file.read_bytes().replace(b"\r\n", b"\n").replace(b"\n", b"\r\n"))
+            g_file.unlink()
 
-        keep = {"sam-actions.json": ws / "sam-actions.json", "workboard.json": ws / "workboard.json",
-                "initiative": init / "SESSION-CONTEXT.md", "profile": profile, "tone rule": tone,
-                "own rule": own_rule, "own skill": own_skill, "own sub-skill": own_sub, "B edit": b_file}
-        before = {k: sha(v) for k, v in keep.items()}
+            keep = {"sam-actions.json": ws / "sam-actions.json", "workboard.json": ws / "workboard.json",
+                    "initiative": init / "SESSION-CONTEXT.md", "profile": profile, "tone rule": tone,
+                    "own rule": own_rule, "own skill": own_skill, "own sub-skill": own_sub, "B edit": b_file}
+            before = {k: sha(v) for k, v in keep.items()}
 
-        rules = tmp / "rules.json"
-        rules.write_text(json.dumps({"rules": [
-            {"local": "sam-actions", "generic": "ba-actions"},
-            {"local": SECRET_URL, "generic": "https://confluence.example.com/wiki"},
-        ]}), encoding="utf-8")
-        session = tmp / "session"
+            rules = tmp / "rules.json"
+            rules.write_text(json.dumps({"rules": [
+                {"local": "sam-actions", "generic": "ba-actions"},
+                {"local": SECRET_URL, "generic": "https://confluence.example.com/wiki"},
+            ]}), encoding="utf-8")
+            session = tmp / "session"
 
-        # ---- backup / stage / classify ----
-        code, out = run([TOOL, "backup", "--cursor-home", cursor, "--session", session], home)
-        check("Backup: OK with zip test and restore rehearsal", code == 0 and "Restore rehearsal" in out, out[-800:])
-        check("Backup: ROLLBACK.md written", (session / "ROLLBACK.md").exists())
-        code, out = run([TOOL, "stage", "--session", session], home)
-        check("Stage: OK", code == 0, out[-500:])
-        code, out = run([TOOL, "classify", "--session", session, "--base", v14, "--new", REPO, "--rules", rules], home)
-        check("Classify: OK", code == 0, out[-1500:])
-        for line in out.splitlines():
-            if line.startswith("  "):
-                print(f"INFO  classify {line.strip()}")
-        cls = {r["path"]: r for r in json.loads((session / "classification.json").read_text(encoding="utf-8"))["rows"]}
-        c = lambda p: cls.get(p if isinstance(p, str) else p.relative_to(cursor).as_posix(), {}).get("class")
-        check("Classify: own edit, new version unchanged -> B", c(b_file) == "B", c(b_file))
-        check("Classify: both changed -> D", c(d_file) == "D", c(d_file))
-        check("Classify: CRLF-only difference is not a change", c(crlf_file) in ("U", "A"), c(crlf_file))
-        check("Classify: deleted package file -> G", c(g_file) == "G", c(g_file))
-        check("Classify: own skill and sub-skill -> H",
-              c("skills/ba-assistant/sub-skills/sam-extra/SKILL.md") == "H", c("skills/ba-assistant/sub-skills/sam-extra/SKILL.md"))
-        check("Classify: own rule -> H", c("rules/sam-own.mdc") == "H", c("rules/sam-own.mdc"))
-        check("Classify: old package .sh hook wrapper -> F (remove), not 'your own file'",
-              c("hooks/jira-dor-gate.sh") == "F" and cls["hooks/jira-dor-gate.sh"]["decision"] == "remove",
-              str(cls.get("hooks/jira-dor-gate.sh")))
-        check("Classify: tone rule -> P (personal)", c("rules/sam-tone-of-voice.mdc") == "P")
-        check("Classify: actions data -> DATA", c("_workstream/sam-actions.json") == "DATA")
-        check("Classify: package paths are mapped into the BA's naming",
-              "skills/ba-assistant/references/sam-actions-format.md" in cls
-              and "skills/ba-assistant/references/ba-actions-format.md" not in cls)
-        report = (session / "report.md").read_text(encoding="utf-8")
-        check("Report: naming-rule values never printed", SECRET_URL not in report and "confluence.example.com" not in report)
+            # ---- backup / stage / classify ----
+            code, out = run([TOOL, "backup", "--cursor-home", cursor, "--session", session], home)
+            check("Backup: OK with zip test and restore rehearsal", code == 0 and "Restore rehearsal" in out, out[-800:])
+            check("Backup: ROLLBACK.md written", (session / "ROLLBACK.md").exists())
+            code, out = run([TOOL, "stage", "--session", session], home)
+            check("Stage: OK", code == 0, out[-500:])
+            code, out = run([TOOL, "classify", "--session", session, "--base", v14, "--new", REPO, "--rules", rules], home)
+            check("Classify: OK", code == 0, out[-1500:])
+            for line in out.splitlines():
+                if line.startswith("  "):
+                    print(f"INFO  classify {line.strip()}")
+            cls = {r["path"]: r for r in json.loads((session / "classification.json").read_text(encoding="utf-8"))["rows"]}
+            c = lambda p: cls.get(p if isinstance(p, str) else p.relative_to(cursor).as_posix(), {}).get("class")
+            check("Classify: own edit, new version unchanged -> B", c(b_file) == "B", c(b_file))
+            check("Classify: both changed -> D", c(d_file) == "D", c(d_file))
+            check("Classify: CRLF-only difference is not a change", c(crlf_file) in ("U", "A"), c(crlf_file))
+            check("Classify: deleted package file -> G", c(g_file) == "G", c(g_file))
+            check("Classify: own skill and sub-skill -> H",
+                  c("skills/ba-assistant/sub-skills/sam-extra/SKILL.md") == "H", c("skills/ba-assistant/sub-skills/sam-extra/SKILL.md"))
+            check("Classify: own rule -> H", c("rules/sam-own.mdc") == "H", c("rules/sam-own.mdc"))
+            check("Classify: old package .sh hook wrapper -> F (remove), not 'your own file'",
+                  c("hooks/jira-dor-gate.sh") == "F" and cls["hooks/jira-dor-gate.sh"]["decision"] == "remove",
+                  str(cls.get("hooks/jira-dor-gate.sh")))
+            check("Classify: tone rule -> P (personal)", c("rules/sam-tone-of-voice.mdc") == "P")
+            check("Classify: actions data -> DATA", c("_workstream/sam-actions.json") == "DATA")
+            check("Classify: package paths are mapped into the BA's naming",
+                  "skills/ba-assistant/references/sam-actions-format.md" in cls
+                  and "skills/ba-assistant/references/ba-actions-format.md" not in cls)
+            report = (session / "report.md").read_text(encoding="utf-8")
+            check("Report: naming-rule values never printed", SECRET_URL not in report and "confluence.example.com" not in report)
 
-        # ---- decide ----
-        dec_path = session / "decisions.json"
-        dec = json.loads(dec_path.read_text(encoding="utf-8"))
-        for path, d in dec["files"].items():
-            if d["decision"] == "ask":
-                d["decision"] = "keep_mine" if d["class"] in ("D", "G", "E") else "take_new"
-        dec["patch_profile"] = True
-        dec["auto_merged_reviewed"] = True
-        dec_path.write_text(json.dumps(dec, indent=2), encoding="utf-8")
+            # ---- decide ----
+            dec_path = session / "decisions.json"
+            dec = json.loads(dec_path.read_text(encoding="utf-8"))
+            for path, d in dec["files"].items():
+                if d["decision"] == "ask":
+                    d["decision"] = "keep_mine" if d["class"] in ("D", "G", "E") else "take_new"
+            dec["patch_profile"] = True
+            dec["auto_merged_reviewed"] = True
+            dec_path.write_text(json.dumps(dec, indent=2), encoding="utf-8")
 
-        code, out = run([TOOL, "apply-staging", "--session", session], home)
-        check("Apply-staging: OK", code == 0, out[-1500:])
-        staging = session / "stage-home" / ".cursor"
-        check("Staging: no generic ba-actions file anywhere",
-              not [p for p in staging.rglob("*") if "ba-actions" in p.name], "")
-        eod = staging / "skills" / "ba-assistant" / "references" / "eod-closeout-procedure.md"
-        check("Staging: taken-new file is written in the BA's naming",
-              "sam-actions" in eod.read_text(encoding="utf-8") and "ba-actions" not in eod.read_text(encoding="utf-8"))
-        ws_stage = staging / "_workstream"
-        check("Staging: new actions script is in the BA's naming and points at their store",
-              (ws_stage / "sam-actions.py").exists() and not (ws_stage / "ba-actions.py").exists()
-              and "sam-actions.json" in (ws_stage / "sam-actions.py").read_text(encoding="utf-8"), str(sorted(p.name for p in ws_stage.glob("*.py"))))
-        cap = (ws_stage / "capture.py").read_text(encoding="utf-8") if (ws_stage / "capture.py").exists() else ""
-        check("Staging: capture.py hands the BA's own actions to the renamed actions script",
-              '"sam-actions.py"' in cap and '"ba-actions.py"' not in cap)
-        check("Staging: every other new script is present",
-              all((ws_stage / n).exists() for n in ("capture.py", "validate-state.py", "compute-metrics.py", "render-initiative-canvas.py")))
-        todo_rule = next((p for p in (staging / "rules").glob("*todo*")), None)
-        check("Staging: /todo rule tells the agent the renamed script",
-              todo_rule is not None and "sam-actions.py" in todo_rule.read_text(encoding="utf-8")
-              and "ba-actions.py" not in todo_rule.read_text(encoding="utf-8"))
-        hook = (staging / "hooks" / "session-init.py").read_text(encoding="utf-8")
-        check("Staging: hook script uses the BA's actions file", "sam-actions.json" in hook and "ba-actions.json" not in hook)
-        check("Staging: D file kept as the BA's (keep_mine)", "SAM EDIT D" in (staging / d_file.relative_to(cursor)).read_text(encoding="utf-8"))
-        prof = (staging / "rules" / "ba-profile.mdc").read_text(encoding="utf-8")
-        check("Staging: profile command table replaced by the pointer, tone kept",
-              "Sam's tone: dry." in prof and "Slash commands live in" in prof and "End-of-session closeout" not in prof)
+            code, out = run([TOOL, "apply-staging", "--session", session], home)
+            check("Apply-staging: OK", code == 0, out[-1500:])
+            staging = session / "stage-home" / ".cursor"
+            check("Staging: no generic ba-actions file anywhere",
+                  not [p for p in staging.rglob("*") if "ba-actions" in p.name], "")
+            eod = staging / "skills" / "ba-assistant" / "references" / "eod-closeout-procedure.md"
+            check("Staging: taken-new file is written in the BA's naming",
+                  "sam-actions" in eod.read_text(encoding="utf-8") and "ba-actions" not in eod.read_text(encoding="utf-8"))
+            ws_stage = staging / "_workstream"
+            check("Staging: new actions script is in the BA's naming and points at their store",
+                  (ws_stage / "sam-actions.py").exists() and not (ws_stage / "ba-actions.py").exists()
+                  and "sam-actions.json" in (ws_stage / "sam-actions.py").read_text(encoding="utf-8"), str(sorted(p.name for p in ws_stage.glob("*.py"))))
+            cap = (ws_stage / "capture.py").read_text(encoding="utf-8") if (ws_stage / "capture.py").exists() else ""
+            check("Staging: capture.py hands the BA's own actions to the renamed actions script",
+                  '"sam-actions.py"' in cap and '"ba-actions.py"' not in cap)
+            check("Staging: every other new script is present",
+                  all((ws_stage / n).exists() for n in ("capture.py", "validate-state.py", "compute-metrics.py", "render-initiative-canvas.py")))
+            todo_rule = next((p for p in (staging / "rules").glob("*todo*")), None)
+            check("Staging: /todo rule tells the agent the renamed script",
+                  todo_rule is not None and "sam-actions.py" in todo_rule.read_text(encoding="utf-8")
+                  and "ba-actions.py" not in todo_rule.read_text(encoding="utf-8"))
+            hook = (staging / "hooks" / "session-init.py").read_text(encoding="utf-8")
+            check("Staging: hook script uses the BA's actions file", "sam-actions.json" in hook and "ba-actions.json" not in hook)
+            check("Staging: D file kept as the BA's (keep_mine)", "SAM EDIT D" in (staging / d_file.relative_to(cursor)).read_text(encoding="utf-8"))
+            prof = (staging / "rules" / "ba-profile.mdc").read_text(encoding="utf-8")
+            check("Staging: profile command table replaced by the pointer, tone kept",
+                  "Sam's tone: dry." in prof and "Slash commands live in" in prof and "End-of-session closeout" not in prof)
 
-        # ---- deploy plan, drift, deploy ----
-        code, out = run([TOOL, "deploy-plan", "--session", session], home)
-        m = re.search(r"--plan-sha (\w+)", out)
-        check("Deploy-plan: OK", code == 0 and m, out[-1000:])
-        plan = json.loads((session / "deploy-plan.json").read_text(encoding="utf-8"))
-        plan_paths = {e["path"] for e in plan["entries"]}
-        check("Deploy-plan: data never in the plan",
-              not any(p.endswith(("sam-actions.json", "workboard.json")) or p.startswith("initiatives/") for p in plan_paths))
-        check("Deploy-plan: own files never in the plan",
-              not {"rules/sam-own.mdc", "skills/sam-skill/SKILL.md", "rules/sam-tone-of-voice.mdc"} & plan_paths)
+            # ---- deploy plan, drift, deploy ----
+            code, out = run([TOOL, "deploy-plan", "--session", session], home)
+            m = re.search(r"--plan-sha (\w+)", out)
+            check("Deploy-plan: OK", code == 0 and m, out[-1000:])
+            plan = json.loads((session / "deploy-plan.json").read_text(encoding="utf-8"))
+            plan_paths = {e["path"] for e in plan["entries"]}
+            check("Deploy-plan: data never in the plan",
+                  not any(p.endswith(("sam-actions.json", "workboard.json")) or p.startswith("initiatives/") for p in plan_paths))
+            check("Deploy-plan: own files never in the plan",
+                  not {"rules/sam-own.mdc", "skills/sam-skill/SKILL.md", "rules/sam-tone-of-voice.mdc"} & plan_paths)
 
-        (ws / "sam-actions.json").write_text("{}", encoding="utf-8")  # another chat writes mid-upgrade
-        code, out = run([TOOL, "deploy", "--session", session, "--plan-sha", m.group(1)], home)
-        check("Deploy: drift in the live install blocks the deploy", code == 1 and "changed" in out, out[-600:])
-        (ws / "sam-actions.json").write_bytes((session / "snapshot" / "home" / "_workstream" / "sam-actions.json").read_bytes())
-        code, out = run([TOOL, "deploy", "--session", session, "--plan-sha", "wrong"], home)
-        check("Deploy: refuses a plan id that was not reviewed", code == 1, out[-300:])
+            (ws / "sam-actions.json").write_text("{}", encoding="utf-8")  # another chat writes mid-upgrade
+            code, out = run([TOOL, "deploy", "--session", session, "--plan-sha", m.group(1)], home)
+            check("Deploy: drift in the live install blocks the deploy", code == 1 and "changed" in out, out[-600:])
+            (ws / "sam-actions.json").write_bytes((session / "snapshot" / "home" / "_workstream" / "sam-actions.json").read_bytes())
+            code, out = run([TOOL, "deploy", "--session", session, "--plan-sha", "wrong"], home)
+            check("Deploy: refuses a plan id that was not reviewed", code == 1, out[-300:])
 
-        code, out = run([TOOL, "deploy", "--session", session, "--plan-sha", m.group(1)], home)
-        check("Deploy: OK and verified", code == 0 and "verified by hash" in out, out[-1500:])
-        for k, v in keep.items():
-            if k == "profile":
-                continue
-            check(f"Deploy: {k} byte-identical", sha(v) == before[k])
-        check("Deploy: no generic ba-actions file in the live install",
-              not [p for p in cursor.rglob("*") if "ba-actions" in p.name])
-        version = (REPO / "VERSION").read_text(encoding="utf-8").strip()
-        check("Deploy: version stamped",
-              (cursor / "skills" / "ba-assistant" / "VERSION").read_text(encoding="utf-8").strip() == version)
-        added = [e["path"] for e in plan["entries"] if e["action"] == "add"]
+            code, out = run([TOOL, "deploy", "--session", session, "--plan-sha", m.group(1)], home)
+            check("Deploy: OK and verified", code == 0 and "verified by hash" in out, out[-1500:])
+            for k, v in keep.items():
+                if k == "profile":
+                    continue
+                check(f"Deploy: {k} byte-identical", sha(v) == before[k])
+            check("Deploy: no generic ba-actions file in the live install",
+                  not [p for p in cursor.rglob("*") if "ba-actions" in p.name])
+            version = (REPO / "VERSION").read_text(encoding="utf-8").strip()
+            check("Deploy: version stamped",
+                  (cursor / "skills" / "ba-assistant" / "VERSION").read_text(encoding="utf-8").strip() == version)
+            added = [e["path"] for e in plan["entries"] if e["action"] == "add"]
 
-        # ---- rollback ----
-        code, out = run([TOOL, "rollback", "--session", session], home)
-        check("Rollback: OK", code == 0 and "every hash matches" in out, out[-800:])
-        check("Rollback: profile restored exactly", sha(profile) == before["profile"])
-        check("Rollback: files the upgrade added are gone", not any((cursor / p).exists() for p in added), str(added[:3]))
-        code, out = run([TOOL, "drift", "--session", session], home)
-        check("Rollback: install matches the backup exactly (no drift)", code == 0, out[-800:])
+            # ---- rollback ----
+            code, out = run([TOOL, "rollback", "--session", session], home)
+            check("Rollback: OK", code == 0 and "every hash matches" in out, out[-800:])
+            check("Rollback: profile restored exactly", sha(profile) == before["profile"])
+            check("Rollback: files the upgrade added are gone", not any((cursor / p).exists() for p in added), str(added[:3]))
+            code, out = run([TOOL, "drift", "--session", session], home)
+            check("Rollback: install matches the backup exactly (no drift)", code == 0, out[-800:])
 
-        personalised_layout_scenario(tmp, v14)
+            personalised_layout_scenario(tmp, v14)
+        finally:
+            for p in synthetic_repo_paths:
+                try:
+                    p.unlink(missing_ok=True)
+                except OSError:
+                    pass
 
     print(f"\n{'All merge tool tests passed.' if not FAILURES else f'{len(FAILURES)} failed.'}")
     return 1 if FAILURES else 0

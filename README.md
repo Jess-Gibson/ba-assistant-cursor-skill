@@ -1,6 +1,6 @@
 # BA Assistant for Cursor
 
-**Version 15** - see [CHANGELOG.md](CHANGELOG.md).
+**Version 16** - see [CHANGELOG.md](CHANGELOG.md).
 
 A comprehensive Business Analysis assistant built as a Cursor skill. Designed to support BAs through the full initiative lifecycle — from intake and discovery through delivery, playback, and retrospective.
 
@@ -105,7 +105,7 @@ Default initiative folders: `~/.cursor/initiatives`. After files are installed, 
 
 ## Upgrade from an older install
 
-Preserves personalised `ba-profile.mdc` and `_workstream` data. Package files (skills, package rules, commands, hooks) are replaced with the new version. Legacy data migrations (old `personal_tasks[]`, an old actions file) only run with `--migrate-legacy`. `--patch-profile` updates only the old `/wrap` and `/validate-state` rows in your profile.
+Preserves personalised `ba-profile.mdc` and `_workstream` data. Package files (skills, package rules, commands, hooks) are replaced with the new version. If you applied retro patches or edited those package files, use the merge tool instead and check `_workstream/local-skill-patches.md` for what you changed. Legacy data migrations (old `personal_tasks[]`, an old actions file) only run with `--migrate-legacy`. `--patch-profile` updates only the old `/wrap` and `/validate-state` rows in your profile.
 
 **Edited skills or rules, or renamed things to your own names?** Use `tools/ba-merge-upgrade.py` instead. It backs up, stages, compares your install against the old and new versions, keeps your edits and naming, and deploys only what you approve. Walkthrough: [docs/PERSONALISED-UPGRADE.md](docs/PERSONALISED-UPGRADE.md).
 
@@ -124,12 +124,12 @@ macOS/Linux: `./tools/upgrade-ba-assistant.sh /path/to/ba-assistant-cursor-skill
 
 ## Calendar (optional)
 
-| OS | Sample |
+| OS | Script |
 |---|---|
-| Windows + Outlook | `skills/ba-assistant/references/sample-scripts/get-calendar.ps1` |
+| Windows + Outlook | `hooks/get-calendar.ps1` (installer copies it to `~/.cursor/hooks/`; supports `-DaysBehind`) |
 | macOS + Calendar.app | `skills/ba-assistant/references/sample-scripts/get-calendar.mac.sh` |
 
-Both write `_workstream/calendar-feed.json`. `/workboard` works without a calendar.
+Both write `_workstream/calendar-feed.json`. `/workboard` works without a calendar. The sample-scripts copy of the Windows script is a pointer only.
 
 ---
 

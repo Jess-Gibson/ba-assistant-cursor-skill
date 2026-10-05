@@ -6,18 +6,20 @@ This document explains what to personalize after installing the BA Assistant pac
 
 ---
 
-## 1. BA Profile Rule (`rules/ba-profile.mdc`)
+## 1. Personal configuration (`rules/ba-assistant-config.mdc`)
 
-This is the most important file to customize. It defines your BA persona, commands, living tracker format, and status page structure.
+This is your personal settings file. `/setup` creates it and upgrades do not overwrite it.
 
 ### What to change
 
 | Section | What to do |
 |---------|-----------|
-| Title and role description | Replace with your name and how you want the assistant to behave |
-| Skills and activities | Not in this file any more: see `references/activity-map.md`, and `skills-routing.mdc` for what loads when |
-| Status Page Standard Format | Customize sections for your org's status reporting needs |
-| Communication Style | Adjust to match your preferences |
+| Name, role and domain | Set the values that describe your work |
+| Paths and integrations | Set initiative folders, Jira and Confluence details |
+| Workboard preferences | Set calendar, catch-up and mail-noise preferences |
+| Personal voice | Create an own-named rule such as `your-name-voice-and-style.mdc` |
+
+Do not treat package `rules/ba-profile.mdc` as your configuration file. If you need to change the shared persona, create an own-named profile rule and keep it separate so package upgrades remain straightforward.
 
 ### Status page sections
 

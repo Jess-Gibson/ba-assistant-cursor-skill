@@ -19,6 +19,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import zipfile
 from datetime import datetime
 from pathlib import Path
 
@@ -200,12 +201,93 @@ def roll_highlight_tests(tmp):
     check("Roll: no config, no flag, no highlight", m["highlight"] is False)
 
 
+def _minimal_docx(path: Path) -> None:
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+        "<w:body><w:p><w:r><w:t>Hello transcript</w:t></w:r></w:p></w:body></w:document>"
+    )
+    with zipfile.ZipFile(path, "w") as zf:
+        zf.writestr("word/document.xml", xml)
+        zf.writestr(
+            "[Content_Types].xml",
+            '<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+            '<Default Extension="xml" ContentType="application/xml"/>'
+            '<Override PartName="/word/document.xml" '
+            'ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
+            "</Types>",
+        )
+
+
+def f17_extract_mark_processed(tmp: Path):
+    home = tmp / "f17-home" / ".cursor"
+    ws = home / "_workstream"
+    ws.mkdir(parents=True)
+    downloads = tmp / "f17-home" / "Downloads"
+    downloads.mkdir(parents=True)
+    docx = downloads / "Weekly sync - Transcript.docx"
+    _minimal_docx(docx)
+    out = tmp / "f17-out.txt"
+    extract = REPO / "_workstream" / "extract-docx-text.py"
+    env = {k: v for k, v in os.environ.items()}
+    env["HOME"] = str(tmp / "f17-home")
+    env["USERPROFILE"] = str(tmp / "f17-home")
+    # Script writes processed-transcripts next to itself when installed; copy it into the throwaway workstream.
+    import shutil
+
+    shutil.copy(extract, ws / "extract-docx-text.py")
+    shutil.copy(REPO / "_workstream" / "list-downloads-recent.py", ws / "list-downloads-recent.py")
+    proc = subprocess.run(
+        [PY, str(ws / "extract-docx-text.py"), "--docx-path", str(docx), "--out-path", str(out)],
+        capture_output=True, text=True, env=env, timeout=30,
+    )
+    check("[F17] extract without flag exits 0", proc.returncode == 0, proc.stdout + proc.stderr)
+    processed = ws / "processed-transcripts.json"
+    after_extract = processed.read_text(encoding="utf-8") if processed.exists() else ""
+    check("[F17] extract without flag does not mark processed",
+          str(docx.resolve()) not in after_extract and docx.name not in after_extract, after_extract[:300])
+    proc = subprocess.run(
+        [PY, str(ws / "list-downloads-recent.py"), "--mark-processed", str(docx)],
+        capture_output=True, text=True, env=env, timeout=30,
+    )
+    check("[F17] --mark-processed via list-downloads-recent exits 0", proc.returncode == 0, proc.stdout + proc.stderr)
+    after_mark = processed.read_text(encoding="utf-8") if processed.exists() else ""
+    check("[F17] --mark-processed records the transcript",
+          str(docx.resolve()) in after_mark or docx.name in after_mark, after_mark[:400])
+
+
+def f30_regenerate_help(tmp: Path):
+    ws = tmp / "f30-ws"
+    ws.mkdir()
+    import shutil
+
+    script = ws / "regenerate-ba-actions-md.py"
+    shutil.copy(REPO / "_workstream" / "regenerate-ba-actions-md.py", script)
+    data = {"schema_version": 1, "next_id": 1, "last_synced": "2026-10-05T12:00:00+13:00",
+            "actions": [{"id": "BA-001", "task": "Demo", "status": "open", "priority": "medium",
+                         "raised": "2026-10-01", "due": None}], "watching": []}
+    json_path = ws / "ba-actions.json"
+    md_path = ws / "ba-actions.md"
+    json_path.write_text(json.dumps(data), encoding="utf-8")
+    md_path.write_text("# before\n", encoding="utf-8")
+    before_json = json_path.read_bytes()
+    before_md = md_path.read_bytes()
+    # Patch script paths: it binds JSON_PATH/MD_PATH at import to its own directory.
+    proc = subprocess.run([PY, str(script), "--help"], capture_output=True, text=True, timeout=30)
+    check("[F30] --help exits 0", proc.returncode == 0, proc.stdout + proc.stderr)
+    check("[F30] --help prints usage", "usage:" in (proc.stdout + proc.stderr).lower(), (proc.stdout + proc.stderr)[:300])
+    check("[F30] --help leaves JSON unchanged", json_path.read_bytes() == before_json)
+    check("[F30] --help leaves MD unchanged", md_path.read_bytes() == before_md)
+
+
 def main():
     with tempfile.TemporaryDirectory(prefix="ba-script-tests-") as tmp:
         tmp = Path(tmp)
         mail_tests(tmp)
         snapshot_tests(tmp)
         roll_highlight_tests(tmp)
+        f17_extract_mark_processed(tmp)
+        f30_regenerate_help(tmp)
     print(f"\n{'All script tests passed.' if not FAILURES else f'{len(FAILURES)} failed.'}")
     return 1 if FAILURES else 0
 

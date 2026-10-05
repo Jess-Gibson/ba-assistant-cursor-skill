@@ -66,8 +66,8 @@ This skill enforces `references/canonical-ownership.md`. Quick reference:
 
 | Hook | When | Why |
 |---|---|---|
-| **ba-jira-sync** | Before validation | Refresh ticket statuses so Jira-derived facts in status-data.json are current before comparison |
-| **ba-project-canvas (Data Model section  -  status-page-and-data.md)** | Before validation | Refresh status-data.json from tracker so structured view matches narrative source |
+| **ba-jira-sync** | Before validation | Jira only if `status-refresh.md` says the sync is 60 minutes old or more. |
+| **ba-project-canvas (Data Model section  -  status-page-and-data.md)** | Before validation | Apply targeted updates per `status-refresh.md`. |
 | **Anti-Pattern Detector** | After validation | Log every divergence type observed so patterns can promote to the watchlist |
 | **Communication_Drafter** (in Playback) | If divergences include Confluence pages that need superseding | Draft the supersede banner content |
 
@@ -118,9 +118,8 @@ when the tracker updates but the team file doesn't.
 
 Before comparing, refresh the structured layer from the narrative layer:
 
-1. **Run ba-jira-sync**  -  pull current ticket statuses into status-data.json
-2. **Re-derive status-data.json from initiative-tracker.md**  -  for any decision / RAID item / OQ
-   present in the tracker but absent or stale in status-data.json, update status-data.json
+1. **Run `validate-state.py --json` and follow `status-refresh.md`**. Sync Jira only when the last sync is 60 minutes old or more.
+2. **Update only the items it reports**. For a decision, RAID item, or open question present in the tracker but absent or stale in status-data.json, update status-data.json.
 3. **Log every refresh action** so the user can see what changed before validation runs
 
 This is the source-of-truth alignment step. Without it, the validator would report drift that's

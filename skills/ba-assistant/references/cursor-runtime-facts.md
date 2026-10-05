@@ -89,6 +89,10 @@ Ordered by impact vs effort. Do local (`~/.cursor/`) first; sync to a public rep
 - Do not add always-on rules that duplicate skill bodies (always-on is the expensive path).
 - Do not treat this facts file as bootstrap reading material.
 
+## Cloud and background agents
+
+Cursor does not run `sessionStart` or `beforeMCPExecution` hooks in cloud agents. In a cloud or background agent the BA Assistant has no session context and **no external-write gate**: Jira, Confluence, chat and mail writes are not stopped or checked by the package. Use BA Assistant for writes in local agent chats only. If you automate catch-up or end of day, keep it read-only.
+
 ---
 
 ## Sources (for re-verify)

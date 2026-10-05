@@ -9,7 +9,7 @@ When each gate fires, and where its logic lives (load that file when the gate fi
 
 | Gate | Fires when | Enforcement | Logic lives in |
 |---|---|---|---|
-| External writes | Any Runlayer write (Jira, Confluence, calendar, Miro, chat) | **HARD:** `beforeMCPExecution` hook (`external-write-gate.py`) asks on any write verb; reads pass; email denied | `agent-behavior.mdc` Safety |
+| External writes | Any Runlayer write (Jira, Confluence, calendar, Miro, chat) | **HARD:** `beforeMCPExecution` hook (`external-write-gate.py`) asks on any write verb; reads pass; email denied (MCP only; shell mail is a rule, not a hook) | `agent-behavior.mdc` Safety |
 | Jira story preflight | A Story is about to be created in Jira | **HARD:** the same hook reruns 5 structural checks; fail = BA override. A pass is not the DoR | `_workstream/dor-check.py`, `ba-story-writing` 3b |
 | Shared-repo leak guard | A file under `paths.sharedRepoRoot` (or `BA_SHARED_REPO_ROOT`) is edited / committed | **HARD when a shared-repo path is set:** edits warn, git commit/push with leaks is denied. No path set = no guard | `dev-handover-format.md §1, §7` |
 | Miro pre-flight | Before Miro `layout_create` | Manual: write a fresh plan file with `## Board inventory (context_explore)` and `## Board placement` first | `miro-board-analysis/algorithm.md` Pass 2b-0/2b |

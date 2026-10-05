@@ -66,7 +66,7 @@ Callee names below are the original contract names. They map to shipped skills l
 | Name in this file | What to load |
 |---|---|
 | `Communication_Drafter` | `ba-playback-and-enablement` (comms section) |
-| `Visual_Storytelling` | `ba-visual-storytelling` (standard: `references/visual-output-format.md`) |
+| `Visual_Storytelling` | `references/visual-output-format.md` |
 | `Risk_and_Tracker` | `ba-risk-and-tracker` |
 | `Requirements_Interrogator` | `ba-requirements-interrogator` |
 | `Current_State_Assessment` | `ba-current-state-assessment` |
@@ -84,7 +84,7 @@ These skills receive the most hooks. Changes to them are highest-risk.
 |---|---|---|
 | `Requirements_Interrogator` | 6+ | Interrogation gate before requirements/stories/design are accepted |
 | `Risk_and_Tracker` | 12+ | All RAID, actions, decisions, sign-offs route here |
-| `Visual_Storytelling` | 9+ | Every output that has a visual element calls here (Wave 10: resolves to `references/visual-output-format.md`, applied inline) |
+| `Visual_Storytelling` | 9+ | Every output that has a visual element follows `references/visual-output-format.md`, applied inline |
 | `Communication_Drafter` *(now inside Playback)* | 12+ | Every stakeholder-facing message routes here |
 | `Sponsor_Engagement` | 7+ | Sustained sponsor relationship  -  many phases call back |
 | `Anti_Pattern_Detector` | passive (no inbound) | Watches all outputs; flags inline |

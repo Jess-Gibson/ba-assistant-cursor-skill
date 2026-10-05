@@ -86,7 +86,7 @@ python tools/install-ba-assistant.py --package <package-root> --cursor-home <cur
 python tools/install-ba-assistant.py --package <package-root> --cursor-home <cursor-home> --apply
 ```
 
-Windows may use `py tools\install-ba-assistant.py ...` or `.\tools\install-ba-assistant.ps1 -Apply`.
+Windows may use `py` instead of `python3`: `py tools\install-ba-assistant.py ...` or `.\tools\install-ba-assistant.ps1 -Apply`.
 
 Show the user a short summary: skills copied, N rules, N commands, hooks, `_workstream` seeded, `initiatives/` created.
 

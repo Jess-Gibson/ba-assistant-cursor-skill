@@ -1,10 +1,23 @@
 # BA Assistant — User Guide
 
-*Current package: **Version 15** (see CHANGELOG.md). This guide was substantially updated in August 2026; earlier sections still describe Waves 1–7 foundations.*
+*Current package: **Version 16** (see CHANGELOG.md). This guide was substantially updated in August 2026; earlier sections still describe Waves 1–7 foundations.*
 
 This guide introduces the **BA Assistant**, a multi-skill system for business analysts and product managers that takes an initiative from earliest conception through delivery and post-launch evaluation.
 
 ---
+
+## What changed in Version 16
+
+| Change | What it means for you |
+|---|---|
+| **Status page updates in place** | Confluence status uses ADF panels from a template; a second publish updates the same page |
+| **Jira only when an hour old** | `/status` and `/canvas` re-query Jira when the oldest ticket sync is 60 minutes or older |
+| **`/catchup` and `/eod`** | Catch-up has a due check; end of day applies clear BA-owned updates and cards the rest |
+| **Starter tracker registers** | New initiatives get PM approval, DoR checks, MoSCoW and Sign-offs columns ready |
+| **Safer catch-up hours** | A bad `catchupHours` value warns instead of crashing session start |
+| **Session banner only in BA chats** | Non-BA chats ignore the BA session line |
+| **Workboard calendar** | Timeline follows your catch-up hours (plus or minus 30 minutes), widened for meetings |
+| **Focus blocks per preferences** | End of day books focus blocks automatically only if your working-preferences file says so |
 
 ## What changed in Version 15
 

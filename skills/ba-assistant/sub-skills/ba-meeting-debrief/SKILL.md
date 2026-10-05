@@ -139,6 +139,26 @@ Use AskQuestion to present options. On "Approve all", execute all writes in sequ
 6. Offer to draft comms
 7. Save a version after the writes (silent): `python3 ~/.cursor/_workstream/initiative-history.py snapshot --initiative <slug> --label "Debrief: <meeting>"`. The BA can undo the whole debrief with `/undo`.
 
+### Approved-review payload and safe apply
+
+Chat review is the quality gate. Before asking for approval, show the complete extraction and `WILL WRITE TO...` card, then render a `debrief-review-<slug>-<date>.json` payload containing exactly those rows and session note. Do not run the helper yet.
+
+The payload includes the initiative slug and root, meeting name/date, an approval block, `markdownUpdates`, and `baActions`.
+
+After an explicit Approve option only:
+
+1. Set `approval.approved` to `true`, then record `reviewedBy` and `reviewedAt`, without changing proposed content.
+2. Run a dry run: `python3 _workstream/apply-debrief-review.py <payload-path>` (Windows: `py`).
+3. Show the dry-run operations in chat. If they differ from the approved card, stop.
+4. Apply: `python3 _workstream/apply-debrief-review.py <payload-path> --apply` (Windows: `py`).
+5. The helper regenerates `ba-actions.md` only when `baActions` changed.
+6. Report exact applied operations, then run the normal sync gate.
+7. After the BA approves the card (any option except cancel), mark the transcript processed. Extraction alone never marks it.
+
+The helper permits only additive tracker table rows, session-context appends, and BA-action upserts. It cannot publish, update Jira or Confluence, alter a requirements register, or rewrite an existing tracker row. Those changes need their owning skill and a separate review.
+
+For **Edit before approving**, revise the chat card and regenerate the payload. Never modify a previously reviewed payload in place and call it approved.
+
 ### Cross-initiative debriefs
 
 If a meeting touches multiple initiatives (e.g. a program-level sync), the batch card groups updates by initiative:

@@ -13,6 +13,10 @@ from datetime import date, timedelta
 from pathlib import Path
 
 PRIORITY_ORDER = {"high": 0, "medium": 1, "low": 2}
+DAY_START = 6 * 60
+DAY_END = 22 * 60
+DEFAULT_CATCHUP = (8 * 60 + 30, 17 * 60 + 30)
+LONG_EVENT_MINUTES = 10 * 60
 
 
 def posix(path: Path) -> str:
@@ -50,6 +54,29 @@ def parse_rule_value(text: str, key: str) -> str | None:
                 if value and value not in {"[Your Name]", "TBC"} and not value.startswith("["):
                     return value
     return None
+
+
+def parse_hours(value: str | None) -> tuple[int, int] | None:
+    match = re.match(r"^\s*(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})\s*$", value or "")
+    if not match:
+        return None
+    h1, m1, h2, m2 = (int(part) for part in match.groups())
+    if h1 > 23 or h2 > 23 or m1 > 59 or m2 > 59:
+        return None
+    start, end = h1 * 60 + m1, h2 * 60 + m2
+    return (start, end) if start < end else None
+
+
+def load_working_preferences(workstream: Path) -> dict:
+    """Read working and lunch hours when configured."""
+    path = workstream / "ba-working-preferences.md"
+    if not path.exists():
+        return {}
+    text = path.read_text(encoding="utf-8")
+    return {
+        "workingHours": parse_rule_value(text, "workingHours"),
+        "lunchHours": parse_rule_value(text, "lunchHours"),
+    }
 
 
 def resolve_canvas_path(cursor_home: Path) -> str:
@@ -101,6 +128,10 @@ def load_workboard_config(cursor_home: Path) -> dict:
         or str(Path.home() / "Downloads")
     )
     downloads = posix(Path(downloads).expanduser())
+    catchup = parse_hours(parse_rule_value(rules_text, "catchupHours")) or DEFAULT_CATCHUP
+    prefs = load_working_preferences(workstream)
+    working = parse_hours(prefs.get("workingHours")) or catchup
+    lunch = parse_hours(prefs.get("lunchHours"))
 
     return {
         "cursor_home": posix(home),
@@ -125,6 +156,12 @@ def load_workboard_config(cursor_home: Path) -> dict:
         "canvas_path": resolve_canvas_path(home),
         "workboard_command": posix(home / "commands" / "workboard.md"),
         "wrap_command": posix(home / "commands" / "wrap.md"),
+        "catchup_start": catchup[0],
+        "catchup_end": catchup[1],
+        "work_start": working[0],
+        "work_end": working[1],
+        "lunch_start": lunch[0] if lunch else None,
+        "lunch_end": lunch[1] if lunch else None,
     }
 
 
@@ -187,38 +224,34 @@ def clock_label(minutes: int) -> str:
     return f"{twelve_hour}:{remainder:02d} {suffix}"
 
 
-def normalized_calendar(meetings: list[dict], work_start: int = 600, work_end: int = 1140) -> tuple[list[dict], list[dict]]:
-    blocks: list[dict] = []
-    for raw in meetings:
-        start = clock_minutes(raw.get("time") or raw.get("start"))
-        end = clock_minutes(raw.get("end"))
-        if start is None:
-            continue
-        if end is None:
-            end = start + int(raw.get("duration_min") or 30)
-        start, end = max(work_start, start), min(work_end, end)
-        if end <= start:
-            continue
-        subject = str(raw.get("subject") or raw.get("label") or "").strip()
-        organizer = str(raw.get("organizer") or "").strip()
-        cancelled = bool(raw.get("canceled") or raw.get("cancelled") or subject.lower().startswith("canceled:"))
-        focus = not subject or subject.lower() in {"focus block", "focus time"}
-        blocks.append(
-            {
-                "start": start,
-                "end": end,
-                "startLabel": clock_label(start),
-                "endLabel": clock_label(end),
-                "title": "Focus time" if focus else subject,
-                "organizer": organizer,
-                "cancelled": cancelled,
-                "focus": focus,
-                "highlight": bool(raw.get("highlight")),
-            }
-        )
+def _meeting_times(raw: dict) -> tuple[int | None, int | None]:
+    start = clock_minutes(raw.get("time") or raw.get("start"))
+    if start is None:
+        return None, None
+    end = clock_minutes(raw.get("end"))
+    return start, end if end is not None else start + int(raw.get("duration_min") or 30)
+
+
+def _meeting_meta(raw: dict) -> tuple[str, str, bool, bool]:
+    subject = str(raw.get("subject") or raw.get("label") or "").strip()
+    organizer = str(raw.get("organizer") or "").strip()
+    cancelled = bool(raw.get("canceled") or raw.get("cancelled") or subject.lower().startswith("canceled:"))
+    return subject, organizer, cancelled, (not subject or subject.lower() in {"focus block", "focus time"})
+
+
+def _list_block(raw: dict, start: int, end: int) -> dict:
+    subject, organizer, cancelled, focus = _meeting_meta(raw)
+    return {
+        "start": start, "end": end, "startLabel": clock_label(start), "endLabel": clock_label(end),
+        "title": "Focus time" if focus else subject, "organizer": organizer, "cancelled": cancelled,
+        "focus": focus, "highlight": bool(raw.get("highlight")),
+    }
+
+
+def _assign_lanes(blocks: list[dict]) -> None:
     blocks.sort(key=lambda item: (item["start"], item["end"], item["title"]))
     clusters: list[list[dict]] = []
-    cluster_end = work_start
+    cluster_end = 0
     for block in blocks:
         if clusters and block["start"] < cluster_end:
             clusters[-1].append(block)
@@ -240,18 +273,26 @@ def normalized_calendar(meetings: list[dict], work_start: int = 600, work_end: i
         for block in cluster:
             block["laneCount"] = len(lane_ends)
 
-    occupied = sorted(
-        [(block["start"], block["end"]) for block in blocks if not block["cancelled"]],
+def _free_blocks(occupied: list[tuple[int, int]], free_start: int, free_end: int,
+                 lunch_start: int | None, lunch_end: int | None) -> list[dict]:
+    blocked = sorted(
+        [(max(free_start, start), min(free_end, end)) for start, end in occupied
+         if end > free_start and start < free_end],
         key=lambda item: item[0],
     )
+    if lunch_start is not None and lunch_end is not None:
+        blocked.append((max(free_start, lunch_start), min(free_end, lunch_end)))
+        blocked.sort(key=lambda item: item[0])
     merged: list[list[int]] = []
-    for start, end in occupied:
+    for start, end in blocked:
+        if end <= start:
+            continue
         if merged and start <= merged[-1][1]:
             merged[-1][1] = max(merged[-1][1], end)
         else:
             merged.append([start, end])
     free_blocks: list[dict] = []
-    cursor = work_start
+    cursor = free_start
     for start, end in merged:
         if start > cursor:
             free_blocks.append(
@@ -264,17 +305,61 @@ def normalized_calendar(meetings: list[dict], work_start: int = 600, work_end: i
                 }
             )
         cursor = max(cursor, end)
-    if cursor < work_end:
+    if cursor < free_end:
         free_blocks.append(
             {
                 "start": cursor,
-                "end": work_end,
+                "end": free_end,
                 "startLabel": clock_label(cursor),
-                "endLabel": clock_label(work_end),
-                "minutes": work_end - cursor,
+                "endLabel": clock_label(free_end),
+                "minutes": free_end - cursor,
             }
         )
-    return blocks, [block for block in free_blocks if block["minutes"] >= 30]
+    return [block for block in free_blocks if block["minutes"] >= 30]
+
+
+def build_calendar(meetings: list[dict], config: dict) -> dict:
+    """View = catchupHours +/- 30, widened for meetings, capped 06:00-22:00."""
+    catchup_start, catchup_end = int(config["catchup_start"]), int(config["catchup_end"])
+    work_start, work_end = int(config["work_start"]), int(config["work_end"])
+    view_start, view_end = catchup_start - 30, catchup_end + 30
+    calendar_blocks, outside_blocks, all_day_blocks, occupied = [], [], [], []
+    for raw in meetings:
+        start, end = _meeting_times(raw)
+        if start is None or end is None or end <= start:
+            continue
+        _subject, _organizer, cancelled, _focus = _meeting_meta(raw)
+        if bool(raw.get("is_all_day")) or end - start > LONG_EVENT_MINUTES:
+            all_day_blocks.append(_list_block(raw, start, end))
+            continue
+        if end <= DAY_START or start >= DAY_END:
+            outside_blocks.append(_list_block(raw, start, end))
+            continue
+        if not cancelled:
+            view_start, view_end = min(view_start, start), max(view_end, end)
+            occupied.append((start, end))
+        block = _list_block(raw, start, end)
+        block["rawStart"], block["rawEnd"] = start, end
+        calendar_blocks.append(block)
+    view_start = max(DAY_START, (max(DAY_START, view_start) // 60) * 60)
+    view_end = min(DAY_END, ((min(DAY_END, view_end) + 59) // 60) * 60)
+    if view_end <= view_start:
+        view_start, view_end = DAY_START, DAY_START + 60
+    drawn = []
+    for block in calendar_blocks:
+        raw_start, raw_end = int(block.pop("rawStart")), int(block.pop("rawEnd"))
+        start, end = max(raw_start, view_start), min(raw_end, view_end)
+        if end > start:
+            block.update(start=start, end=end, continuesBefore=raw_start < start, continuesAfter=raw_end > end)
+            drawn.append(block)
+    _assign_lanes(drawn)
+    return {
+        "calendarStart": view_start, "calendarEnd": view_end,
+        "calendarLabel": f"{clock_label(view_start)} to {clock_label(view_end)}",
+        "workStart": work_start, "workEnd": work_end, "calendarBlocks": drawn,
+        "freeBlocks": _free_blocks(occupied, work_start, work_end, config.get("lunch_start"), config.get("lunch_end")),
+        "outsideBlocks": outside_blocks, "allDayBlocks": all_day_blocks,
+    }
 
 
 def priority_queue(actions: list[dict], today: str, refreshed_today: bool) -> list[dict]:
@@ -482,7 +567,8 @@ def build_data(workboard: dict, actions_data: dict, calendar: dict, today: str, 
         actions.append(row)
     actions = sort_open_actions(actions)
     meetings = today_meetings(workboard, calendar, today)
-    calendar_blocks, free_blocks = normalized_calendar(meetings)
+    cal = build_calendar(meetings, config)
+    free_blocks = cal["freeBlocks"]
     refreshed = str(workboard.get("last_refreshed") or "")
     refreshed_today = refreshed.startswith(today)
     top_action = next((item for item in priority_queue(actions, today, refreshed_today) if item["kind"] == "action"), None)
@@ -511,8 +597,15 @@ def build_data(workboard: dict, actions_data: dict, calendar: dict, today: str, 
         "initiatives": [canvas_initiative(item) for item in initiatives if isinstance(item, dict)],
         "actions": [canvas_action(action) for action in actions],
         "meetings": meetings,
-        "calendarBlocks": calendar_blocks,
+        "calendarStart": cal["calendarStart"],
+        "calendarEnd": cal["calendarEnd"],
+        "calendarLabel": cal["calendarLabel"],
+        "workStart": cal["workStart"],
+        "workEnd": cal["workEnd"],
+        "calendarBlocks": cal["calendarBlocks"],
         "freeBlocks": free_blocks,
+        "outsideBlocks": cal["outsideBlocks"],
+        "allDayBlocks": cal["allDayBlocks"],
         "suggestedFocus": suggested_focus,
         "refreshedToday": refreshed_today,
         "priorityQueue": priority_queue(actions, today, refreshed_today),

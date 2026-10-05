@@ -227,21 +227,36 @@ def validate_tests(tmp):
     code, out = run(script, "--cursor-home", home, "--initiative", "clean")
     check("Validate: a clean initiative is ALIGNED", code == 0 and "ALIGNED" in out, out)
     recent = (datetime.now().astimezone() - timedelta(minutes=90)).isoformat(timespec="minutes")
+    old_jan = "2026-01-01T09:00:00+13:00"
+    # F09 a) mixed stamps: oldest wins; jiraMissing ignored elsewhere; stale count includes both non-missing
     (clean / "status-data.json").write_text(json.dumps({"initiative": {"name": "Clean"}, "tickets": [
-        {"key": "PAY-1", "status": "Done", "lastJiraSync": "2026-01-01T09:00:00+13:00"},
+        {"key": "PAY-1", "status": "Done", "lastJiraSync": old_jan},
         {"key": "PAY-2", "status": "To Do", "lastJiraSync": recent}]}), encoding="utf-8")
     code, out = run(script, "--cursor-home", home, "--initiative", "clean", "--json")
     summary = json.loads(out)["summary"]
-    check("Validate: reports the newest Jira sync and its age", summary["jiraSyncedAt"] == recent
+    check("[F09] mixed stamps: oldest jiraSyncedAt wins", summary["jiraSyncedAt"] == old_jan
+          and summary["tickets"] == 2
+          and summary.get("jiraStaleTickets") == 2, str(summary))
+    code, out = run(script, "--cursor-home", home, "--initiative", "clean")
+    check("[F09] mixed stamps: days-ago freshness line, gate still last",
+          "Jira sync (oldest ticket):" in out and "days ago" in out
+          and out.strip().splitlines()[-1].startswith("Gate: state-validation:"), out[-400:])
+    # F09 b) all recent: keep the original 85-95 minute arithmetic coverage
+    (clean / "status-data.json").write_text(json.dumps({"initiative": {"name": "Clean"}, "tickets": [
+        {"key": "PAY-1", "status": "Done", "lastJiraSync": recent},
+        {"key": "PAY-2", "status": "To Do", "lastJiraSync": recent}]}), encoding="utf-8")
+    code, out = run(script, "--cursor-home", home, "--initiative", "clean", "--json")
+    summary = json.loads(out)["summary"]
+    check("[F09] all recent: jiraSyncAgeMinutes 85 to 95", summary["jiraSyncedAt"] == recent
           and 85 <= (summary["jiraSyncAgeMinutes"] or 0) <= 95 and summary["tickets"] == 2, str(summary))
     code, out = run(script, "--cursor-home", home, "--initiative", "clean")
-    check("Validate: Jira freshness line, gate still last", "Jira last synced: 1h 3" in out
+    check("[F09] all recent: hour freshness line, gate still last", "Jira sync (oldest ticket): 1h 3" in out
           and out.strip().splitlines()[-1].startswith("Gate: state-validation:"), out)
     old = (datetime.now().astimezone() - timedelta(days=50)).isoformat(timespec="minutes")
     (clean / "status-data.json").write_text(json.dumps({"initiative": {"name": "Clean"}, "tickets": [
         {"key": "PAY-1", "status": "Done", "lastJiraSync": old}]}), encoding="utf-8")
     code, out = run(script, "--cursor-home", home, "--initiative", "clean")
-    check("Validate: a sync 48 hours or more ago is shown in days", "Jira last synced: 50 days ago" in out, out[-300:])
+    check("Validate: a sync 48 hours or more ago is shown in days", "Jira sync (oldest ticket): 50 days ago" in out, out[-300:])
     code, out = run(script, "--cursor-home", home, "--initiative", "missing")
     check("Validate: missing folder exits 1", code == 1, out)
 
@@ -307,6 +322,34 @@ def metrics_tests(tmp):
     check("Metrics: no completed sign-offs is n/a, never 0", m["signOffCycleTime"]["medianWorkingDays"] is None
           and m["signOffCycleTime"]["openOver7WorkingDays"] == ["SO-01"], str(m["signOffCycleTime"]))
     check("Metrics: cache written next to status-data.json", (init / "metrics-cache.json").exists())
+    # F15: confirmed counts as interrogated (keep accepted for older data)
+    sd_f15 = {
+        "initiative": {"name": "Refunds"},
+        "requirements": [
+            {"id": "HLR-01", "lifecycleState": "confirmed", "moscowMatrix": [{"scope": "initiative", "rating": "Must"}]},
+            {"id": "HLR-02", "lifecycleState": "interrogated", "moscowMatrix": [{"scope": "initiative", "rating": "Must"}]},
+        ],
+        "dorChecks": [], "signOffs": [],
+    }
+    (init / "status-data.json").write_text(json.dumps(sd_f15), encoding="utf-8")
+    code, out = run(script, "--cursor-home", home, "--initiative", "refunds", "--today", "2026-10-05", "--json")
+    m = json.loads(out)["metrics"]
+    check("[F15] confirmed plus interrogated gives interrogationRate 1.0",
+          m["interrogationRate"]["value"] == 1.0, str(m["interrogationRate"]))
+    sd_f15["requirements"][1]["lifecycleState"] = "proposed"
+    (init / "status-data.json").write_text(json.dumps(sd_f15), encoding="utf-8")
+    code, out = run(script, "--cursor-home", home, "--initiative", "refunds", "--today", "2026-10-05", "--json")
+    m = json.loads(out)["metrics"]
+    check("[F15] proposed plus confirmed gives interrogationRate 0.5",
+          m["interrogationRate"]["value"] == 0.5, str(m["interrogationRate"]))
+    # restore fixture-shaped data for the remaining metrics checks
+    sd = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    sd["requirements"][1]["moscowMatrix"] = []
+    sd["requirements"][0]["interrogated"] = True
+    sd["dorChecks"] = [{"storyTitle": "a", "checkedAt": "2026-10-01", "firstAttempt": "pass"},
+                       {"storyTitle": "b", "checkedAt": "2026-10-02", "firstAttempt": "partial"}]
+    (init / "status-data.json").write_text(json.dumps(sd), encoding="utf-8")
+    run(script, "--cursor-home", home, "--initiative", "refunds", "--today", "2026-10-05", "--json")
     sd.pop("dorChecks")
     (init / "status-data.json").write_text(json.dumps(sd), encoding="utf-8")
     for day in ("2026-10-06", "2026-10-07"):
@@ -408,7 +451,7 @@ def docs_tests():
     check("Install: every new script is in the installer's copy lists", not missing, ", ".join(missing))
 
 
-ALWAYS_ON_BUDGET = 24000  # characters across every alwaysApply rule plus the config template (was about 33000 before Version 15)
+ALWAYS_ON_BUDGET = 22000  # characters across every alwaysApply rule plus the config template (F13; was 24000 at PR #6 head)
 
 
 def always_on_tests():

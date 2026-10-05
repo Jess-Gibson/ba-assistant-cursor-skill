@@ -11,7 +11,7 @@ Use what `SKILL.md` Step 2 already read (snapshot or files); do not read the sam
 2b. Read `_workstream/ba-actions.json` — count open/blocked; note overdue. Full list: `_workstream/ba-actions.md`.
 3. Read `_workstream/calendar-feed.json` for today's meetings
 4. Check `CURSOR_NEW_TRANSCRIPT_COUNT` / `CURSOR_NEW_TRANSCRIPTS` (set by the sessionStart hook)
-5. Jira: no query on resume. Show the sync age from the state check (`validate-state.py` → "Jira last synced"). The user can say "refresh" or run `/status` for current tickets
+5. Jira: no query on resume. Show the sync age from the state check (`validate-state.py` → "Jira sync (oldest ticket)"). The user can say "refresh" or run `/status` for current tickets
 6. If the session context says `CATCH-UP DUE`, run `/catchup` (`ba-comms-debrief`) after the card and show its review card
 
 ### Card format

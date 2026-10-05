@@ -35,7 +35,7 @@ The sites come from `ba-assistant-config.mdc`: Jira = `jira.instanceUrl`, Conflu
 |---|---|---|
 | Confluence search (Rovo) | `atlassian__search` | `{ "query": "..." }` |
 | Confluence CQL | `searchConfluenceUsingCql` | `{ "cloudId": "<confluence UUID>", "cql": "..." }` |
-| Update Confluence page | `updateConfluencePage` | `{ "cloudId", "pageId", "body", "contentFormat": "markdown" }` |
+| Update Confluence page | `updateConfluencePage` | `{ "cloudId", "pageId", "body", "contentFormat": "adf" }` for status pages; otherwise use the format required by the target page. Status pages use `status-page-template.adf.json`; see `status-page-format.md`. |
 | Create Confluence page | `createConfluencePage` | `{ "cloudId", "spaceId", "body", "title?", "parentId?" }` |
 | Jira search (Rovo) | `atlassian__search_2` | `{ "query": "..." }` |
 | Jira JQL | `searchJiraIssuesUsingJql` | `{ "cloudId": "<Jira UUID>", "jql" (default `project = <jira.projectKey>`), "fields?", "maxResults?" }` |
@@ -44,6 +44,8 @@ The sites come from `ba-assistant-config.mdc`: Jira = `jira.instanceUrl`, Conflu
 | Edit Jira issue | `editJiraIssue` | `{ "cloudId", "issueIdOrKey", ... }` per search_tools schema |
 
 ## Schema discovery
+
+**Status pages:** use `contentFormat: "adf"` and `references/status-page-format.md` with `templates/status-page-template.adf.json`. Do not send status pages as Markdown.
 
 Use **Common tools** + cloud IDs above for known calls. Call **`search_tools`** only for tools not listed there or when the argument shape is uncertain. Do not rely on cached schema files from an older direct Atlassian MCP; they go stale.
 
